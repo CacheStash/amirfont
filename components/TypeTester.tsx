@@ -1,341 +1,191 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { RefreshCw, Type, AlignLeft, AlignCenter, AlignRight, Maximize2, Settings2, Grid3X3, ArrowLeft, ArrowRight, Keyboard } from 'lucide-react';
-import { BrutalistSlider } from './BrutalistSlider';
-import { BrutalistToggle } from './BrutalistToggle';
-import { FontConfig, FontSettings } from '../types';
+import React, { useState, useEffect } from 'react';
+import BrutalistSlider from './BrutalistSlider';
+import { FontConfig } from '../types';
+import { RotateCcw, ExternalLink, AlignLeft, AlignCenter, AlignRight, Grid3X3, Keyboard, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface TypeTesterProps {
   config: FontConfig;
   defaultText?: string;
 }
 
-const DEFAULT_TEXT_CONTENT = "The quick brown fox jumps over the lazy dog.\nType something here to test the font.";
-
-// Generate character ranges for the glyph map
-const generateGlyphs = () => {
-  const glyphs: string[] = [];
-  // Basic Latin
-  for (let i = 33; i <= 126; i++) glyphs.push(String.fromCharCode(i));
-  // Latin-1 Supplement
-  for (let i = 161; i <= 255; i++) glyphs.push(String.fromCharCode(i));
-  return glyphs;
-};
-
-const ALL_GLYPHS = generateGlyphs();
-const GLYPHS_PER_PAGE = 60; // Grid layout optimization
-
-export const TypeTester: React.FC<TypeTesterProps> = ({ 
-  config,
-  defaultText = DEFAULT_TEXT_CONTENT
-}) => {
-  const [text, setText] = useState<string>(defaultText);
-  const [alignment, setAlignment] = useState<'left' | 'center' | 'right'>('left');
-  const [viewMode, setViewMode] = useState<'type' | 'glyphs'>('type');
-  const [glyphPage, setGlyphPage] = useState(0);
+const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText }) => {
+  const [viewMode, setViewMode] = useState<'type' | 'characters'>('type');
+  const [text, setText] = useState(defaultText || 'The quick brown fox jumps over the lazy dog.');
+  const [size, setSize] = useState(117); // Default size besar untuk meminimalkan gap
+  const [leading, setLeading] = useState(1.1);
+  const [align, setAlign] = useState<'left' | 'center' | 'right'>('left');
+  const [axesValues, setAxesValues] = useState<Record<string, number>>({});
   
-  // -- INITIALIZATION LOGIC --
-  // We use a function to ensure this runs correctly for each instance
-  const getInitialSettings = (): FontSettings => {
-    const initialAxes: Record<string, number> = {};
-    config.axes.forEach(axis => {
-      initialAxes[axis.tag] = axis.default;
-    });
+  const [currentPage, setCurrentPage] = useState(1);
+  const charsPerPage = 48;
+  const allChars = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~".split('');
+  const totalPages = Math.ceil(allChars.length / charsPerPage);
 
-    const initialFeatures: Record<string, boolean> = {};
-    config.features.forEach(feat => {
-      initialFeatures[feat.tag] = feat.default || false;
-    });
-
-    return {
-      fontSize: 64,
-      lineHeight: 1.1,
-      letterSpacing: 0,
-      axisValues: initialAxes,
-      featureStates: initialFeatures
-    };
-  };
-
-  const [settings, setSettings] = useState<FontSettings>(getInitialSettings);
-
-  // Reset settings if the config prop completely changes (rare but good practice)
   useEffect(() => {
-    setSettings(getInitialSettings());
-  }, [config.name]);
-
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Auto-resize textarea logic
-  useEffect(() => {
-    if (textareaRef.current && viewMode === 'type') {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    const defaults: Record<string, number> = {};
+    if (config.axes) {
+      config.axes.forEach(axis => {
+        defaults[axis.tag] = axis.default;
+      });
     }
-  }, [text, settings.fontSize, settings.lineHeight, viewMode]);
+    setAxesValues(defaults);
+    setCurrentPage(1);
+  }, [config]);
 
-  // Handler for standard CSS props
-  const updateStandardSetting = (key: keyof Pick<FontSettings, 'fontSize' | 'lineHeight' | 'letterSpacing'>, value: number) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+  const handleAxisChange = (tag: string, value: number) => {
+    setAxesValues(prev => ({ ...prev, [tag]: value }));
   };
 
-  // Handler for Variable Axes
-  const updateAxis = (tag: string, value: number) => {
-    setSettings(prev => ({
-      ...prev,
-      axisValues: { ...prev.axisValues, [tag]: value }
-    }));
+  const resetValues = () => {
+    setSize(117);
+    setLeading(1.1);
+    const defaults: Record<string, number> = {};
+    if (config.axes) config.axes.forEach(axis => defaults[axis.tag] = axis.default);
+    setAxesValues(defaults);
   };
 
-  // Handler for OpenType Features
-  const toggleFeature = (tag: string) => {
-    setSettings(prev => ({
-      ...prev,
-      featureStates: { ...prev.featureStates, [tag]: !prev.featureStates[tag] }
-    }));
-  };
-
-  const resetSettings = () => {
-    setSettings(getInitialSettings());
-    setText(defaultText);
-    setAlignment('left');
-    setGlyphPage(0);
-  };
-
-  // -- CSS GENERATION --
-  
-  // Construct font-variation-settings string
-  const variationString = Object.entries(settings.axisValues)
-    .map(([tag, val]) => `"${tag}" ${val}`)
+  const variationSettings = Object.entries(axesValues)
+    .map(([tag, val]) => `'${tag}' ${val}`)
     .join(', ');
 
-  // Construct font-feature-settings string
-  // IMPORTANT: We explicitly set "tag" 1 or "tag" 0 to force the browser to obey
-  const featureString = Object.entries(settings.featureStates)
-    .map(([tag, isActive]) => `"${tag}" ${isActive ? 1 : 0}`)
-    .join(', ');
-
-  const fontStyle: React.CSSProperties = {
-    fontFamily: `${config.family}, sans-serif`,
-    fontSize: `${settings.fontSize}px`,
-    lineHeight: settings.lineHeight,
-    letterSpacing: `${settings.letterSpacing}em`,
-    textAlign: alignment,
-    fontVariationSettings: variationString || 'normal',
-    fontFeatureSettings: featureString || 'normal',
-    // Force ligatures to respond to feature settings
-    fontVariantLigatures: 'common-ligatures contextual', 
-    transition: 'all 0.2s ease',
-  };
-
-  // Helper to determine active font type for badges
-  const isVariable = config.axes.length > 0;
-  const hasFeatures = config.features.length > 0;
-
-  // Glyph Pagination Logic
-  const totalGlyphPages = Math.ceil(ALL_GLYPHS.length / GLYPHS_PER_PAGE);
-  const currentGlyphs = ALL_GLYPHS.slice(
-    glyphPage * GLYPHS_PER_PAGE,
-    (glyphPage + 1) * GLYPHS_PER_PAGE
-  );
+  const indexOfLastChar = currentPage * charsPerPage;
+  const indexOfFirstChar = indexOfLastChar - charsPerPage;
+  const currentChars = allChars.slice(indexOfFirstChar, indexOfLastChar);
 
   return (
-    <div className="relative w-full bg-white flex flex-col min-h-[60vh] font-sans border-2 border-black">
+    <div className="border-[3px] border-black bg-white select-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
       
-      {/* Header / Top Bar */}
-      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center border-b-2 border-black bg-white z-10 sticky top-0">
-        <div className="flex items-center gap-3 p-4 border-b md:border-b-0 md:border-r-2 border-black">
-            <Type className="w-5 h-5" />
-            <span className="font-bold tracking-tight text-lg uppercase">{config.name}</span>
-            <div className="flex gap-1 ml-2">
-              {isVariable && <span className="text-[10px] bg-black text-white px-2 py-0.5 font-mono uppercase">Var</span>}
-              {hasFeatures && <span className="text-[10px] border border-black text-black px-2 py-0.5 font-mono uppercase">OTF</span>}
-              {!isVariable && !hasFeatures && <span className="text-[10px] border border-black text-black px-2 py-0.5 font-mono uppercase">Static</span>}
-            </div>
+      {/* 1. TOP TOOLBAR (Tinggi & Lega) */}
+      <div className="flex flex-wrap items-stretch justify-between border-b-[3px] border-black bg-white min-h-[80px]">
+        <div className="flex items-center gap-4 px-8 border-r-[3px] border-black py-4">
+            <span className="font-black text-2xl md:text-3xl uppercase tracking-tighter">
+                T &nbsp; {config.name}
+            </span>
+            {(config.tags.includes('Variable') || config.axes.length > 0) && (
+                <span className="bg-black text-white text-[10px] font-bold px-2 py-1 uppercase tracking-wider">
+                    VAR
+                </span>
+            )}
         </div>
-        
-        <div className="flex flex-1 justify-end">
-            <div className="flex border-l-0 md:border-l-2 border-black divide-x-2 divide-black w-full md:w-auto">
-                {/* View Mode Toggle */}
-                <button 
-                    onClick={() => setViewMode(viewMode === 'type' ? 'glyphs' : 'type')}
-                    className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 font-mono text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors ${viewMode === 'glyphs' ? 'bg-black text-white' : 'bg-white text-black'}`}
-                >
-                    {viewMode === 'type' ? <Grid3X3 size={14} /> : <Keyboard size={14} />}
-                    {viewMode === 'type' ? 'View Map' : 'Type Mode'}
-                </button>
 
-                {/* Alignment Controls (Only visible in Type mode) */}
-                {viewMode === 'type' && (
-                  <>
-                    <button 
-                        onClick={() => setAlignment('left')}
-                        className={`px-4 py-3 hover:bg-black hover:text-white transition-colors ${alignment === 'left' ? 'bg-black text-white' : ''}`}
-                    >
-                        <AlignLeft size={16} />
-                    </button>
-                    <button 
-                        onClick={() => setAlignment('center')}
-                        className={`px-4 py-3 hover:bg-black hover:text-white transition-colors ${alignment === 'center' ? 'bg-black text-white' : ''}`}
-                    >
-                        <AlignCenter size={16} />
-                    </button>
-                    <button 
-                        onClick={() => setAlignment('right')}
-                        className={`px-4 py-3 hover:bg-black hover:text-white transition-colors ${alignment === 'right' ? 'bg-black text-white' : ''}`}
-                    >
-                        <AlignRight size={16} />
-                    </button>
-                  </>
-                )}
-            </div>
+        <div className="flex items-stretch flex-1 md:flex-none">
+            {/* Satu-satunya tombol navigasi mode */}
+            <button 
+              onClick={() => setViewMode(viewMode === 'type' ? 'characters' : 'type')}
+              className="px-8 border-r-[3px] border-black hover:bg-gray-100 flex items-center gap-3 font-bold text-xs uppercase tracking-widest transition-colors"
+            >
+               {viewMode === 'type' ? (
+                 <><Grid3X3 size={20} /> ALL CHARACTERS</>
+               ) : (
+                 <><Keyboard size={20} /> TYPE MODE</>
+               )}
+            </button>
+
+            {viewMode === 'type' && (
+              <div className="flex">
+                  <button onClick={() => setAlign('left')} className={`px-6 flex items-center ${align === 'left' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}><AlignLeft size={22} /></button>
+                  <button onClick={() => setAlign('center')} className={`px-6 border-l-[3px] border-black flex items-center ${align === 'center' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}><AlignCenter size={22} /></button>
+                  <button onClick={() => setAlign('right')} className={`px-6 border-l-[3px] border-black flex items-center ${align === 'right' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}><AlignRight size={22} /></button>
+              </div>
+            )}
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-grow relative w-full bg-[url('https://www.transparenttextures.com/patterns/graphy.png')]">
+      {/* 2. MAIN VIEW AREA */}
+      <div className="relative overflow-hidden min-h-[500px] bg-[#f8f8f8] bg-grid-pattern flex flex-col">
         
         {viewMode === 'type' ? (
-          /* TYPE VIEW */
-          <div className="relative w-full h-full overflow-hidden">
-             <textarea
-              ref={textareaRef}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Start typing..."
-              spellCheck={false}
-              className="w-full h-full min-h-[40vh] bg-transparent resize-none outline-none p-8 md:p-16 text-black placeholder:text-gray-300 overflow-hidden"
-              style={fontStyle}
-            />
-            <div className="absolute top-0 left-8 w-px h-full bg-gray-200 pointer-events-none hidden md:block" />
-            <div className="absolute top-0 right-8 w-px h-full bg-gray-200 pointer-events-none hidden md:block" />
+          <div 
+            contentEditable
+            suppressContentEditableWarning
+            className="w-full flex-1 p-12 outline-none break-words z-10 relative cursor-text"
+            style={{
+              fontSize: `${size}px`,
+              lineHeight: leading,
+              textAlign: align,
+              fontFamily: config.family,
+              fontVariationSettings: variationSettings,
+              fontWeight: axesValues['wght'] || 400,
+            }}
+            onInput={(e) => setText(e.currentTarget.textContent || '')}
+          >
+            {text}
           </div>
         ) : (
-          /* GLYPHS VIEW (CHARACTER MAP) */
-          <div className="w-full h-full p-0 flex flex-col">
-             <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 border-l border-t border-gray-200 bg-white">
-                {currentGlyphs.map((glyph, i) => (
-                  <div key={i} className="aspect-square flex flex-col items-center justify-center border-r border-b border-gray-200 hover:bg-black hover:text-white transition-colors group overflow-hidden relative cursor-default">
-                      <span 
-                        className="text-2xl md:text-3xl" 
-                        style={{ 
-                          ...fontStyle, 
-                          fontSize: undefined, 
-                          lineHeight: undefined,
-                          marginBottom: '0.25rem'
-                        }}
-                      >
-                        {glyph}
-                      </span>
-                      <span className="absolute bottom-1 right-1 text-[8px] font-mono text-gray-400 group-hover:text-gray-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                        {glyph.charCodeAt(0)}
-                      </span>
+          <div className="flex-1 flex flex-col p-8 z-10 relative">
+            {/* Tombol Type Mode hitam bawah sudah dihapus di sini */}
+
+            <div className="grid grid-cols-6 md:grid-cols-8 lg:grid-cols-12 border-l border-t border-gray-300 bg-white shadow-sm mt-4">
+                {currentChars.map((char, i) => (
+                  <div 
+                    key={i} 
+                    className="aspect-square border-r border-b border-gray-300 flex items-center justify-center text-3xl md:text-4xl hover:bg-gray-50 transition-colors"
+                    style={{
+                      fontFamily: config.family,
+                      fontVariationSettings: variationSettings
+                    }}
+                  >
+                    {char}
                   </div>
                 ))}
-             </div>
-             
-             {/* Pagination Controls */}
-             <div className="flex items-center justify-between border-t-2 border-black p-4 bg-white mt-auto sticky bottom-0">
+            </div>
+
+            <div className="mt-auto pt-8 border-t border-black flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
                 <button 
-                  onClick={() => setGlyphPage(p => Math.max(0, p - 1))}
-                  disabled={glyphPage === 0}
-                  className="flex items-center gap-2 font-mono text-xs uppercase font-bold disabled:opacity-20 hover:underline"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => p - 1)}
+                  className="flex items-center gap-2 disabled:opacity-30 hover:underline"
                 >
-                  <ArrowLeft size={14} /> Prev
+                  <ChevronLeft size={14} /> PREV
                 </button>
-                <span className="font-mono text-xs font-bold">
-                  PAGE {glyphPage + 1} / {totalGlyphPages}
-                </span>
+                
+                <span>PAGE {currentPage} / {totalPages}</span>
+
                 <button 
-                  onClick={() => setGlyphPage(p => Math.min(totalGlyphPages - 1, p + 1))}
-                  disabled={glyphPage === totalGlyphPages - 1}
-                  className="flex items-center gap-2 font-mono text-xs uppercase font-bold disabled:opacity-20 hover:underline"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  className="flex items-center gap-2 disabled:opacity-30 hover:underline"
                 >
-                  Next <ArrowRight size={14} />
+                  NEXT <ChevronRight size={14} />
                 </button>
-             </div>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Sticky Control Panel (Toolbar) */}
-      <div className="sticky bottom-0 z-20 bg-white border-t-2 border-black p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-        
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-          
-          {/* Controls Column */}
-          <div className="md:col-span-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            {/* Standard Sliders */}
-            <BrutalistSlider
-              label="Size"
-              value={settings.fontSize}
-              min={12}
-              max={200}
-              unit="px"
-              onChange={(v) => updateStandardSetting('fontSize', v)}
-            />
+      {/* 3. BOTTOM CONTROLS */}
+      <div className="border-t-[3px] border-black p-8 bg-white">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-16 gap-y-10">
+            <BrutalistSlider label="Size" value={size} min={12} max={300} onChange={setSize} />
+            <BrutalistSlider label="Leading" value={leading} min={0.8} max={2.5} step={0.01} onChange={setLeading} />
 
-             <BrutalistSlider
-              label="Leading"
-              value={settings.lineHeight}
-              min={0.8}
-              max={2.0}
-              step={0.1}
-              onChange={(v) => updateStandardSetting('lineHeight', v)}
-            />
-
-            {/* Dynamic Variable Axis Sliders */}
             {config.axes.map((axis) => (
-               <BrutalistSlider
-                key={axis.tag}
-                label={axis.name}
-                value={settings.axisValues[axis.tag] ?? axis.default}
-                min={axis.min}
-                max={axis.max}
-                step={axis.step || 1}
-                unit={axis.unit}
-                onChange={(v) => updateAxis(axis.tag, v)}
-              />
+                <BrutalistSlider
+                    key={axis.tag}
+                    label={axis.name}
+                    value={axesValues[axis.tag] ?? axis.default}
+                    min={axis.min}
+                    max={axis.max}
+                    step={axis.step || 1}
+                    onChange={(val) => handleAxisChange(axis.tag, val)}
+                />
             ))}
+        </div>
 
-            {/* Dynamic Feature Toggles */}
-            {config.features.length > 0 && (
-              <div className="col-span-1 sm:col-span-2 lg:col-span-1 flex flex-col gap-3 p-3 border border-gray-200 bg-gray-50 h-full justify-center">
-                <div className="flex items-center gap-2 mb-1">
-                  <Settings2 size={12} className="text-gray-500"/>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">OpenType</span>
-                </div>
-                {config.features.map(feat => (
-                  <BrutalistToggle
-                    key={feat.tag}
-                    label={feat.name}
-                    isActive={settings.featureStates[feat.tag]}
-                    onToggle={() => toggleFeature(feat.tag)}
-                  />
-                ))}
-              </div>
-            )}
-
-          </div>
-
-          {/* Actions Column */}
-          <div className="md:col-span-2 flex flex-row md:flex-col gap-3 justify-end h-full">
+        <div className="flex justify-end gap-4 mt-12 pt-6 border-t border-black border-dashed">
             <button 
-                onClick={resetSettings}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-black font-mono text-xs uppercase font-bold hover:bg-black hover:text-white transition-all active:translate-y-0.5"
+                onClick={resetValues}
+                className="flex items-center gap-2 px-8 py-3 border-2 border-black text-xs font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors"
             >
-                <RefreshCw size={14} />
-                Reset
+                <RotateCcw size={16} /> Reset
             </button>
-            <button 
-                className="hidden md:flex items-center justify-center gap-2 w-full px-4 py-3 bg-black text-white border-2 border-black font-mono text-xs uppercase font-bold hover:bg-white hover:text-black transition-all active:translate-y-0.5"
-            >
-                <Maximize2 size={14} />
-                Buy
+            <button className="flex items-center gap-2 px-10 py-3 bg-black text-white border-2 border-black text-xs font-bold uppercase tracking-widest hover:bg-gray-900 transition-transform active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.4)]">
+                 Buy <ExternalLink size={16} />
             </button>
-          </div>
-
         </div>
       </div>
     </div>
   );
 };
+
+export default TypeTester;
