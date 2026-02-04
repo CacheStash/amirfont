@@ -1,188 +1,237 @@
 import React, { useState, useEffect } from 'react';
-import BrutalistSlider from './BrutalistSlider';
+import { RefreshCw, AlignLeft, AlignCenter, AlignRight, Type, Grid, Keyboard } from 'lucide-react';
 import { FontConfig } from '../types';
-import { RotateCcw, ExternalLink, AlignLeft, AlignCenter, AlignRight, Grid3X3, Keyboard, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface TypeTesterProps {
   config: FontConfig;
   defaultText?: string;
 }
 
-const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText }) => {
-  const [viewMode, setViewMode] = useState<'type' | 'characters'>('type');
-  const [text, setText] = useState(defaultText || 'The quick brown fox jumps over the lazy dog.');
-  const [size, setSize] = useState(117); // Default size besar untuk meminimalkan gap
-  const [leading, setLeading] = useState(1.1);
-  const [align, setAlign] = useState<'left' | 'center' | 'right'>('left');
-  const [axesValues, setAxesValues] = useState<Record<string, number>>({});
-  
-  const [currentPage, setCurrentPage] = useState(1);
-  const charsPerPage = 48;
-  const allChars = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~".split('');
-  const totalPages = Math.ceil(allChars.length / charsPerPage);
+// Daftar karakter umum untuk Character Map
+const BASIC_GLYPHS = [
+  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
+  ..."abcdefghijklmnopqrstuvwxyz".split(""),
+  ..."0123456789".split(""),
+  ..."!@#$%^&*()_+-=[]{}|;':,./<>?".split(""),
+  ..."ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ".split("")
+];
 
+const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "The quick brown fox jumps over the lazy dog." }) => {
+  const [text, setText] = useState(defaultText);
+  const [fontSize, setFontSize] = useState(64);
+  const [align, setAlign] = useState<'left' | 'center' | 'right'>('left');
+  const [viewMode, setViewMode] = useState<'type' | 'glyphs'>('type'); // Toggle View
+  
+  const [axesValues, setAxesValues] = useState<Record<string, number>>({});
+  const [activeFeatures, setActiveFeatures] = useState<Record<string, boolean>>({});
+
+  // Reset saat font berubah
   useEffect(() => {
-    const defaults: Record<string, number> = {};
-    if (config.axes) {
-      config.axes.forEach(axis => {
-        defaults[axis.tag] = axis.default;
+    // 1. Reset Axes
+    const initialAxes: Record<string, number> = {};
+    config.axes.forEach(axis => {
+      initialAxes[axis.tag] = axis.default;
+    });
+    setAxesValues(initialAxes);
+
+    // 2. Reset Features
+    const initialFeatures: Record<string, boolean> = {};
+    if (config.features) {
+      config.features.forEach(feat => {
+        // Fitur standar seperti Ligatures (liga) & Contextual Alt (calt) biasanya default ON
+        // Fitur opsional seperti ss01, zero, dlig default OFF
+        const isStandard = ['liga', 'calt', 'kern'].includes(feat.tag);
+        initialFeatures[feat.tag] = isStandard;
       });
     }
-    setAxesValues(defaults);
-    setCurrentPage(1);
+    setActiveFeatures(initialFeatures);
   }, [config]);
 
   const handleAxisChange = (tag: string, value: number) => {
     setAxesValues(prev => ({ ...prev, [tag]: value }));
   };
 
-  const resetValues = () => {
-    setSize(117);
-    setLeading(1.1);
-    const defaults: Record<string, number> = {};
-    if (config.axes) config.axes.forEach(axis => defaults[axis.tag] = axis.default);
-    setAxesValues(defaults);
+  const toggleFeature = (tag: string) => {
+    setActiveFeatures(prev => ({ ...prev, [tag]: !prev[tag] }));
   };
 
-  const variationSettings = Object.entries(axesValues)
-    .map(([tag, val]) => `'${tag}' ${val}`)
-    .join(', ');
+  // Generate CSS Variable Settings
+  const getFontVariationSettings = () => {
+    return Object.entries(axesValues)
+      .map(([tag, val]) => `"${tag}" ${val}`)
+      .join(', ');
+  };
 
-  const indexOfLastChar = currentPage * charsPerPage;
-  const indexOfFirstChar = indexOfLastChar - charsPerPage;
-  const currentChars = allChars.slice(indexOfFirstChar, indexOfLastChar);
+  // Generate CSS Feature Settings (Fix Logic)
+  const getFontFeatureSettings = () => {
+    // Kita paksa output "tag" 1 (ON) atau "tag" 0 (OFF)
+    const settings = Object.entries(activeFeatures)
+      .map(([tag, isActive]) => `"${tag}" ${isActive ? 1 : 0}`);
+    
+    if (settings.length === 0) return 'normal';
+    return settings.join(', ');
+  };
+
+  const resetSettings = () => {
+    const initialAxes: Record<string, number> = {};
+    config.axes.forEach(axis => initialAxes[axis.tag] = axis.default);
+    setAxesValues(initialAxes);
+    
+    const initialFeatures: Record<string, boolean> = {};
+    if (config.features) {
+        config.features.forEach(feat => {
+            const isStandard = ['liga', 'calt'].includes(feat.tag);
+            initialFeatures[feat.tag] = isStandard;
+        });
+    }
+    setActiveFeatures(initialFeatures);
+    
+    setFontSize(64);
+    setAlign('left');
+  };
+
+  const fontStyle = {
+    fontFamily: config.family,
+    fontVariationSettings: getFontVariationSettings(),
+    fontFeatureSettings: getFontFeatureSettings(),
+  };
 
   return (
-    <div className="border-[3px] border-black bg-white select-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+    <div className="border-[3px] border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6 mb-16">
       
-      {/* 1. TOP TOOLBAR (Tinggi & Lega) */}
-      <div className="flex flex-wrap items-stretch justify-between border-b-[3px] border-black bg-white min-h-[80px]">
-        <div className="flex items-center gap-4 px-8 border-r-[3px] border-black py-4">
-            <span className="font-black text-2xl md:text-3xl uppercase tracking-tighter">
-                T &nbsp; {config.name}
-            </span>
-            {(config.tags.includes('Variable') || config.axes.length > 0) && (
-                <span className="bg-black text-white text-[10px] font-bold px-2 py-1 uppercase tracking-wider">
-                    VAR
-                </span>
-            )}
+      {/* Controls Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-4">
+        <div className="flex items-center gap-4">
+            
+          {/* View Mode Toggle (Type vs Map) */}
+          <div className="flex border border-black p-1 gap-1">
+             <button 
+                onClick={() => setViewMode('type')}
+                className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase ${viewMode === 'type' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+             >
+                <Keyboard size={14}/> Type
+             </button>
+             <button 
+                onClick={() => setViewMode('glyphs')}
+                className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase ${viewMode === 'glyphs' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+             >
+                <Grid size={14}/> Map
+             </button>
+          </div>
+
+          <div className="w-px h-6 bg-gray-300 mx-2"></div>
+
+          <div className="flex items-center gap-2 border border-black px-2 py-1">
+            <Type size={16} />
+            <input 
+              type="number" 
+              value={fontSize} 
+              onChange={(e) => setFontSize(Number(e.target.value))}
+              className="w-12 text-sm font-bold bg-transparent outline-none"
+            />
+            <span className="text-xs font-mono text-gray-500">PX</span>
+          </div>
+          
+          {viewMode === 'type' && (
+            <div className="flex border border-black">
+                <button onClick={() => setAlign('left')} className={`p-2 hover:bg-gray-100 ${align === 'left' ? 'bg-black text-white' : ''}`}><AlignLeft size={16}/></button>
+                <button onClick={() => setAlign('center')} className={`p-2 hover:bg-gray-100 ${align === 'center' ? 'bg-black text-white' : ''}`}><AlignCenter size={16}/></button>
+                <button onClick={() => setAlign('right')} className={`p-2 hover:bg-gray-100 ${align === 'right' ? 'bg-black text-white' : ''}`}><AlignRight size={16}/></button>
+            </div>
+          )}
         </div>
 
-        <div className="flex items-stretch flex-1 md:flex-none">
-            {/* Satu-satunya tombol navigasi mode */}
-            <button 
-              onClick={() => setViewMode(viewMode === 'type' ? 'characters' : 'type')}
-              className="px-8 border-r-[3px] border-black hover:bg-gray-100 flex items-center gap-3 font-bold text-xs uppercase tracking-widest transition-colors"
-            >
-               {viewMode === 'type' ? (
-                 <><Grid3X3 size={20} /> ALL CHARACTERS</>
-               ) : (
-                 <><Keyboard size={20} /> TYPE MODE</>
-               )}
-            </button>
-
-            {viewMode === 'type' && (
-              <div className="flex">
-                  <button onClick={() => setAlign('left')} className={`px-6 flex items-center ${align === 'left' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}><AlignLeft size={22} /></button>
-                  <button onClick={() => setAlign('center')} className={`px-6 border-l-[3px] border-black flex items-center ${align === 'center' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}><AlignCenter size={22} /></button>
-                  <button onClick={() => setAlign('right')} className={`px-6 border-l-[3px] border-black flex items-center ${align === 'right' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}><AlignRight size={22} /></button>
-              </div>
-            )}
-        </div>
+        <button onClick={resetSettings} className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider hover:text-red-500 transition-colors">
+          <RefreshCw size={14} /> Reset
+        </button>
       </div>
 
-      {/* 2. MAIN VIEW AREA */}
-      <div className="relative overflow-hidden min-h-[500px] bg-[#f8f8f8] bg-grid-pattern flex flex-col">
-        
+      {/* Main Display Area */}
+      <div className="min-h-[300px] mb-8 relative">
         {viewMode === 'type' ? (
-          <div 
-            contentEditable
-            suppressContentEditableWarning
-            className="w-full flex-1 p-12 outline-none break-words z-10 relative cursor-text"
-            style={{
-              fontSize: `${size}px`,
-              lineHeight: leading,
-              textAlign: align,
-              fontFamily: config.family,
-              fontVariationSettings: variationSettings,
-              fontWeight: axesValues['wght'] || 400,
-            }}
-            onInput={(e) => setText(e.currentTarget.textContent || '')}
-          >
-            {text}
-          </div>
+             <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="w-full h-full min-h-[300px] bg-transparent outline-none resize-none p-4"
+                style={{
+                  ...fontStyle,
+                  fontSize: `${fontSize}px`,
+                  textAlign: align,
+                }}
+                spellCheck={false}
+              />
         ) : (
-          <div className="flex-1 flex flex-col p-8 z-10 relative">
-            {/* Tombol Type Mode hitam bawah sudah dihapus di sini */}
-
-            <div className="grid grid-cols-6 md:grid-cols-8 lg:grid-cols-12 border-l border-t border-gray-300 bg-white shadow-sm mt-4">
-                {currentChars.map((char, i) => (
-                  <div 
-                    key={i} 
-                    className="aspect-square border-r border-b border-gray-300 flex items-center justify-center text-3xl md:text-4xl hover:bg-gray-50 transition-colors"
-                    style={{
-                      fontFamily: config.family,
-                      fontVariationSettings: variationSettings
-                    }}
-                  >
-                    {char}
-                  </div>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(60px,1fr))] gap-2 p-4 border border-gray-100 bg-gray-50 max-h-[400px] overflow-y-auto custom-scrollbar">
+                {BASIC_GLYPHS.map((char, idx) => (
+                    <div 
+                        key={idx} 
+                        className="aspect-square flex flex-col items-center justify-center bg-white border border-gray-200 hover:border-black hover:shadow-md transition-all cursor-default group"
+                    >
+                        <span style={{ ...fontStyle, fontSize: '32px' }}>{char}</span>
+                        <span className="text-[8px] font-mono text-gray-400 mt-1 opacity-0 group-hover:opacity-100">{char.codePointAt(0)?.toString(16).toUpperCase()}</span>
+                    </div>
                 ))}
             </div>
-
-            <div className="mt-auto pt-8 border-t border-black flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
-                <button 
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(p => p - 1)}
-                  className="flex items-center gap-2 disabled:opacity-30 hover:underline"
-                >
-                  <ChevronLeft size={14} /> PREV
-                </button>
-                
-                <span>PAGE {currentPage} / {totalPages}</span>
-
-                <button 
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(p => p + 1)}
-                  className="flex items-center gap-2 disabled:opacity-30 hover:underline"
-                >
-                  NEXT <ChevronRight size={14} />
-                </button>
-            </div>
-          </div>
         )}
       </div>
 
-      {/* 3. BOTTOM CONTROLS */}
-      <div className="border-t-[3px] border-black p-8 bg-white">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-16 gap-y-10">
-            <BrutalistSlider label="Size" value={size} min={12} max={300} onChange={setSize} />
-            <BrutalistSlider label="Leading" value={leading} min={0.8} max={2.5} step={0.01} onChange={setLeading} />
-
-            {config.axes.map((axis) => (
-                <BrutalistSlider
-                    key={axis.tag}
-                    label={axis.name}
-                    value={axesValues[axis.tag] ?? axis.default}
-                    min={axis.min}
-                    max={axis.max}
-                    step={axis.step || 1}
-                    onChange={(val) => handleAxisChange(axis.tag, val)}
+      {/* Settings Panel */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-gray-50 p-6 border-t border-black">
+        
+        {/* Variable Axes Sliders */}
+        <div className="md:col-span-2 space-y-4">
+          <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Variable Axes</h4>
+          {config.axes.length > 0 ? (
+            config.axes.map((axis) => (
+              <div key={axis.tag} className="flex items-center gap-4">
+                <label className="w-16 font-mono text-xs font-bold uppercase">{axis.name}</label>
+                <input
+                  type="range"
+                  min={axis.min}
+                  max={axis.max}
+                  step={axis.step || 1}
+                  value={axesValues[axis.tag] || axis.default}
+                  onChange={(e) => handleAxisChange(axis.tag, parseFloat(e.target.value))}
+                  className="flex-grow h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-black"
                 />
-            ))}
+                <span className="w-12 text-right font-mono text-xs">
+                  {axesValues[axis.tag]}
+                  {axis.unit}
+                </span>
+              </div>
+            ))
+          ) : (
+            <p className="text-xs text-gray-400 italic">No variable axes available.</p>
+          )}
         </div>
 
-        <div className="flex justify-end gap-4 mt-12 pt-6 border-t border-black border-dashed">
-            <button 
-                onClick={resetValues}
-                className="flex items-center gap-2 px-8 py-3 border-2 border-black text-xs font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors"
-            >
-                <RotateCcw size={16} /> Reset
-            </button>
-            <button className="flex items-center gap-2 px-10 py-3 bg-black text-white border-2 border-black text-xs font-bold uppercase tracking-widest hover:bg-gray-900 transition-transform active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.4)]">
-                 Buy <ExternalLink size={16} />
-            </button>
+        {/* OpenType Features Toggles */}
+        <div className="md:col-span-1 border-l border-gray-300 pl-0 md:pl-8">
+          <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">OpenType Features</h4>
+          <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+            {config.features && config.features.length > 0 ? (
+              config.features.map((feat) => (
+                <label key={feat.tag} className="flex items-center justify-between cursor-pointer group select-none">
+                  <span className="text-sm font-bold uppercase group-hover:text-gray-600 transition-colors">
+                    {feat.name} <span className="text-gray-400 font-mono text-xs ml-1">.{feat.tag}</span>
+                  </span>
+                  <div className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer" 
+                      checked={activeFeatures[feat.tag] || false}
+                      onChange={() => toggleFeature(feat.tag)}
+                    />
+                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                  </div>
+                </label>
+              ))
+            ) : (
+              <p className="text-xs text-gray-400 italic">No features defined.</p>
+            )}
+          </div>
         </div>
+
       </div>
     </div>
   );

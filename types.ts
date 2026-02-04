@@ -7,17 +7,24 @@ export interface Axis {
     step?: number;
     unit?: string;
 }
-
-export interface OpenTypeFeature {
+// src/types.ts
+export interface FontConfig {
+  name: string;
+  family: string;
+  description: string;
+  tags: string[];
+  axes: {
     tag: string;
     name: string;
-}
-
-export interface FontConfig {
+    min: number;
+    max: number;
+    default: number;
+    step?: number;
+    unit?: string;
+  }[];
+  // Tambahkan ini:
+  features?: {
+    tag: string;
     name: string;
-    family: string;
-    description: string;
-    tags: string[];
-    axes: Axis[];
-    features: OpenTypeFeature[];
+  }[];
 }
