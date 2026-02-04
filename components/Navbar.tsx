@@ -1,77 +1,106 @@
+// --- Context Anchor (Above) ---
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Search, ShoppingBag, ArrowRight } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
 
-  const navItems = [
-    { name: 'Fonts', path: '/fonts' },
-    { name: 'License', path: '/license' },
-    { name: 'Blog', path: '/blog' },
-    { name: 'About', path: '/about' },
-    { name: 'Contact', path: '/contact' },
-  ];
-
-  const isActive = (path: string) => location.pathname === path;
-
+  // Logic: Menu Desktop ditiadakan, diganti Hamburger Menu untuk semua ukuran
+  
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b-0">
-      {/* KUNCI: Struktur container ini harus SAMA PERSIS dengan di Home.tsx */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
+    <nav className="w-full border-b border-black bg-[#EDEBE6] sticky top-0 z-50">
+      {/* Top Bar Layout */}
+      <div className="w-full flex justify-between items-center h-14 md:h-16 px-4 md:px-6 relative bg-[#EDEBE6] z-50">
         
-        {/* Logo - Kiri Rata */}
-        <Link to="/" className="group cursor-pointer">
-          <h1 className="text-2xl font-black tracking-tighter uppercase" style={{ fontFamily: '"Roboto Flex", sans-serif' }}>
-            SUBQI<span className="text-transparent text-stroke-1 group-hover:text-black transition-colors">STUDIO</span>
-          </h1>
-        </Link>
-
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-8">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.path}
-              className={`text-sm font-bold uppercase tracking-widest hover:underline decoration-2 underline-offset-4 ${
-                isActive(item.path) ? 'underline' : ''
-              }`}
-            >
-              {item.name}
-            </Link>
-          ))}
-          {/* Cart Button - Kanan Rata */}
-          <button className="bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)] transition-all">
-            Cart (0)
+        {/* Left: Menu Trigger & Logo */}
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-1 hover:bg-black hover:text-white transition-colors border border-transparent hover:border-black"
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
+          
+          <Link to="/" className="font-mono font-bold tracking-tighter text-xl uppercase hover:opacity-70 transition-opacity">
+            Subqi Studio
+          </Link>
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {/* Right: Search & Cart */}
+        <div className="flex items-center gap-4">
+           {/* Search Trigger */}
+           <button 
+             onClick={() => setIsSearchOpen(!isSearchOpen)}
+             className={`p-1 transition-colors border border-transparent ${isSearchOpen ? 'bg-black text-white' : 'hover:bg-black hover:text-white hover:border-black'}`}
+           >
+              {isSearchOpen ? <X size={20} /> : <Search size={20} />}
+           </button>
+
+           {/* Cart Button */}
+           <button className="flex items-center gap-2 font-mono text-xs md:text-sm font-bold border border-black px-3 py-1 hover:bg-black hover:text-white transition-all">
+              <ShoppingBag size={16} />
+              <span>CART (0)</span>
+           </button>
+        </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Search Form Overlay */}
+      {isSearchOpen && (
+        <div className="absolute top-full left-0 w-full border-b border-black bg-[#EDEBE6] p-4 animate-in slide-in-from-top-2 duration-200 z-40">
+            <div className="flex items-center max-w-7xl mx-auto gap-0 border border-black">
+                <div className="p-3 border-r border-black bg-[#EDEBE6]">
+                    <Search size={20} className="opacity-50"/>
+                </div>
+                <input 
+                    type="text" 
+                    placeholder="TYPE TO SEARCH FONTS..." 
+                    className="w-full p-3 font-mono text-sm uppercase bg-transparent outline-none placeholder:text-gray-400"
+                    autoFocus
+                />
+                <button className="p-3 hover:bg-black hover:text-white border-l border-black transition-colors">
+                    <ArrowRight size={20} />
+                </button>
+            </div>
+        </div>
+      )}
+
+      {/* Full Screen Menu Overlay (Brutalist Style) */}
       {isOpen && (
-        <div className="md:hidden border-t-[3px] border-black bg-white absolute w-full left-0">
-          <div className="flex flex-col p-4 gap-4">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.path}
-                className="text-lg font-bold uppercase tracking-wider"
-                onClick={() => setIsOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </div>
+        <div className="fixed top-[57px] md:top-[65px] left-0 w-full h-[calc(100vh-60px)] bg-[#EDEBE6] border-t border-black z-40 p-0 flex flex-col md:flex-row">
+            
+            {/* Menu Links Column */}
+            <div className="w-full md:w-1/2 border-r-0 md:border-r border-black p-8 md:p-12 flex flex-col gap-6">
+                 {['Fonts', 'License', 'Blog', 'About', 'Contact'].map((item) => (
+                    <Link 
+                        key={item} 
+                        to={`/${item.toLowerCase()}`}
+                        className="text-4xl md:text-6xl font-black uppercase tracking-tight hover:italic hover:translate-x-4 transition-all"
+                        onClick={() => setIsOpen(false)}
+                    >
+                        {item}
+                    </Link>
+                 ))}
+            </div>
+
+            {/* Info Column (Hidden on mobile small) */}
+            <div className="hidden md:flex w-1/2 p-12 flex-col justify-between">
+                <div className="font-mono text-sm">
+                    <p className="uppercase font-bold mb-4">Office</p>
+                    <p>Subqi Studio HQ</p>
+                    <p>Jakarta, Indonesia</p>
+                </div>
+                <div className="text-9xl font-black opacity-5 pointer-events-none select-none">
+                    MENU
+                </div>
+            </div>
         </div>
       )}
     </nav>
   );
 };
-
+// --- END FIX ---
+// --- Context Anchor (Below) ---
 export default Navbar;

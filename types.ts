@@ -11,6 +11,7 @@ export interface Axis {
 export interface FontConfig {
   name: string;
   family: string;
+  file?: string;
   description: string;
   tags: string[];
   axes: {

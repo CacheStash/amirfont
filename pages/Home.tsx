@@ -3,44 +3,48 @@ import TypeTester from '../components/TypeTester';
 import { FontConfig } from '../types';
 import { MousePointer2 } from 'lucide-react';
 
+import RoyalGrandeFile from '../fonts/RoyalGrande/Royal Grande Variable.ttf';
+import ThanjavurFile from '../fonts/Thanjavur/Thanjavur-Var.ttf';
+
+
 // -- FONT CONFIGURATIONS --
-const FONT_ROBOTO_FLEX: FontConfig = {
-  name: 'Roboto Flex',
-  family: '"Roboto Flex"',
-  description: 'Our flagship super-family. A highly versatile variable font featuring optical sizing, width, and weight axes.',
-  tags: ['Weight Axis', 'Width Axis', 'Slant Axis'],
+const FONT_ROYAL_GRANDE: FontConfig = {
+  name: 'Royal Grande',
+  family: '"Royal Grande Variable"', // Pastikan nama ini sama dengan yang ada di CSS/File Font
+  file: RoyalGrandeFile,
+  description: 'A custom variable font with OpenType capabilities. Testing weight axis and ligatures.',
+  tags: ['Variable', 'Serif', 'Custom'],
   axes: [
-    { tag: 'wght', name: 'Weight', min: 100, max: 1000, default: 400 },
-    { tag: 'wdth', name: 'Width', min: 25, max: 151, default: 100, unit: '%' },
-    { tag: 'slnt', name: 'Slant', min: -10, max: 0, default: 0, unit: '°' },
+    { tag: 'wght', name: 'Weight', min: 100, max: 900, default: 400 },
+    // Tambahkan axis lain jika ada, misal: 'opsz', 'wdth'
   ],
   features: [
-    { tag: 'liga', name: 'Ligatures' },
-    { tag: 'ss01', name: 'Style Set 1' },
+    { tag: 'liga', name: 'Standard Ligatures' },
+    { tag: 'dlig', name: 'Discretionary Lig' },
+    { tag: 'calt', name: 'Contextual Alt' },
+    { tag: 'kern', name: 'Kerning' },
   ]
 };
 
-const FONT_RECURSIVE: FontConfig = {
-  name: 'Recursive',
-  family: '"Recursive"',
-  description: 'The ultimate hybrid. A variable font that interpolates between Monospace and Sans, Linear and Casual.',
-  tags: ['Variable', 'Hybrid', 'Mono/Sans'],
+const FONT_THANJAVUR: FontConfig = {
+  name: 'Thanjavur',
+  family: '"Thanjavur Variable"',
+  file: ThanjavurFile,
+  description: 'Testing Thanjavur variable font features and glyph detection.',
+  tags: ['Variable', 'Display', 'Custom'],
   axes: [
-    { tag: 'wght', name: 'Weight', min: 300, max: 1000, default: 400 },
-    { tag: 'CASL', name: 'Casual', min: 0, max: 1, default: 0, step: 0.1 },
-    { tag: 'MONO', name: 'Mono', min: 0, max: 1, default: 0, step: 0.1 },
-    { tag: 'slnt', name: 'Slant', min: -15, max: 0, default: 0, unit: '°' },
+    { tag: 'wght', name: 'Weight', min: 100, max: 900, default: 400 },
   ],
   features: [
-    { tag: 'ss01', name: 'Simple l' },
-    { tag: 'ss02', name: 'Simplified Mono' },
-    { tag: 'dlig', name: 'Discretionary Lig' },
+    { tag: 'liga', name: 'Standard Ligatures' },
+    { tag: 'ss01', name: 'Stylistic Set 1' },
   ]
 };
 
 const FONT_SPACE_MONO: FontConfig = {
   name: 'Space Mono',
   family: '"Space Mono"',
+  file: '../fonts/Space_Mono/SpaceMono-Regular.ttf',
   description: 'A geometric monospace typeface with a brutalist edge. Standard static font.',
   tags: ['Monospaced', 'Static', 'Display'],
   axes: [], 
@@ -52,6 +56,7 @@ const FONT_SPACE_MONO: FontConfig = {
 const FONT_INTER_OT: FontConfig = {
   name: 'Inter',
   family: '"Inter"',
+  file: '../fonts/Inter/Inter-Italic-VariableFont_opsz,wght.ttf',
   description: 'A masterpiece of versatility. Features extensive OpenType capabilities.',
   tags: ['OpenType', 'Sans-Serif', 'Neutral'],
   axes: [], 
@@ -137,97 +142,100 @@ const FluidText: React.FC<{ text: string; className?: string; baseWeight?: numbe
 
 const Home: React.FC = () => {
   return (
-    <div className="bg-gray-50 text-black font-sans selection:bg-black selection:text-white relative min-h-screen pt-8 md:pt-12">
+    <div className="bg-[#EDEBE6] text-black font-sans selection:bg-black selection:text-white relative min-h-screen">
       
-      {/* Site Header */}
-      <header className="max-w-7xl mx-auto px-4 md:px-8 mb-16 border-b-[4px] border-black pb-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
-          <div className="group cursor-default relative">
-            
-            <p className="font-mono text-xs md:text-sm text-gray-600 uppercase tracking-widest pl-2">
-              Making Letters Behave ( Mostly ) &middot; Est - Eventually. 
-            </p>
-          </div>
-        </div>
-
-        {/* Tagline & Subtext Grid */}
-        <div className="mt-8 flex flex-col md:flex-row justify-between items-end gap-8">
-          <div className="flex flex-col items-start gap-0 w-full">
-            <FluidText 
-              text="Crafted in Silence," 
-              className="text-5xl md:text-8xl leading-[0.9] tracking-tight"
-              baseWeight={300}
-              maxWeight={1000}
-            />
-            <FluidText 
-              text="Read Everywhere." 
-              className="text-5xl md:text-8xl leading-[0.9] tracking-tight text-gray-400 hover:text-black transition-colors duration-300"
-              baseWeight={300}
-              maxWeight={1000}
-            />
-          </div>
+      {/* Site Header / Navbar Brutalist */}
+      <header className="w-full border-b border-black bg-[#EDEBE6]">
+    
+        {/* Hero Section */}
+        <div className="px-4 py-4 md:px-8 md:py-8">
           
-          {/* Right Column */}
-          <div className="flex flex-col items-end gap-4 text-right shrink-0">
-            <div className="hidden md:flex items-center gap-2 text-sm font-bold border border-black px-3 py-1 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <MousePointer2 size={16} />
-              <span>START YOUR COLLECTION TODAY</span>
+          {/* Tagline & Subtext Grid */}
+          <div className="flex flex-col md:flex-row justify-between items-end gap-4 md:gap-8">
+            <div className="flex flex-col items-start gap-0 w-full">
+              <FluidText
+                text="Made of Quiet Lines," 
+                className="text-5xl md:text-8xl leading-[0.9] tracking-tight"
+                baseWeight={300}
+                maxWeight={1000}
+              />
+              <FluidText 
+                text="Shaped Into Living Type," 
+                className="text-5xl md:text-8xl leading-[0.9] tracking-tight"
+                baseWeight={300}
+                maxWeight={1000}
+              />
+              <FluidText 
+                text="Read In Every Place." 
+                className="text-5xl md:text-8xl leading-[0.9] tracking-tight hover:text-black transition-colors duration-300"
+                baseWeight={300}
+                maxWeight={1000}
+              />
             </div>
             
-            <div className="font-mono text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed">
-              <p>Find Your Typeface.</p>
-              <p>Begin Today.</p>
+            {/* Right Column */}
+            <div className="flex flex-col items-end gap-4 text-right shrink-0">
+              <div className="hidden md:flex items-center gap-2 text-sm font-bold border border-black px-3 py-1 hover:bg-black hover:text-white transition-colors">
+                <MousePointer2 size={16} />
+                <span>START YOUR COLLECTION TODAY</span>
+              </div>
+              
+              <div className="font-mono text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed">
+                <p>Find Your Typeface.</p>
+                <p>Begin Today.</p>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
+
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 md:px-8 space-y-32 mb-20">
+      <main className="w-full px-0">
         
-        {/* Product 01: Roboto Flex */}
-        <section>
+        {/* Product 01: Royal Grande */}
+        <section className="border-b border-black px-4 md:px-8 py-4 md:py-8">
           <div className="flex flex-col gap-4 mb-6">
             <div className="flex items-center gap-3">
               <span className="w-4 h-4 bg-black block shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]"></span>
-              <h2 className="text-2xl font-black uppercase tracking-tight">01. {FONT_ROBOTO_FLEX.name}</h2>
+              <h2 className="text-2xl font-black uppercase tracking-tight">01. {FONT_ROYAL_GRANDE.name}</h2>
             </div>
             <div className="flex flex-wrap gap-2 text-xs font-mono uppercase text-gray-500 mb-2">
-              {FONT_ROBOTO_FLEX.tags.map(tag => (
+              {FONT_ROYAL_GRANDE.tags.map(tag => (
                 <span key={tag} className="border border-gray-300 px-2 py-0.5 rounded-full">{tag}</span>
               ))}
             </div>
             <p className="text-gray-600 max-w-xl text-sm leading-relaxed">
-              {FONT_ROBOTO_FLEX.description}
+              {FONT_ROYAL_GRANDE.description}
             </p>
           </div>
-          <TypeTester config={FONT_ROBOTO_FLEX} />
+          <TypeTester config={FONT_ROYAL_GRANDE} />
         </section>
 
-        {/* Product 02: Recursive */}
-        <section>
+        {/* Product 02: Thanjavur */}
+        <section className="border-b border-black px-4 md:px-8 py-4 md:py-8">
           <div className="flex flex-col gap-4 mb-6">
             <div className="flex items-center gap-3">
               <span className="w-4 h-4 bg-gradient-to-tr from-black to-gray-500 block shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]"></span>
-              <h2 className="text-2xl font-black uppercase tracking-tight">02. {FONT_RECURSIVE.name}</h2>
+              <h2 className="text-2xl font-black uppercase tracking-tight">02. {FONT_THANJAVUR.name}</h2>
             </div>
             <div className="flex flex-wrap gap-2 text-xs font-mono uppercase text-gray-500 mb-2">
-              {FONT_RECURSIVE.tags.map(tag => (
+              {FONT_THANJAVUR.tags.map(tag => (
                 <span key={tag} className="border border-black bg-black text-white px-2 py-0.5 rounded-full">{tag}</span>
               ))}
             </div>
             <p className="text-gray-600 max-w-xl text-sm leading-relaxed">
-              {FONT_RECURSIVE.description}
+              {FONT_THANJAVUR.description}
             </p>
           </div>
           <TypeTester 
-            config={FONT_RECURSIVE} 
-            defaultText="Move the sliders. I change from Sans to Mono, Linear to Casual."
+            config={FONT_THANJAVUR} 
+            defaultText="Test the opentype features here."
           />
         </section>
 
         {/* Product 03: Space Mono */}
-        <section>
+        <section className="border-b border-black px-4 md:px-8 py-4 md:py-8">
           <div className="flex flex-col gap-4 mb-6">
             <div className="flex items-center gap-3">
               <span className="w-4 h-4 border-2 border-black block shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]"></span>
@@ -249,7 +257,7 @@ const Home: React.FC = () => {
         </section>
 
         {/* Product 04: Inter */}
-        <section>
+       <section className="border-b border-black px-4 md:px-8 py-4 md:py-8">
           <div className="flex flex-col gap-4 mb-6">
             <div className="flex items-center gap-3">
               <span className="w-4 h-4 bg-gray-400 block shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]"></span>

@@ -4,6 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Royal Grande Variable";
+  src: url('./fonts/RoyalGrande/Royal Grande Variable.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: "Thanjavur Variable";
+  src: url('./fonts/Thanjavur/Thanjavur-Var.ttf') format('truetype');
+}
+
 /* Background Grid Pattern seperti di desain referensi */
 .bg-grid-pattern {
   background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px); /* Titik abu-abu */

@@ -1,29 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, AlignLeft, AlignCenter, AlignRight, Type, Grid, Keyboard } from 'lucide-react';
 import { FontConfig } from '../types';
+// --- PARTIAL FIX ---
+import opentype from 'opentype.js';
 
 interface TypeTesterProps {
   config: FontConfig;
   defaultText?: string;
 }
 
-// Daftar karakter umum untuk Character Map
-const BASIC_GLYPHS = [
-  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
-  ..."abcdefghijklmnopqrstuvwxyz".split(""),
-  ..."0123456789".split(""),
-  ..."!@#$%^&*()_+-=[]{}|;':,./<>?".split(""),
-  ..."ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ".split("")
-];
-
-const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "The quick brown fox jumps over the lazy dog." }) => {
+const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin. He lay on his armour-like back, and if he lifted his head a little he could see his brown belly, slightly domed and divided by arches into stiff sections." }) => {
   const [text, setText] = useState(defaultText);
   const [fontSize, setFontSize] = useState(64);
   const [align, setAlign] = useState<'left' | 'center' | 'right'>('left');
-  const [viewMode, setViewMode] = useState<'type' | 'glyphs'>('type'); // Toggle View
+  const [viewMode, setViewMode] = useState<'type' | 'glyphs'>('type');
   
+  // State untuk Glyph Map
+  const [detectedGlyphs, setDetectedGlyphs] = useState<string[]>([]);
+  const [isLoadingGlyphs, setIsLoadingGlyphs] = useState(false);
+
   const [axesValues, setAxesValues] = useState<Record<string, number>>({});
   const [activeFeatures, setActiveFeatures] = useState<Record<string, boolean>>({});
+
+  // 1. Load Font Glyphs menggunakan opentype.js
+  useEffect(() => {
+    if (!config.file) return;
+
+    setIsLoadingGlyphs(true);
+    setDetectedGlyphs([]); // Reset
+
+    opentype.load(config.file, (err, font) => {
+      setIsLoadingGlyphs(false);
+      if (err) {
+        console.error('Could not load font: ' + err);
+        return;
+      }
+      if (!font) return;
+
+      const glyphs: string[] = [];
+      // Loop melalui glyphs (limit 2000 untuk performa jika font CJK)
+      for (let i = 0; i < font.glyphs.length && i < 600; i++) {
+        const glyph = font.glyphs.get(i);
+        // Hanya ambil glyph yang memiliki unicode (karakter terbaca)
+        if (glyph.unicode) {
+          glyphs.push(String.fromCharCode(glyph.unicode));
+        }
+      }
+      setDetectedGlyphs(glyphs);
+    });
+  }, [config.file]);
+
 
   // Reset saat font berubah
   useEffect(() => {
@@ -66,8 +92,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "The quic
   const getFontFeatureSettings = () => {
     // Kita paksa output "tag" 1 (ON) atau "tag" 0 (OFF)
     const settings = Object.entries(activeFeatures)
-      .map(([tag, isActive]) => `"${tag}" ${isActive ? 1 : 0}`);
+      .map(([tag, isActive]) => `"${tag}" ${isActive ? 'on' : 'off'}`);
     
+    // Default 'normal' kadang mereset liga, jadi lebih baik return string kosong jika tidak ada custom
     if (settings.length === 0) return 'normal';
     return settings.join(', ');
   };
@@ -97,7 +124,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "The quic
   };
 
   return (
-    <div className="border-[3px] border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6 mb-16">
+    <div className="w-full mb-16">
       
       {/* Controls Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-4">
@@ -152,7 +179,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "The quic
              <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="w-full h-full min-h-[300px] bg-transparent outline-none resize-none p-4"
+                className="w-full h-full min-h-[300px] bg-transparent outline-none resize-none p-4 placeholder-gray-300"
                 style={{
                   ...fontStyle,
                   fontSize: `${fontSize}px`,
@@ -161,22 +188,30 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "The quic
                 spellCheck={false}
               />
         ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(60px,1fr))] gap-2 p-4 border border-gray-100 bg-gray-50 max-h-[400px] overflow-y-auto custom-scrollbar">
-                {BASIC_GLYPHS.map((char, idx) => (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(50px,1fr))] gap-px bg-gray-200 border border-black max-h-[500px] overflow-y-auto custom-scrollbar p-0.5">
+                {isLoadingGlyphs && <div className="p-4 col-span-full font-mono text-xs">Loading Glyphs from file...</div>}
+                
+                {!isLoadingGlyphs && detectedGlyphs.length === 0 && (
+                   <div className="p-4 col-span-full font-mono text-xs text-red-500">
+                      No glyphs detected. Check config.file path in Home.tsx
+                   </div>
+                )}
+
+                {detectedGlyphs.map((char, idx) => (
                     <div 
                         key={idx} 
-                        className="aspect-square flex flex-col items-center justify-center bg-white border border-gray-200 hover:border-black hover:shadow-md transition-all cursor-default group"
+                        className="aspect-square flex flex-col items-center justify-center bg-white hover:bg-black hover:text-white transition-colors cursor-default group"
+                        title={`U+${char.codePointAt(0)?.toString(16).toUpperCase()}`}
                     >
-                        <span style={{ ...fontStyle, fontSize: '32px' }}>{char}</span>
-                        <span className="text-[8px] font-mono text-gray-400 mt-1 opacity-0 group-hover:opacity-100">{char.codePointAt(0)?.toString(16).toUpperCase()}</span>
+                        <span style={{ fontFamily: config.family, fontSize: '24px' }}>{char}</span>
                     </div>
                 ))}
             </div>
         )}
-      </div>
+            </div>
 
       {/* Settings Panel */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-gray-50 p-6 border-t border-black">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-transparent pt-6 border-t border-black">
         
         {/* Variable Axes Sliders */}
         <div className="md:col-span-2 space-y-4">
