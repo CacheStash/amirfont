@@ -22,6 +22,15 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
   const [axesValues, setAxesValues] = useState<Record<string, number>>({});
   const [activeFeatures, setActiveFeatures] = useState<Record<string, boolean>>({});
 
+  const [featureCounts, setFeatureCounts] = useState<Record<string, number>>({});
+
+  const [lineHeight, setLineHeight] = useState(1.1);
+  const [letterSpacing, setLetterSpacing] = useState(0);
+
+  // Map View Settings
+  const [mapPage, setMapPage] = useState(0);
+  const [mapGridSize, setMapGridSize] = useState(20);
+
   // 1. Load Font Glyphs menggunakan opentype.js
   useEffect(() => {
     if (!config.file) return;
@@ -41,12 +50,27 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
       // Loop melalui glyphs (limit 2000 untuk performa jika font CJK)
       for (let i = 0; i < font.glyphs.length && i < 600; i++) {
         const glyph = font.glyphs.get(i);
-        // Hanya ambil glyph yang memiliki unicode (karakter terbaca)
         if (glyph.unicode) {
           glyphs.push(String.fromCharCode(glyph.unicode));
         }
       }
       setDetectedGlyphs(glyphs);
+
+      // Hitung jumlah Lookups per Fitur untuk ditampilkan di UI
+      const counts: Record<string, number> = {};
+      const countFeatures = (table: any) => {
+          if (table && table.features) {
+              table.features.forEach((f: any) => {
+                  // Kita hitung jumlah lookup list sebagai representasi "jumlah" fitur
+                  counts[f.tag] = (counts[f.tag] || 0) + (f.feature.lookupListIndices ? f.feature.lookupListIndices.length : 1);
+              });
+          }
+      };
+      // Cek table GSUB (Substitusi) dan GPOS (Positioning/Kerning)
+      if (font.tables.gsub) countFeatures(font.tables.gsub);
+      if (font.tables.gpos) countFeatures(font.tables.gpos);
+      
+      setFeatureCounts(counts);
     });
   }, [config.file]);
 
@@ -115,63 +139,115 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
     
     setFontSize(64);
     setAlign('left');
+    setLineHeight(1.1);
+    setLetterSpacing(0);
+    setMapPage(0);
   };
 
   const fontStyle = {
     fontFamily: config.family,
     fontVariationSettings: getFontVariationSettings(),
     fontFeatureSettings: getFontFeatureSettings(),
+    lineHeight: lineHeight,
+    letterSpacing: `${letterSpacing}em`,
   };
 
   return (
-    <div className="w-full mb-16">
+    <div className="w-full mb-16 border-b border-black">
       
-      {/* Controls Header */}
-      {/* Update Padding Header: pt-8 agar sejajar font name, px-8 kiri/kanan */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-0 border-b border-black pb-4 pt-6 px-4 md:pt-8 md:px-8">
-        <div className="flex items-center gap-4">
+      {/* Controls Header - Grid System */}
+      <div className="flex flex-wrap items-stretch justify-between mb-0 border-b border-black">
+        <div className="flex items-stretch">
             
-          {/* View Mode Toggle (Type vs Map) */}
-          <div className="flex border border-black p-1 gap-1">
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
              <button 
                 onClick={() => setViewMode('type')}
-                className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase ${viewMode === 'type' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+                className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'type' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}
              >
                 <Keyboard size={14}/> Type
              </button>
              <button 
                 onClick={() => setViewMode('glyphs')}
-                className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase ${viewMode === 'glyphs' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+                className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'glyphs' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}
              >
                 <Grid size={14}/> Map
              </button>
           </div>
 
-          <div className="w-px h-6 bg-gray-300 mx-2"></div>
-
-          <div className="flex items-center gap-2 border border-black px-2 py-1">
-            <Type size={16} />
-            <input 
-              type="number" 
-              value={fontSize} 
-              onChange={(e) => setFontSize(Number(e.target.value))}
-              className="w-12 text-sm font-bold bg-transparent outline-none"
-            />
-            <span className="text-xs font-mono text-gray-500">PX</span>
-          </div>
-          
+          {/* Font Size - Only in Type Mode */}
           {viewMode === 'type' && (
-            <div className="flex border border-black">
-                <button onClick={() => setAlign('left')} className={`p-2 hover:bg-gray-100 ${align === 'left' ? 'bg-black text-white' : ''}`}><AlignLeft size={16}/></button>
-                <button onClick={() => setAlign('center')} className={`p-2 hover:bg-gray-100 ${align === 'center' ? 'bg-black text-white' : ''}`}><AlignCenter size={16}/></button>
-                <button onClick={() => setAlign('right')} className={`p-2 hover:bg-gray-100 ${align === 'right' ? 'bg-black text-white' : ''}`}><AlignRight size={16}/></button>
+            <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
+              <Type size={16} />
+              <input 
+                type="number" 
+                value={fontSize} 
+                onChange={(e) => setFontSize(Number(e.target.value))}
+                className="w-12 text-sm font-bold bg-transparent outline-none border-b border-transparent focus:border-black"
+              />
+              <span className="text-xs font-mono text-gray-500">PX</span>
             </div>
+          )}
+          
+          {/* Alignment (Type Mode) */}
+          {viewMode === 'type' && (
+            <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
+                <button onClick={() => setAlign('left')} className={`p-2 hover:bg-gray-200 transition-colors ${align === 'left' ? 'bg-black text-white' : ''}`}><AlignLeft size={16}/></button>
+                <button onClick={() => setAlign('center')} className={`p-2 hover:bg-gray-200 transition-colors ${align === 'center' ? 'bg-black text-white' : ''}`}><AlignCenter size={16}/></button>
+                <button onClick={() => setAlign('right')} className={`p-2 hover:bg-gray-200 transition-colors ${align === 'right' ? 'bg-black text-white' : ''}`}><AlignRight size={16}/></button>
+            </div>
+          )}
+
+           {/* Grid Size & Pagination (Map Mode) */}
+           {viewMode === 'glyphs' && (
+            <>
+              <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
+                 <span className="text-[10px] font-mono uppercase text-gray-400 mr-2">Grid</span>
+                 {[10, 20, 30].map(size => (
+                   <button 
+                     key={size}
+                     onClick={() => { setMapGridSize(size); setMapPage(0); }}
+                     className={`px-2 py-1 text-[10px] font-bold border border-black ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent hover:bg-gray-200'}`}
+                   >
+                     {size}
+                   </button>
+                 ))}
+              </div>
+
+              {/* Pagination Controls - Conditional Render */}
+              {detectedGlyphs.length > mapGridSize * 8 && (
+                <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-r border-black">
+                    <span className="text-[10px] font-mono uppercase text-gray-500 whitespace-nowrap">
+                        Page {mapPage + 1}
+                    </span>
+                    <div className="flex gap-1">
+                        <button 
+                            onClick={() => setMapPage(Math.max(0, mapPage - 1))} 
+                            disabled={mapPage === 0}
+                            className="px-2 py-1 text-[10px] font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white transition-colors"
+                        >
+                            PREV
+                        </button>
+                        <button 
+                            onClick={() => setMapPage(mapPage + 1)} 
+                            disabled={(mapPage + 1) * (mapGridSize * 8) >= detectedGlyphs.length}
+                            className="px-2 py-1 text-[10px] font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white transition-colors"
+                        >
+                            NEXT
+                        </button>
+                    </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        <button onClick={resetSettings} className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider hover:text-red-500 transition-colors">
-          <RefreshCw size={14} /> Reset
-        </button>
+        {/* Font Info (Glyph Count) - Pushed Right with Left Border */}
+        <div className="flex items-center px-4 md:px-8 py-6 md:py-8 border-l border-black ml-auto">
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-black">
+              {detectedGlyphs.length > 0 ? `${detectedGlyphs.length} GLYPHS` : 'LOADING...'}
+            </span>
+        </div>
       </div>
 
       {/* Main Display Area */}
@@ -189,91 +265,142 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
                 spellCheck={false}
               />
         ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(50px,1fr))] gap-px bg-gray-200 border border-black max-h-[500px] overflow-y-auto custom-scrollbar p-0.5">
-                {isLoadingGlyphs && <div className="p-4 col-span-full font-mono text-xs">Loading Glyphs from file...</div>}
+            <div className="w-full flex flex-col min-h-[400px]">
+                {isLoadingGlyphs && <div className="p-8 font-mono text-xs">Loading Glyphs from file...</div>}
                 
                 {!isLoadingGlyphs && detectedGlyphs.length === 0 && (
-                   <div className="p-4 col-span-full font-mono text-xs text-red-500">
+                   <div className="p-8 font-mono text-xs text-red-500">
                       No glyphs detected. Check config.file path in Home.tsx
                    </div>
                 )}
 
-                {detectedGlyphs.map((char, idx) => (
-                    <div 
-                        key={idx} 
-                        className="aspect-square flex flex-col items-center justify-center bg-white hover:bg-black hover:text-white transition-colors cursor-default group"
-                        title={`U+${char.codePointAt(0)?.toString(16).toUpperCase()}`}
-                    >
-                        <span style={{ fontFamily: config.family, fontSize: '24px' }}>{char}</span>
-                    </div>
-                ))}
+                {!isLoadingGlyphs && (
+                  <div 
+                      className="grid gap-px content-start w-full"
+                      style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}
+                  >
+                    {detectedGlyphs
+                        .slice(mapPage * (mapGridSize * 8), (mapPage + 1) * (mapGridSize * 8))
+                        .map((char, idx) => (
+                        <div 
+                            key={idx} 
+                            className="aspect-square flex flex-col items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default group"
+                            title={`U+${char.codePointAt(0)?.toString(16).toUpperCase()}`}
+                        >
+                            <span style={{ 
+                                fontFamily: config.family, 
+                                fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' 
+                            }}>
+                                {char}
+                            </span>
+                        </div>
+                    ))}
+                  </div>
+                )}
             </div>
         )}
-            </div>
+      </div>
 
-      {/* Settings Panel */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-transparent pt-6 border-t border-black">
-        
-        <div className="md:col-span-2 space-y-4 pl-4 md:pl-8 pb-8">
-          <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Variable Axes</h4>
-          {config.axes.length > 0 ? (
-            config.axes.map((axis) => (
-              <div key={axis.tag} className="flex items-center gap-4">
-                <label className="w-16 font-mono text-xs font-bold uppercase">{axis.name}</label>
+      {/* Settings Panel Area */}
+      <div className="bg-transparent border-t border-black">
+         
+         {/* 1. Layout Settings (MOVED UP) - Leading & Tracking */}
+         <div className="grid grid-cols-1 md:grid-cols-2 border-b border-black">
+            <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-b md:border-b-0 md:border-r border-black">
+                <label className="w-24 font-mono text-xs font-bold uppercase shrink-0">Leading</label>
                 <input
                   type="range"
-                  min={axis.min}
-                  max={axis.max}
-                  step={axis.step || 1}
-                  value={axesValues[axis.tag] || axis.default}
-                  onChange={(e) => handleAxisChange(axis.tag, parseFloat(e.target.value))}
-                  className="flex-grow h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-black"
+                  min="0.8"
+                  max="2.0"
+                  step="0.1"
+                  value={lineHeight}
+                  onChange={(e) => setLineHeight(parseFloat(e.target.value))}
+                  className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"
                 />
-                <span className="w-12 text-right font-mono text-xs">
-                  {axesValues[axis.tag]}
-                  {axis.unit}
-                </span>
-              </div>
-            ))
-          ) : (
-            <p className="text-xs text-gray-400 italic">No variable axes available.</p>
-          )}
-        </div>
+                <span className="w-12 text-right font-mono text-xs">{lineHeight.toFixed(1)}</span>
+            </div>
+            <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8">
+                <label className="w-24 font-mono text-xs font-bold uppercase shrink-0">Tracking</label>
+                <input
+                  type="range"
+                  min="-0.1"
+                  max="0.5"
+                  step="0.01"
+                  value={letterSpacing}
+                  onChange={(e) => setLetterSpacing(parseFloat(e.target.value))}
+                  className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"
+                />
+                <span className="w-12 text-right font-mono text-xs">{letterSpacing.toFixed(2)}</span>
+            </div>
+         </div>
 
-        {/* OpenType Features Toggles */}
-        <div className="md:col-span-1 border-l border-gray-300 pl-4 md:pl-8 pr-4 md:pr-8 pb-8">
-          <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">OpenType Features</h4>
-          <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar">
-            {config.features && config.features.length > 0 ? (
-              config.features.map((feat) => (
-                <label key={feat.tag} className="flex items-center justify-between cursor-pointer group select-none">
-                  <span className="text-sm font-bold uppercase group-hover:text-gray-600 transition-colors">
-                    {feat.name} <span className="text-gray-400 font-mono text-xs ml-1">.{feat.tag}</span>
-                  </span>
-                  <div className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer" 
-                      checked={activeFeatures[feat.tag] || false}
-                      onChange={() => toggleFeature(feat.tag)}
+         {/* 2. Variable Axes & OpenType Features (MOVED DOWN) */}
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+            
+            <div className="md:col-span-2 space-y-4 px-4 md:px-8 py-6 md:py-8">
+              <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Variable Axes</h4>
+              {config.axes.length > 0 ? (
+                config.axes.map((axis) => (
+                  <div key={axis.tag} className="flex items-center gap-4">
+                    <label className="w-16 font-mono text-xs font-bold uppercase">{axis.name}</label>
+                    <input
+                      type="range"
+                      min={axis.min}
+                      max={axis.max}
+                      step={axis.step || 1}
+                      value={axesValues[axis.tag] || axis.default}
+                      onChange={(e) => handleAxisChange(axis.tag, parseFloat(e.target.value))}
+                      className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"
                     />
-                    {/* CUSTOM TOGGLE STYLE: Off=Border Black+BgWeb, On=BgBlack. Circle reversed. */}
-                    <div className="w-9 h-5 rounded-full peer-focus:outline-none 
-                                    bg-[#EDEBE6] border border-black 
-                                    peer-checked:bg-black peer-checked:border-black
-                                    after:content-[''] after:absolute after:top-[3px] after:left-[3px] 
-                                    after:bg-black after:border-gray-300 after:rounded-full 
-                                    after:h-3.5 after:w-3.5 after:transition-all 
-                                    peer-checked:after:translate-x-full peer-checked:after:bg-white"></div>
+                    <span className="w-12 text-right font-mono text-xs">
+                      {axesValues[axis.tag]}
+                      {axis.unit}
+                    </span>
                   </div>
-                </label>
-              ))
-            ) : (
-              <p className="text-xs text-gray-400 italic">No features defined.</p>
-            )}
-          </div>
-        </div>
+                ))
+              ) : (
+                <p className="text-xs text-gray-400 italic">No variable axes available.</p>
+              )}
+            </div>
 
+            {/* OpenType Features Toggles */}
+            <div className="md:col-span-1 border-l border-black px-4 md:px-8 py-6 md:py-8">
+              <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">OpenType Features</h4>
+              <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+                {config.features && config.features.length > 0 ? (
+                  config.features.map((feat) => (
+                    <label key={feat.tag} className="flex items-center justify-between cursor-pointer group select-none">
+                      <span className="text-sm font-bold uppercase group-hover:text-gray-600 transition-colors">
+                        {feat.name} 
+                        {/* Display Count Number instead of Tag */}
+                        <span className="text-gray-400 font-mono text-xs ml-2">
+                           {featureCounts[feat.tag] !== undefined ? featureCounts[feat.tag] : 0}
+                        </span>
+                      </span>
+                      <div className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          className="sr-only peer" 
+                          checked={activeFeatures[feat.tag] || false}
+                          onChange={() => toggleFeature(feat.tag)}
+                        />
+                        {/* CUSTOM TOGGLE STYLE */}
+                        <div className="w-9 h-5 rounded-full peer-focus:outline-none 
+                                        bg-[#EDEBE6] border border-black 
+                                        peer-checked:bg-black peer-checked:border-black
+                                        after:content-[''] after:absolute after:top-[3px] after:left-[3px] 
+                                        after:bg-black after:border-gray-300 after:rounded-full 
+                                        after:h-3.5 after:w-3.5 after:transition-all 
+                                        peer-checked:after:translate-x-full peer-checked:after:bg-white"></div>
+                      </div>
+                    </label>
+                  ))
+                ) : (
+                  <p className="text-xs text-gray-400 italic">No features defined.</p>
+                )}
+              </div>
+            </div>
+         </div>
       </div>
     </div>
   );

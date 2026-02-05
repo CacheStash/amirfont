@@ -47,10 +47,10 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Search Form Overlay */}
+     {/* Search Form Overlay */}
       {isSearchOpen && (
-        <div className="absolute top-full left-0 w-full border-b border-black bg-[#EDEBE6] p-4 animate-in slide-in-from-top-2 duration-200 z-40">
-            <div className="flex items-center max-w-7xl mx-auto gap-0 border border-black">
+        <div className="absolute top-full left-0 w-full border-b border-black bg-[#EDEBE6] px-4 md:px-8 py-4 animate-in slide-in-from-top-2 duration-200 z-40">
+            <div className="flex items-center w-full gap-0 border border-black">
                 <div className="p-3 border-r border-black bg-[#EDEBE6]">
                     <Search size={20} className="opacity-50"/>
                 </div>

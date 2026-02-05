@@ -162,9 +162,9 @@ const Home: React.FC = () => {
           {/* Left Column: Tagline */}
           <div className="p-6 md:p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-black">
              <div className="flex flex-col items-start gap-0 w-full uppercase">
-              <FluidText text="Made of Quiet Lines," className="text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
-              <FluidText text="Shaped Into Living Type," className="text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
-              <FluidText text="Read In Every Place." className="text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+              <FluidText text="Made of Quiet Lines," className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+              <FluidText text="Shaped Into Living Type," className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+              <FluidText text="Read In Every Place." className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
             </div>
           </div>
 
