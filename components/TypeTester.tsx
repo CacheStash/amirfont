@@ -28,6 +28,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
   const [mapGridSize, setMapGridSize] = useState(10); // Default 10 columns
   const [dynamicFeatures, setDynamicFeatures] = useState<{ tag: string; name: string }[]>([]);
 
+  const [detectedAxes, setDetectedAxes] = useState<any[]>([]);
+
   const [lineHeight, setLineHeight] = useState(1.1);
   const [letterSpacing, setLetterSpacing] = useState(0);
 
@@ -37,27 +39,24 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
     dlig: 'Discretionary Lig',
     calt: 'Contextual Alt',
     aalt: 'Access All Alt',
-    swsh: 'Swash',
     salt: 'Stylistic Alt',
-    ordn: 'Ordinals',
-    frac: 'Fractions',
-    smcp: 'Small Caps',
     // ss01-ss20 akan di-handle otomatis
   };
 
-  // WHITELIST: Hanya fitur ini yang boleh muncul (Sesuai Request)
+  // WHITELIST STRICT: Hanya fitur ini yang boleh muncul
   const ALLOWED_TAGS = new Set([
-      'liga', 'dlig', 'calt', 'aalt', 'swsh', 'salt', 'ordn', 'frac', 'smcp',
+      'liga', 'dlig', 'calt', 'aalt', 'salt',
       // Generate ss01 sampai ss20
       ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`) 
   ]);
 
-  // 1. Load Font Glyphs & Filtered Features
+  // 1. Load Font Glyphs & Auto-Detect (Features + Axes)
   useEffect(() => {
     if (!config.file) return;
 
     setIsLoadingGlyphs(true);
     setDetectedGlyphs([]);
+    setDetectedAxes([]); // Reset detected axes
 
     opentype.load(config.file, (err, font) => {
       setIsLoadingGlyphs(false);
@@ -77,11 +76,31 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
       }
       setDetectedGlyphs(glyphs);
 
-      // --- B. FILTERED FEATURE DETECTION ---
+      // --- B. DYNAMIC AXES DETECTION (VARIABLE FONT) ---
+      // Cek apakah font memiliki tabel 'fvar'
+      if (font.tables.fvar && font.tables.fvar.axes && font.tables.fvar.axes.length > 0) {
+          const autoAxes = font.tables.fvar.axes.map((axis: any) => ({
+              tag: axis.tag,
+              // Coba ambil nama dari properti name (biasanya object {en: "Weight"}) atau fallback ke tag
+              name: axis.name && axis.name.en ? axis.name.en : (axis.name || axis.tag),
+              min: axis.minValue,
+              max: axis.maxValue,
+              default: axis.defaultValue
+          }));
+          setDetectedAxes(autoAxes);
+
+          // Update state value slider agar sesuai default font
+          const newAxesValues: Record<string, number> = {};
+          autoAxes.forEach((axis: any) => {
+              newAxesValues[axis.tag] = axis.default;
+          });
+          setAxesValues(prev => ({ ...prev, ...newAxesValues }));
+      }
+
+      // --- C. FILTERED FEATURE DETECTION ---
       const foundTags = new Set<string>();
 
-      // Hanya scan GSUB (Substitusi) karena fitur desain (liga, swsh, ss01) ada di sini.
-      // GPOS (Kerning/Positioning) kita ABAIKAN sesuai request.
+      // Hanya scan GSUB (Substitusi) karena fitur desain (liga, ss01) ada di sini.
       if (font.tables.gsub && font.tables.gsub.features) {
         font.tables.gsub.features.forEach((f: any) => {
            // Logic: Tag ada di file && Tag ada di daftar keinginan (Whitelist)
@@ -110,15 +129,15 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
 
       setDynamicFeatures(detectedList);
 
-      // --- C. AUTO ACTIVATE (Hanya Standard: Liga & Calt) ---
+      // --- D. AUTO ACTIVATE (Hanya Standard: Liga & Calt) ---
       const detectedActive: Record<string, boolean> = {};
-      const standards = ['liga', 'calt']; // Kern dihapus dari auto-on
+      const standards = ['liga', 'calt']; 
       
       foundTags.forEach(tag => {
         if (standards.includes(tag)) detectedActive[tag] = true;
       });
       
-      // Update Feature Counts (Simpel 1/0 agar tidak error di logic render lama)
+      // Update Feature Counts (Simpel 1/0)
       const simpleCounts: Record<string, number> = {};
       foundTags.forEach(tag => simpleCounts[tag] = 1);
       setFeatureCounts(simpleCounts);
@@ -393,27 +412,28 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
             
             <div className="md:col-span-2 space-y-4 px-4 md:px-8 py-6 md:py-8">
               <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Variable Axes</h4>
-              {config.axes.length > 0 ? (
-                config.axes.map((axis) => (
+              {/* Gunakan Detected Axes (dari File) jika ada, jika tidak fallback ke Config Manual */}
+              {(detectedAxes.length > 0 ? detectedAxes : config.axes).length > 0 ? (
+                (detectedAxes.length > 0 ? detectedAxes : config.axes).map((axis) => (
                   <div key={axis.tag} className="flex items-center gap-4">
-                    <label className="w-16 font-mono text-xs font-bold uppercase">{axis.name}</label>
+                    <label className="w-16 font-mono text-xs font-bold uppercase truncate" title={axis.name}>{axis.name}</label>
                     <input
                       type="range"
                       min={axis.min}
                       max={axis.max}
-                      step={axis.step || 1}
-                      value={axesValues[axis.tag] || axis.default}
+                      step={axis.step || 1} // Detected axes biasanya tidak punya step, default 1
+                      value={axesValues[axis.tag] !== undefined ? axesValues[axis.tag] : axis.default}
                       onChange={(e) => handleAxisChange(axis.tag, parseFloat(e.target.value))}
                       className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"
                     />
                     <span className="w-12 text-right font-mono text-xs">
-                      {axesValues[axis.tag]}
-                      {axis.unit}
+                      {axesValues[axis.tag] !== undefined ? Math.round(axesValues[axis.tag]) : axis.default}
+                      {/* Detected axes tidak punya unit string, jadi kosongkan atau hardcode jika perlu */}
                     </span>
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-gray-400 italic">No variable axes available.</p>
+                <p className="text-xs text-gray-400 italic">No variable axes detected.</p>
               )}
             </div>
 
@@ -439,12 +459,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
                         />
                         {/* CUSTOM TOGGLE STYLE */}
                         <div className="w-9 h-5 rounded-full peer-focus:outline-none 
-                                        bg-[#EDEBE6] border border-black 
-                                        peer-checked:bg-black peer-checked:border-black
-                                        after:content-[''] after:absolute after:top-[3px] after:left-[3px] 
-                                        after:bg-black after:border-gray-300 after:rounded-full 
-                                        after:h-3.5 after:w-3.5 after:transition-all 
-                                        peer-checked:after:translate-x-full peer-checked:after:bg-white"></div>
+                                    bg-transparent border border-black 
+                                    peer-checked:bg-black peer-checked:border-black
+                                    after:content-[''] after:absolute after:top-[3px] after:left-[3px] 
+                                    after:bg-black after:border-gray-300 after:rounded-full 
+                                    after:h-3.5 after:w-3.5 after:transition-all 
+                                    peer-checked:after:translate-x-full peer-checked:after:bg-white"></div>
                       </div>
                     </label>
                   ))

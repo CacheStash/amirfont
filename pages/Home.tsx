@@ -3,7 +3,12 @@ import TypeTester from '../components/TypeTester';
 import { FontConfig } from '../types';
 import { MousePointer2, MoveRight, Circle, Square, Triangle } from 'lucide-react';
 
-// Graphic Component (Simulasi icon lingkaran disilang di desainmu)
+// --- IMPORTS FONT ASSETS ---
+import RoyalGrandeFile from '../fonts/RoyalGrande/Royal Grande Variable.ttf';
+import ThanjavurFile from '../fonts/Thanjavur/Thanjavur-Var.ttf';
+import SpaceMonoFile from '../fonts/Space_Mono/SpaceMono-Regular.ttf'; 
+
+// --- GRAPHIC COMPONENT ---
 const BrutalistGraphic = () => (
   <div className="flex gap-1">
     <Circle size={24} strokeWidth={1.5} className="fill-transparent stroke-black" />
@@ -12,20 +17,22 @@ const BrutalistGraphic = () => (
   </div>
 );
 
-import RoyalGrandeFile from '../fonts/RoyalGrande/Royal Grande Variable.ttf';
-import ThanjavurFile from '../fonts/Thanjavur/Thanjavur-Var.ttf';
-
-
-// -- FONT CONFIGURATIONS --
+// --- FONT CONFIGURATIONS ---
 const FONT_ROYAL_GRANDE: FontConfig = {
   name: 'Royal Grande',
-  family: '"Royal Grande Variable"', // Pastikan nama ini sama dengan yang ada di CSS/File Font
+  family: '"Royal Grande Variable"',
+  // --- PARTIAL FIX ---
+  // Note: Tambahkan properti ini ke interface FontConfig di types.ts jika ingin type-safe
+  // @ts-ignore
+  price: 25,
+  // @ts-ignore
+  styleCount: 1,
+  
   file: RoyalGrandeFile,
   description: 'A custom variable font with OpenType capabilities. Testing weight axis and ligatures.',
   tags: ['Variable', 'Serif', 'Custom'],
   axes: [
     { tag: 'wght', name: 'Weight', min: 100, max: 900, default: 400 },
-    // Tambahkan axis lain jika ada, misal: 'opsz', 'wdth'
   ],
   features: [
     { tag: 'liga', name: 'Standard Ligatures' },
@@ -53,7 +60,7 @@ const FONT_THANJAVUR: FontConfig = {
 const FONT_SPACE_MONO: FontConfig = {
   name: 'Space Mono',
   family: '"Space Mono"',
-  file: '../fonts/Space_Mono/SpaceMono-Regular.ttf',
+  file: SpaceMonoFile,
   description: 'A geometric monospace typeface with a brutalist edge. Standard static font.',
   tags: ['Monospaced', 'Static', 'Display'],
   axes: [], 
@@ -65,10 +72,13 @@ const FONT_SPACE_MONO: FontConfig = {
 const FONT_INTER_OT: FontConfig = {
   name: 'Inter',
   family: '"Inter"',
-  file: '../fonts/Inter/Inter-Italic-VariableFont_opsz,wght.ttf',
+  file: '../fonts/Inter/Inter-VariableFont_slnt,wght.ttf', 
   description: 'A masterpiece of versatility. Features extensive OpenType capabilities.',
   tags: ['OpenType', 'Sans-Serif', 'Neutral'],
-  axes: [], 
+  axes: [
+      { tag: 'wght', name: 'Weight', min: 100, max: 900, default: 400 },
+      { tag: 'slnt', name: 'Slant', min: -10, max: 0, default: 0, unit: 'deg' }
+  ], 
   features: [
     { tag: 'calt', name: 'Contextual Alt' },
     { tag: 'dlig', name: 'Discretionary Lig' },
@@ -78,12 +88,12 @@ const FONT_INTER_OT: FontConfig = {
   ]
 };
 
-// -- FLUID TEXT COMPONENT --
+// --- FLUID TEXT COMPONENT ---
 const FluidText: React.FC<{ text: string; className?: string; baseWeight?: number; maxWeight?: number }> = ({ 
   text, 
   className = "",
-  baseWeight = 900, // Default Bold
-  maxWeight = 100   // Hover Thin
+  baseWeight = 900,
+  maxWeight = 100
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const charsRef = useRef<(HTMLSpanElement | null)[]>([]);
@@ -99,28 +109,23 @@ const FluidText: React.FC<{ text: string; className?: string; baseWeight?: numbe
     charsRef.current.forEach((span) => {
       if (!span) return;
       const rect = span.getBoundingClientRect();
-      const charCenterX = rect.left + rect.width / 2;
-      const charCenterY = rect.top + rect.height / 2;
-      const distance = Math.sqrt(Math.pow(e.clientX - charCenterX, 2) + Math.pow(e.clientY - charCenterY, 2));
+      const distance = Math.sqrt(Math.pow(e.clientX - (rect.left + rect.width / 2), 2) + Math.pow(e.clientY - (rect.top + rect.height / 2), 2));
       const maxDistance = 250; 
 
       if (distance < maxDistance) {
         const proximity = 1 - (distance / maxDistance);
         const ease = proximity * proximity; 
-        const addedWeight = (maxWeight - baseWeight) * ease;
-        const newWeight = baseWeight + addedWeight;
-        const newWidth = 100 + (25 * ease); 
-
-        span.style.fontVariationSettings = `"wght" ${newWeight}, "wdth" ${newWidth}, "opsz" 14`;
+        const newWeight = baseWeight + ((maxWeight - baseWeight) * ease);
+        span.style.fontVariationSettings = `"wght" ${newWeight}`;
       } else {
-        span.style.fontVariationSettings = `"wght" ${baseWeight}, "wdth" 100, "opsz" 14`;
+        span.style.fontVariationSettings = `"wght" ${baseWeight}`;
       }
     });
   };
 
   const handleMouseLeave = () => {
     charsRef.current.forEach((span) => {
-      if (span) span.style.fontVariationSettings = `"wght" ${baseWeight}, "wdth" 100, "opsz" 14`;
+      if (span) span.style.fontVariationSettings = `"wght" ${baseWeight}`;
     });
   };
 
@@ -138,8 +143,8 @@ const FluidText: React.FC<{ text: string; className?: string; baseWeight?: numbe
           ref={(el) => { charsRef.current[i] = el }}
           className="inline-block transition-[font-variation-settings] duration-150 ease-out will-change-[font-variation-settings]"
           style={{ 
-            fontFamily: '"Roboto Flex", sans-serif',
-            fontVariationSettings: `"wght" ${baseWeight}, "wdth" 100, "opsz" 14` 
+            fontFamily: '"Roboto Flex", sans-serif', 
+            fontVariationSettings: `"wght" ${baseWeight}` 
           }}
         >
           {char === ' ' ? '\u00A0' : char}
@@ -149,99 +154,111 @@ const FluidText: React.FC<{ text: string; className?: string; baseWeight?: numbe
   );
 };
 
+// --- MAIN HOME COMPONENT ---
 const Home: React.FC = () => {
   return (
-    <div className="bg-[#EDEBE6] text-black font-sans selection:bg-black selection:text-white relative min-h-screen">
-      
-      {/* Site Header / Navbar Brutalist */}
-      <header className="w-full border-b border-black bg-[#EDEBE6]">
-    
-        {/* Hero Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_450px]">
-          
-          {/* Left Column: Tagline */}
-          <div className="p-6 md:p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-black">
-             <div className="flex flex-col items-start gap-0 w-full uppercase">
-              <FluidText text="Made of Quiet Lines," className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
-              <FluidText text="Shaped Into Living Type," className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
-              <FluidText text="Read In Every Place." className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
-            </div>
-          </div>
+    <>
 
-          {/* Right Column: CTA Area */}
-          <div className="bg-[#EDEBE6] flex flex-col justify-between p-6 md:p-8 min-h-[200px] md:min-h-auto">
-             <div className="hidden md:block"></div>
-            <div className="flex flex-col items-end gap-6 text-right">
-              <button 
-                onClick={() => document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group flex items-center gap-2 text-sm font-bold border border-black px-4 py-2 bg-[#EDEBE6] hover:bg-black hover:text-white transition-all"
-              >
-                <MousePointer2 size={16} />
-                <span>START YOUR COLLECTION</span>
-              </button>
-              <div className="font-mono text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed">
-                <p>Find Your Typeface.</p>
-                <p>Begin Today.</p>
+      {/* 1. Background Layers: Dua Lingkaran Grainy di Pojok */}
+      <div className="grain-orb-base orb-top-right" />
+      <div className="grain-orb-base orb-bottom-left" />
+
+      {/* 2. Main Content Wrapper (Relative z-10 agar di atas Orb) */}
+      {/* BG Transparent agar Orb terlihat, Text Black */}
+      <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent">
+        
+        {/* HEADER SECTION */}
+        <header className="w-full border-b border-black bg-transparent">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_450px]">
+            
+            {/* Left Column: Tagline */}
+            <div className="p-6 md:p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-black">
+              <div className="flex flex-col items-start gap-0 w-full uppercase">
+                <FluidText text="Made of Quiet Lines," className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+                <FluidText text="Shaped Into Living Type," className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+                <FluidText text="Read In Every Place." className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+              </div>
+            </div>
+
+            {/* Right Column: CTA Area */}
+            <div className="flex flex-col justify-between p-6 md:p-8 min-h-[250px] md:min-h-auto">
+              <div className="hidden md:block"></div>
+              <div className="flex flex-col items-end gap-6 text-right">
+                <button 
+                  onClick={() => document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="group flex items-center gap-2 text-sm font-bold border border-black px-4 py-2 bg-transparent hover:bg-black hover:text-white transition-all"
+                >
+                  <MousePointer2 size={16} />
+                  <span>START YOUR COLLECTION</span>
+                </button>
+                <div className="font-mono text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed">
+                  <p>Find Your Typeface.</p>
+                  <p>Begin Today.</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
+        {/* MAIN PRODUCT LOOP */}
+        <main className="w-full px-0">
+          {[FONT_ROYAL_GRANDE, FONT_THANJAVUR, FONT_SPACE_MONO, FONT_INTER_OT].map((font, index) => {
+            const isEven = index % 2 === 0; 
+            const gridLayoutClass = isEven ? "md:grid-cols-[450px_1fr_150px]" : "md:grid-cols-[150px_1fr_450px]";
 
-      {/* Main Content Area */}
-      <main className="w-full px-0">
-        
-        {/* Render Font Loop dengan Layout Zig-Zag (Grid Brutalist) */}
-        {/* Render Font Loop dengan Layout Zig-Zag (Grid Brutalist) */}
-        {[FONT_ROYAL_GRANDE, FONT_THANJAVUR, FONT_SPACE_MONO, FONT_INTER_OT].map((font, index) => {
-          const isEven = index % 2 === 0; // Row 1 (Index 0) = Layout Standar (Info - Tester - Action)
-          
-          // DEFINISI GRID DINAMIS:
-          // Row Ganjil (Std): [450px Info] [Flexible Tester] [150px Action]
-          // Row Genap (Alt): [150px Action] [Flexible Tester] [450px Info]
-          const gridLayoutClass = isEven 
-            ? "md:grid-cols-[450px_1fr_150px]" 
-            : "md:grid-cols-[150px_1fr_450px]";
+            return (
+              <section 
+                key={font.name} 
+                id={index === 0 ? "collection-start" : undefined}
+                className={`border-b border-black grid grid-cols-1 ${gridLayoutClass}`}
+              >
+                
+                {/* 1. INFO COLUMN */}
+                <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
+                  <div>
+                    {/* Font Name */}
+                    <h2 className="text-3xl font-normal uppercase tracking-tight mb-1">{font.name}</h2>
+                    
+                    {/* Style Count Info - Diperbesar (text-base) */}
+                    <span className="block font-mono text-base font-bold text-gray-500 mb-8">
+                        {(font as any).styleCount || 1} STYLES
+                    </span>
 
-          return (
-            <section 
-              key={font.name} 
-              id={index === 0 ? "collection-start" : undefined}
-              className={`border-b border-black grid grid-cols-1 ${gridLayoutClass}`}
-            >
-              
-              {/* 1. INFO COLUMN */}
-              <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
-                <div>
-                  <h2 className="text-3xl font-normal uppercase tracking-tight mb-6">{font.name}</h2>
-                  <div className="mb-8"><BrutalistGraphic /></div>
-                  <div className="flex flex-wrap gap-2 text-[10px] font-mono uppercase text-gray-500 mb-6">
-                    {font.tags.map(tag => (
-                      <span key={tag} className="border border-gray-300 px-2 py-1 rounded-full">{tag}</span>
-                    ))}
+                    <div className="mb-8"><BrutalistGraphic /></div>
+                    <div className="flex flex-wrap gap-2 text-[10px] font-mono uppercase text-gray-500 mb-6">
+                      {font.tags.map(tag => (
+                        <span key={tag} className="border border-gray-300 px-2 py-1 rounded-full">{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                     {/* Price Info - SUPER MENCOLOK (text-8xl) */}
+                     <div className="text-9xl font-light tracking-tighter mb-4 -ml-1">
+                        ${(font as any).price || 25}
+                     </div>
+                     <p className="text-gray-600 text-sm leading-relaxed font-mono">{font.description}</p>
                   </div>
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed font-mono">{font.description}</p>
-              </div>
 
-              {/* 2. TESTER COLUMN (Middle) */}
-              {/* Tidak perlu border samping karena sudah disediakan oleh tetangganya (Info & Action) */}
-              <div className="md:order-2 overflow-hidden h-full border-b md:border-b-0 bg-[#EDEBE6]">
-                 <div className="h-full">
-                    <TypeTester config={font} defaultText={isEven ? "The quick brown fox jumps over the lazy dog." : undefined} />
-                 </div>
-              </div>
+                {/* 2. TESTER COLUMN (Middle) */}
+                <div className="md:order-2 overflow-hidden h-full border-b md:border-b-0">
+                   <div className="h-full">
+                      <TypeTester config={font} defaultText={isEven ? "The quick brown fox jumps over the lazy dog." : undefined} />
+                   </div>
+                </div>
 
-              {/* 3. ACTION/ARROW COLUMN */}
-              <div className={`p-4 flex items-center justify-center bg-[#EDEBE6] hover:bg-black hover:text-white transition-colors cursor-pointer group ${isEven ? 'md:order-3 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
-                 <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
-              </div>
-            </section>
-          );
-        })}
-      </main>
-    </div>
+                {/* 3. ACTION COLUMN */}
+                <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group ${isEven ? 'md:order-3 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
+                   <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
+                </div>
+
+              </section>
+            );
+          })}
+        </main>
+      </div>
+    </>
   );
 };
 
