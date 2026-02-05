@@ -12,11 +12,11 @@ const Navbar: React.FC = () => {
   
   return (
     <nav className="w-full border-b border-black bg-[#EDEBE6] sticky top-0 z-50">
-      {/* Top Bar Layout */}
-      <div className="w-full flex justify-between items-center h-14 md:h-16 px-4 md:px-6 relative bg-[#EDEBE6] z-50">
+     {/* Top Bar Layout */}
+      <div className="w-full flex justify-between items-center h-14 md:h-16 px-0 relative bg-[#EDEBE6] z-50">
         
-        {/* Left: Menu Trigger & Logo */}
-        <div className="flex items-center gap-4">
+        {/* Left: Menu Trigger & Logo - Lebar disesuaikan (450px) dan Padding disamakan (px-8) */}
+        <div className="flex items-center gap-4 h-full border-r border-black px-4 md:px-8 w-auto md:w-[450px] shrink-0">
           <button 
             onClick={() => setIsOpen(!isOpen)}
             className="p-1 hover:bg-black hover:text-white transition-colors border border-transparent hover:border-black"
@@ -30,9 +30,9 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Right: Search & Cart */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-end gap-4 h-full border-l border-black px-4 md:px-8 min-w-[150px] shrink-0 bg-[#EDEBE6]">
            {/* Search Trigger */}
-           <button 
+           <button
              onClick={() => setIsSearchOpen(!isSearchOpen)}
              className={`p-1 transition-colors border border-transparent ${isSearchOpen ? 'bg-black text-white' : 'hover:bg-black hover:text-white hover:border-black'}`}
            >

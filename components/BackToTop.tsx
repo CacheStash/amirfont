@@ -29,7 +29,8 @@ const BackToTop: React.FC = () => {
   return (
     <button
       onClick={scrollToTop}
-      className="fixed bottom-8 right-8 z-40 bg-black text-white p-3 border-2 border-transparent hover:bg-white hover:text-black hover:border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 group"
+      className="fixed bottom-8 right-8 z-40 bg-black text-white p-3 border-2 border-transparent hover:bg-white hover:text-black hover:border-black transition-all duration-300 group"
+
       aria-label="Back to top"
     >
       <ArrowUp size={24} className="group-hover:-translate-y-1 transition-transform" />

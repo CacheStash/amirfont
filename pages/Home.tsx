@@ -1,7 +1,16 @@
 import React, { useRef } from 'react';
 import TypeTester from '../components/TypeTester';
 import { FontConfig } from '../types';
-import { MousePointer2 } from 'lucide-react';
+import { MousePointer2, MoveRight, Circle, Square, Triangle } from 'lucide-react';
+
+// Graphic Component (Simulasi icon lingkaran disilang di desainmu)
+const BrutalistGraphic = () => (
+  <div className="flex gap-1">
+    <Circle size={24} strokeWidth={1.5} className="fill-transparent stroke-black" />
+    <Square size={24} strokeWidth={1.5} className="fill-black stroke-black" />
+    <Triangle size={24} strokeWidth={1.5} className="fill-transparent stroke-black" />
+  </div>
+);
 
 import RoyalGrandeFile from '../fonts/RoyalGrande/Royal Grande Variable.ttf';
 import ThanjavurFile from '../fonts/Thanjavur/Thanjavur-Var.ttf';
@@ -73,8 +82,8 @@ const FONT_INTER_OT: FontConfig = {
 const FluidText: React.FC<{ text: string; className?: string; baseWeight?: number; maxWeight?: number }> = ({ 
   text, 
   className = "",
-  baseWeight = 400,
-  maxWeight = 1000
+  baseWeight = 900, // Default Bold
+  maxWeight = 100   // Hover Thin
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const charsRef = useRef<(HTMLSpanElement | null)[]>([]);
@@ -147,39 +156,29 @@ const Home: React.FC = () => {
       {/* Site Header / Navbar Brutalist */}
       <header className="w-full border-b border-black bg-[#EDEBE6]">
     
-        {/* Hero Section */}
-        <div className="px-4 py-4 md:px-8 md:py-8">
+        {/* Hero Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_450px]">
           
-          {/* Tagline & Subtext Grid */}
-          <div className="flex flex-col md:flex-row justify-between items-end gap-4 md:gap-8">
-            <div className="flex flex-col items-start gap-0 w-full">
-              <FluidText
-                text="Made of Quiet Lines," 
-                className="text-5xl md:text-8xl leading-[0.9] tracking-tight"
-                baseWeight={300}
-                maxWeight={1000}
-              />
-              <FluidText 
-                text="Shaped Into Living Type," 
-                className="text-5xl md:text-8xl leading-[0.9] tracking-tight"
-                baseWeight={300}
-                maxWeight={1000}
-              />
-              <FluidText 
-                text="Read In Every Place." 
-                className="text-5xl md:text-8xl leading-[0.9] tracking-tight hover:text-black transition-colors duration-300"
-                baseWeight={300}
-                maxWeight={1000}
-              />
+          {/* Left Column: Tagline */}
+          <div className="p-6 md:p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-black">
+             <div className="flex flex-col items-start gap-0 w-full uppercase">
+              <FluidText text="Made of Quiet Lines," className="text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+              <FluidText text="Shaped Into Living Type," className="text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+              <FluidText text="Read In Every Place." className="text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
             </div>
-            
-            {/* Right Column */}
-            <div className="flex flex-col items-end gap-4 text-right shrink-0">
-              <div className="hidden md:flex items-center gap-2 text-sm font-bold border border-black px-3 py-1 hover:bg-black hover:text-white transition-colors">
+          </div>
+
+          {/* Right Column: CTA Area */}
+          <div className="bg-[#EDEBE6] flex flex-col justify-between p-6 md:p-8 min-h-[200px] md:min-h-auto">
+             <div className="hidden md:block"></div>
+            <div className="flex flex-col items-end gap-6 text-right">
+              <button 
+                onClick={() => document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' })}
+                className="group flex items-center gap-2 text-sm font-bold border border-black px-4 py-2 bg-[#EDEBE6] hover:bg-black hover:text-white transition-all"
+              >
                 <MousePointer2 size={16} />
-                <span>START YOUR COLLECTION TODAY</span>
-              </div>
-              
+                <span>START YOUR COLLECTION</span>
+              </button>
               <div className="font-mono text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed">
                 <p>Find Your Typeface.</p>
                 <p>Begin Today.</p>
@@ -193,90 +192,54 @@ const Home: React.FC = () => {
       {/* Main Content Area */}
       <main className="w-full px-0">
         
-        {/* Product 01: Royal Grande */}
-        <section className="border-b border-black px-4 md:px-8 py-4 md:py-8">
-          <div className="flex flex-col gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <span className="w-4 h-4 bg-black block shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]"></span>
-              <h2 className="text-2xl font-black uppercase tracking-tight">01. {FONT_ROYAL_GRANDE.name}</h2>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs font-mono uppercase text-gray-500 mb-2">
-              {FONT_ROYAL_GRANDE.tags.map(tag => (
-                <span key={tag} className="border border-gray-300 px-2 py-0.5 rounded-full">{tag}</span>
-              ))}
-            </div>
-            <p className="text-gray-600 max-w-xl text-sm leading-relaxed">
-              {FONT_ROYAL_GRANDE.description}
-            </p>
-          </div>
-          <TypeTester config={FONT_ROYAL_GRANDE} />
-        </section>
+        {/* Render Font Loop dengan Layout Zig-Zag (Grid Brutalist) */}
+        {/* Render Font Loop dengan Layout Zig-Zag (Grid Brutalist) */}
+        {[FONT_ROYAL_GRANDE, FONT_THANJAVUR, FONT_SPACE_MONO, FONT_INTER_OT].map((font, index) => {
+          const isEven = index % 2 === 0; // Row 1 (Index 0) = Layout Standar (Info - Tester - Action)
+          
+          // DEFINISI GRID DINAMIS:
+          // Row Ganjil (Std): [450px Info] [Flexible Tester] [150px Action]
+          // Row Genap (Alt): [150px Action] [Flexible Tester] [450px Info]
+          const gridLayoutClass = isEven 
+            ? "md:grid-cols-[450px_1fr_150px]" 
+            : "md:grid-cols-[150px_1fr_450px]";
 
-        {/* Product 02: Thanjavur */}
-        <section className="border-b border-black px-4 md:px-8 py-4 md:py-8">
-          <div className="flex flex-col gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <span className="w-4 h-4 bg-gradient-to-tr from-black to-gray-500 block shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]"></span>
-              <h2 className="text-2xl font-black uppercase tracking-tight">02. {FONT_THANJAVUR.name}</h2>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs font-mono uppercase text-gray-500 mb-2">
-              {FONT_THANJAVUR.tags.map(tag => (
-                <span key={tag} className="border border-black bg-black text-white px-2 py-0.5 rounded-full">{tag}</span>
-              ))}
-            </div>
-            <p className="text-gray-600 max-w-xl text-sm leading-relaxed">
-              {FONT_THANJAVUR.description}
-            </p>
-          </div>
-          <TypeTester 
-            config={FONT_THANJAVUR} 
-            defaultText="Test the opentype features here."
-          />
-        </section>
+          return (
+            <section 
+              key={font.name} 
+              id={index === 0 ? "collection-start" : undefined}
+              className={`border-b border-black grid grid-cols-1 ${gridLayoutClass}`}
+            >
+              
+              {/* 1. INFO COLUMN */}
+              <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
+                <div>
+                  <h2 className="text-3xl font-normal uppercase tracking-tight mb-6">{font.name}</h2>
+                  <div className="mb-8"><BrutalistGraphic /></div>
+                  <div className="flex flex-wrap gap-2 text-[10px] font-mono uppercase text-gray-500 mb-6">
+                    {font.tags.map(tag => (
+                      <span key={tag} className="border border-gray-300 px-2 py-1 rounded-full">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-gray-600 text-sm leading-relaxed font-mono">{font.description}</p>
+              </div>
 
-        {/* Product 03: Space Mono */}
-        <section className="border-b border-black px-4 md:px-8 py-4 md:py-8">
-          <div className="flex flex-col gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <span className="w-4 h-4 border-2 border-black block shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]"></span>
-              <h2 className="text-2xl font-black uppercase tracking-tight">03. {FONT_SPACE_MONO.name}</h2>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs font-mono uppercase text-gray-500 mb-2">
-              {FONT_SPACE_MONO.tags.map(tag => (
-                <span key={tag} className="border border-gray-300 px-2 py-0.5 rounded-full">{tag}</span>
-              ))}
-            </div>
-            <p className="text-gray-600 max-w-xl text-sm leading-relaxed">
-              {FONT_SPACE_MONO.description}
-            </p>
-          </div>
-          <TypeTester 
-            config={FONT_SPACE_MONO} 
-            defaultText="function init() { console.log('Hello World'); }"
-          />
-        </section>
+              {/* 2. TESTER COLUMN (Middle) */}
+              {/* Tidak perlu border samping karena sudah disediakan oleh tetangganya (Info & Action) */}
+              <div className="md:order-2 overflow-hidden h-full border-b md:border-b-0 bg-[#EDEBE6]">
+                 <div className="h-full">
+                    <TypeTester config={font} defaultText={isEven ? "The quick brown fox jumps over the lazy dog." : undefined} />
+                 </div>
+              </div>
 
-        {/* Product 04: Inter */}
-       <section className="border-b border-black px-4 md:px-8 py-4 md:py-8">
-          <div className="flex flex-col gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <span className="w-4 h-4 bg-gray-400 block shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]"></span>
-              <h2 className="text-2xl font-black uppercase tracking-tight">04. {FONT_INTER_OT.name}</h2>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs font-mono uppercase text-gray-500 mb-2">
-              {FONT_INTER_OT.tags.map(tag => (
-                <span key={tag} className="border border-gray-300 px-2 py-0.5 rounded-full">{tag}</span>
-              ))}
-            </div>
-            <p className="text-gray-600 max-w-xl text-sm leading-relaxed">
-              {FONT_INTER_OT.description}
-            </p>
-          </div>
-          <TypeTester 
-            config={FONT_INTER_OT} 
-            defaultText="Illegible? -> Legible. 1234567890 -> 01234. arrows -> <->. Try the toggles below."
-          />
-        </section>
+              {/* 3. ACTION/ARROW COLUMN */}
+              <div className={`p-4 flex items-center justify-center bg-[#EDEBE6] hover:bg-black hover:text-white transition-colors cursor-pointer group ${isEven ? 'md:order-3 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
+                 <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
+              </div>
+            </section>
+          );
+        })}
       </main>
     </div>
   );

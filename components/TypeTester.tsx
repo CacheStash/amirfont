@@ -127,7 +127,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
     <div className="w-full mb-16">
       
       {/* Controls Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-gray-200 pb-4">
+      {/* Update Padding Header: pt-8 agar sejajar font name, px-8 kiri/kanan */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-0 border-b border-black pb-4 pt-6 px-4 md:pt-8 md:px-8">
         <div className="flex items-center gap-4">
             
           {/* View Mode Toggle (Type vs Map) */}
@@ -213,8 +214,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
       {/* Settings Panel */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-transparent pt-6 border-t border-black">
         
-        {/* Variable Axes Sliders */}
-        <div className="md:col-span-2 space-y-4">
+        <div className="md:col-span-2 space-y-4 pl-4 md:pl-8 pb-8">
           <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Variable Axes</h4>
           {config.axes.length > 0 ? (
             config.axes.map((axis) => (
@@ -241,9 +241,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
         </div>
 
         {/* OpenType Features Toggles */}
-        <div className="md:col-span-1 border-l border-gray-300 pl-0 md:pl-8">
+        <div className="md:col-span-1 border-l border-gray-300 pl-4 md:pl-8 pr-4 md:pr-8 pb-8">
           <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">OpenType Features</h4>
-          <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar">
             {config.features && config.features.length > 0 ? (
               config.features.map((feat) => (
                 <label key={feat.tag} className="flex items-center justify-between cursor-pointer group select-none">
@@ -257,7 +257,14 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
                       checked={activeFeatures[feat.tag] || false}
                       onChange={() => toggleFeature(feat.tag)}
                     />
-                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                    {/* CUSTOM TOGGLE STYLE: Off=Border Black+BgWeb, On=BgBlack. Circle reversed. */}
+                    <div className="w-9 h-5 rounded-full peer-focus:outline-none 
+                                    bg-[#EDEBE6] border border-black 
+                                    peer-checked:bg-black peer-checked:border-black
+                                    after:content-[''] after:absolute after:top-[3px] after:left-[3px] 
+                                    after:bg-black after:border-gray-300 after:rounded-full 
+                                    after:h-3.5 after:w-3.5 after:transition-all 
+                                    peer-checked:after:translate-x-full peer-checked:after:bg-white"></div>
                   </div>
                 </label>
               ))
