@@ -24,19 +24,40 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
 
   const [featureCounts, setFeatureCounts] = useState<Record<string, number>>({});
 
+  const [mapPage, setMapPage] = useState(0);
+  const [mapGridSize, setMapGridSize] = useState(10); // Default 10 columns
+  const [dynamicFeatures, setDynamicFeatures] = useState<{ tag: string; name: string }[]>([]);
+
   const [lineHeight, setLineHeight] = useState(1.1);
   const [letterSpacing, setLetterSpacing] = useState(0);
 
   // Map View Settings
-  const [mapPage, setMapPage] = useState(0);
-  const [mapGridSize, setMapGridSize] = useState(20);
+  const FEATURE_NAMES: Record<string, string> = {
+    liga: 'Standard Ligatures',
+    dlig: 'Discretionary Lig',
+    calt: 'Contextual Alt',
+    aalt: 'Access All Alt',
+    swsh: 'Swash',
+    salt: 'Stylistic Alt',
+    ordn: 'Ordinals',
+    frac: 'Fractions',
+    smcp: 'Small Caps',
+    // ss01-ss20 akan di-handle otomatis
+  };
 
-  // 1. Load Font Glyphs menggunakan opentype.js
+  // WHITELIST: Hanya fitur ini yang boleh muncul (Sesuai Request)
+  const ALLOWED_TAGS = new Set([
+      'liga', 'dlig', 'calt', 'aalt', 'swsh', 'salt', 'ordn', 'frac', 'smcp',
+      // Generate ss01 sampai ss20
+      ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`) 
+  ]);
+
+  // 1. Load Font Glyphs & Filtered Features
   useEffect(() => {
     if (!config.file) return;
 
     setIsLoadingGlyphs(true);
-    setDetectedGlyphs([]); // Reset
+    setDetectedGlyphs([]);
 
     opentype.load(config.file, (err, font) => {
       setIsLoadingGlyphs(false);
@@ -46,8 +67,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
       }
       if (!font) return;
 
+      // --- A. GLYPH EXTRACTION ---
       const glyphs: string[] = [];
-      // Loop melalui glyphs (limit 2000 untuk performa jika font CJK)
       for (let i = 0; i < font.glyphs.length && i < 600; i++) {
         const glyph = font.glyphs.get(i);
         if (glyph.unicode) {
@@ -56,21 +77,54 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
       }
       setDetectedGlyphs(glyphs);
 
-      // Hitung jumlah Lookups per Fitur untuk ditampilkan di UI
-      const counts: Record<string, number> = {};
-      const countFeatures = (table: any) => {
-          if (table && table.features) {
-              table.features.forEach((f: any) => {
-                  // Kita hitung jumlah lookup list sebagai representasi "jumlah" fitur
-                  counts[f.tag] = (counts[f.tag] || 0) + (f.feature.lookupListIndices ? f.feature.lookupListIndices.length : 1);
-              });
-          }
-      };
-      // Cek table GSUB (Substitusi) dan GPOS (Positioning/Kerning)
-      if (font.tables.gsub) countFeatures(font.tables.gsub);
-      if (font.tables.gpos) countFeatures(font.tables.gpos);
+      // --- B. FILTERED FEATURE DETECTION ---
+      const foundTags = new Set<string>();
+
+      // Hanya scan GSUB (Substitusi) karena fitur desain (liga, swsh, ss01) ada di sini.
+      // GPOS (Kerning/Positioning) kita ABAIKAN sesuai request.
+      if (font.tables.gsub && font.tables.gsub.features) {
+        font.tables.gsub.features.forEach((f: any) => {
+           // Logic: Tag ada di file && Tag ada di daftar keinginan (Whitelist)
+           if (f.tag && ALLOWED_TAGS.has(f.tag)) {
+               foundTags.add(f.tag);
+           }
+        });
+      }
+
+      // Convert ke Array Object untuk UI
+      const detectedList = Array.from(foundTags).sort().map(tag => {
+        // Cek nama custom di config dulu
+        const configFeature = config.features?.find(cf => cf.tag === tag);
+        if (configFeature) return { tag, name: configFeature.name };
+
+        // Cek kamus nama umum
+        if (FEATURE_NAMES[tag]) return { tag, name: FEATURE_NAMES[tag] };
+        
+        // Handle Stylistic Sets (SS01 - SS20) secara dinamis
+        if (tag.startsWith('ss')) {
+            return { tag, name: `Stylistic Set ${parseInt(tag.slice(2))}` };
+        }
+
+        return { tag, name: tag.toUpperCase() };
+      });
+
+      setDynamicFeatures(detectedList);
+
+      // --- C. AUTO ACTIVATE (Hanya Standard: Liga & Calt) ---
+      const detectedActive: Record<string, boolean> = {};
+      const standards = ['liga', 'calt']; // Kern dihapus dari auto-on
       
-      setFeatureCounts(counts);
+      foundTags.forEach(tag => {
+        if (standards.includes(tag)) detectedActive[tag] = true;
+      });
+      
+      // Update Feature Counts (Simpel 1/0 agar tidak error di logic render lama)
+      const simpleCounts: Record<string, number> = {};
+      foundTags.forEach(tag => simpleCounts[tag] = 1);
+      setFeatureCounts(simpleCounts);
+      
+      setActiveFeatures(prev => ({ ...prev, ...detectedActive }));
+
     });
   }, [config.file]);
 
@@ -367,15 +421,14 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
             <div className="md:col-span-1 border-l border-black px-4 md:px-8 py-6 md:py-8">
               <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">OpenType Features</h4>
               <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar">
-                {config.features && config.features.length > 0 ? (
-                  config.features.map((feat) => (
+                {/* Fix: Gunakan 'dynamicFeatures' (Scan File) bukan 'config.features' (Manual Home.tsx) */}
+                {dynamicFeatures.length > 0 ? (
+                  dynamicFeatures.map((feat) => (
                     <label key={feat.tag} className="flex items-center justify-between cursor-pointer group select-none">
                       <span className="text-sm font-bold uppercase group-hover:text-gray-600 transition-colors">
                         {feat.name} 
-                        {/* Display Count Number instead of Tag */}
-                        <span className="text-gray-400 font-mono text-xs ml-2">
-                           {featureCounts[feat.tag] !== undefined ? featureCounts[feat.tag] : 0}
-                        </span>
+                        {/* Fix: Hapus counter angka, ganti dengan Tag Code (misal .liga) */}
+                        <span className="text-gray-400 font-mono text-xs ml-2">.{feat.tag}</span>
                       </span>
                       <div className="relative inline-flex items-center cursor-pointer">
                         <input 
@@ -396,7 +449,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morn
                     </label>
                   ))
                 ) : (
-                  <p className="text-xs text-gray-400 italic">No features defined.</p>
+                  <p className="text-xs text-gray-400 italic">
+                     {isLoadingGlyphs ? 'Scanning font file...' : 'No features detected.'}
+                  </p>
                 )}
               </div>
             </div>
