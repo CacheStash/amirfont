@@ -35,7 +35,14 @@ app.get('/*', async (c) => {
   if (res.status === 404) {
     return c.env.ASSETS.fetch(new Request(new URL('/', c.req.url)));
   }
-  
+  if (res.status === 404) {
+    const url = new URL(c.req.url);
+    const isAsset = url.pathname.includes('.'); // Cek apakah ada titik (ekstensi file)
+
+    if (!isAsset) {
+      return c.env.ASSETS.fetch(new Request(new URL('/', c.req.url)));
+    }
+  }
   return res;
 });
 
