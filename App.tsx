@@ -4,7 +4,8 @@ import Navbar from './components/Navbar';
 
 import FontUploadForm from './components/admin/FontUploadForm';
 
-
+import { supabase } from './lib/supabase';
+import Login from './components/admin/Login'; // Pastikan file Login.tsx sudah ada di folder ini
 
 import AdminDashboard from './components/admin/AdminLayout'; // Import layout baru
 import BackToTop from './components/BackToTop';
@@ -14,6 +15,25 @@ import Blog from './pages/Blog';   // Pastikan file ini ada (dari jawaban sebelu
 
 
 const App: React.FC = () => {
+  const [session, setSession] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    // Ambil status login saat ini
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    // Pantau perubahan status (login/logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) return <div className="p-20 text-center font-mono">Verifying Access...</div>;
   return (
     <Router>
       <div className="min-h-screen bg-gray-50 text-black font-sans selection:bg-black selection:text-white relative flex flex-col">
