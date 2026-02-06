@@ -1,9 +1,21 @@
 import React, { useState } from 'react';
 import { LayoutDashboard, Type, ShoppingCart, LogOut } from 'lucide-react';
 import ProductManager from './ProductManager'; // Tambahkan ini
+import { supabase } from '../../lib/supabase'; // Import koneksi database
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('products');
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      alert("Gagal keluar: " + error.message);
+    } else {
+      // Halaman akan otomatis redirect karena session di App.tsx berubah
+      console.log("Logged out successfully");
+    }
+  };
+
 
   return (
     <div className="flex min-h-screen bg-gray-50 text-black font-sans">
@@ -26,7 +38,10 @@ const AdminDashboard = () => {
         </nav>
 
         <div className="p-4 border-t border-black">
-          <button className="w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs hover:bg-red-50 text-red-600 transition-all">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs hover:bg-red-50 text-red-600 transition-all cursor-pointer"
+          >
             <LogOut size={18} /> Logout
           </button>
         </div>
