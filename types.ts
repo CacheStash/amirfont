@@ -7,13 +7,21 @@ export interface Axis {
     step?: number;
     unit?: string;
 }
-// src/types.ts
+
 export interface FontConfig {
   name: string;
   family: string;
   file?: string;
   description: string;
   tags: string[];
+  
+  // Array URL gambar untuk background oval (Opsional)
+  previewImages?: string[];
+
+  // Properti tambahan agar tidak error di Home.tsx
+  price?: number;
+  styleCount?: number;
+
   axes: {
     tag: string;
     name: string;
@@ -23,7 +31,7 @@ export interface FontConfig {
     step?: number;
     unit?: string;
   }[];
-  // Tambahkan ini:
+  
   features?: {
     tag: string;
     name: string;

@@ -4,6 +4,7 @@ import { FontConfig } from '../types';
 import { MousePointer2, MoveRight, Circle, Square, Triangle } from 'lucide-react';
 
 // --- IMPORTS FONT ASSETS ---
+// Pastikan path ini sesuai dengan struktur foldermu
 import RoyalGrandeFile from '../fonts/RoyalGrande/Royal Grande Variable.ttf';
 import ThanjavurFile from '../fonts/Thanjavur/Thanjavur-Var.ttf';
 import SpaceMonoFile from '../fonts/Space_Mono/SpaceMono-Regular.ttf'; 
@@ -21,13 +22,8 @@ const BrutalistGraphic = () => (
 const FONT_ROYAL_GRANDE: FontConfig = {
   name: 'Royal Grande',
   family: '"Royal Grande Variable"',
-  // --- PARTIAL FIX ---
-  // Note: Tambahkan properti ini ke interface FontConfig di types.ts jika ingin type-safe
-  // @ts-ignore
   price: 25,
-  // @ts-ignore
   styleCount: 1,
-  
   file: RoyalGrandeFile,
   description: 'A custom variable font with OpenType capabilities. Testing weight axis and ligatures.',
   tags: ['Variable', 'Serif', 'Custom'],
@@ -158,20 +154,29 @@ const FluidText: React.FC<{ text: string; className?: string; baseWeight?: numbe
 const Home: React.FC = () => {
   return (
     <>
-
-      {/* 1. Background Layers: Dua Lingkaran Grainy di Pojok */}
       <div className="grain-orb-base orb-top-right" />
       <div className="grain-orb-base orb-bottom-left" />
 
-      {/* 2. Main Content Wrapper (Relative z-10 agar di atas Orb) */}
-      {/* BG Transparent agar Orb terlihat, Text Black */}
       <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent">
         
-        {/* HEADER SECTION */}
-        <header className="w-full border-b border-black bg-transparent">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_450px]">
-            
-            {/* Left Column: Tagline */}
+        {/* HEADER */}
+        
+        {/* UPDATED: Tambahkan relative dan overflow-hidden agar circle tidak bocor keluar header jika tidak diinginkan */}
+        <header className="w-full border-b border-black bg-transparent relative overflow-hidden">
+          
+          {/* NEW: Blurry Circle di Header (Kanan Atas) */}
+          <div className="absolute -top-20 -right-20 w-[600px] h-[400px] pointer-events-none z-0">
+             <div 
+                className="w-full h-full mix-blend-multiply blur-[60px]"
+                style={{ 
+                  // Copy gradient yang sama dari TypeTester
+                  background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)',
+                }}
+             />
+          </div>
+
+          {/* Pastikan konten grid memiliki relative z-10 agar muncul di DEPAN circle */}
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_450px] relative z-10">
             <div className="p-6 md:p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-black">
               <div className="flex flex-col items-start gap-0 w-full uppercase">
                 <FluidText text="Made of Quiet Lines," className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
@@ -180,7 +185,6 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Column: CTA Area */}
             <div className="flex flex-col justify-between p-6 md:p-8 min-h-[250px] md:min-h-auto">
               <div className="hidden md:block"></div>
               <div className="flex flex-col items-end gap-6 text-right">
@@ -200,7 +204,7 @@ const Home: React.FC = () => {
           </div>
         </header>
 
-        {/* MAIN PRODUCT LOOP */}
+        {/* MAIN LOOP */}
         <main className="w-full px-0">
           {[FONT_ROYAL_GRANDE, FONT_THANJAVUR, FONT_SPACE_MONO, FONT_INTER_OT].map((font, index) => {
             const isEven = index % 2 === 0; 
@@ -216,14 +220,10 @@ const Home: React.FC = () => {
                 {/* 1. INFO COLUMN */}
                 <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
                   <div>
-                    {/* Font Name */}
                     <h2 className="text-3xl font-normal uppercase tracking-tight mb-1">{font.name}</h2>
-                    
-                    {/* Style Count Info - Diperbesar (text-base) */}
                     <span className="block font-mono text-base font-bold text-gray-500 mb-8">
-                        {(font as any).styleCount || 1} STYLES
+                        {font.styleCount || 1} STYLES
                     </span>
-
                     <div className="mb-8"><BrutalistGraphic /></div>
                     <div className="flex flex-wrap gap-2 text-[10px] font-mono uppercase text-gray-500 mb-6">
                       {font.tags.map(tag => (
@@ -233,18 +233,22 @@ const Home: React.FC = () => {
                   </div>
                   
                   <div>
-                     {/* Price Info - SUPER MENCOLOK (text-8xl) */}
                      <div className="text-9xl font-light tracking-tighter mb-4 -ml-1">
-                        ${(font as any).price || 25}
+                        ${font.price || 25}
                      </div>
                      <p className="text-gray-600 text-sm leading-relaxed font-mono">{font.description}</p>
                   </div>
                 </div>
 
                 {/* 2. TESTER COLUMN (Middle) */}
-                <div className="md:order-2 overflow-hidden h-full border-b md:border-b-0">
+                <div className="md:order-2 h-full border-b md:border-b-0 relative">
                    <div className="h-full">
-                      <TypeTester config={font} defaultText={isEven ? "The quick brown fox jumps over the lazy dog." : undefined} />
+                      {/* PASSING 'isEven' PROP HERE */}
+                      <TypeTester 
+                        config={font} 
+                        isEven={isEven}
+                        defaultText={isEven ? "The quick brown fox jumps over the lazy dog." : undefined} 
+                      />
                    </div>
                 </div>
 
