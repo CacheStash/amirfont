@@ -18,27 +18,20 @@ app.post('/api/upload', async (c) => {
 
     if (!file) return c.json({ success: false, error: "File tidak ditemukan" }, 400);
 
-    // Buat nama file unik agar tidak bentrok di R2
     const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
-    
-    // Simpan file mentah-mentah ke R2
     await c.env.R2_BUCKET.put(fileName, file);
 
-    return c.json({ 
-      success: true, 
-      fileName: fileName 
-    });
+    return c.json({ success: true, fileName: fileName });
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500);
   }
 });
 
-// Penanganan file statis dan routing SPA (Single Page Application)
 app.get('/*', async (c) => {
   const res = await c.env.ASSETS.fetch(c.req.raw);
   
-  // Jika file tidak ditemukan (seperti /admin), kirimkan index.html
-  // agar React Router di frontend yang menangani tampilannya.
+  // LOGIKA PENTING: Jika reload di /admin dan file tidak ditemukan (404),
+  // paksa server berikan index.html agar React Router bisa bangun lagi.
   if (res.status === 404) {
     return c.env.ASSETS.fetch(new Request(new URL('/', c.req.url)));
   }
