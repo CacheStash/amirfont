@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Fonts from './pages/Fonts'; // Pastikan file ini ada (dari jawaban sebelumnya)
 import Blog from './pages/Blog';   // Pastikan file ini ada (dari jawaban sebelumnya)
 
+
 const App: React.FC = () => {
   return (
     <Router>

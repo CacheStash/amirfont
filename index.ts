@@ -3,23 +3,36 @@ import { Hono } from 'hono';
 
 type Bindings = {
   R2_BUCKET: R2Bucket;
-  ASSETS: { fetch: typeof fetch }; 
+  ASSETS: { fetch: typeof fetch };
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
-// API untuk cek koneksi R2
-app.get('/api/check', async (c) => {
-  const bucket = c.env.R2_BUCKET;
-  if (!bucket) {
-    return c.json({ status: "Error", message: "R2_BUCKET belum di-binding di Dashboard." }, 500);
+app.get('/api/check', (c) => c.json({ status: "Hidup Total", message: "Gudang R2 siap!" }));
+
+// API UNTUK MENERIMA FILE FONT
+app.post('/api/upload', async (c) => {
+  try {
+    const body = await c.req.parseBody();
+    const file = body['file'] as File;
+
+    if (!file) return c.json({ success: false, error: "File tidak ditemukan" }, 400);
+
+    // Buat nama file unik agar tidak bentrok di R2
+    const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+    
+    // Simpan file mentah-mentah ke R2
+    await c.env.R2_BUCKET.put(fileName, file);
+
+    return c.json({ 
+      success: true, 
+      fileName: fileName 
+    });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
   }
-  return c.json({ status: "Hidup Total", message: "Gudang R2 siap digunakan!" });
 });
 
-// Menangani permintaan file website dari folder ./dist
-app.get('/*', async (c) => {
-  return c.env.ASSETS.fetch(c.req.raw);
-});
+app.get('/*', (c) => c.env.ASSETS.fetch(c.req.raw));
 
 export default app;
