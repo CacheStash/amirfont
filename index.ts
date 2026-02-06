@@ -30,18 +30,14 @@ app.post('/api/upload', async (c) => {
 app.get('/*', async (c) => {
   const res = await c.env.ASSETS.fetch(c.req.raw);
   
-  // LOGIKA PENTING: Jika reload di /admin dan file tidak ditemukan (404),
-  // paksa server berikan index.html agar React Router bisa bangun lagi.
-  if (res.status === 404) {
-    return c.env.ASSETS.fetch(new Request(new URL('/', c.req.url)));
-  }
   if (res.status === 404) {
     const url = new URL(c.req.url);
-    const isAsset = url.pathname.includes('.'); // Cek apakah ada titik (ekstensi file)
-
-    if (!isAsset) {
-      return c.env.ASSETS.fetch(new Request(new URL('/', c.req.url)));
+    // Jika pathname mengandung titik (misal .css, .ttf, .js), biarkan tetap 404 agar tidak merusak sistem
+    if (url.pathname.includes('.')) {
+      return res;
     }
+    // Jika tidak ada titik, baru kita arahkan ke index.html (untuk React Router)
+    return c.env.ASSETS.fetch(new Request(new URL('/', c.req.url)));
   }
   return res;
 });
