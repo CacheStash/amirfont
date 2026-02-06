@@ -33,6 +33,17 @@ app.post('/api/upload', async (c) => {
   }
 });
 
-app.get('/*', (c) => c.env.ASSETS.fetch(c.req.raw));
+// Penanganan file statis dan routing SPA (Single Page Application)
+app.get('/*', async (c) => {
+  const res = await c.env.ASSETS.fetch(c.req.raw);
+  
+  // Jika file tidak ditemukan (seperti /admin), kirimkan index.html
+  // agar React Router di frontend yang menangani tampilannya.
+  if (res.status === 404) {
+    return c.env.ASSETS.fetch(new Request(new URL('/', c.req.url)));
+  }
+  
+  return res;
+});
 
 export default app;
