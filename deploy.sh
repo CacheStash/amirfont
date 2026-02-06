@@ -1,51 +1,30 @@
 #!/bin/bash
 
 # --- KONFIGURASI ---
-
-# 1. Ambil Nama Folder Project (Otomatis)
 PROJECT_NAME=$(basename "$PWD")
-
-# 2. Tentukan Folder Tujuan
-# Folder induk bernama "backups" ada satu level di atas
-BACKUP_ROOT="../backups"
-# Folder spesifik untuk project ini di dalam folder induk
-TARGET_DIR="$BACKUP_ROOT/$PROJECT_NAME"
-
-# 3. Jumlah history yang disimpan
-MAX_BACKUPS=5
-
-# 4. Nama File (Sekarang tidak perlu nama project di nama file, karena foldernya sudah spesifik)
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
-BACKUP_FILENAME="${PROJECT_NAME}_${TIMESTAMP}.tar.gz"
-FULL_PATH="$TARGET_DIR/$BACKUP_FILENAME"
+TARGET_DIR="../backups/$PROJECT_NAME"
 
-# --- ACTION ---
-
-# 1. Buat struktur folder (Magic command: mkdir -p)
-# Perintah -p akan membuat folder "backups" DAN folder "nama_project" sekaligus jika belum ada
 mkdir -p "$TARGET_DIR"
 
 echo "📂 Project: $PROJECT_NAME"
-echo "📂 Lokasi Backup: $TARGET_DIR"
-echo "📦 Sedang mengompres..."
+echo "📦 Sedang mencadangkan (Backup)..."
 
-# 2. Compress (Backup Fisik)
-# Exclude folder berat
-tar --exclude='node_modules' --exclude='.git' --exclude='.next' --exclude='dist' --exclude='.vscode' -czf "$FULL_PATH" .
+# Compress (Backup Fisik)
+tar --exclude='node_modules' --exclude='.git' --exclude='dist' --exclude='.vscode' -czf "$TARGET_DIR/${PROJECT_NAME}_${TIMESTAMP}.tar.gz" .
 
-# 3. ROTASI (Hapus backup lama di dalam folder spesifik ini)
-cd "$TARGET_DIR"
-# Karena folder ini KHUSUS untuk project ini, kita cukup hitung semua file .tar.gz di sini
-ls -t *.tar.gz 2>/dev/null | tail -n +$((MAX_BACKUPS + 1)) | xargs -I {} rm -- "{}" 2>/dev/null
-cd - > /dev/null
+# Build & Deploy
+echo "🏗️ Membangun project..."
+npm run build
 
-echo "✅ Backup tersimpan rapi di folder $PROJECT_NAME!"
+echo "🚀 Mengunggah ke Cloudflare Workers..."
+# Penting: Menggunakan index.ts sebagai otak dan ./dist sebagai aset statis
+npx wrangler deploy index.ts --assets ./dist --compatibility-date=2026-02-02 --name=subqi-studio
 
-# 4. Git Push
-echo "🚀 Mengirim ke GitHub/Vercel..."
+# Git Push
+echo "📤 Mengirim ke GitHub..."
 git add .
-COMMIT_MSG="${1:-update $TIMESTAMP}"
-git commit -m "$COMMIT_MSG"
+git commit -m "update $TIMESTAMP: perbaikan integrasi R2"
 git push origin main
 
-echo "🎉 Selesai!"
+echo "✅ Selesai! Cek di: https://subqi-studio.fontshop.workers.dev/api/check"
