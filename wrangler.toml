@@ -6,6 +6,11 @@ compatibility_date = "2026-02-02"
 directory = "./dist"
 binding = "ASSETS"
 
+[vars]
+VITE_SUPABASE_URL = "https://xxxxxx.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIs..."
+
+
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "fontshop-assets"
