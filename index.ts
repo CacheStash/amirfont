@@ -27,6 +27,21 @@ app.post('/api/upload', async (c) => {
   }
 });
 
+// ENDPOINT BARU: MENGAMBIL FILE FONT DARI R2 UNTUK DITAMPILKAN DI WEB
+app.get('/api/fonts/:filename', async (c) => {
+  const filename = c.req.param('filename');
+  const object = await c.env.R2_BUCKET.get(filename);
+
+  if (!object) return c.json({ error: "Font tidak ditemukan" }, 404);
+
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set('etag', object.httpEtag);
+  headers.set('Cache-Control', 'public, max-age=31536000'); // Cache 1 tahun agar cepat
+
+  return new Response(object.body, { headers });
+});
+
 app.get('/*', async (c) => {
   const res = await c.env.ASSETS.fetch(c.req.raw);
   

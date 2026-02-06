@@ -14,7 +14,9 @@ const FontUploadForm = () => {
   // 1. State untuk Form
   const [fontName, setFontName] = useState('');
   const [price, setPrice] = useState('');
+ const [tags, setTags] = useState(''); // State untuk tags
   const [description, setDescription] = useState('');
+  const [prices, setPrices] = useState({ desktop: 0, web: 0, app: 0 }); // Preview harga
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -76,14 +78,44 @@ const FontUploadForm = () => {
           />
         </div>
         <div className="space-y-2">
-          <label className="block font-mono text-xs font-bold uppercase">Base Price ($)</label>
+          <label className="block font-mono text-xs font-bold uppercase">Basic Price ($)</label>
           <input 
             type="number" 
             required
             value={price}
-            onChange={(e) => setPrice(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setPrice(val);
+              const base = parseFloat(val) || 0;
+              // Rumus pricing otomatis
+              setPrices({
+                desktop: base,
+                web: base * 1.25,
+                app: base * 1.5
+              });
+            }}
             className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
             placeholder="25" 
+          />
+        </div>
+      </div>
+
+      {/* PRICING PREVIEW & TAGS INPUT */}
+      <div className="grid grid-cols-2 gap-6">
+        <div className="p-4 bg-gray-50 border border-black font-mono text-[10px] space-y-1">
+          <p className="font-bold uppercase border-b border-black mb-1 text-black">License Preview</p>
+          <p>Desktop (Basic): ${prices.desktop.toFixed(2)}</p>
+          <p>Web License (1.25x): ${prices.web.toFixed(2)}</p>
+          <p>App License (1.50x): ${prices.app.toFixed(2)}</p>
+        </div>
+        <div className="space-y-2">
+          <label className="block font-mono text-xs font-bold uppercase">Tags (Pisahkan dengan koma)</label>
+          <input 
+            type="text" 
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
+            placeholder="Variable, Serif, Display" 
           />
         </div>
       </div>

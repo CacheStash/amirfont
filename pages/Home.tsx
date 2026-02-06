@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react'; // Tambahkan useState & useEffect
 import TypeTester from '../components/TypeTester';
+import { supabase } from '../lib/supabase'; // Import koneksi database
 import { FontConfig } from '../types';
 import { MousePointer2, MoveRight, Circle, Square, Triangle } from 'lucide-react';
 
@@ -152,6 +153,43 @@ const FluidText: React.FC<{ text: string; className?: string; baseWeight?: numbe
 
 // --- MAIN HOME COMPONENT ---
 const Home: React.FC = () => {
+  
+  const [fonts, setFonts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchFonts = async () => {
+      const { data } = await supabase
+        .from('fonts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      if (data) {
+        setFonts(data);
+        
+        // MENYUNTIKKAN CSS @FONT-FACE SECARA DINAMIS
+        const styleId = 'dynamic-fonts-css';
+        let styleEl = document.getElementById(styleId) as HTMLStyleElement;
+        if (!styleEl) {
+          styleEl = document.createElement('style');
+          styleEl.id = styleId;
+          document.head.appendChild(styleEl);
+        }
+
+        const fontFaceRules = data.map(f => `
+          @font-face {
+            font-family: "${f.name}";
+            src: url("/api/fonts/${f.file_url}");
+            font-display: swap;
+          }
+        `).join('\n');
+        
+        styleEl.innerHTML = fontFaceRules;
+      }
+    };
+    fetchFonts();
+  }, []);
+
   return (
     <>
       <div className="grain-orb-base orb-top-right" />
@@ -206,14 +244,23 @@ const Home: React.FC = () => {
 
         {/* MAIN LOOP */}
         <main className="w-full px-0">
-          {[FONT_ROYAL_GRANDE, FONT_THANJAVUR, FONT_SPACE_MONO, FONT_INTER_OT].map((font, index) => {
+          {fonts.map((font, index) => {
             const isEven = index % 2 === 0; 
             const gridLayoutClass = isEven ? "md:grid-cols-[450px_1fr_150px]" : "md:grid-cols-[150px_1fr_450px]";
 
+            // Mapping & Sanitasi data agar TypeTester tidak crash
+            const displayFont = {
+              ...font,
+              family: `"${font.name}"`,
+              tags: font.tags ? font.tags.split(',') : ['Custom'],
+              axes: font.axes || [], // Fallback array kosong agar tidak crash saat .map()
+              features: font.features || [], // Fallback array kosong
+              styleCount: font.styleCount || 1
+            };
+
             return (
               <section 
-                key={font.name} 
-                id={index === 0 ? "collection-start" : undefined}
+                key={font.id} 
                 className={`border-b border-black grid grid-cols-1 ${gridLayoutClass}`}
               >
                 
@@ -226,7 +273,8 @@ const Home: React.FC = () => {
                     </span>
                     <div className="mb-8"><BrutalistGraphic /></div>
                     <div className="flex flex-wrap gap-2 text-[10px] font-mono uppercase text-gray-500 mb-6">
-                      {font.tags.map(tag => (
+                      {/* PERBAIKAN: Menggunakan displayFont.tags yang sudah berupa Array */}
+                      {displayFont.tags.map((tag: string) => (
                         <span key={tag} className="border border-gray-300 px-2 py-1 rounded-full">{tag}</span>
                       ))}
                     </div>
@@ -243,9 +291,9 @@ const Home: React.FC = () => {
                 {/* 2. TESTER COLUMN (Middle) */}
                 <div className="md:order-2 h-full border-b md:border-b-0 relative">
                    <div className="h-full">
-                      {/* PASSING 'isEven' PROP HERE */}
+                      {/* PERBAIKAN: Gunakan displayFont yang sudah aman, bukan font mentah */}
                       <TypeTester 
-                        config={font} 
+                        config={displayFont} 
                         isEven={isEven}
                         defaultText={isEven ? "The quick brown fox jumps over the lazy dog." : undefined} 
                       />

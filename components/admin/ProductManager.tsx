@@ -1,10 +1,39 @@
 import React, { useState } from 'react'; // Tambahkan ini
 import { Plus } from 'lucide-react'; // Tambahkan ini
 import FontUploadForm from './FontUploadForm'; // Tambahkan ini
+import { supabase } from '../../lib/supabase'; // Import koneksi database
 
 const ProductManager = () => {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [fonts, setFonts] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
+  React.useEffect(() => {
+    fetchFonts();
+  }, []);
+
+  const fetchFonts = async () => {
+    const { data } = await supabase.from('fonts').select('*').order('created_at', { ascending: false });
+    if (data) setFonts(data);
+    setLoading(false);
+  };
+
+  const handleDelete = async (id: string, fileName: string) => {
+    if (!confirm("Hapus font ini selamanya?")) return;
+    
+    try {
+      // 1. Hapus di Database
+      const { error } = await supabase.from('fonts').delete().eq('id', id);
+      if (error) throw error;
+
+      // 2. Refresh List
+      setFonts(fonts.filter(f => f.id !== id));
+      alert("Font berhasil dihapus.");
+    } catch (err: any) {
+      alert("Gagal menghapus: " + err.message);
+    }
+  };
+  
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex justify-between items-end mb-8">

@@ -6,6 +6,7 @@ import FontUploadForm from './components/admin/FontUploadForm';
 
 
 
+import AdminDashboard from './components/admin/AdminLayout'; // Import layout baru
 import BackToTop from './components/BackToTop';
 import Home from './pages/Home';
 import Fonts from './pages/Fonts'; // Pastikan file ini ada (dari jawaban sebelumnya)
@@ -26,14 +27,8 @@ const App: React.FC = () => {
             <Route path="/fonts" element={<Fonts />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/license" element={<div className="p-20 text-center font-mono uppercase">License Page (Coming Soon)</div>} />
-            <Route path="/admin" element={
-              <div className="p-8 max-w-4xl mx-auto">
-                <h1 className="text-2xl font-bold mb-8 font-mono uppercase border-b-2 border-black pb-4">
-                  Admin Dashboard
-                </h1>
-                <FontUploadForm />
-              </div>
-            } />
+            {/* Mengarahkan ke AdminDashboard yang berisi ProductManager & Sidebar */}
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/about" element={<div className="p-20 text-center font-mono uppercase">About Page (Coming Soon)</div>} />
             <Route path="/contact" element={<div className="p-20 text-center font-mono uppercase">Contact Page (Coming Soon)</div>} />
           </Routes>
