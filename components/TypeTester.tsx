@@ -141,19 +141,18 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       </div>
 
       <div className="relative z-10">
-        {/* TOOLBAR: Grid 2x2 on Mobile, Flex on Desktop */}
         <div className="grid grid-cols-2 md:flex md:flex-wrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
           
-          {/* GRID 1 (Top-Left Mobile): View Mode */}
-          <div className="flex items-center gap-2 px-4 md:px-8 py-4 md:py-8 border-r border-b md:border-b-0 border-black justify-center md:justify-start">
+          {/* GRID 1: View Mode (Type/Map) - HIDDEN ON MOBILE */}
+          <div className="hidden md:flex items-center gap-2 px-4 md:px-8 py-4 md:py-8 border-r border-black justify-start">
               <button onClick={() => setViewMode('type')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'type' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Keyboard size={14}/> Type</button>
               <button onClick={() => setViewMode('glyphs')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'glyphs' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Grid size={14}/> Map</button>
           </div>
 
-          {/* GRID 2 (Top-Right Mobile): Style Dropdown */}
-          <div className="flex items-center gap-6 px-4 md:px-8 py-4 md:py-8 border-b md:border-b-0 md:border-l border-black justify-center md:ml-auto md:order-last">
-              <div className="flex items-center gap-2">
-                <span className="hidden md:inline font-mono text-[10px] text-gray-400 uppercase">Style</span>
+          {/* GRID 2: Style Dropdown - FULL WIDTH ON MOBILE (col-span-2) */}
+          <div className="col-span-2 md:col-span-1 md:ml-auto flex items-center gap-6 px-4 md:px-8 py-4 md:py-8 border-b md:border-b-0 md:border-l border-black justify-between md:justify-end md:order-last">
+              <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
+                <span className="font-mono text-[10px] text-gray-400 uppercase">Style</span>
                 <div className="relative z-[100]">
                    <button 
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -201,8 +200,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               </div>
           </div>
 
-          {/* GRID 3 (Bottom-Left Mobile): Size / Map Grid */}
+          {/* GRID 3: Size (Type) / Map Grid (Map) - LEFT COLUMN ON MOBILE */}
           <div className="flex items-center gap-2 px-4 md:px-8 py-4 md:py-8 border-r border-black justify-center md:justify-start">
+             {/* Force viewMode 'type' logic on mobile if needed, but keeping dynamic for desktop */}
              {viewMode === 'type' ? (
                 <>
                   <Type size={16} /><input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} className="w-12 text-sm font-bold bg-transparent outline-none"/><span className="text-xs font-mono text-gray-500">PX</span>
@@ -214,7 +214,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
              )}
           </div>
 
-          {/* GRID 4 (Bottom-Right Mobile): Alignment / Pagination */}
+          {/* GRID 4: Align (Type) / Pagination (Map) - RIGHT COLUMN ON MOBILE */}
           <div className="flex items-center gap-2 px-4 md:px-8 py-4 md:py-8 justify-center md:border-r md:border-black md:justify-start">
              {viewMode === 'type' ? (
                 <>
@@ -279,7 +279,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           </div>
 
           {(hasAxes || hasFeatures) && (
-            <div className={`grid grid-cols-1 ${hasAxes && hasFeatures ? 'md:grid-cols-3' : 'md:grid-cols-1'}`}>
+            <div className={`grid grid-cols-1 ${hasAxes && hasFeatures ? 'md:grid-cols-3' : 'md:grid-cols-1'} border-t border-black`}>
                 {hasAxes && (
                   <div className={`${hasFeatures ? 'md:col-span-2 border-b md:border-b-0' : 'md:col-span-1'} space-y-4 px-4 md:px-8 py-6 md:py-8`}>
                     <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Variable Axes</h4>
@@ -294,7 +294,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 )}
                 
                 {hasFeatures && (
-                  <div className={`${hasAxes ? 'md:col-span-1 border-l' : 'md:col-span-1'} border-black px-4 md:px-8 py-6 md:py-8`}>
+                  // FIXED: Added 'border-t md:border-t-0' to create separator on mobile, removed on desktop
+                  <div className={`${hasAxes ? 'md:col-span-1 border-l' : 'md:col-span-1'} border-black px-4 md:px-8 py-6 md:py-8 border-t md:border-t-0`}>
                     <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Features</h4>
                     <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar">
                       {dynamicFeatures.map((feat) => (
