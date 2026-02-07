@@ -7,14 +7,15 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('products');
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      alert("Gagal keluar: " + error.message);
-    } else {
-      // Halaman akan otomatis redirect karena session di App.tsx berubah
-      console.log("Logged out successfully");
-    }
-  };
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    alert("Gagal keluar: " + error.message);
+  } else {
+    console.log("Logged out successfully");
+    // Paksa pindah ke halaman login atau home
+    window.location.href = '/login'; // Sesuaikan dengan route login kamu
+  }
+};
 
 
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 
 import FontUploadForm from './components/admin/FontUploadForm';
@@ -47,8 +47,16 @@ const App: React.FC = () => {
             <Route path="/fonts" element={<Fonts />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/license" element={<div className="p-20 text-center font-mono uppercase">License Page (Coming Soon)</div>} />
-            {/* Mengarahkan ke AdminDashboard yang berisi ProductManager & Sidebar */}
-            <Route path="/admin" element={<AdminDashboard />} />
+            
+            {/* TAMBAHKAN ROUTE LOGIN DI SINI */}
+            <Route path="/login" element={!session ? <Login /> : <Navigate to="/admin" />} />
+
+            {/* PROTEKSI ROUTE ADMIN: Jika tidak ada session, lempar ke /login */}
+            <Route 
+              path="/admin" 
+              element={session ? <AdminDashboard /> : <Navigate to="/login" />} 
+            />
+
             <Route path="/about" element={<div className="p-20 text-center font-mono uppercase">About Page (Coming Soon)</div>} />
             <Route path="/contact" element={<div className="p-20 text-center font-mono uppercase">Contact Page (Coming Soon)</div>} />
           </Routes>

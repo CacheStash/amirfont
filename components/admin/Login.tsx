@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useNavigate } from 'react-router-dom'; // TAMBAHKAN INI
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // INISIALISASI NAVIGATE
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) alert(error.message);
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      alert(error.message);
+    } else if (data.session) {
+      // JIKA BERHASIL, PINDAH KE ADMIN
+      navigate('/admin');
+    }
     setLoading(false);
   };
 
