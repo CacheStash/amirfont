@@ -31,6 +31,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   
   const [lineHeight, setLineHeight] = useState(1.1);
   const [letterSpacing, setLetterSpacing] = useState(0);
+  
+  // RESTORED: Map View Controls
   const [mapPage, setMapPage] = useState(0);
   const [mapGridSize, setMapGridSize] = useState(10);
 
@@ -47,7 +49,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`) 
   ]);
 
-  // --- EFFECT: LOAD FONT & DETECT FEATURES (FIXED) ---
+  // --- EFFECT: LOAD FONT & DETECT FEATURES ---
   useEffect(() => {
     const currentFiles = Array.isArray(config.font_files) ? config.font_files : (config.file_url ? [config.file_url] : []);
     const targetFile = currentFiles[activeStyleIndex] 
@@ -63,7 +65,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
       // 1. Glyphs
       const glyphs: string[] = [];
-      for (let i = 0; i < font.glyphs.length && i < 600; i++) {
+      for (let i = 0; i < font.glyphs.length && i < 2000; i++) { // Limit raised slightly
         const glyph = font.glyphs.get(i);
         if (glyph.unicode) glyphs.push(String.fromCharCode(glyph.unicode));
       }
@@ -114,7 +116,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   return (
     <div className="w-full mb-16 border-b border-black relative group bg-transparent">
-      {/* RESTORED: ORANGE OVAL DECORATION */}
+      {/* BACKGROUND DECORATION */}
       <div className="absolute z-0 pointer-events-none overflow-visible" style={{ left: isEven ? '-380px' : 'auto', right: isEven ? 'auto' : '-380px', top: '15%', width: '600px', height: '400px' }}>
           <div className="w-full h-full mix-blend-multiply blur-[60px]" style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
       </div>
@@ -122,10 +124,13 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       <div className="relative z-10">
         <div className="flex flex-wrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px]">
           <div className="flex items-stretch">
+            {/* 1. VIEW MODE */}
             <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
                <button onClick={() => setViewMode('type')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'type' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Keyboard size={14}/> Type</button>
                <button onClick={() => setViewMode('glyphs')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'glyphs' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Grid size={14}/> Map</button>
             </div>
+
+            {/* 2A. TYPE CONTROLS */}
             {viewMode === 'type' && (
               <>
                 <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
@@ -138,21 +143,40 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 </div>
               </>
             )}
+
+            {/* 2B. MAP CONTROLS (RESTORED) */}
+            {viewMode === 'glyphs' && (
+              <>
+                {/* Grid Size Buttons (10/20/30) */}
+                <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
+                  {[10, 20, 30].map(size => (
+                    <button key={size} onClick={() => { setMapGridSize(size); setMapPage(0); }} className={`px-2 py-1 text-[10px] font-bold border border-black ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent hover:bg-gray-200'}`}>{size}</button>
+                  ))}
+                </div>
+                {/* Pagination Controls */}
+                {detectedGlyphs.length > mapGridSize * 8 && (
+                  <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-r border-black">
+                      <div className="flex gap-1">
+                          <button onClick={() => setMapPage(Math.max(0, mapPage - 1))} disabled={mapPage === 0} className="px-2 py-1 text-[10px] font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white">PREV</button>
+                          <button onClick={() => setMapPage(mapPage + 1)} disabled={(mapPage + 1) * (mapGridSize * 8) >= detectedGlyphs.length} className="px-2 py-1 text-[10px] font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white">NEXT</button>
+                      </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
           
-          {/* UPDATED: STYLE DROPDOWN & GLYPH INFO */}
+          {/* 3. RIGHT SIDE: Dropdown ONLY (Info Removed) */}
           <div className="flex items-center gap-6 px-4 md:px-8 py-6 md:py-8 border-l border-black ml-auto">
               {Array.isArray(config.font_files) && config.font_files.length > 1 && (
-                <div className="flex items-center gap-2 border-r border-black pr-6">
+                <div className="flex items-center gap-2 pr-6">
                   <span className="font-mono text-[10px] text-gray-400 uppercase">Style</span>
                   <select value={activeStyleIndex} onChange={(e) => setActiveStyleIndex(parseInt(e.target.value))} className="bg-transparent font-bold text-xs uppercase outline-none cursor-pointer">
                     {config.font_files.map((_, i) => <option key={i} value={i} className="text-black">Style 0{i+1}</option>)}
                   </select>
                 </div>
               )}
-              <span className="font-mono text-xs font-bold uppercase tracking-wider text-black">
-                {isLoadingGlyphs ? 'LOADING...' : `${config.styleCount || 1} STYLES / ${detectedGlyphs.length} GLYPHS`}
-              </span>
+              {/* REMOVED: Style/Glyph count info here as requested */}
           </div>
         </div>
 
@@ -160,17 +184,24 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           {viewMode === 'type' ? (
               <textarea value={text} onChange={(e) => setText(e.target.value)} className="w-full min-h-[300px] bg-transparent outline-none resize-none p-4 relative z-10" style={fontStyle as any} spellCheck={false} />
           ) : (
-              <div className="w-full grid gap-px content-start" style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}>
+              // MAP VIEW: REMOVED GAP-PX (Grid White Lines Removed)
+              <div className="w-full grid content-start" style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}>
                 {detectedGlyphs.slice(mapPage * (mapGridSize * 8), (mapPage + 1) * (mapGridSize * 8)).map((char, idx) => (
-                    <div key={idx} className="aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default border border-gray-100">
-                        <span style={{ fontFamily: `"${config.name}-${activeStyleIndex}"`, fontSize: mapGridSize === 10 ? '60px' : '20px' }}>{char}</span>
+                    <div key={idx} className="aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default border-none">
+                        <span style={{ 
+                          fontFamily: `"${config.name}-${activeStyleIndex}"`, 
+                          // DYNAMIC FONT SIZING BASED ON GRID
+                          fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' 
+                        }}>
+                          {char}
+                        </span>
                     </div>
                 ))}
               </div>
           )}
         </div>
 
-        {/* RESTORED: SETTINGS PANEL TRANSPARENT WITH PILL TOGGLES */}
+        {/* SETTINGS PANEL */}
         <div className="bg-transparent border-t border-black">
           <div className="grid grid-cols-1 md:grid-cols-2 border-b border-black">
               <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-b md:border-b-0 md:border-r border-black">
