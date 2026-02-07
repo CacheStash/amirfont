@@ -299,40 +299,50 @@ const Home: React.FC = () => {
                        </span>
                        <div className="mb-6 -ml-1">
                           {(() => {
-                            const promo = getActivePromo(font.id || '');
-                            const basePrice = font.price || 25;
-                            if (promo) {
-                              const discPrice = basePrice * (1 - (promo.discount_percent / 100));
-                              return (
-                                <div className="flex flex-col gap-2">
-                                  <div className="flex items-start gap-4">
-                                    <span className="text-9xl font-light tracking-tighter text-black leading-[0.8]">
-                                      ${discPrice.toFixed(0)}
-                                    </span>
-                                    <div className="flex flex-col gap-2 mt-2">
-                                      <span className="text-xl line-through opacity-20 font-mono leading-none">
-                                        ${basePrice}
-                                      </span>
-                                      <span className="bg-yellow-300 text-black text-[10px] font-black px-2 py-1 border border-black uppercase w-fit shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                                        {promo.discount_percent}% OFF
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="mt-2 flex items-center gap-2">
-                                    <span className="h-[1px] w-8 bg-black opacity-20"></span>
-                                    <p className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-red-600">
-                                      Ends: {calculateDaysLeft(promo.end_date)}
-                                    </p>
-                                  </div>
-                                </div>
-                              );
-                            }
-                            return (
-                              <div className="text-9xl font-light tracking-tighter text-black">
-                                ${basePrice}
-                              </div>
-                            );
-                          })()}
+                        const promo = getActivePromo(font.id || '');
+                        const basePrice = font.price || 25;
+                        
+                        return (
+                          <>
+                            {/* Baris Atas: Starting At & Promo Badge */}
+                            <div className="flex items-center gap-2 mb-4">
+                               <span className="inline-block border border-gray-300 rounded-full px-3 py-1 font-mono italic text-[11px] titlecase text-gray-500 bg-transparent">
+                                 Starting at
+                               </span>
+                               {promo && (
+                                 <span className="inline-block border border-yellow-400 rounded-full px-3 py-1 font-mono font-bold text-[11px] uppercase text-red-600 bg-transparent">
+                                   {promo.discount_percent}% OFF
+                                 </span>
+                               )}
+                            </div>
+
+                            <div className="mb-6 -ml-1">
+                               {promo ? (
+                                 <div className="flex items-start gap-4">
+                                   {/* Harga Utama (Diskon) */}
+                                   <span className="text-9xl font-light tracking-tighter text-black leading-[0.8]">
+                                     ${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}
+                                   </span>
+
+                                   {/* Kolom Harga Asli & Timer */}
+                                   <div className="flex flex-col items-center gap-1 mt-2 w-fit">
+                                     <span className="text-3xl line-through text-red-600 font-mono font-bold leading-none">
+                                       ${basePrice}
+                                     </span>
+                                     <span className="inline-block border border-yellow-400 rounded-full px-2 py-0.5 font-mono font-bold text-[8px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full">
+                                       {calculateDaysLeft(promo.end_date)}
+                                     </span>
+                                   </div>
+                                 </div>
+                               ) : (
+                                 <div className="text-9xl font-light tracking-tighter text-black leading-[0.8]">
+                                   ${basePrice}
+                                 </div>
+                               )}
+                            </div>
+                          </>
+                        );
+                      })()}
                         </div>
                        <p className="text-gray-600 text-sm leading-relaxed font-mono">{font.description}</p>
                     </div>
