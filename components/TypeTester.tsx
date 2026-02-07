@@ -180,11 +180,11 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                     <button key={size} onClick={() => { setMapGridSize(size); setMapPage(0); }} className={`px-2 py-1 text-[10px] font-bold border border-black ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent hover:bg-gray-200'}`}>{size}</button>
                   ))}
                 </div>
-                {filteredGlyphs.length > mapGridSize * 8 && (
+                {filteredGlyphs.length > mapGridSize * 3 && (
                   <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-r border-black">
                       <div className="flex gap-1">
                           <button onClick={() => setMapPage(Math.max(0, mapPage - 1))} disabled={mapPage === 0} className="px-2 py-1 text-[10px] font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white">PREV</button>
-                          <button onClick={() => setMapPage(mapPage + 1)} disabled={(mapPage + 1) * (mapGridSize * 8) >= filteredGlyphs.length} className="px-2 py-1 text-[10px] font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white">NEXT</button>
+                          <button onClick={() => setMapPage(mapPage + 1)} disabled={(mapPage + 1) * (mapGridSize * 3) >= filteredGlyphs.length} className="px-2 py-1 text-[10px] font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white">NEXT</button>
                       </div>
                   </div>
                 )}
@@ -212,8 +212,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                    {isDropdownOpen && (
                      <>
                       <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                      {/* Dropdown: Background Glass (Lebih pekat dari navbar), No Shadow, Hover Black/White */}
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-white/60 backdrop-blur-xl border border-black z-50 overflow-hidden">
+                      {/* Dropdown: Background Glass (Dibuat lebih solid/tidak transparan), No Shadow, Hover Black/White */}
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-hidden shadow-none">
                           {Array.isArray(config.font_files) && config.font_files.length > 0 ? (
                             config.font_files.map((_, i) => (
                               <button
@@ -261,10 +261,10 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 spellCheck={false} 
               />
           ) : (
-              // MAP VIEW - Sekarang Max 4 Baris
+              // MAP VIEW - Sekarang Max 3 Baris (30 glyphs per page pada mode 10 kolom)
               <div className="w-full grid content-start" style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}>
-                {filteredGlyphs.slice(mapPage * (mapGridSize * 4), (mapPage + 1) * (mapGridSize * 4)).map((item, idx) => (
-                    <div key={idx} className="aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default border-none">
+                {filteredGlyphs.slice(mapPage * (mapGridSize * 3), (mapPage + 1) * (mapGridSize * 3)).map((item, idx) => (
+                  <div key={idx} className="aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default border-none">
                         <span style={{ 
                           ...commonFontStyle,
                           fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' 
