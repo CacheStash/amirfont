@@ -13,54 +13,133 @@ interface UploadResponse {
 const FontUploadForm = () => {
   // 1. State untuk Form
   const [fontName, setFontName] = useState('');
-  const [price, setPrice] = useState('');
- const [tags, setTags] = useState(''); // State untuk tags
   const [description, setDescription] = useState('');
-  const [prices, setPrices] = useState({ desktop: 0, web: 0, app: 0 }); // Preview harga
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [tags, setTags] = useState(''); 
+  
+  // Matriks Harga sesuai EULA 2026 (User Seats, Traffic Tiers, & Corporate)
+  const [licensePrices, setLicensePrices] = useState({
+    desktop: { solo: 0, team: 0, studio: 0, enterprise: 0 },
+    logo_branding: { solo: 0, team: 0, studio: 0, enterprise: 0 },
+    social_web: { small_50k: 0, medium_500k: 0, large_5m: 0, enterprise_unlimited: 0 },
+    app: { solo: 0, team: 0, studio: 0, enterprise: 0 },
+    broadcast: { solo: 0, team: 0, studio: 0, enterprise: 0 },
+    server: { solo: 0, team: 0, studio: 0, enterprise: 0 },
+    corporate_full_suite: 0
+  });
+
+  const [price, setPrice] = useState(''); // Base price (opsional, bisa digunakan sebagai patokan solo)
+  const [prices, setPrices] = useState({ desktop: 0, web: 0, app: 0 }); // Preview sederhana
+
+  // Handler untuk update harga di dalam matriks JSON
+  const updatePrice = (category: string, subKey: string | null, value: string) => {
+    const numValue = parseFloat(value) || 0;
+    setLicensePrices(prev => {
+      if (category === 'corporate_full_suite') {
+        return { ...prev, corporate_full_suite: numValue };
+      }
+      return {
+        ...prev,
+        [category]: { 
+          ...(prev[category as keyof typeof prev] as object), 
+          [subKey!]: numValue 
+        }
+      };
+    });
+  };
+  const [fontFiles, setFontFiles] = useState<File[]>([]);
+  const [previewImages, setPreviewImages] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Helper untuk handle drag events
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDropFiles = (e: React.DragEvent, type: 'fonts' | 'previews') => {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = Array.from(e.dataTransfer.files);
+    
+    if (type === 'fonts') {
+      const filtered = files.filter(f => f.name.endsWith('.ttf') || f.name.endsWith('.otf') || f.name.endsWith('.woff2'));
+      setFontFiles(prev => [...prev, ...filtered]);
+    } else {
+      if (previewImages.length + files.length > 12) return alert("Maksimal 12 gambar!");
+      setPreviewImages(prev => [...prev, ...files]);
+    }
+  };
+
+  // Fungsi upload helper untuk loop multiple files ke R2
+  const uploadToR2 = async (files: File[]) => {
+    const uploadedUrls = [];
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('file', file);
+     try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        
+        // Cek jika respons bukan 200 OK
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Server Error (${res.status}): ${errorText || 'Gagal upload'}`);
+        }
+
+        const data = (await res.json()) as UploadResponse;
+        
+        if (data.success) {
+          uploadedUrls.push(data.fileName);
+        } else {
+          throw new Error(data.error || 'Upload gagal tanpa alasan');
+        }
+      } catch (err: any) {
+        console.error("Upload error detail:", err);
+        throw new Error(`Gagal mengunggah ${file.name}: ${err.message}`);
+      }
+    }
+    return uploadedUrls;
+  };
+
 
   // 2. Handler Upload & Save
   const handleSaveProduct = async (e: React.FormEvent) => {
   e.preventDefault();
-  if (!selectedFile || !fontName || !price) return alert("Lengkapi data!");
+    if (fontFiles.length === 0 || !fontName || !price) return alert("Lengkapi data!");
 
-  setIsUploading(true);
-  try {
-    // 1. KIRIM FILE KE R2
-    const formData = new FormData();
-    formData.append('file', selectedFile);
+    setIsUploading(true);
+    try {
+      // 1. UPLOAD FILES TO R2 (Multiple fonts & Previews)
+      const uploadedFontUrls = await uploadToR2(fontFiles);
+      const uploadedPreviewUrls = await uploadToR2(previewImages);
 
-    const uploadRes = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
+      // 2. SAVE DATA TO SUPABASE (Sync dengan kolom baru)
+      const { error: dbError } = await supabase
+        .from('fonts')
+        .insert([{
+          name: fontName,
+          price: parseFloat(price),
+          price_web: licensePrices.social_web.small_50k,
+          price_app: licensePrices.app.solo,
+          license_prices: licensePrices,
+          description: description,
+          tags: tags.split(',').map(t => t.trim()).filter(t => t !== ""),
+          font_files: uploadedFontUrls,
+          preview_images: uploadedPreviewUrls,
+        }]);
 
-    // Memberikan Type Assertion agar TypeScript mengenali properti .success dan .fileName
-    const uploadResult = (await uploadRes.json()) as { success: boolean; fileName: string; error?: string };
+      if (dbError) throw dbError;
 
-    if (!uploadResult.success) throw new Error(uploadResult.error || "Gagal simpan ke R2");
-
-    // 2. SIMPAN DATA KE SUPABASE
-    const { error: dbError } = await supabase
-      .from('fonts')
-      .insert([{
-        name: fontName,
-        price: parseFloat(price),
-        description: description,
-        file_url: uploadResult.fileName, // Nama file di R2
-      }]);
-
-    if (dbError) throw dbError;
-
-    alert("Gokil! Font berhasil dipublikasikan.");
-    // Reset form di sini...
-    
-  } catch (err: any) {
-    alert("Error: " + err.message);
-  } finally {
-    setIsUploading(false);
-  }
+      alert("Gokil! Font berhasil dipublikasikan.");
+      
+      // Reset Form setelah sukses
+      setFontName(''); setPrice(''); setTags(''); setDescription('');
+      setFontFiles([]); setPreviewImages([]);
+      
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    } finally {
+      setIsUploading(false);
+    }
 };
 
   return (
@@ -87,11 +166,30 @@ const FontUploadForm = () => {
               const val = e.target.value;
               setPrice(val);
               const base = parseFloat(val) || 0;
-              // Rumus pricing otomatis
-              setPrices({
-                desktop: base,
-                web: base * 1.25,
-                app: base * 1.5
+              // Helper Formula: (Base * Mult) - 1 (Jika mult > 1)
+              const calc = (m: number) => m > 1 ? Math.floor(base * m) - 1 : base;
+
+              // Tier Multipliers (Sesuai User Seats)
+              const tiers = (m: number) => ({
+                solo: calc(m),
+                team: calc(m * 4),
+                studio: calc(m * 10),
+                enterprise: calc(m * 40)
+              });
+
+              setLicensePrices({
+                desktop: tiers(1.0),
+                social_web: {
+                  small_50k: calc(2.4),
+                  medium_500k: calc(2.4 * 4),
+                  large_5m: calc(2.4 * 10),
+                  enterprise_unlimited: calc(2.4 * 40)
+                },
+                logo_branding: tiers(8.0),
+                app: tiers(12.0),
+                broadcast: tiers(14.0),
+                server: tiers(18.0),
+                corporate_full_suite: calc(46.0)
               });
             }}
             className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
@@ -102,11 +200,17 @@ const FontUploadForm = () => {
 
       {/* PRICING PREVIEW & TAGS INPUT */}
       <div className="grid grid-cols-2 gap-6">
-        <div className="p-4 bg-gray-50 border border-black font-mono text-[10px] space-y-1">
-          <p className="font-bold uppercase border-b border-black mb-1 text-black">License Preview</p>
-          <p>Desktop (Basic): ${prices.desktop.toFixed(2)}</p>
-          <p>Web License (1.25x): ${prices.web.toFixed(2)}</p>
-          <p>App License (1.50x): ${prices.app.toFixed(2)}</p>
+        <div className="p-4 bg-gray-50 border border-black font-mono text-[9px] space-y-1 leading-tight">
+          <p className="font-bold uppercase border-b border-black mb-1 text-black text-[10px]">License Preview (Solo/Base)</p>
+          <div className="grid grid-cols-2 gap-x-4">
+            <p>Desktop: <span className="font-bold">${licensePrices.desktop.solo}</span></p>
+            <p>Social/Web: <span className="font-bold">${licensePrices.social_web.small_50k}</span></p>
+            <p>Logo: <span className="font-bold">${licensePrices.logo_branding.solo}</span></p>
+            <p>App: <span className="font-bold">${licensePrices.app.solo}</span></p>
+            <p>Broadcast: <span className="font-bold">${licensePrices.broadcast.solo}</span></p>
+            <p>Server: <span className="font-bold">${licensePrices.server.solo}</span></p>
+          </div>
+          <p className="mt-1 pt-1 border-t border-black border-dotted">Corporate (All-in): <span className="font-bold">${licensePrices.corporate_full_suite}</span></p>
         </div>
         <div className="space-y-2">
           <label className="block font-mono text-xs font-bold uppercase">Tags (Pisahkan dengan koma)</label>
@@ -121,21 +225,58 @@ const FontUploadForm = () => {
       </div>
 
       <div className="space-y-2">
-        <label className="block font-mono text-xs font-bold uppercase">Font File (.ttf, .otf)</label>
-        <div className={`border-2 border-dashed border-black p-8 text-center hover:bg-gray-50 transition-colors cursor-pointer group ${selectedFile ? 'bg-green-50 border-green-500' : ''}`}>
+        <label className="block font-mono text-xs font-bold uppercase">Font Binaries (Multiples .ttf, .otf)</label>
+        <div 
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDropFiles(e, 'fonts')}
+          className="border-2 border-dashed border-black p-6 text-center hover:bg-gray-50 transition-colors cursor-pointer group"
+        >
           <input 
-            type="file" 
-            className="hidden" 
-            id="fontFile" 
-            accept=".ttf,.otf,.woff2"
-            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+            type="file" multiple accept=".ttf,.otf,.woff2" className="hidden" id="fontFiles" 
+            onChange={(e) => setFontFiles(prev => [...prev, ...Array.from(e.target.files || [])])}
           />
-          <label htmlFor="fontFile" className="cursor-pointer">
-            <Plus className="mx-auto mb-2 group-hover:scale-110 transition-transform" />
-            <p className="text-xs font-mono uppercase">
-              {selectedFile ? `Selected: ${selectedFile.name}` : "Click to upload font binary"}
-            </p>
+          <label htmlFor="fontFiles" className="cursor-pointer">
+            <Plus className="mx-auto mb-2" />
+            <p className="text-[10px] font-mono uppercase">Drag & Drop or Click to Add Fonts</p>
           </label>
+          {fontFiles.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {fontFiles.map((f, i) => (
+                <span key={i} className="bg-black text-white text-[9px] px-2 py-1 uppercase">{f.name}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block font-mono text-xs font-bold uppercase">Preview Images (Max 12)</label>
+        <div 
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDropFiles(e, 'previews')}
+          className="grid grid-cols-4 md:grid-cols-6 gap-2 border-2 border-black p-4 bg-gray-100"
+        >
+          {previewImages.map((file, i) => (
+            <div key={i} className="aspect-square bg-white border border-black relative group overflow-hidden">
+              <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" alt="preview" />
+              <button 
+                type="button"
+                onClick={() => setPreviewImages(prev => prev.filter((_, idx) => idx !== i))}
+                className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-bold"
+              >
+                REMOVE
+              </button>
+            </div>
+          ))}
+          {previewImages.length < 12 && (
+            <label className="aspect-square border border-dashed border-black flex items-center justify-center cursor-pointer hover:bg-white transition-colors">
+              <input 
+                type="file" multiple accept="image/*" className="hidden" 
+                onChange={(e) => setPreviewImages(prev => [...prev, ...Array.from(e.target.files || [])].slice(0, 12))}
+              />
+              <Plus size={16} />
+            </label>
+          )}
         </div>
       </div>
 
