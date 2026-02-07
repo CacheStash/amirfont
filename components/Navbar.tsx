@@ -24,22 +24,27 @@ const Navbar: React.FC = () => {
     }`}>
       <div className="w-full flex justify-between items-center h-14 md:h-16 px-0 relative z-50">
         
-        {/* Left: Menu Trigger & Logo - Flexible width on mobile */}
-        <div className="flex items-center gap-4 h-full border-r border-black px-4 md:px-8 w-auto md:w-[450px] shrink-0">
+        {/* Left: Menu Trigger & Logo 
+            FIX: Menggunakan flex-1 dan min-w-0 agar logo mau mengalah (truncate) 
+            saat layar sempit, sehingga Cart tidak terdorong. 
+        */}
+        <div className="flex items-center gap-2 md:gap-4 h-full border-r border-black px-3 md:px-8 flex-1 md:flex-none md:w-[450px] min-w-0">
           <button 
             onClick={() => setIsOpen(!isOpen)}
-            className="p-1 hover:bg-black hover:text-white transition-colors border border-transparent hover:border-black"
+            className="p-1 hover:bg-black hover:text-white transition-colors border border-transparent hover:border-black shrink-0"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
           
-          <Link to="/" className="font-mono font-bold tracking-tighter text-xl uppercase hover:opacity-70 transition-opacity truncate">
+          <Link to="/" className="font-mono font-bold tracking-tighter text-lg md:text-xl uppercase hover:opacity-70 transition-opacity truncate">
             Subqi Studio
           </Link>
         </div>
 
-        {/* Right: Search & Cart - No minimum width to prevent overflow */}
-        <div className="flex items-center justify-end gap-2 md:gap-4 h-full border-l border-black px-4 md:px-8 shrink-0">
+        {/* Right: Search & Cart 
+            FIX: Tetap shrink-0 agar tombol tidak gepeng, tapi padding mobile dikurangi (px-3).
+        */}
+        <div className="flex items-center justify-end gap-2 md:gap-4 h-full border-l border-black px-3 md:px-8 shrink-0 bg-inherit">
            <button
              onClick={() => setIsSearchOpen(!isSearchOpen)}
              className={`p-1 transition-colors border border-transparent ${isSearchOpen ? 'bg-black text-white' : 'hover:bg-black hover:text-white hover:border-black'}`}
@@ -47,8 +52,8 @@ const Navbar: React.FC = () => {
               {isSearchOpen ? <X size={20} /> : <Search size={20} />}
            </button>
 
-           <button className="flex items-center gap-2 font-mono text-xs md:text-sm font-bold border border-black px-3 py-1 hover:bg-black hover:text-white transition-all whitespace-nowrap">
-              <ShoppingBag size={16} />
+           <button className="flex items-center gap-2 font-mono text-[10px] md:text-sm font-bold border border-black px-2 md:px-3 py-1 hover:bg-black hover:text-white transition-all whitespace-nowrap">
+              <ShoppingBag size={16} className="shrink-0" />
               <span>CART (0)</span>
            </button>
         </div>
