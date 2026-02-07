@@ -212,8 +212,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                    {isDropdownOpen && (
                      <>
                       <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                      {/* Dropdown: Background Glass (Navbar Style), No Shadow, Hover Black/White */}
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-white/10 backdrop-blur-xl border border-black z-50 overflow-hidden">
+                      {/* Dropdown: Background Glass (Lebih pekat dari navbar), No Shadow, Hover Black/White */}
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white/60 backdrop-blur-xl border border-black z-50 overflow-hidden">
                           {Array.isArray(config.font_files) && config.font_files.length > 0 ? (
                             config.font_files.map((_, i) => (
                               <button
@@ -261,9 +261,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 spellCheck={false} 
               />
           ) : (
-              // MAP VIEW
+              // MAP VIEW - Sekarang Max 4 Baris
               <div className="w-full grid content-start" style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}>
-                {filteredGlyphs.slice(mapPage * (mapGridSize * 8), (mapPage + 1) * (mapGridSize * 8)).map((item, idx) => (
+                {filteredGlyphs.slice(mapPage * (mapGridSize * 4), (mapPage + 1) * (mapGridSize * 4)).map((item, idx) => (
                     <div key={idx} className="aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default border-none">
                         <span style={{ 
                           ...commonFontStyle,
