@@ -308,7 +308,7 @@ const Home: React.FC = () => {
                                  starting at
                                </span>
                                {promo && (
-                                 <span className="inline-block border border-yellow-300 rounded-full px-4 py-1 font-mono font-bold text-[12px] uppercase text-red-600 bg-transparent">
+                                 <span className="inline-block border border-orange-600 rounded-full px-4 py-1 font-mono font-bold text-[12px] uppercase text-red-600 bg-transparent">
                                    {promo.discount_percent}% OFF
                                  </span>
                                )}
@@ -324,16 +324,16 @@ const Home: React.FC = () => {
 
                                    {/* Kolom Harga Asli & Timer */}
                                    <div className="flex flex-col items-center gap-2 mt-4 w-fit">
-                                     {/* Harga Asli dengan Coret Kuning Terang */}
-                                     <div className="relative">
-                                       <span className="text-4xl font-bold text-red-600 font-mono leading-none">
+                                     {/* Harga Asli dengan Coret Orange Tua Tipis */}
+                                     <div className="relative w-full text-center">
+                                       <span className="text-5xl font-bold text-red-600 font-mono leading-none">
                                          ${basePrice}
                                        </span>
-                                       <div className="absolute top-[50%] left-[-5%] w-[110%] h-[6px] bg-yellow-300"></div>
+                                       <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
                                      </div>
                                      
-                                     {/* Indikator Waktu dengan Border Kuning Terang */}
-                                     <span className="inline-block border border-yellow-300 rounded-full px-3 py-1 font-mono font-bold text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full min-w-max">
+                                     {/* Indikator Waktu dengan Border Orange Tua */}
+                                     <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-mono font-bold text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full min-w-max">
                                        {calculateDaysLeft(promo.end_date)}
                                      </span>
                                    </div>
