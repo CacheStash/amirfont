@@ -252,7 +252,7 @@ const Home: React.FC = () => {
             const displayFont = {
               ...font,
               family: `"${font.name}"`,
-              tags: font.tags ? font.tags.split(',') : ['Custom'],
+              tags: Array.isArray(font.tags) ? font.tags : (font.tags ? font.tags.split(',') : ['Custom']),
               axes: font.axes || [], // Fallback array kosong agar tidak crash saat .map()
               features: font.features || [], // Fallback array kosong
               styleCount: font.styleCount || 1

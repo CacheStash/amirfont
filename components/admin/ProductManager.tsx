@@ -61,15 +61,29 @@ const ProductManager = () => {
             </tr>
           </thead>
           <tbody className="font-mono text-sm">
-            <tr className="border-b border-black hover:bg-gray-50 transition-colors">
-              <td className="p-4 border-r border-black font-bold">Royal Grande</td>
-              <td className="p-4 border-r border-black">$25.00</td>
-              <td className="p-4 border-r border-black">124</td>
-              <td className="p-4">
-                <span className="bg-green-100 text-green-700 px-2 py-1 text-[10px] font-bold uppercase border border-green-700">Active</span>
-              </td>
-            </tr>
-            {/* Data lain akan map dari Supabase */}
+            {fonts.map((f) => (
+              <tr key={f.id} className="border-b border-black hover:bg-gray-50 transition-colors">
+                <td className="p-4 border-r border-black font-bold">{f.name}</td>
+                <td className="p-4 border-r border-black">${f.price || '0.00'}</td>
+                <td className="p-4 border-r border-black">0</td>
+                <td className="p-4 flex justify-between items-center">
+                  <span className={`px-2 py-1 text-[10px] font-bold uppercase border ${f.is_active ? 'bg-green-100 text-green-700 border-green-700' : 'bg-red-100 text-red-700 border-red-700'}`}>
+                    {f.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                  <button 
+                    onClick={() => handleDelete(f.id, f.file_url)} 
+                    className="text-red-500 hover:underline text-[10px] font-bold"
+                  >
+                    DELETE
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {fonts.length === 0 && !loading && (
+              <tr>
+                <td colSpan={4} className="p-8 text-center text-gray-400 italic">No fonts found in inventory.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
