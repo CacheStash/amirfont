@@ -294,9 +294,7 @@ const Home: React.FC = () => {
                     
                     <div>
                       {/* STARTING AT (OVAL BORDER) */}
-                       <span className="inline-block border border-gray-300 rounded-full px-3 py-1 font-mono italic text-[11px] titlecase text-gray-500 mb-4 bg-transparent">
-                         Starting at
-                       </span>
+                       
                        <div className="mb-6 -ml-1">
                           {(() => {
                         const promo = getActivePromo(font.id || '');
@@ -307,10 +305,10 @@ const Home: React.FC = () => {
                             {/* Baris Atas: Starting At & Promo Badge */}
                             <div className="flex items-center gap-2 mb-4">
                                <span className="inline-block border border-gray-300 rounded-full px-3 py-1 font-mono italic text-[11px] titlecase text-gray-500 bg-transparent">
-                                 Starting at
+                                 starting at
                                </span>
                                {promo && (
-                                 <span className="inline-block border border-yellow-400 rounded-full px-3 py-1 font-mono font-bold text-[11px] uppercase text-red-600 bg-transparent">
+                                 <span className="inline-block border border-yellow-300 rounded-full px-4 py-1 font-mono font-bold text-[12px] uppercase text-red-600 bg-transparent">
                                    {promo.discount_percent}% OFF
                                  </span>
                                )}
@@ -318,18 +316,24 @@ const Home: React.FC = () => {
 
                             <div className="mb-6 -ml-1">
                                {promo ? (
-                                 <div className="flex items-start gap-4">
+                                 <div className="flex items-start gap-5">
                                    {/* Harga Utama (Diskon) */}
                                    <span className="text-9xl font-light tracking-tighter text-black leading-[0.8]">
                                      ${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}
                                    </span>
 
                                    {/* Kolom Harga Asli & Timer */}
-                                   <div className="flex flex-col items-center gap-1 mt-2 w-fit">
-                                     <span className="text-3xl line-through text-red-600 font-mono font-bold leading-none">
-                                       ${basePrice}
-                                     </span>
-                                     <span className="inline-block border border-yellow-400 rounded-full px-2 py-0.5 font-mono font-bold text-[8px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full">
+                                   <div className="flex flex-col items-center gap-2 mt-4 w-fit">
+                                     {/* Harga Asli dengan Coret Kuning Terang */}
+                                     <div className="relative">
+                                       <span className="text-4xl font-bold text-red-600 font-mono leading-none">
+                                         ${basePrice}
+                                       </span>
+                                       <div className="absolute top-[50%] left-[-5%] w-[110%] h-[6px] bg-yellow-300"></div>
+                                     </div>
+                                     
+                                     {/* Indikator Waktu dengan Border Kuning Terang */}
+                                     <span className="inline-block border border-yellow-300 rounded-full px-3 py-1 font-mono font-bold text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full min-w-max">
                                        {calculateDaysLeft(promo.end_date)}
                                      </span>
                                    </div>
