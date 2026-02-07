@@ -95,6 +95,43 @@ const FluidText: React.FC<{ text: string; className?: string; baseWeight?: numbe
 // --- MAIN HOME COMPONENT ---
 const Home: React.FC = () => {
   const [fonts, setFonts] = useState<any[]>([]);
+
+  const [promos, setPromos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    const [fontsRes, promosRes] = await Promise.all([
+      supabase.from('fonts').select('*').order('created_at', { ascending: false }),
+      supabase.from('promotions').select('*').eq('is_active', true)
+    ]);
+    
+    if (fontsRes.data) setFonts(fontsRes.data);
+    if (promosRes.data) setPromos(promosRes.data);
+    setLoading(false);
+  };
+
+  const getActivePromo = (fontId: string) => {
+    const now = new Date();
+    return promos.find(p => {
+      const start = new Date(p.start_date);
+      const end = new Date(p.end_date);
+      const isTargeted = p.type === 'global' || p.font_ids?.includes(fontId);
+      return now >= start && now <= end && isTargeted;
+    });
+  };
+
+  const calculateDaysLeft = (endDate: string) => {
+    const diff = new Date(endDate).getTime() - new Date().getTime();
+    const days = Math.ceil(diff / (1000 * 3600 * 24));
+    if (days <= 0) return "Ends today";
+    if (days >= 7) return `${Math.floor(days/7)} week${Math.floor(days/7) > 1 ? 's' : ''} left`;
+    return `${days} day${days > 1 ? 's' : ''} left`;
+  };
+
   const [activeTag, setActiveTag] = useState<string | null>(null); // State Filter Tag
 
   useEffect(() => {
@@ -260,9 +297,38 @@ const Home: React.FC = () => {
                        <span className="inline-block border border-gray-300 rounded-full px-3 py-1 font-mono italic text-[11px] titlecase text-gray-500 mb-4 bg-transparent">
                          Starting at
                        </span>
-                       <div className="text-9xl font-light tracking-tighter mb-4 -ml-1">
-                        ${font.price || 25}
-                       </div>
+                       <div className="mb-4 -ml-1">
+  {(() => {
+    const promo = getActivePromo(font.id || '');
+    const basePrice = font.price || 25;
+    if (promo) {
+      const discPrice = basePrice * (1 - (promo.discount_percent / 100));
+      return (
+        <div className="flex flex-col">
+          <div className="flex items-baseline gap-4">
+            <span className="text-9xl font-light tracking-tighter text-black">
+              ${discPrice.toFixed(0)}
+            </span>
+            <div className="flex flex-col">
+              <span className="text-2xl line-through opacity-30 font-mono">${basePrice}</span>
+              <span className="text-xs font-bold text-red-600 font-mono bg-yellow-300 px-1 inline-block uppercase">
+                {promo.discount_percent}% OFF
+              </span>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold text-red-600 font-mono uppercase tracking-widest mt-1">
+            ⌛ {calculateDaysLeft(promo.end_date)}
+          </span>
+        </div>
+      );
+    }
+    return (
+      <div className="text-9xl font-light tracking-tighter text-black">
+        ${basePrice}
+      </div>
+    );
+  })()}
+</div>
                        <p className="text-gray-600 text-sm leading-relaxed font-mono">{font.description}</p>
                     </div>
                   </div>

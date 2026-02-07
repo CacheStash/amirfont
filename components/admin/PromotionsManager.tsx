@@ -9,6 +9,30 @@ const PromotionsManager = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // --- PARTIAL FIX ---
+  const [editingPromo, setEditingPromo] = useState<any>(null);
+
+  const handleEdit = (p: any) => {
+    setEditingPromo(p);
+    setPromoName(p.name);
+    setDiscount(p.discount_percent.toString());
+    setTargetType(p.type === 'global' ? 'all' : 'specific');
+    setSelectedFonts(p.font_ids || []);
+    setStartDate(p.start_date);
+    setEndDate(p.end_date);
+    setIsAdding(true);
+  };
+
+  const handleClose = () => {
+    setIsAdding(false);
+    setEditingPromo(null);
+    setPromoName('');
+    setDiscount('');
+    setEndDate('');
+    setSelectedFonts([]);
+  };
+// --- END FIX ---
+
   // Form State
   const [promoName, setPromoName] = useState('');
   const [discount, setDiscount] = useState('');
@@ -49,20 +73,16 @@ const PromotionsManager = () => {
         is_active: true
       };
 
-      const { error } = await supabase.from('promotions').insert([payload]);
+      const { error } = editingPromo 
+        ? await supabase.from('promotions').update(payload).eq('id', editingPromo.id)
+        : await supabase.from('promotions').insert([payload]);
+
       if (error) throw error;
 
-      alert("Promotion '" + promoName + "' launched successfully!");
-      setIsAdding(false);
-      fetchPromos();
-      // Reset form fields
-      setPromoName(''); 
-      setDiscount(''); 
-      setEndDate(''); 
-      setSelectedFonts([]);
+      alert(editingPromo ? "Promotion updated!" : "Promotion launched!");
+      handleClose();
     } catch (err: any) {
-      console.error("Supabase Database Error:", err);
-      alert("Gagal membuat promo: " + (err.message || "Cek koneksi database atau pastikan tabel sudah dibuat."));
+      alert("Error: " + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -104,7 +124,15 @@ const PromotionsManager = () => {
               </div>
               <h3 className="text-xl font-bold uppercase mb-1">{p.name}</h3>
               <p className="text-[10px] font-mono text-gray-500 mb-4 uppercase">{p.type === 'global' ? 'Store-wide Sale' : `${p.font_ids?.length} Fonts Selected`}</p>
-              <button onClick={() => handleDelete(p.id)} className="text-red-500 font-bold uppercase text-[10px] border-b-2 border-red-500">End Campaign</button>
+              <div className="flex gap-4">
+               <button 
+                 onClick={() => handleEdit(p)} 
+                 className="text-[10px] font-bold border-b-2 border-black uppercase"
+               >
+                 Edit Campaign
+               </button>
+               <button onClick={() => handleDelete(p.id)} className="text-red-500 font-bold uppercase text-[10px] border-b-2 border-red-500">End Campaign</button>
+             </div>
             </div>
           ))
         )}
