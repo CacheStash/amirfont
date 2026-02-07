@@ -18,12 +18,26 @@ export interface FontConfig {
   description: string;
   tags: string[];
   price?: number;
+  license_prices?: any;   // Menyimpan matriks harga EULA
   styleCount?: number;
-  randomText?: string;    // Untuk dummy text unik per kartu
+  randomText?: string;    
   previewImages?: string[];
   axes: Axis[];
   features?: {
     tag: string;
     name: string;
   }[];
+  is_active?: boolean;
+}
+
+export interface Promotion {
+  id?: string;
+  name: string;
+  description: string;
+  discount_percent: number;
+  start_date: string;
+  end_date: string;
+  type: 'global' | 'bundle';
+  font_ids?: string[]; // Untuk bundle pack
+  is_active: boolean;
 }

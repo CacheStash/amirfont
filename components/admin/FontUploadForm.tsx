@@ -10,14 +10,15 @@ interface UploadResponse {
   error?: string;
 }
 
-const FontUploadForm = () => {
-  // 1. State untuk Form
-  const [fontName, setFontName] = useState('');
-  const [description, setDescription] = useState('');
-  const [tags, setTags] = useState(''); 
+// Menambahkan props initialData & onSuccess untuk fitur EDIT
+const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSuccess?: () => void }) => {
+  // 1. State untuk Form (Diambil dari initialData jika sedang mode EDIT)
+  const [fontName, setFontName] = useState(initialData?.name || '');
+  const [description, setDescription] = useState(initialData?.description || '');
+  const [tags, setTags] = useState(initialData?.tags?.join(', ') || ''); 
   
   // Matriks Harga sesuai EULA 2026 (User Seats, Traffic Tiers, & Corporate)
-  const [licensePrices, setLicensePrices] = useState({
+  const [licensePrices, setLicensePrices] = useState(initialData?.license_prices || {
     desktop: { solo: 0, team: 0, studio: 0, enterprise: 0 },
     logo_branding: { solo: 0, team: 0, studio: 0, enterprise: 0 },
     social_web: { small_50k: 0, medium_500k: 0, large_5m: 0, enterprise_unlimited: 0 },
@@ -27,13 +28,14 @@ const FontUploadForm = () => {
     corporate_full_suite: 0
   });
 
-  const [price, setPrice] = useState(''); // Base price (opsional, bisa digunakan sebagai patokan solo)
-  const [prices, setPrices] = useState({ desktop: 0, web: 0, app: 0 }); // Preview sederhana
+  const [price, setPrice] = useState(initialData?.price?.toString() || ''); 
+  // Preview sederhana (Tetap dipertahankan sesuai backup)
+  const [prices, setPrices] = useState({ desktop: 0, web: 0, app: 0 }); 
 
-  // Handler untuk update harga di dalam matriks JSON
+  // Handler untuk update harga (Tetap dipertahankan sesuai backup)
   const updatePrice = (category: string, subKey: string | null, value: string) => {
     const numValue = parseFloat(value) || 0;
-    setLicensePrices(prev => {
+    setLicensePrices((prev: any) => {
       if (category === 'corporate_full_suite') {
         return { ...prev, corporate_full_suite: numValue };
       }
@@ -46,6 +48,7 @@ const FontUploadForm = () => {
       };
     });
   };
+
   const [fontFiles, setFontFiles] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -70,7 +73,7 @@ const FontUploadForm = () => {
     }
   };
 
-  // Fungsi upload helper untuk loop multiple files ke R2
+  // Fungsi upload helper ke R2 (Tetap dipertahankan sesuai backup)
   const uploadToR2 = async (files: File[]) => {
     const uploadedUrls = [];
     for (const file of files) {
@@ -78,15 +81,11 @@ const FontUploadForm = () => {
       formData.append('file', file);
      try {
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
-        
-        // Cek jika respons bukan 200 OK
         if (!res.ok) {
           const errorText = await res.text();
           throw new Error(`Server Error (${res.status}): ${errorText || 'Gagal upload'}`);
         }
-
         const data = (await res.json()) as UploadResponse;
-        
         if (data.success) {
           uploadedUrls.push(data.fileName);
         } else {
@@ -100,47 +99,51 @@ const FontUploadForm = () => {
     return uploadedUrls;
   };
 
-
-  // 2. Handler Upload & Save
+  // 2. Handler Upload & Save (Disesuaikan untuk INSERT & UPDATE)
   const handleSaveProduct = async (e: React.FormEvent) => {
-  e.preventDefault();
-    if (fontFiles.length === 0 || !fontName || !price) return alert("Lengkapi data!");
+    e.preventDefault();
+    // Jika mode baru, fontFiles wajib. Jika mode edit, boleh kosong (menggunakan file lama).
+    if (!initialData && fontFiles.length === 0) return alert("Upload file font dulu!");
+    if (!fontName || !price) return alert("Lengkapi data!");
 
     setIsUploading(true);
     try {
-      // 1. UPLOAD FILES TO R2 (Multiple fonts & Previews)
       const uploadedFontUrls = await uploadToR2(fontFiles);
       const uploadedPreviewUrls = await uploadToR2(previewImages);
 
-      // 2. SAVE DATA TO SUPABASE (Sync dengan kolom baru)
-      const { error: dbError } = await supabase
-        .from('fonts')
-        .insert([{
-          name: fontName,
-          price: parseFloat(price),
-          price_web: licensePrices.social_web.small_50k,
-          price_app: licensePrices.app.solo,
-          license_prices: licensePrices,
-          description: description,
-          tags: tags.split(',').map(t => t.trim()).filter(t => t !== ""),
-          font_files: uploadedFontUrls,
-          preview_images: uploadedPreviewUrls,
-        }]);
+      const payload = {
+        name: fontName,
+        price: parseFloat(price),
+        price_web: licensePrices.social_web.small_50k,
+        price_app: licensePrices.app.solo,
+        license_prices: licensePrices,
+        description: description,
+        // FIX TS7006: Menambahkan tipe : string
+        tags: tags.split(',').map((t: string) => t.trim()).filter((t: string) => t !== ""),
+        // Gabungkan file lama jika ada (mode edit)
+        font_files: initialData ? [...initialData.font_files, ...uploadedFontUrls] : uploadedFontUrls,
+        preview_images: initialData ? [...initialData.preview_images, ...uploadedPreviewUrls] : uploadedPreviewUrls,
+      };
 
-      if (dbError) throw dbError;
-
-      alert("Gokil! Font berhasil dipublikasikan.");
+      if (initialData?.id) {
+        // Mode UPDATE
+        const { error: dbError } = await supabase.from('fonts').update(payload).eq('id', initialData.id);
+        if (dbError) throw dbError;
+        alert("Font berhasil diupdate!");
+      } else {
+        // Mode INSERT
+        const { error: dbError } = await supabase.from('fonts').insert([payload]);
+        if (dbError) throw dbError;
+        alert("Gokil! Font berhasil dipublikasikan.");
+      }
       
-      // Reset Form setelah sukses
-      setFontName(''); setPrice(''); setTags(''); setDescription('');
-      setFontFiles([]); setPreviewImages([]);
-      
+      onSuccess?.();
     } catch (err: any) {
       alert("Error: " + err.message);
     } finally {
       setIsUploading(false);
     }
-};
+  };
 
   return (
     <form className="space-y-6" onSubmit={handleSaveProduct}>
@@ -166,10 +169,7 @@ const FontUploadForm = () => {
               const val = e.target.value;
               setPrice(val);
               const base = parseFloat(val) || 0;
-              // Helper Formula: (Base * Mult) - 1 (Jika mult > 1)
               const calc = (m: number) => m > 1 ? Math.floor(base * m) - 1 : base;
-
-              // Tier Multipliers (Sesuai User Seats)
               const tiers = (m: number) => ({
                 solo: calc(m),
                 team: calc(m * 4),
@@ -297,7 +297,7 @@ const FontUploadForm = () => {
       >
         {isUploading ? (
           <><Loader2 className="animate-spin" /> Processing...</>
-        ) : "Save & Publish Product"}
+        ) : initialData ? "Update Typeface" : "Save & Publish Product"}
       </button>
     </form>
   );
