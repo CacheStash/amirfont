@@ -278,7 +278,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           </div>
 
           {(hasAxes || hasFeatures) && (
-            <div className={`grid grid-cols-1 ${hasAxes && hasFeatures ? 'md:grid-cols-3' : 'md:grid-cols-1'} pt-8`}>
+            <div className={`grid grid-cols-1 ${hasAxes && hasFeatures ? 'md:grid-cols-3' : 'md:grid-cols-1'}`}>
                 {hasAxes && (
                   <div className={`${hasFeatures ? 'md:col-span-2 border-b md:border-b-0' : 'md:col-span-1'} space-y-4 px-4 md:px-8 py-6 md:py-8`}>
                     <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Variable Axes</h4>
