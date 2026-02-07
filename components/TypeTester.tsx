@@ -32,7 +32,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [lineHeight, setLineHeight] = useState(1.1);
   const [letterSpacing, setLetterSpacing] = useState(0);
   
-  // RESTORED: Map View Controls
   const [mapPage, setMapPage] = useState(0);
   const [mapGridSize, setMapGridSize] = useState(10);
 
@@ -51,21 +50,38 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   // --- EFFECT: LOAD FONT & DETECT FEATURES ---
   useEffect(() => {
-    const currentFiles = Array.isArray(config.font_files) ? config.font_files : (config.file_url ? [config.file_url] : []);
-    const targetFile = currentFiles[activeStyleIndex] 
-      ? (currentFiles[activeStyleIndex].startsWith('http') ? currentFiles[activeStyleIndex] : `/api/fonts/${currentFiles[activeStyleIndex]}`)
-      : config.file;
+    // FIX: Logika Robust untuk menentukan target file
+    // Prioritas: 1. font_files[index] (Multiple) -> 2. file_url (Single DB) -> 3. file (Local Import)
+    let targetFile = '';
     
-    if (!targetFile) return;
+    if (Array.isArray(config.font_files) && config.font_files.length > 0) {
+       const file = config.font_files[activeStyleIndex];
+       // Handle jika path sudah lengkap atau perlu prefix API
+       targetFile = file.startsWith('http') || file.startsWith('/') ? file : `/api/fonts/${file}`;
+    } else if (config.file_url) {
+       targetFile = config.file_url.startsWith('http') || config.file_url.startsWith('/') ? config.file_url : `/api/fonts/${config.file_url}`;
+    } else if (config.file) {
+       targetFile = config.file;
+    }
+
+    if (!targetFile) {
+        console.warn("No font file found for config:", config.name);
+        return;
+    }
 
     setIsLoadingGlyphs(true);
+    
     opentype.load(targetFile, (err, font) => {
       setIsLoadingGlyphs(false);
-      if (err || !font) return;
+      if (err || !font) {
+          console.error(`Failed to load font from ${targetFile}:`, err);
+          return;
+      }
 
       // 1. Glyphs
       const glyphs: string[] = [];
-      for (let i = 0; i < font.glyphs.length && i < 2000; i++) { // Limit raised slightly
+      // Limit raised to ensure map view has content
+      for (let i = 0; i < font.glyphs.length && i < 2000; i++) { 
         const glyph = font.glyphs.get(i);
         if (glyph.unicode) glyphs.push(String.fromCharCode(glyph.unicode));
       }
@@ -79,9 +95,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               min: axis.minValue, max: axis.maxValue, default: axis.defaultValue
           }));
           setDetectedAxes(autoAxes);
+          // Preserve existing values if switching styles within same font family
           const vals: Record<string, number> = {};
           autoAxes.forEach((axis: any) => vals[axis.tag] = axis.default);
           setAxesValues(prev => ({ ...prev, ...vals }));
+      } else {
+          setDetectedAxes([]);
       }
 
       // 3. Features
@@ -96,22 +115,24 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         tag, name: FEATURE_NAMES[tag] || (tag.startsWith('ss') ? `Stylistic Set ${parseInt(tag.slice(2))}` : tag.toUpperCase())
       })));
 
+      // Auto-enable standard features
       const defaults: Record<string, boolean> = {};
       foundTags.forEach(tag => { if (['liga', 'calt'].includes(tag)) defaults[tag] = true; });
-      setActiveFeatures(prev => ({ ...prev, ...defaults }));
+      setActiveFeatures(prev => ({ ...defaults, ...prev }));
     });
   }, [config, activeStyleIndex]);
 
   const toggleFeature = (tag: string) => setActiveFeatures(prev => ({ ...prev, [tag]: !prev[tag] }));
 
-  const fontStyle = {
-    fontFamily: `"${config.name}-${activeStyleIndex}"`,
-    fontSize: `${fontSize}px`,
-    textAlign: align,
-    lineHeight: lineHeight,
-    letterSpacing: `${letterSpacing}em`,
-    fontVariationSettings: Object.entries(axesValues).map(([t, v]) => `"${t}" ${v}`).join(', '),
-    fontFeatureSettings: Object.entries(activeFeatures).map(([t, on]) => `"${t}" ${on ? 'on' : 'off'}`).join(', ') || 'normal'
+  // Helper styles
+  const currentFontFamily = `"${config.name}-${activeStyleIndex}"`;
+  const fontFeatureSettings = Object.entries(activeFeatures).map(([t, on]) => `"${t}" ${on ? 'on' : 'off'}`).join(', ') || 'normal';
+  const fontVariationSettings = Object.entries(axesValues).map(([t, v]) => `"${t}" ${v}`).join(', ');
+
+  const commonFontStyle = {
+    fontFamily: currentFontFamily,
+    fontVariationSettings,
+    fontFeatureSettings,
   };
 
   return (
@@ -144,16 +165,14 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               </>
             )}
 
-            {/* 2B. MAP CONTROLS (RESTORED) */}
+            {/* 2B. MAP CONTROLS */}
             {viewMode === 'glyphs' && (
               <>
-                {/* Grid Size Buttons (10/20/30) */}
                 <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
                   {[10, 20, 30].map(size => (
                     <button key={size} onClick={() => { setMapGridSize(size); setMapPage(0); }} className={`px-2 py-1 text-[10px] font-bold border border-black ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent hover:bg-gray-200'}`}>{size}</button>
                   ))}
                 </div>
-                {/* Pagination Controls */}
                 {detectedGlyphs.length > mapGridSize * 8 && (
                   <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-r border-black">
                       <div className="flex gap-1">
@@ -166,31 +185,47 @@ const TypeTester: React.FC<TypeTesterProps> = ({
             )}
           </div>
           
-          {/* 3. RIGHT SIDE: Dropdown ONLY (Info Removed) */}
+          {/* 3. RIGHT SIDE: Dropdown */}
           <div className="flex items-center gap-6 px-4 md:px-8 py-6 md:py-8 border-l border-black ml-auto">
               {Array.isArray(config.font_files) && config.font_files.length > 1 && (
                 <div className="flex items-center gap-2 pr-6">
                   <span className="font-mono text-[10px] text-gray-400 uppercase">Style</span>
-                  <select value={activeStyleIndex} onChange={(e) => setActiveStyleIndex(parseInt(e.target.value))} className="bg-transparent font-bold text-xs uppercase outline-none cursor-pointer">
-                    {config.font_files.map((_, i) => <option key={i} value={i} className="text-black">Style 0{i+1}</option>)}
+                  {/* FIX: Add blur to dropdown background */}
+                  <select 
+                    value={activeStyleIndex} 
+                    onChange={(e) => setActiveStyleIndex(parseInt(e.target.value))} 
+                    className="font-bold text-xs uppercase outline-none cursor-pointer p-2 rounded bg-white/30 backdrop-blur-md border border-transparent hover:border-black transition-all"
+                  >
+                    {config.font_files.map((_, i) => <option key={i} value={i} className="text-black bg-white">Style 0{i+1}</option>)}
                   </select>
                 </div>
               )}
-              {/* REMOVED: Style/Glyph count info here as requested */}
           </div>
         </div>
 
         <div className="min-h-[300px] mb-8 relative">
           {viewMode === 'type' ? (
-              <textarea value={text} onChange={(e) => setText(e.target.value)} className="w-full min-h-[300px] bg-transparent outline-none resize-none p-4 relative z-10" style={fontStyle as any} spellCheck={false} />
+              <textarea 
+                value={text} 
+                onChange={(e) => setText(e.target.value)} 
+                className="w-full min-h-[300px] bg-transparent outline-none resize-none p-4 relative z-10" 
+                style={{ 
+                    ...commonFontStyle,
+                    fontSize: `${fontSize}px`, 
+                    textAlign: align,
+                    lineHeight: lineHeight,
+                    letterSpacing: `${letterSpacing}em`
+                }} 
+                spellCheck={false} 
+              />
           ) : (
-              // MAP VIEW: REMOVED GAP-PX (Grid White Lines Removed)
+              // MAP VIEW
               <div className="w-full grid content-start" style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}>
                 {detectedGlyphs.slice(mapPage * (mapGridSize * 8), (mapPage + 1) * (mapGridSize * 8)).map((char, idx) => (
                     <div key={idx} className="aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default border-none">
+                        {/* FIX: Apply fontFeatureSettings to Glyph Map */}
                         <span style={{ 
-                          fontFamily: `"${config.name}-${activeStyleIndex}"`, 
-                          // DYNAMIC FONT SIZING BASED ON GRID
+                          ...commonFontStyle, // Includes feature settings now
                           fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' 
                         }}>
                           {char}

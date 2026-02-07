@@ -281,7 +281,8 @@ const Home: React.FC = () => {
                   <div>
                     <h2 className="text-3xl font-normal uppercase tracking-tight mb-1">{font.name}</h2>
                     <span className="block font-mono text-base font-bold text-gray-500 mb-8">
-                        {font.styleCount || 1} STYLES
+                        {/* Menghitung jumlah style secara dinamis dari array font_files */}
+                        {Array.isArray(font.font_files) && font.font_files.length > 0 ? font.font_files.length : 1} STYLES
                     </span>
                     <div className="mb-8"><BrutalistGraphic /></div>
                     <div className="flex flex-wrap gap-2 text-[10px] font-mono uppercase text-gray-500 mb-6">
