@@ -1,11 +1,10 @@
-import React, { useRef, useState, useEffect } from 'react'; // Tambahkan useState & useEffect
+import React, { useRef, useState, useEffect } from 'react';
 import TypeTester from '../components/TypeTester';
-import { supabase } from '../lib/supabase'; // Import koneksi database
+import { supabase } from '../lib/supabase';
 import { FontConfig } from '../types';
-import { MousePointer2, MoveRight, Circle, Square, Triangle } from 'lucide-react';
+import { MousePointer2, MoveRight, Circle, Square, Triangle, X } from 'lucide-react'; // Tambah icon X untuk clear filter
 
 // --- IMPORTS FONT ASSETS ---
-// Pastikan path ini sesuai dengan struktur foldermu
 import RoyalGrandeFile from '../fonts/RoyalGrande/Royal Grande Variable.ttf';
 import ThanjavurFile from '../fonts/Thanjavur/Thanjavur-Var.ttf';
 import SpaceMonoFile from '../fonts/Space_Mono/SpaceMono-Regular.ttf'; 
@@ -26,72 +25,6 @@ const DUMMY_LIBRARY = [
   "A wonderful serenity has taken possession of my entire soul, like these sweet mornings of spring which I enjoy with my whole heart.",
   "But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account."
 ];
-
-// --- FONT CONFIGURATIONS ---
-const FONT_ROYAL_GRANDE: FontConfig = {
-  name: 'Royal Grande',
-  family: '"Royal Grande Variable"',
-  price: 25,
-  styleCount: 1,
-  file: RoyalGrandeFile,
-  description: 'A custom variable font with OpenType capabilities. Testing weight axis and ligatures.',
-  tags: ['Variable', 'Serif', 'Custom'],
-  axes: [
-    { tag: 'wght', name: 'Weight', min: 100, max: 900, default: 400 },
-  ],
-  features: [
-    { tag: 'liga', name: 'Standard Ligatures' },
-    { tag: 'dlig', name: 'Discretionary Lig' },
-    { tag: 'calt', name: 'Contextual Alt' },
-    { tag: 'kern', name: 'Kerning' },
-  ]
-};
-
-const FONT_THANJAVUR: FontConfig = {
-  name: 'Thanjavur',
-  family: '"Thanjavur Variable"',
-  file: ThanjavurFile,
-  description: 'Testing Thanjavur variable font features and glyph detection.',
-  tags: ['Variable', 'Display', 'Custom'],
-  axes: [
-    { tag: 'wght', name: 'Weight', min: 100, max: 900, default: 400 },
-  ],
-  features: [
-    { tag: 'liga', name: 'Standard Ligatures' },
-    { tag: 'ss01', name: 'Stylistic Set 1' },
-  ]
-};
-
-const FONT_SPACE_MONO: FontConfig = {
-  name: 'Space Mono',
-  family: '"Space Mono"',
-  file: SpaceMonoFile,
-  description: 'A geometric monospace typeface with a brutalist edge. Standard static font.',
-  tags: ['Monospaced', 'Static', 'Display'],
-  axes: [], 
-  features: [
-      { tag: 'liga', name: 'Ligatures' }
-  ]
-};
-
-const FONT_INTER_OT: FontConfig = {
-  name: 'Inter',
-  family: '"Inter"',
-  file: '../fonts/Inter/Inter-VariableFont_slnt,wght.ttf', 
-  description: 'A masterpiece of versatility. Features extensive OpenType capabilities.',
-  tags: ['OpenType', 'Sans-Serif', 'Neutral'],
-  axes: [
-      { tag: 'wght', name: 'Weight', min: 100, max: 900, default: 400 },
-      { tag: 'slnt', name: 'Slant', min: -10, max: 0, default: 0, unit: 'deg' }
-  ], 
-  features: [
-    { tag: 'calt', name: 'Contextual Alt' },
-    { tag: 'dlig', name: 'Discretionary Lig' },
-    { tag: 'ss01', name: 'Alt. Digits' },
-    { tag: 'ss02', name: 'Alt. G & a' },
-    { tag: 'zero', name: 'Slashed Zero' },
-  ]
-};
 
 // --- FLUID TEXT COMPONENT ---
 const FluidText: React.FC<{ text: string; className?: string; baseWeight?: number; maxWeight?: number }> = ({ 
@@ -161,21 +94,19 @@ const FluidText: React.FC<{ text: string; className?: string; baseWeight?: numbe
 
 // --- MAIN HOME COMPONENT ---
 const Home: React.FC = () => {
-  
   const [fonts, setFonts] = useState<any[]>([]);
+  const [activeTag, setActiveTag] = useState<string | null>(null); // State Filter Tag
 
   useEffect(() => {
     const fetchFonts = async () => {
       const { data } = await supabase
         .from('fonts')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(4);
+        .order('created_at', { ascending: false }); // Hapus limit agar filtering efektif
 
       if (data) {
         setFonts(data);
         
-        // MENYUNTIKKAN CSS @FONT-FACE SECARA DINAMIS
         const styleId = 'dynamic-fonts-css';
         let styleEl = document.getElementById(styleId) as HTMLStyleElement;
         if (!styleEl) {
@@ -201,6 +132,15 @@ const Home: React.FC = () => {
     fetchFonts();
   }, []);
 
+  // LOGIC FILTERING
+  const filteredFonts = activeTag 
+    ? fonts.filter(font => {
+        const tags = Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []);
+        // Case insensitive check
+        return tags.some((t: string) => t.trim().toLowerCase() === activeTag.toLowerCase());
+      })
+    : fonts;
+
   return (
     <>
       <div className="grain-orb-base orb-top-right" />
@@ -209,22 +149,16 @@ const Home: React.FC = () => {
       <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent">
         
         {/* HEADER */}
-        
-        {/* UPDATED: Tambahkan relative dan overflow-hidden agar circle tidak bocor keluar header jika tidak diinginkan */}
         <header className="w-full border-b border-black bg-transparent relative overflow-hidden">
-          
-          {/* NEW: Blurry Circle di Header (Kanan Atas) */}
           <div className="absolute -top-20 -right-20 w-[600px] h-[400px] pointer-events-none z-0">
              <div 
                 className="w-full h-full mix-blend-multiply blur-[60px]"
                 style={{ 
-                  // Copy gradient yang sama dari TypeTester
                   background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)',
                 }}
              />
           </div>
 
-          {/* Pastikan konten grid memiliki relative z-10 agar muncul di DEPAN circle */}
           <div className="grid grid-cols-1 md:grid-cols-[1fr_450px] relative z-10">
             <div className="p-6 md:p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-black">
               <div className="flex flex-col items-start gap-0 w-full uppercase">
@@ -253,76 +187,111 @@ const Home: React.FC = () => {
           </div>
         </header>
 
+        {/* ACTIVE FILTER BAR (Muncul saat ada tag aktif) */}
+        {activeTag && (
+          <div className="w-full border-b border-black bg-yellow-50 p-4 flex justify-between items-center sticky top-0 z-50 transition-all">
+            <div className="font-mono text-xs uppercase font-bold flex items-center gap-2">
+              FILTER ACTIVE: <span className="bg-black text-white px-2 py-1 rounded-full">{activeTag}</span>
+            </div>
+            <button 
+              onClick={() => setActiveTag(null)}
+              className="flex items-center gap-1 text-xs font-bold uppercase hover:underline"
+            >
+              <X size={14} /> Clear Filter
+            </button>
+          </div>
+        )}
+
         {/* MAIN LOOP */}
-        <main className="w-full px-0">
-          {fonts.map((font, index) => {
-            const isEven = index % 2 === 0; 
-            const gridLayoutClass = isEven ? "md:grid-cols-[450px_1fr_150px]" : "md:grid-cols-[150px_1fr_450px]";
+        <main id="collection-start" className="w-full px-0">
+          {filteredFonts.length > 0 ? (
+            filteredFonts.map((font, index) => {
+              const isEven = index % 2 === 0; 
+              const gridLayoutClass = isEven ? "md:grid-cols-[450px_1fr_150px]" : "md:grid-cols-[150px_1fr_450px]";
 
-            // Mapping & Sanitasi data agar TypeTester tidak crash
-            const displayFont = {
-              ...font,
-              family: `"${font.name}"`,
-              tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : ['Custom']),
-              axes: Array.isArray(font.axes) ? font.axes : [], 
-              features: Array.isArray(font.features) ? font.features : [], 
-              styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
-              randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
-            };
+              const displayFont = {
+                ...font,
+                family: `"${font.name}"`,
+                tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : ['Custom']),
+                axes: Array.isArray(font.axes) ? font.axes : [], 
+                features: Array.isArray(font.features) ? font.features : [], 
+                styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
+                randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
+              };
 
-            return (
-              <section 
-                key={font.id} 
-                className={`border-b border-black grid grid-cols-1 ${gridLayoutClass}`}
-              >
-                
-                {/* 1. INFO COLUMN */}
-                <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
-                  <div>
-                    <h2 className="text-3xl font-normal uppercase tracking-tight mb-1">{font.name}</h2>
-                    <span className="block font-mono text-base font-bold text-gray-500 mb-8">
-                        {/* Menghitung jumlah style secara dinamis dari array font_files */}
-                        {Array.isArray(font.font_files) && font.font_files.length > 0 ? font.font_files.length : 1} STYLES
-                    </span>
-                    <div className="mb-8"><BrutalistGraphic /></div>
-                    <div className="flex flex-wrap gap-2 text-[10px] font-mono uppercase text-gray-500 mb-6">
-                      {/* PERBAIKAN: Menggunakan displayFont.tags yang sudah berupa Array */}
-                      {displayFont.tags.map((tag: string) => (
-                        <span key={tag} className="border border-gray-300 px-2 py-1 rounded-full">{tag}</span>
-                      ))}
+              return (
+                <section 
+                  key={font.id} 
+                  className={`border-b border-black grid grid-cols-1 ${gridLayoutClass}`}
+                >
+                  
+                  {/* 1. INFO COLUMN */}
+                  <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
+                    <div>
+                      <h2 className="text-3xl font-normal uppercase tracking-tight mb-1">{font.name}</h2>
+                      <span className="block font-mono text-base font-bold text-gray-500 mb-8">
+                          {Array.isArray(font.font_files) && font.font_files.length > 0 ? font.font_files.length : 1} STYLES
+                      </span>
+                      <div className="mb-8"><BrutalistGraphic /></div>
+                      
+                      {/* TAGS FILTER BUTTONS */}
+                      <div className="flex flex-wrap gap-2 text-[10px] font-mono uppercase mb-6">
+                        {displayFont.tags.map((tag: string) => {
+                          const isActive = activeTag === tag.trim();
+                          return (
+                            <button 
+                              key={tag} 
+                              onClick={() => setActiveTag(isActive ? null : tag.trim())}
+                              className={`border px-3 py-1 rounded-full transition-all duration-200 font-bold ${
+                                isActive 
+                                  ? 'bg-black text-white border-black' 
+                                  : 'border-gray-300 text-gray-700 hover:border-black hover:bg-black hover:text-white'
+                              }`}
+                            >
+                              {tag}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      {/* STARTING AT (OVAL BORDER) */}
+                       <span className="inline-block border border-gray-300 rounded-full px-3 py-1 font-mono italic text-[11px] titlecase text-gray-500 mb-4 bg-transparent">
+                         Starting at
+                       </span>
+                       <div className="text-9xl font-light tracking-tighter mb-4 -ml-1">
+                        ${font.price || 25}
+                       </div>
+                       <p className="text-gray-600 text-sm leading-relaxed font-mono">{font.description}</p>
                     </div>
                   </div>
-                  
-                  <div>
-                     <span className="block font-mono italic text-[17px] titlecase text-gray-500 -mb-1">Starting at</span>
-                     <div className="text-9xl font-light tracking-tighter mb-4 -ml-1">
-                      
-                      ${font.price || 25}
+
+                  {/* 2. TESTER COLUMN (Middle) */}
+                  <div className="md:order-2 h-full border-b md:border-b-0 relative">
+                     <div className="h-full">
+                        <TypeTester 
+                          config={displayFont} 
+                          isEven={isEven}
+                          defaultText={isEven ? "The quick brown fox jumps over the lazy dog." : undefined} 
+                        />
                      </div>
-                     <p className="text-gray-600 text-sm leading-relaxed font-mono">{font.description}</p>
                   </div>
-                </div>
 
-                {/* 2. TESTER COLUMN (Middle) */}
-                <div className="md:order-2 h-full border-b md:border-b-0 relative">
-                   <div className="h-full">
-                      {/* PERBAIKAN: Gunakan displayFont yang sudah aman, bukan font mentah */}
-                      <TypeTester 
-                        config={displayFont} 
-                        isEven={isEven}
-                        defaultText={isEven ? "The quick brown fox jumps over the lazy dog." : undefined} 
-                      />
-                   </div>
-                </div>
+                  {/* 3. ACTION COLUMN */}
+                  <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group ${isEven ? 'md:order-3 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
+                     <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
+                  </div>
 
-                {/* 3. ACTION COLUMN */}
-                <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group ${isEven ? 'md:order-3 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
-                   <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
-                </div>
-
-              </section>
-            );
-          })}
+                </section>
+              );
+            })
+          ) : (
+             <div className="p-20 text-center font-mono uppercase text-gray-400">
+               No fonts found with tag "{activeTag}". 
+               <button onClick={() => setActiveTag(null)} className="underline ml-2 text-black font-bold">Clear Filter</button>
+             </div>
+          )}
         </main>
       </div>
     </>
