@@ -282,7 +282,7 @@ const Home: React.FC = () => {
                               className={`border px-3 py-1 rounded-full transition-all duration-200 font-bold ${
                                 isActive 
                                   ? 'bg-black text-white border-black' 
-                                  : 'border-gray-300 text-gray-700 hover:border-black hover:bg-black hover:text-white'
+                                  : 'border-black text-black hover:bg-black hover:text-white'
                               }`}
                             >
                               {tag}
@@ -304,9 +304,9 @@ const Home: React.FC = () => {
                           <>
                             {/* Baris Atas: Starting At & Promo Badge */}
                             <div className="flex items-center gap-2 mb-4">
-                               <span className="inline-block border border-gray-300 rounded-full px-3 py-1 font-mono italic text-[11px] titlecase text-gray-500 bg-transparent">
-                                 starting at
-                               </span>
+                               <span className="inline-block border border-black rounded-full px-3 py-1 font-mono italic text-[11px] titlecase text-black mb-4 bg-transparent">
+                         starting at
+                       </span>
                                {promo && (
                                  <span className="inline-block border border-orange-600 rounded-full px-4 py-1 font-mono font-bold text-[12px] uppercase text-red-600 bg-transparent">
                                    {promo.discount_percent}% OFF
