@@ -189,7 +189,7 @@ const Home: React.FC = () => {
 
         {/* ACTIVE FILTER BAR (Muncul saat ada tag aktif) */}
         {activeTag && (
-          <div className="w-full border-b border-black bg-white/10 backdrop-blur-md p-4 flex justify-between items-center sticky top-0 z-50 transition-all">
+          <div className="w-full border-b border-black bg-white/10 backdrop-blur-md px-6 py-4 md:px-8 flex justify-between items-center sticky top-0 z-50 transition-all">
             <div className="font-mono text-xs uppercase font-bold flex items-center gap-2">
               FILTER ACTIVE: <span className="bg-black text-white px-2 py-1 rounded-full">{activeTag}</span>
             </div>

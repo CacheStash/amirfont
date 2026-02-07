@@ -38,6 +38,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [mapPage, setMapPage] = useState(0);
   const [mapGridSize, setMapGridSize] = useState(10);
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   const FEATURE_NAMES: Record<string, string> = {
     liga: 'Standard Ligatures',
     dlig: 'Discretionary Lig',
@@ -194,22 +196,45 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           <div className="flex items-center gap-6 px-4 md:px-8 py-6 md:py-8 border-l border-black ml-auto">
               <div className="flex items-center gap-2 pr-6">
                 <span className="font-mono text-[10px] text-gray-400 uppercase">Style</span>
-                <div className="relative group">
-                   <select 
-                      value={activeStyleIndex} 
-                      onChange={(e) => setActiveStyleIndex(parseInt(e.target.value))} 
-                      className="appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-6 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black"
+                <div className="relative">
+                   <button 
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[80px] justify-between"
                    >
-                      {Array.isArray(config.font_files) && config.font_files.length > 0 ? (
-                        config.font_files.map((_, i) => (
-                           // KEMBALI KE PENAMAAN STYLE GENERIC
-                           <option key={i} value={i} className="text-black bg-white hover:bg-gray-100 py-2">Style {String(i + 1).padStart(2, '0')}</option>
-                        ))
-                      ) : (
-                         <option value={0}>Style 01</option>
-                      )}
-                   </select>
-                   <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <span>
+                        {Array.isArray(config.font_files) && config.font_files.length > 0 
+                          ? `Style ${String(activeStyleIndex + 1).padStart(2, '0')}`
+                          : 'Style 01'}
+                      </span>
+                      <ChevronDown size={14} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                   </button>
+
+                   {isDropdownOpen && (
+                     <>
+                      <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white/80 backdrop-blur-md border border-black z-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] max-h-60 overflow-y-auto">
+                          {Array.isArray(config.font_files) && config.font_files.length > 0 ? (
+                            config.font_files.map((_, i) => (
+                              <button
+                                key={i}
+                                onClick={() => { setActiveStyleIndex(i); setIsDropdownOpen(false); }}
+                                className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors ${
+                                  activeStyleIndex === i 
+                                    ? 'bg-black text-white' 
+                                    : 'text-black hover:bg-black hover:text-white'
+                                }`}
+                              >
+                                Style {String(i + 1).padStart(2, '0')}
+                              </button>
+                            ))
+                          ) : (
+                             <button className="w-full text-left px-4 py-3 text-xs font-bold uppercase text-black cursor-default">
+                               Style 01
+                             </button>
+                          )}
+                      </div>
+                     </>
+                   )}
                 </div>
               </div>
           </div>
@@ -249,7 +274,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
         {/* SETTINGS PANEL */}
         <div className="bg-transparent border-t border-black">
-          <div className="grid grid-cols-1 md:grid-cols-2 border-b border-black">
+          <div className={`grid grid-cols-1 md:grid-cols-2 ${(hasAxes || hasFeatures) ? 'border-b border-black' : ''}`}>
               <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-b md:border-b-0 md:border-r border-black">
                   <label className="w-24 font-mono text-xs font-bold uppercase">Leading</label>
                   <input type="range" min="0.8" max="2.0" step="0.1" value={lineHeight} onChange={(e) => setLineHeight(parseFloat(e.target.value))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
