@@ -135,7 +135,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const hasFeatures = dynamicFeatures.length > 0;
 
   return (
-    <div className="w-full mb-16 border-b border-black relative group bg-transparent">
+    <div className="w-full relative group bg-transparent">
       <div className="absolute z-0 pointer-events-none overflow-visible" style={{ left: isEven ? '-380px' : 'auto', right: isEven ? 'auto' : '-380px', top: '15%', width: '600px', height: '400px' }}>
           <div className="w-full h-full mix-blend-multiply blur-[60px]" style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
       </div>
@@ -202,7 +202,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
           {/* GRID 3: Size (Type) / Map Grid (Map) - LEFT COLUMN ON MOBILE */}
           <div className="flex items-center gap-2 px-4 md:px-8 py-4 md:py-8 border-r border-black justify-center md:justify-start">
-             {/* Force viewMode 'type' logic on mobile if needed, but keeping dynamic for desktop */}
              {viewMode === 'type' ? (
                 <>
                   <Type size={16} /><input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} className="w-12 text-sm font-bold bg-transparent outline-none"/><span className="text-xs font-mono text-gray-500">PX</span>
@@ -279,7 +278,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           </div>
 
           {(hasAxes || hasFeatures) && (
-            <div className={`grid grid-cols-1 ${hasAxes && hasFeatures ? 'md:grid-cols-3' : 'md:grid-cols-1'} border-t border-black`}>
+            <div className={`grid grid-cols-1 ${hasAxes && hasFeatures ? 'md:grid-cols-3' : 'md:grid-cols-1'} pt-8`}>
                 {hasAxes && (
                   <div className={`${hasFeatures ? 'md:col-span-2 border-b md:border-b-0' : 'md:col-span-1'} space-y-4 px-4 md:px-8 py-6 md:py-8`}>
                     <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Variable Axes</h4>
@@ -294,8 +293,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 )}
                 
                 {hasFeatures && (
-                  // FIXED: Added 'border-t md:border-t-0' to create separator on mobile, removed on desktop
-                  <div className={`${hasAxes ? 'md:col-span-1 border-l' : 'md:col-span-1'} border-black px-4 md:px-8 py-6 md:py-8 border-t md:border-t-0`}>
+                  <div className={`${hasAxes ? 'md:col-span-1 md:border-l' : 'md:col-span-1'} border-black px-4 md:px-8 py-6 md:py-8 border-t md:border-t-0`}>
                     <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Features</h4>
                     <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar">
                       {dynamicFeatures.map((feat) => (

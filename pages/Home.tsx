@@ -174,9 +174,10 @@ const Home: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-[1fr_450px] relative z-10">
             <div className="p-6 md:p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-black">
               <div className="flex flex-col items-start gap-0 w-full uppercase">
-                <FluidText text="Made of Quiet Lines," className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] md:leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
-                <FluidText text="Shaped Into Living Type," className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] md:leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
-                <FluidText text="Read In Every Place." className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] md:leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+                {/* FIX 1: Mengubah text-3xl menjadi text-2xl di mobile agar muat 1 baris penuh tanpa terpotong */}
+                <FluidText text="Made of Quiet Lines," className="text-2xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] md:leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+                <FluidText text="Shaped Into Living Type," className="text-2xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] md:leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+                <FluidText text="Read In Every Place." className="text-2xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] md:leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
               </div>
             </div>
             <div className="flex flex-col justify-between p-6 md:p-8 min-h-[250px] md:min-h-auto">
@@ -328,8 +329,11 @@ const Home: React.FC = () => {
                   </div>
 
                   {/* 3. ACTION COLUMN */}
-                  {/* MOBILE: Always Order 3. DESKTOP: Zig-Zag (Order 3 or 1) */}
-                  <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group order-3 ${isEven ? 'md:order-3 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
+                  {/* MOBILE: Always Order 3. 
+                      FIX 2: Menambahkan 'border-t border-black' khusus mobile agar ada garis pemisah tegas dengan kolom di atasnya. 
+                      Di desktop ('md:'), border-t di-set 0 (md:border-t-0) agar tidak double border.
+                  */}
+                  <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group order-3 border-t border-black md:border-t-0 ${isEven ? 'md:order-3 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
                      <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
                   </div>
                 </section>
