@@ -162,7 +162,8 @@ const Home: React.FC = () => {
       <div className="grain-orb-base orb-top-right" />
       <div className="grain-orb-base orb-bottom-left" />
 
-      <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent">
+      {/* OVERFLOW-X-HIDDEN ADDED HERE TO FIX MOBILE SCROLL ISSUE */}
+      <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent overflow-x-hidden">
         <header className="w-full border-b border-black bg-transparent relative overflow-hidden">
           <div className="absolute -top-20 -right-20 w-[600px] h-[400px] pointer-events-none z-0">
              <div 
@@ -212,8 +213,8 @@ const Home: React.FC = () => {
           {filteredFonts.length > 0 ? (
             filteredFonts.map((font, index) => {
               const isEven = index % 2 === 0; 
-              // DESKTOP: Zig Zag logic (Columns swap widths)
-              // MOBILE: Always single column (Order controlled below)
+              // DESKTOP: Zig Zag logic
+              // MOBILE: Always single column grid
               const gridLayoutClass = isEven ? "md:grid-cols-[450px_1fr_150px]" : "md:grid-cols-[150px_1fr_450px]";
               
               const displayFont = {
@@ -299,7 +300,7 @@ const Home: React.FC = () => {
                       
                       <p className="text-gray-600 text-sm leading-relaxed font-mono mt-4">{font.description}</p>
 
-                      {/* MOBILE TAGS: Moved here (Below Description) */}
+                      {/* MOBILE TAGS: Moved here (Below Description - Bottom Left) */}
                       <div className="flex flex-wrap gap-2 mt-6 md:hidden">
                         {displayFont.tags.map((tag: string) => (
                           <button 
