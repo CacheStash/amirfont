@@ -13,18 +13,15 @@ export interface FontConfig {
   name: string;
   family: string;
   file?: string;
-  file_url?: string;      // Tambahkan ini
-  font_files?: string[];  // Tambahkan ini
+  file_url?: string;      // Untuk single file
+  font_files?: string[];  // Untuk multiple styles
   description: string;
   tags: string[];
   price?: number;
   styleCount?: number;
-  randomText?: string;    // Untuk fitur dummy text
-  
+  randomText?: string;    // Untuk dummy text unik per kartu
   previewImages?: string[];
-
   axes: Axis[];
-  
   features?: {
     tag: string;
     name: string;
