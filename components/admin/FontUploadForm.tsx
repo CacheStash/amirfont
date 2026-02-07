@@ -51,8 +51,17 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
 
   const [fontFiles, setFontFiles] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<File[]>([]);
+  const [existingFontFiles, setExistingFontFiles] = useState<string[]>(initialData?.font_files || []);
+  const [existingPreviewImages, setExistingPreviewImages] = useState<string[]>(initialData?.preview_images || []);
   const [isUploading, setIsUploading] = useState(false);
 
+  const removeExistingFont = (index: number) => {
+    setExistingFontFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingPreview = (index: number) => {
+    setExistingPreviewImages(prev => prev.filter((_, i) => i !== index));
+  };
   // Helper untuk handle drag events
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -121,8 +130,8 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         // FIX TS7006: Menambahkan tipe : string
         tags: tags.split(',').map((t: string) => t.trim()).filter((t: string) => t !== ""),
         // Gabungkan file lama jika ada (mode edit)
-        font_files: initialData ? [...initialData.font_files, ...uploadedFontUrls] : uploadedFontUrls,
-        preview_images: initialData ? [...initialData.preview_images, ...uploadedPreviewUrls] : uploadedPreviewUrls,
+        font_files: [...existingFontFiles, ...uploadedFontUrls],
+        preview_images: [...existingPreviewImages, ...uploadedPreviewUrls],
       };
 
       if (initialData?.id) {
@@ -295,10 +304,16 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
             <Plus className="mx-auto mb-2" />
             <p className="text-[10px] font-mono uppercase">Drag & Drop or Click to Add Fonts</p>
           </label>
-          {fontFiles.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
+          {(existingFontFiles.length > 0 || fontFiles.length > 0) && (
+            <div className="mt-4 flex flex-wrap gap-2 justify-center">
+              {existingFontFiles.map((f, i) => (
+                <span key={`ex-f-${i}`} className="bg-gray-100 border border-black text-[9px] px-2 py-1 uppercase flex items-center gap-2">
+                  {f} 
+                  <button type="button" onClick={() => removeExistingFont(i)} className="text-red-500 font-bold hover:scale-125 transition-transform">×</button>
+                </span>
+              ))}
               {fontFiles.map((f, i) => (
-                <span key={i} className="bg-black text-white text-[9px] px-2 py-1 uppercase">{f.name}</span>
+                <span key={`new-f-${i}`} className="bg-black text-white text-[9px] px-2 py-1 uppercase">{f.name}</span>
               ))}
             </div>
           )}
@@ -312,8 +327,20 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           onDrop={(e) => handleDropFiles(e, 'previews')}
           className="grid grid-cols-4 md:grid-cols-6 gap-2 border-2 border-black p-4 bg-gray-100"
         >
+          {existingPreviewImages.map((url, i) => (
+            <div key={`ex-p-${i}`} className="aspect-square bg-white border border-black relative group overflow-hidden">
+              <img src={`/api/fonts/${url}`} className="w-full h-full object-cover" alt="preview" />
+              <button 
+                type="button"
+                onClick={() => removeExistingPreview(i)}
+                className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-bold"
+              >
+                DELETE
+              </button>
+            </div>
+          ))}
           {previewImages.map((file, i) => (
-            <div key={i} className="aspect-square bg-white border border-black relative group overflow-hidden">
+            <div key={`new-p-${i}`} className="aspect-square bg-white border border-black relative group overflow-hidden">
               <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" alt="preview" />
               <button 
                 type="button"
@@ -324,11 +351,19 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
               </button>
             </div>
           ))}
-          {previewImages.length < 12 && (
+
+          {previewImages.length + existingPreviewImages.length < 12 && (
             <label className="aspect-square border border-dashed border-black flex items-center justify-center cursor-pointer hover:bg-white transition-colors">
               <input 
                 type="file" multiple accept="image/*" className="hidden" 
-                onChange={(e) => setPreviewImages(prev => [...prev, ...Array.from(e.target.files || [])].slice(0, 12))}
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  if (previewImages.length + existingPreviewImages.length + files.length > 12) {
+                    alert("Maksimal 12 gambar!");
+                    return;
+                  }
+                  setPreviewImages(prev => [...prev, ...files]);
+                }}
               />
               <Plus size={16} />
             </label>

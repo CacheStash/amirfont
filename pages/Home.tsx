@@ -298,37 +298,37 @@ const Home: React.FC = () => {
                          Starting at
                        </span>
                        <div className="mb-4 -ml-1">
-  {(() => {
-    const promo = getActivePromo(font.id || '');
-    const basePrice = font.price || 25;
-    if (promo) {
-      const discPrice = basePrice * (1 - (promo.discount_percent / 100));
-      return (
-        <div className="flex flex-col">
-          <div className="flex items-baseline gap-4">
-            <span className="text-9xl font-light tracking-tighter text-black">
-              ${discPrice.toFixed(0)}
-            </span>
-            <div className="flex flex-col">
-              <span className="text-2xl line-through opacity-30 font-mono">${basePrice}</span>
-              <span className="text-xs font-bold text-red-600 font-mono bg-yellow-300 px-1 inline-block uppercase">
-                {promo.discount_percent}% OFF
+    {(() => {
+      const promo = getActivePromo(font.id || '');
+      const basePrice = font.price || 25;
+      if (promo) {
+        const discPrice = basePrice * (1 - (promo.discount_percent / 100));
+        return (
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-4 leading-none">
+              <span className="text-9xl font-light tracking-tighter text-black">
+                ${discPrice.toFixed(0)}
               </span>
+              <div className="flex flex-col border-l-2 border-black pl-4">
+                <span className="text-2xl line-through opacity-30 font-mono italic leading-none">${basePrice}</span>
+                <span className="text-xs font-black text-red-600 font-mono bg-yellow-300 px-1 inline-block uppercase mt-1">
+                  {promo.discount_percent}% OFF
+                </span>
+              </div>
             </div>
+            <p className="text-[10px] font-mono font-bold uppercase tracking-widest mt-2 text-gray-400">
+              Promo Ends: {calculateDaysLeft(promo.end_date)}
+            </p>
           </div>
-          <span className="text-[10px] font-bold text-red-600 font-mono uppercase tracking-widest mt-1">
-            ⌛ {calculateDaysLeft(promo.end_date)}
-          </span>
+        );
+      }
+      return (
+        <div className="text-9xl font-light tracking-tighter">
+          ${basePrice}
         </div>
       );
-    }
-    return (
-      <div className="text-9xl font-light tracking-tighter text-black">
-        ${basePrice}
-      </div>
-    );
-  })()}
-</div>
+    })()}
+   </div>
                        <p className="text-gray-600 text-sm leading-relaxed font-mono">{font.description}</p>
                     </div>
                   </div>
