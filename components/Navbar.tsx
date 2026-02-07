@@ -24,10 +24,7 @@ const Navbar: React.FC = () => {
     }`}>
       <div className="w-full flex justify-between items-center h-14 md:h-16 px-0 relative z-50">
         
-        {/* Left: Menu Trigger & Logo 
-            FIX: Menggunakan flex-1 dan min-w-0 agar logo mau mengalah (truncate) 
-            saat layar sempit, sehingga Cart tidak terdorong. 
-        */}
+        {/* Left: Menu Trigger & Logo */}
         <div className="flex items-center gap-2 md:gap-4 h-full border-r border-black px-3 md:px-8 flex-1 md:flex-none md:w-[450px] min-w-0">
           <button 
             onClick={() => setIsOpen(!isOpen)}
@@ -42,9 +39,10 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Right: Search & Cart 
-            FIX: Tetap shrink-0 agar tombol tidak gepeng, tapi padding mobile dikurangi (px-3).
+            FIX: border-l-0 (mobile) agar tidak double border dengan elemen kiri. 
+            md:border-l (desktop) agar border muncul kembali saat elemen terpisah.
         */}
-        <div className="flex items-center justify-end gap-2 md:gap-4 h-full border-l border-black px-3 md:px-8 shrink-0 bg-inherit">
+        <div className="flex items-center justify-end gap-2 md:gap-4 h-full border-l-0 md:border-l border-black px-3 md:px-8 shrink-0 bg-inherit">
            <button
              onClick={() => setIsSearchOpen(!isSearchOpen)}
              className={`p-1 transition-colors border border-transparent ${isSearchOpen ? 'bg-black text-white' : 'hover:bg-black hover:text-white hover:border-black'}`}
