@@ -196,10 +196,10 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           <div className="flex items-center gap-6 px-4 md:px-8 py-6 md:py-8 border-l border-black ml-auto">
               <div className="flex items-center gap-2 pr-6">
                 <span className="font-mono text-[10px] text-gray-400 uppercase">Style</span>
-                <div className="relative">
+                <div className="relative z-[100]">
                    <button 
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[80px] justify-between"
+                      className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[80px] justify-between relative z-10"
                    >
                       <span>
                         {Array.isArray(config.font_files) && config.font_files.length > 0 
@@ -212,13 +212,18 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                    {isDropdownOpen && (
                      <>
                       <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-white/80 backdrop-blur-md border border-black z-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] max-h-60 overflow-y-auto">
+                      {/* Dropdown: Background Glass (Navbar Style), No Shadow, Hover Black/White */}
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white/10 backdrop-blur-xl border border-black z-50 overflow-hidden">
                           {Array.isArray(config.font_files) && config.font_files.length > 0 ? (
                             config.font_files.map((_, i) => (
                               <button
                                 key={i}
-                                onClick={() => { setActiveStyleIndex(i); setIsDropdownOpen(false); }}
-                                className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors ${
+                                onClick={(e) => { 
+                                    e.stopPropagation();
+                                    setActiveStyleIndex(i); 
+                                    setIsDropdownOpen(false); 
+                                }}
+                                className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors block ${
                                   activeStyleIndex === i 
                                     ? 'bg-black text-white' 
                                     : 'text-black hover:bg-black hover:text-white'
@@ -274,6 +279,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
         {/* SETTINGS PANEL */}
         <div className="bg-transparent border-t border-black">
+          
           <div className={`grid grid-cols-1 md:grid-cols-2 ${(hasAxes || hasFeatures) ? 'border-b border-black' : ''}`}>
               <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-b md:border-b-0 md:border-r border-black">
                   <label className="w-24 font-mono text-xs font-bold uppercase">Leading</label>
