@@ -150,7 +150,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       </div>
 
       <div className="relative z-10">
-        <div className="flex flex-wrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px]">
+        <div className="flex flex-wrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
           <div className="flex items-stretch">
             {/* 1. VIEW MODE */}
             <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
