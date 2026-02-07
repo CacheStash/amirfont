@@ -19,6 +19,14 @@ const BrutalistGraphic = () => (
   </div>
 );
 
+const DUMMY_LIBRARY = [
+  "One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin.",
+  "The quick brown fox jumps over the lazy dog, showcasing the elegant curves and sharp terminals of this unique typeface.",
+  "Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.",
+  "A wonderful serenity has taken possession of my entire soul, like these sweet mornings of spring which I enjoy with my whole heart.",
+  "But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account."
+];
+
 // --- FONT CONFIGURATIONS ---
 const FONT_ROYAL_GRANDE: FontConfig = {
   name: 'Royal Grande',
@@ -176,13 +184,16 @@ const Home: React.FC = () => {
           document.head.appendChild(styleEl);
         }
 
-        const fontFaceRules = data.map(f => `
-          @font-face {
-            font-family: "${f.name}";
-            src: url("/api/fonts/${f.file_url}");
-            font-display: swap;
-          }
-        `).join('\n');
+        const fontFaceRules = data.flatMap(f => {
+          const files = Array.isArray(f.font_files) ? f.font_files : [f.file_url];
+          return files.map((file: string, idx: number) => `
+            @font-face {
+              font-family: "${f.name}-${idx}";
+              src: url("/api/fonts/${file}");
+              font-display: swap;
+            }
+          `);
+        }).join('\n');
         
         styleEl.innerHTML = fontFaceRules;
       }
@@ -252,10 +263,11 @@ const Home: React.FC = () => {
             const displayFont = {
               ...font,
               family: `"${font.name}"`,
-              tags: Array.isArray(font.tags) ? font.tags : (font.tags ? font.tags.split(',') : ['Custom']),
-              axes: font.axes || [], // Fallback array kosong agar tidak crash saat .map()
-              features: font.features || [], // Fallback array kosong
-              styleCount: font.styleCount || 1
+              tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : ['Custom']),
+              axes: Array.isArray(font.axes) ? font.axes : [], 
+              features: Array.isArray(font.features) ? font.features : [], 
+              styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
+              randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
             };
 
             return (
@@ -281,8 +293,10 @@ const Home: React.FC = () => {
                   </div>
                   
                   <div>
+                     <span className="block font-mono italic text-[17px] titlecase text-gray-500 -mb-1">Starting at</span>
                      <div className="text-9xl font-light tracking-tighter mb-4 -ml-1">
-                        ${font.price || 25}
+                      
+                      ${font.price || 25}
                      </div>
                      <p className="text-gray-600 text-sm leading-relaxed font-mono">{font.description}</p>
                   </div>

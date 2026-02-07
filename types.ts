@@ -9,28 +9,21 @@ export interface Axis {
 }
 
 export interface FontConfig {
+  id?: string;
   name: string;
   family: string;
   file?: string;
+  file_url?: string;      // Tambahkan ini
+  font_files?: string[];  // Tambahkan ini
   description: string;
   tags: string[];
-  
-  // Array URL gambar untuk background oval (Opsional)
-  previewImages?: string[];
-
-  // Properti tambahan agar tidak error di Home.tsx
   price?: number;
   styleCount?: number;
+  randomText?: string;    // Untuk fitur dummy text
+  
+  previewImages?: string[];
 
-  axes: {
-    tag: string;
-    name: string;
-    min: number;
-    max: number;
-    default: number;
-    step?: number;
-    unit?: string;
-  }[];
+  axes: Axis[];
   
   features?: {
     tag: string;
