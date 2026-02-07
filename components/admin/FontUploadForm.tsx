@@ -202,15 +202,71 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       <div className="grid grid-cols-2 gap-6">
         <div className="p-4 bg-gray-50 border border-black font-mono text-[9px] space-y-1 leading-tight">
           <p className="font-bold uppercase border-b border-black mb-1 text-black text-[10px]">License Preview (Solo/Base)</p>
-          <div className="grid grid-cols-2 gap-x-4">
-            <p>Desktop: <span className="font-bold">${licensePrices.desktop.solo}</span></p>
-            <p>Social/Web: <span className="font-bold">${licensePrices.social_web.small_50k}</span></p>
-            <p>Logo: <span className="font-bold">${licensePrices.logo_branding.solo}</span></p>
-            <p>App: <span className="font-bold">${licensePrices.app.solo}</span></p>
-            <p>Broadcast: <span className="font-bold">${licensePrices.broadcast.solo}</span></p>
-            <p>Server: <span className="font-bold">${licensePrices.server.solo}</span></p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+            <div className="flex items-center gap-1">
+              <span>Desktop: $</span>
+              <input 
+                type="number" 
+                value={licensePrices.desktop.solo} 
+                onChange={(e) => updatePrice('desktop', 'solo', e.target.value)}
+                className="bg-transparent border-none p-0 w-full font-bold focus:outline-none"
+              />
+            </div>
+            <div className="flex items-center gap-1">
+              <span>Social/Web: $</span>
+              <input 
+                type="number" 
+                value={licensePrices.social_web.small_50k} 
+                onChange={(e) => updatePrice('social_web', 'small_50k', e.target.value)}
+                className="bg-transparent border-none p-0 w-full font-bold focus:outline-none"
+              />
+            </div>
+            <div className="flex items-center gap-1">
+              <span>Logo: $</span>
+              <input 
+                type="number" 
+                value={licensePrices.logo_branding.solo} 
+                onChange={(e) => updatePrice('logo_branding', 'solo', e.target.value)}
+                className="bg-transparent border-none p-0 w-full font-bold focus:outline-none"
+              />
+            </div>
+            <div className="flex items-center gap-1">
+              <span>App: $</span>
+              <input 
+                type="number" 
+                value={licensePrices.app.solo} 
+                onChange={(e) => updatePrice('app', 'solo', e.target.value)}
+                className="bg-transparent border-none p-0 w-full font-bold focus:outline-none"
+              />
+            </div>
+            <div className="flex items-center gap-1">
+              <span>Broadcast: $</span>
+              <input 
+                type="number" 
+                value={licensePrices.broadcast.solo} 
+                onChange={(e) => updatePrice('broadcast', 'solo', e.target.value)}
+                className="bg-transparent border-none p-0 w-full font-bold focus:outline-none"
+              />
+            </div>
+            <div className="flex items-center gap-1">
+              <span>Server: $</span>
+              <input 
+                type="number" 
+                value={licensePrices.server.solo} 
+                onChange={(e) => updatePrice('server', 'solo', e.target.value)}
+                className="bg-transparent border-none p-0 w-full font-bold focus:outline-none"
+              />
+            </div>
           </div>
-          <p className="mt-1 pt-1 border-t border-black border-dotted">Corporate (All-in): <span className="font-bold">${licensePrices.corporate_full_suite}</span></p>
+          <div className="mt-1 pt-1 border-t border-black border-dotted flex items-center gap-1">
+            <span>Corporate (All-in): $</span>
+            <input 
+              type="number" 
+              value={licensePrices.corporate_full_suite} 
+              onChange={(e) => updatePrice('corporate_full_suite', null, e.target.value)}
+              className="bg-transparent border-none p-0 w-full font-bold focus:outline-none"
+            />
+          </div>
         </div>
         <div className="space-y-2">
           <label className="block font-mono text-xs font-bold uppercase">Tags (Pisahkan dengan koma)</label>
