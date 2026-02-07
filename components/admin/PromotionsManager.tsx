@@ -52,13 +52,17 @@ const PromotionsManager = () => {
       const { error } = await supabase.from('promotions').insert([payload]);
       if (error) throw error;
 
-      alert("Promo berhasil dibuat!");
+      alert("Promotion '" + promoName + "' launched successfully!");
       setIsAdding(false);
       fetchPromos();
-      // Reset
-      setPromoName(''); setDiscount(''); setEndDate(''); setSelectedFonts([]);
+      // Reset form fields
+      setPromoName(''); 
+      setDiscount(''); 
+      setEndDate(''); 
+      setSelectedFonts([]);
     } catch (err: any) {
-      alert("Error: " + err.message);
+      console.error("Supabase Database Error:", err);
+      alert("Gagal membuat promo: " + (err.message || "Cek koneksi database atau pastikan tabel sudah dibuat."));
     } finally {
       setIsSaving(false);
     }
