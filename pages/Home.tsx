@@ -43,16 +43,10 @@ const FluidText: React.FC<{ text: string; className?: string; baseWeight?: numbe
       if (!span) return;
       const rect = span.getBoundingClientRect();
       const distance = Math.sqrt(Math.pow(e.clientX - (rect.left + rect.width / 2), 2) + Math.pow(e.clientY - (rect.top + rect.height / 2), 2));
-      const maxDistance = 250; 
-
-      if (distance < maxDistance) {
-        const proximity = 1 - (distance / maxDistance);
-        const ease = proximity * proximity; 
-        const newWeight = baseWeight + ((maxWeight - baseWeight) * ease);
-        span.style.fontVariationSettings = `"wght" ${newWeight}`;
-      } else {
-        span.style.fontVariationSettings = `"wght" ${baseWeight}`;
-      }
+      const proximity = Math.max(0, 1 - (distance / 250));
+      const ease = proximity * proximity; 
+      const newWeight = baseWeight + ((maxWeight - baseWeight) * ease);
+      span.style.fontVariationSettings = `"wght" ${newWeight}`;
     });
   };
 
@@ -123,42 +117,32 @@ const Home: React.FC = () => {
     const diff = new Date(endDate).getTime() - new Date().getTime();
     const days = Math.ceil(diff / (1000 * 3600 * 24));
     if (days <= 0) return "Ends today";
-    if (days >= 7) return `${Math.floor(days/7)} week${Math.floor(days/7) > 1 ? 's' : ''} left`;
     return `${days} day${days > 1 ? 's' : ''} left`;
   };
 
   useEffect(() => {
-    const fetchFonts = async () => {
-      const { data } = await supabase
-        .from('fonts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (data) {
-        setFonts(data);
-        const styleId = 'dynamic-fonts-css';
-        let styleEl = document.getElementById(styleId) as HTMLStyleElement;
-        if (!styleEl) {
-          styleEl = document.createElement('style');
-          styleEl.id = styleId;
-          document.head.appendChild(styleEl);
-        }
-
-        const fontFaceRules = data.flatMap(f => {
-          const files = Array.isArray(f.font_files) ? f.font_files : [f.file_url];
-          return files.map((file: string, idx: number) => `
-            @font-face {
-              font-family: "${f.name}-${idx}";
-              src: url("/api/fonts/${file}");
-              font-display: swap;
-            }
-          `);
-        }).join('\n');
-        styleEl.innerHTML = fontFaceRules;
+    if (fonts.length > 0) {
+      const styleId = 'dynamic-fonts-css';
+      let styleEl = document.getElementById(styleId) as HTMLStyleElement;
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
       }
-    };
-    fetchFonts();
-  }, []);
+
+      const fontFaceRules = fonts.flatMap(f => {
+        const files = Array.isArray(f.font_files) ? f.font_files : [f.file_url];
+        return files.map((file: string, idx: number) => `
+          @font-face {
+            font-family: "${f.name}-${idx}";
+            src: url("/api/fonts/${file}");
+            font-display: swap;
+          }
+        `);
+      }).join('\n');
+      styleEl.innerHTML = fontFaceRules;
+    }
+  }, [fonts]);
 
   const filteredFonts = activeTag 
     ? fonts.filter(font => {
@@ -183,9 +167,9 @@ const Home: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-[1fr_450px] relative z-10">
             <div className="p-6 md:p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-black">
               <div className="flex flex-col items-start gap-0 w-full uppercase">
-                <FluidText text="Made of Quiet Lines," className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
-                <FluidText text="Shaped Into Living Type," className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
-                <FluidText text="Read In Every Place." className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+                <FluidText text="Made of Quiet Lines," className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] md:leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+                <FluidText text="Shaped Into Living Type," className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] md:leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
+                <FluidText text="Read In Every Place." className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] md:leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
               </div>
             </div>
             <div className="flex flex-col justify-between p-6 md:p-8 min-h-[250px] md:min-h-auto">
@@ -226,90 +210,98 @@ const Home: React.FC = () => {
               const displayFont = {
                 ...font,
                 family: `"${font.name}"`,
-                tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : ['Custom']),
-                axes: Array.isArray(font.axes) ? font.axes : [], 
-                features: Array.isArray(font.features) ? font.features : [], 
+                tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []),
                 styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
                 randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
               };
+              const promo = getActivePromo(font.id || '');
+              const basePrice = font.price || 25;
 
               return (
                 <section key={font.id} className={`border-b border-black grid grid-cols-1 ${gridLayoutClass}`}>
-                  <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
+                  {/* 1. INFO COLUMN */}
+                  <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 order-1 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
                     <div>
-                      <h2 className="text-3xl font-normal uppercase tracking-tight mb-1">{font.name}</h2>
-                      <span className="block font-mono text-base font-bold text-gray-500 mb-8">
-                          {Array.isArray(font.font_files) && font.font_files.length > 0 ? font.font_files.length : 1} STYLES
-                      </span>
-                      <div className="mb-8"><BrutalistGraphic /></div>
-                      <div className="flex flex-wrap gap-2 text-[10px] font-mono uppercase mb-6">
-                        {displayFont.tags.map((tag: string) => {
-                          const isActive = activeTag === tag.trim();
-                          return (
+                      {/* Baris Nama & Tags Mobile */}
+                      <div className="flex justify-between items-start gap-4 mb-2">
+                        <div className="flex-1">
+                          <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h2>
+                          <span className="block font-mono text-[10px] md:text-base font-bold text-gray-500 uppercase">
+                              {displayFont.styleCount} STYLES
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1 md:hidden shrink-0">
+                          {displayFont.tags.slice(0, 4).map((tag: string) => (
                             <button 
                               key={tag} 
-                              onClick={() => setActiveTag(isActive ? null : tag.trim())}
-                              className={`border px-3 py-1 rounded-full transition-all duration-200 font-bold ${
-                                isActive ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'
-                              }`}
+                              onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())}
+                              className="border border-black px-2 py-0.5 font-bold text-[8px] uppercase whitespace-nowrap"
                             >
                               {tag}
                             </button>
-                          );
-                        })}
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="hidden md:block mb-8"><BrutalistGraphic /></div>
+                      
+                      {/* Tags Desktop */}
+                      <div className="hidden md:flex flex-wrap gap-2 text-[10px] font-mono uppercase mb-6">
+                        {displayFont.tags.map((tag: string) => (
+                          <button 
+                            key={tag} 
+                            onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} 
+                            className={`border px-3 py-1 rounded-full font-bold ${activeTag === tag.trim() ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'}`}
+                          >
+                            {tag}
+                          </button>
+                        ))}
                       </div>
                     </div>
                     
-                    <div className="mb-6 -ml-1">
-                      {(() => {
-                        const promo = getActivePromo(font.id || '');
-                        const basePrice = font.price || 25;
-                        return (
-                          <div className="flex flex-col">
-                            {/* Header Harga: Sejajar Sempurna */}
-                            <div className="flex items-center gap-2 mb-4">
-                               <span className="inline-block border border-black rounded-full px-4 py-1 font-mono italic text-[12px] titlecase text-black bg-transparent">
-                                 starting at
+                    <div className="mb-6">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-4">
+                           <span className="inline-block border border-black rounded-full px-3 py-1 font-mono italic text-[11px] md:text-[12px] titlecase text-black bg-transparent leading-none">
+                             starting at
+                           </span>
+                           {promo && (
+                             <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-mono font-bold text-[11px] md:text-[12px] uppercase text-red-600 bg-transparent leading-none">
+                               {promo.discount_percent}% OFF
+                             </span>
+                           )}
+                        </div>
+                        <div className="flex flex-col">
+                           {promo ? (
+                             <div className="flex items-start gap-3 md:gap-5">
+                               <span className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">
+                                 ${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}
                                </span>
-                               {promo && (
-                                 <span className="inline-block border border-orange-600 rounded-full px-4 py-1 font-mono font-bold text-[12px] uppercase text-red-600 bg-transparent">
-                                   {promo.discount_percent}% OFF
-                                 </span>
-                               )}
-                            </div>
-
-                            <div className="flex flex-col">
-                               {promo ? (
-                                 <div className="flex items-start gap-5">
-                                   <span className="text-9xl font-light tracking-tighter text-black leading-[0.8]">
-                                     ${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}
+                               <div className="flex flex-col items-center gap-1 md:gap-2 mt-2 md:mt-4 w-fit">
+                                 <div className="relative w-full text-center">
+                                   <span className="text-4xl md:text-5xl font-bold text-red-600 font-mono leading-none">
+                                     ${basePrice}
                                    </span>
-                                   <div className="flex flex-col items-center gap-2 mt-4 w-fit">
-                                     <div className="relative w-full text-center">
-                                       <span className="text-5xl font-bold text-red-600 font-mono leading-none">
-                                         ${basePrice}
-                                       </span>
-                                       <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
-                                     </div>
-                                     <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-mono font-bold text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full min-w-max">
-                                       {calculateDaysLeft(promo.end_date)}
-                                     </span>
-                                   </div>
+                                   <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
                                  </div>
-                               ) : (
-                                 <div className="text-9xl font-light tracking-tighter text-black leading-[0.8]">
-                                   ${basePrice}
-                                 </div>
-                               )}
-                            </div>
-                          </div>
-                        );
-                      })()}
+                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-mono font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full min-w-max">
+                                   {calculateDaysLeft(promo.end_date)}
+                                 </span>
+                               </div>
+                             </div>
+                           ) : (
+                             <div className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">
+                               ${basePrice}
+                             </div>
+                           )}
+                        </div>
+                      </div>
                       <p className="text-gray-600 text-sm leading-relaxed font-mono mt-4">{font.description}</p>
                     </div>
                   </div>
 
-                  <div className="md:order-2 h-full border-b md:border-b-0 relative">
+                  {/* 2. TESTER COLUMN (Mobile Order 2) */}
+                  <div className="md:order-2 h-full border-b md:border-b-0 relative order-2">
                      <div className="h-full">
                         <TypeTester 
                           config={displayFont} 
@@ -319,7 +311,8 @@ const Home: React.FC = () => {
                      </div>
                   </div>
 
-                  <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group ${isEven ? 'md:order-3 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
+                  {/* 3. ACTION COLUMN (Mobile Order 3) */}
+                  <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group order-3 ${isEven ? 'md:order-3 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
                      <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
                   </div>
                 </section>

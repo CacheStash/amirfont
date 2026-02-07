@@ -3,333 +3,176 @@ import { AlignLeft, AlignCenter, AlignRight, Type, Grid, Keyboard, ChevronDown }
 import { FontConfig } from '../types';
 import opentype from 'opentype.js';
 
-interface TypeTesterProps {
-  config: FontConfig;
-  defaultText?: string;
-  isEven?: boolean;
-}
+interface TypeTesterProps { config: FontConfig; defaultText?: string; isEven?: boolean; }
 
-const TypeTester: React.FC<TypeTesterProps> = ({ 
-  config, 
-  defaultText = "One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin.",
-  isEven = true 
-}) => {
-  // --- STATE MANAGEMENT ---
+const TypeTester: React.FC<TypeTesterProps> = ({ config, defaultText = "One morning...", isEven = true }) => {
   const [text, setText] = useState(config.randomText || defaultText);
   const [fontSize, setFontSize] = useState(64);
   const [align, setAlign] = useState<'left' | 'center' | 'right'>('left');
   const [viewMode, setViewMode] = useState<'type' | 'glyphs'>('type');
-  
   const [detectedGlyphs, setDetectedGlyphs] = useState<any[]>([]); 
   const [filteredGlyphs, setFilteredGlyphs] = useState<any[]>([]); 
   const [isLoadingGlyphs, setIsLoadingGlyphs] = useState(false);
   const [detectedAxes, setDetectedAxes] = useState<any[]>([]);
   const [axesValues, setAxesValues] = useState<Record<string, number>>({});
-  
   const [activeStyleIndex, setActiveStyleIndex] = useState(0);
-  // Style names logic removed, will use index based naming directly in render
-
   const [activeFeatures, setActiveFeatures] = useState<Record<string, boolean>>({});
   const [dynamicFeatures, setDynamicFeatures] = useState<{ tag: string; name: string }[]>([]);
-  
   const [lineHeight, setLineHeight] = useState(1.1);
   const [letterSpacing, setLetterSpacing] = useState(0);
-  
   const [mapPage, setMapPage] = useState(0);
   const [mapGridSize, setMapGridSize] = useState(10);
-
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const FEATURE_NAMES: Record<string, string> = {
-    liga: 'Standard Ligatures',
-    dlig: 'Discretionary Lig',
-    calt: 'Contextual Alt',
-    aalt: 'Access All Alt',
-    salt: 'Stylistic Alt',
-  };
+  const FEATURE_NAMES: Record<string, string> = { liga: 'Standard Ligatures', dlig: 'Discretionary Lig', calt: 'Contextual Alt', aalt: 'Access All Alt', salt: 'Stylistic Alt' };
+  const ALLOWED_TAGS = new Set(['liga', 'dlig', 'calt', 'aalt', 'salt', ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`)]);
 
-  const ALLOWED_TAGS = new Set([
-      'liga', 'dlig', 'calt', 'aalt', 'salt',
-      ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`) 
-  ]);
+  const rowsPerPage = mapGridSize === 10 ? 3 : mapGridSize === 20 ? 5 : 7;
+  const glyphsPerPage = mapGridSize * rowsPerPage;
 
-  // --- EFFECT: LOAD FONT & DETECT FEATURES ---
   useEffect(() => {
     let targetFile = '';
-    const files = Array.isArray(config.font_files) && config.font_files.length > 0 
-      ? config.font_files 
-      : (config.file_url ? [config.file_url] : (config.file ? [config.file] : []));
-
-    // Logic penamaan style dihapus, menggunakan index "Style 0{i+1}" di render
-
+    const files = Array.isArray(config.font_files) && config.font_files.length > 0 ? config.font_files : [config.file_url || config.file];
     if (files[activeStyleIndex]) {
        const f = files[activeStyleIndex];
        targetFile = f.startsWith('http') || f.startsWith('/') ? f : `/api/fonts/${f}`;
     }
-
     if (!targetFile) return;
-
     setIsLoadingGlyphs(true);
-    
     opentype.load(targetFile, (err, font) => {
       setIsLoadingGlyphs(false);
       if (err || !font) return;
-
-      // 1. Glyphs
       const glyphs = [];
-      for (let i = 0; i < font.glyphs.length && i < 2000; i++) { 
+      for (let i = 0; i < font.glyphs.length && i < 2000; i++) {
         const glyph = font.glyphs.get(i);
-        if (glyph.unicode) {
-           glyphs.push({ char: String.fromCharCode(glyph.unicode), index: i, unicode: glyph.unicode });
-        }
+        if (glyph.unicode) glyphs.push({ char: String.fromCharCode(glyph.unicode), index: i, unicode: glyph.unicode });
       }
       setDetectedGlyphs(glyphs);
       setFilteredGlyphs(glyphs); 
-
-      // 2. Axes
       if (font.tables.fvar?.axes?.length > 0) {
-          const autoAxes = font.tables.fvar.axes.map((axis: any) => ({
-              tag: axis.tag,
-              name: axis.name?.en || axis.tag,
-              min: axis.minValue, max: axis.maxValue, default: axis.defaultValue
-          }));
+          const autoAxes = font.tables.fvar.axes.map((axis: any) => ({ tag: axis.tag, name: axis.name?.en || axis.tag, min: axis.minValue, max: axis.maxValue, default: axis.defaultValue }));
           setDetectedAxes(autoAxes);
           const vals: Record<string, number> = {};
           autoAxes.forEach((axis: any) => vals[axis.tag] = axis.default);
           setAxesValues(prev => ({ ...prev, ...vals }));
-      } else {
-          setDetectedAxes([]);
       }
-
-      // 3. Features
       const foundTags = new Set<string>();
-      if (font.tables.gsub?.features) {
-        font.tables.gsub.features.forEach((f: any) => {
-           if (f.tag && ALLOWED_TAGS.has(f.tag)) foundTags.add(f.tag);
-        });
-      }
-
-      setDynamicFeatures(Array.from(foundTags).sort().map(tag => ({
-        tag, name: FEATURE_NAMES[tag] || (tag.startsWith('ss') ? `Stylistic Set ${parseInt(tag.slice(2))}` : tag.toUpperCase())
-      })));
-
+      if (font.tables.gsub?.features) font.tables.gsub.features.forEach((f: any) => { if (f.tag && ALLOWED_TAGS.has(f.tag)) foundTags.add(f.tag); });
+      setDynamicFeatures(Array.from(foundTags).sort().map(tag => ({ tag, name: FEATURE_NAMES[tag] || (tag.startsWith('ss') ? `Stylistic Set ${parseInt(tag.slice(2))}` : tag.toUpperCase()) })));
       setActiveFeatures({});
     });
   }, [config, activeStyleIndex]);
 
-  // --- FILTERING LOGIC ---
-  useEffect(() => {
-    // Logic filter visual (placeholder)
-    setFilteredGlyphs(detectedGlyphs); 
-  }, [activeFeatures, detectedGlyphs]);
-
-  const toggleFeature = (tag: string) => {
-    setActiveFeatures(prev => ({ ...prev, [tag]: !prev[tag] }));
-  };
-
-  const currentFontFamily = `"${config.name}-${activeStyleIndex}"`;
-  const fontFeatureSettings = Object.entries(activeFeatures).map(([t, on]) => `"${t}" ${on ? 'on' : 'off'}`).join(', ') || 'normal';
-  const fontVariationSettings = Object.entries(axesValues).map(([t, v]) => `"${t}" ${v}`).join(', ');
-
-  const commonFontStyle = {
-    fontFamily: currentFontFamily,
-    fontVariationSettings,
-    fontFeatureSettings,
-  };
-
-  // --- LOGIC CONDITIONAL LAYOUT GRID ---
-  const activeAxes = detectedAxes.length > 0 ? detectedAxes : config.axes;
-  const hasAxes = activeAxes && activeAxes.length > 0;
-  const hasFeatures = dynamicFeatures.length > 0;
+  const toggleFeature = (tag: string) => setActiveFeatures(prev => ({ ...prev, [tag]: !prev[tag] }));
+  const commonFontStyle = { fontFamily: `"${config.name}-${activeStyleIndex}"`, fontVariationSettings: Object.entries(axesValues).map(([t, v]) => `"${t}" ${v}`).join(', '), fontFeatureSettings: Object.entries(activeFeatures).map(([t, on]) => `"${t}" ${on ? 'on' : 'off'}`).join(', ') || 'normal' };
 
   return (
-    <div className="w-full mb-16 border-b border-black relative group bg-transparent">
-      {/* BACKGROUND DECORATION */}
-      <div className="absolute z-0 pointer-events-none overflow-visible" style={{ left: isEven ? '-380px' : 'auto', right: isEven ? 'auto' : '-380px', top: '15%', width: '600px', height: '400px' }}>
+    <div className="w-full mb-16 border-b border-black relative bg-transparent">
+      <div className="absolute z-0 pointer-events-none" style={{ left: isEven ? '-380px' : 'auto', right: isEven ? 'auto' : '-380px', top: '15%', width: '600px', height: '400px' }}>
           <div className="w-full h-full mix-blend-multiply blur-[60px]" style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
       </div>
 
       <div className="relative z-10">
-        <div className="flex flex-wrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
-          <div className="flex items-stretch">
-            {/* 1. VIEW MODE */}
-            <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
-               <button onClick={() => setViewMode('type')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'type' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Keyboard size={14}/> Type</button>
-               <button onClick={() => setViewMode('glyphs')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'glyphs' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Grid size={14}/> Map</button>
-            </div>
+        <div className="grid grid-cols-2 md:flex md:flex-wrap items-stretch border-b border-black bg-white/10 backdrop-blur-[2px]">
+          {/* GRID 1: VIEW MODE */}
+          <div className="flex items-center gap-2 px-4 py-4 md:py-8 border-r border-b md:border-b-0 border-black justify-center md:justify-start">
+             <button onClick={() => setViewMode('type')} className={`flex items-center gap-2 px-3 py-1 text-[10px] md:text-xs font-bold uppercase transition-colors whitespace-nowrap ${viewMode === 'type' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Keyboard size={14}/> <span>Type</span></button>
+             <button onClick={() => setViewMode('glyphs')} className={`flex items-center gap-2 px-3 py-1 text-[10px] md:text-xs font-bold uppercase transition-colors whitespace-nowrap ${viewMode === 'glyphs' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Grid size={14}/> <span>Map</span></button>
+          </div>
 
-            {/* 2A. TYPE CONTROLS */}
-            {viewMode === 'type' && (
-              <>
-                <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
-                  <Type size={16} /><input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} className="w-12 text-sm font-bold bg-transparent outline-none"/><span className="text-xs font-mono text-gray-500">PX</span>
-                </div>
-                <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
-                  <button onClick={() => setAlign('left')} className={`p-2 ${align === 'left' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignLeft size={16}/></button>
-                  <button onClick={() => setAlign('center')} className={`p-2 ${align === 'center' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignCenter size={16}/></button>
-                  <button onClick={() => setAlign('right')} className={`p-2 ${align === 'right' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignRight size={16}/></button>
-                </div>
-              </>
-            )}
+          {/* GRID 2: STYLE DROPDOWN (Mobile: Top Right) */}
+          <div className="flex items-center gap-2 px-4 py-4 md:py-8 border-b md:border-b-0 md:border-l border-black justify-center md:order-last md:ml-auto">
+              <span className="hidden md:inline font-mono text-[10px] text-gray-400 uppercase">Style</span>
+              <div className="relative">
+                 <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 font-bold text-[10px] md:text-xs uppercase outline-none py-1 min-w-[80px] justify-between relative z-10">
+                    <span>Style {String(activeStyleIndex + 1).padStart(2, '0')}</span><ChevronDown size={14} className={isDropdownOpen ? 'rotate-180' : ''} />
+                 </button>
+                 {isDropdownOpen && (
+                   <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-black z-50 shadow-none">
+                        {config.font_files?.map((_, i) => (<button key={i} onClick={() => { setActiveStyleIndex(i); setIsDropdownOpen(false); }} className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors block ${activeStyleIndex === i ? 'bg-black text-white' : 'text-black hover:bg-black hover:text-white'}`}>Style {String(i + 1).padStart(2, '0')}</button>))}
+                    </div>
+                   </>
+                 )}
+              </div>
+          </div>
 
-            {/* 2B. MAP CONTROLS */}
-            {viewMode === 'glyphs' && (
-              <>
-                <div className="flex items-center gap-2 px-4 md:px-8 py-6 md:py-8 border-r border-black">
-                  {[10, 20, 30].map(size => (
-                    <button key={size} onClick={() => { setMapGridSize(size); setMapPage(0); }} className={`px-2 py-1 text-[10px] font-bold border border-black ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent hover:bg-gray-200'}`}>{size}</button>
-                  ))}
-                </div>
-                {filteredGlyphs.length > mapGridSize * 3 && (
-                  <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-r border-black">
-                      <div className="flex gap-1">
-                          <button onClick={() => setMapPage(Math.max(0, mapPage - 1))} disabled={mapPage === 0} className="px-2 py-1 text-[10px] font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white">PREV</button>
-                          <button onClick={() => setMapPage(mapPage + 1)} disabled={(mapPage + 1) * (mapGridSize * 3) >= filteredGlyphs.length} className="px-2 py-1 text-[10px] font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white">NEXT</button>
-                      </div>
-                  </div>
-                )}
-              </>
+          {/* GRID 3: SIZE / GRID SIZE */}
+          <div className="flex items-center gap-2 px-4 py-4 md:py-8 border-r border-black justify-center md:justify-start">
+            {viewMode === 'type' ? (
+              <div className="flex items-center gap-2">
+                <Type size={16} /><input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} className="w-10 text-xs font-bold bg-transparent outline-none"/><span className="text-[10px] font-mono text-gray-500 uppercase">PX</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                {[10, 20, 30].map(size => (<button key={size} onClick={() => { setMapGridSize(size); setMapPage(0); }} className={`px-2 py-1 text-[9px] font-bold border border-black ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent'}`}>{size}</button>))}
+              </div>
             )}
           </div>
-          
-          {/* 3. RIGHT SIDE: STYLE DROPDOWN */}
-          <div className="flex items-center gap-6 px-4 md:px-8 py-6 md:py-8 border-l border-black ml-auto">
-              <div className="flex items-center gap-2 pr-6">
-                <span className="font-mono text-[10px] text-gray-400 uppercase">Style</span>
-                <div className="relative z-[100]">
-                   <button 
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[80px] justify-between relative z-10"
-                   >
-                      <span>
-                        {Array.isArray(config.font_files) && config.font_files.length > 0 
-                          ? `Style ${String(activeStyleIndex + 1).padStart(2, '0')}`
-                          : 'Style 01'}
-                      </span>
-                      <ChevronDown size={14} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                   </button>
 
-                   {isDropdownOpen && (
-                     <>
-                      <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                      {/* Dropdown: Background Glass (Dibuat lebih solid/tidak transparan), No Shadow, Hover Black/White */}
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-hidden shadow-none">
-                          {Array.isArray(config.font_files) && config.font_files.length > 0 ? (
-                            config.font_files.map((_, i) => (
-                              <button
-                                key={i}
-                                onClick={(e) => { 
-                                    e.stopPropagation();
-                                    setActiveStyleIndex(i); 
-                                    setIsDropdownOpen(false); 
-                                }}
-                                className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors block ${
-                                  activeStyleIndex === i 
-                                    ? 'bg-black text-white' 
-                                    : 'text-black hover:bg-black hover:text-white'
-                                }`}
-                              >
-                                Style {String(i + 1).padStart(2, '0')}
-                              </button>
-                            ))
-                          ) : (
-                             <button className="w-full text-left px-4 py-3 text-xs font-bold uppercase text-black cursor-default">
-                               Style 01
-                             </button>
-                          )}
-                      </div>
-                     </>
-                   )}
-                </div>
+          {/* GRID 4: ALIGN / PAGINATION */}
+          <div className="flex items-center gap-2 px-4 py-4 md:py-8 justify-center md:border-r md:border-black">
+            {viewMode === 'type' ? (
+              <div className="flex items-center gap-1">
+                <button onClick={() => setAlign('left')} className={`p-1 ${align === 'left' ? 'bg-black text-white' : ''}`}><AlignLeft size={14}/></button>
+                <button onClick={() => setAlign('center')} className={`p-1 ${align === 'center' ? 'bg-black text-white' : ''}`}><AlignCenter size={14}/></button>
+                <button onClick={() => setAlign('right')} className={`p-1 ${align === 'right' ? 'bg-black text-white' : ''}`}><AlignRight size={14}/></button>
               </div>
+            ) : (
+              <div className="flex gap-2">
+                  <button onClick={() => setMapPage(Math.max(0, mapPage - 1))} disabled={mapPage === 0} className="px-2 py-1 text-[9px] font-bold border border-black disabled:opacity-20">PREV</button>
+                  <button onClick={() => setMapPage(mapPage + 1)} disabled={(mapPage + 1) * glyphsPerPage >= filteredGlyphs.length} className="px-2 py-1 text-[9px] font-bold border border-black disabled:opacity-20">NEXT</button>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="min-h-[300px] mb-8 relative">
           {viewMode === 'type' ? (
-              <textarea 
-                value={text} 
-                onChange={(e) => setText(e.target.value)} 
-                className="w-full min-h-[300px] bg-transparent outline-none resize-none p-4 relative z-10" 
-                style={{ 
-                    ...commonFontStyle,
-                    fontSize: `${fontSize}px`, 
-                    textAlign: align,
-                    lineHeight: lineHeight,
-                    letterSpacing: `${letterSpacing}em`
-                }} 
-                spellCheck={false} 
-              />
+              <textarea value={text} onChange={(e) => setText(e.target.value)} className="w-full min-h-[300px] bg-transparent outline-none resize-none p-4" style={{ ...commonFontStyle, fontSize: `${fontSize}px`, textAlign: align, lineHeight, letterSpacing: `${letterSpacing}em` }} spellCheck={false} />
           ) : (
-              // MAP VIEW - Sekarang Max 3 Baris (30 glyphs per page pada mode 10 kolom)
               <div className="w-full grid content-start" style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}>
-                {filteredGlyphs.slice(mapPage * (mapGridSize * 3), (mapPage + 1) * (mapGridSize * 3)).map((item, idx) => (
+                {filteredGlyphs.slice(mapPage * glyphsPerPage, (mapPage + 1) * glyphsPerPage).map((item, idx) => (
                   <div key={idx} className="aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default border-none">
-                        <span style={{ 
-                          ...commonFontStyle,
-                          fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' 
-                        }}>
-                          {item.char}
-                        </span>
-                    </div>
+                    <span style={{ ...commonFontStyle, fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' }}>{item.char}</span>
+                  </div>
                 ))}
               </div>
           )}
         </div>
 
-        {/* SETTINGS PANEL */}
-        <div className="bg-transparent border-t border-black">
-          
-          <div className={`grid grid-cols-1 md:grid-cols-2 ${(hasAxes || hasFeatures) ? 'border-b border-black' : ''}`}>
-              <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-b md:border-b-0 md:border-r border-black">
-                  <label className="w-24 font-mono text-xs font-bold uppercase">Leading</label>
-                  <input type="range" min="0.8" max="2.0" step="0.1" value={lineHeight} onChange={(e) => setLineHeight(parseFloat(e.target.value))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
-                  <span className="w-12 text-right font-mono text-xs">{lineHeight.toFixed(1)}</span>
-              </div>
-              <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8">
-                  <label className="w-24 font-mono text-xs font-bold uppercase">Tracking</label>
-                  <input type="range" min="-0.1" max="0.5" step="0.01" value={letterSpacing} onChange={(e) => setLetterSpacing(parseFloat(e.target.value))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
-                  <span className="w-12 text-right font-mono text-xs">{letterSpacing.toFixed(2)}</span>
-              </div>
+        <div className="bg-transparent border-t border-black p-4 md:p-8 space-y-6 md:space-y-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-0 md:mb-8">
+              <div className="flex items-center gap-4 border-b md:border-none border-black pb-4 md:pb-0"><label className="w-24 font-mono text-xs font-bold uppercase text-black">Leading</label><input type="range" min="0.8" max="2.0" step="0.1" value={lineHeight} onChange={(e) => setLineHeight(parseFloat(e.target.value))} className="flex-grow h-px bg-black appearance-none accent-black"/><span className="font-mono text-xs text-black">{lineHeight.toFixed(1)}</span></div>
+              <div className="flex items-center gap-4"><label className="w-24 font-mono text-xs font-bold uppercase text-black">Tracking</label><input type="range" min="-0.1" max="0.5" step="0.01" value={letterSpacing} onChange={(e) => setLetterSpacing(parseFloat(e.target.value))} className="flex-grow h-px bg-black appearance-none accent-black"/><span className="font-mono text-xs text-black">{letterSpacing.toFixed(2)}</span></div>
           </div>
-
-          {/* DYNAMIC GRID LAYOUT */}
-          {(hasAxes || hasFeatures) && (
-            <div className={`grid grid-cols-1 ${hasAxes && hasFeatures ? 'md:grid-cols-3' : 'md:grid-cols-1'}`}>
-                {/* Variable Axes Section */}
-                {hasAxes && (
-                  <div className={`${hasFeatures ? 'md:col-span-2 border-b md:border-b-0' : 'md:col-span-1'} space-y-4 px-4 md:px-8 py-6 md:py-8`}>
-                    <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Variable Axes</h4>
-                    {activeAxes.map((axis: any) => (
+          {(detectedAxes.length > 0 || dynamicFeatures.length > 0) && (
+            <div className={`grid grid-cols-1 ${detectedAxes.length > 0 && dynamicFeatures.length > 0 ? 'md:grid-cols-3' : 'md:grid-cols-1'} border-t border-black pt-8`}>
+                {detectedAxes.length > 0 && (
+                  <div className="md:col-span-2 space-y-4">
+                    <h4 className="font-mono text-xs uppercase text-gray-500 mb-4 text-black">Variable Axes</h4>
+                    {detectedAxes.map(axis => (
                       <div key={axis.tag} className="flex items-center gap-4">
-                        <label className="w-16 font-mono text-xs font-bold uppercase truncate">{axis.name}</label>
-                        <input type="range" min={axis.min} max={axis.max} step={1} value={axesValues[axis.tag] ?? axis.default} onChange={(e) => setAxesValues(p => ({...p, [axis.tag]: parseFloat(e.target.value)}))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
-                        <span className="w-12 text-right font-mono text-xs">{Math.round(axesValues[axis.tag] ?? axis.default)}</span>
+                        <label className="w-16 font-mono text-xs font-bold uppercase truncate text-black">{axis.name}</label>
+                        <input type="range" min={axis.min} max={axis.max} step={1} value={axesValues[axis.tag] ?? axis.default} onChange={(e) => setAxesValues(p => ({...p, [axis.tag]: parseFloat(e.target.value)}))} className="flex-grow h-px bg-black appearance-none accent-black"/><span className="font-mono text-xs text-black">{Math.round(axesValues[axis.tag] ?? axis.default)}</span>
                       </div>
                     ))}
                   </div>
                 )}
-                
-                {/* Features Section */}
-                {hasFeatures && (
-                  <div className={`${hasAxes ? 'md:col-span-1 border-l' : 'md:col-span-1'} border-black px-4 md:px-8 py-6 md:py-8`}>
-                    <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Features</h4>
-                    <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar">
-                      {dynamicFeatures.map((feat) => (
-                        <label key={feat.tag} className="flex items-center justify-between cursor-pointer group select-none">
-                          <span className="text-sm font-bold uppercase group-hover:text-gray-600 transition-colors">{feat.name} <span className="text-gray-400 font-mono text-xs ml-2">.{feat.tag}</span></span>
-                          <div className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" className="sr-only peer" checked={activeFeatures[feat.tag] || false} onChange={() => toggleFeature(feat.tag)} />
-                            <div className="w-9 h-5 rounded-full bg-transparent border border-black peer-checked:bg-black peer-checked:border-black after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-black after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:bg-white"></div>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
+                {dynamicFeatures.length > 0 && (
+                  <div className="border-l-0 md:border-l border-black pl-0 md:pl-8 space-y-4 mt-8 md:mt-0 pt-8 md:pt-0 border-t md:border-t-0">
+                    <h4 className="font-mono text-xs uppercase text-gray-500 mb-4 text-black">Features</h4>
+                    {dynamicFeatures.map(feat => (
+                      <label key={feat.tag} className="flex items-center justify-between cursor-pointer group">
+                        <span className="text-sm font-bold uppercase text-black">{feat.name}</span>
+                        <input type="checkbox" checked={activeFeatures[feat.tag] || false} onChange={() => toggleFeature(feat.tag)} className="accent-black" />
+                      </label>
+                    ))}
                   </div>
                 )}
             </div>
           )}
-          {/* If neither exists, this section is skipped, leaving a gap/empty space below */}
         </div>
       </div>
     </div>
