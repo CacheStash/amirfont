@@ -2,12 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { MoveRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Helper: Tambahkan prefix path jika URL hanya berupa nama file
-const resolvePreviewUrl = (url: string) => {
-  if (!url) return null;
-  if (url.startsWith('http') || url.startsWith('/') || url.startsWith('data:')) return url;
-  // ASUMSI: Gambar disimpan di folder public/api/previews/
-  return `/api/previews/${url}`; 
+// --- PARTIAL FIX ---
+// HELPER: Mengubah nama file dari database menjadi URL lengkap
+// PENTING: Pastikan folder "public/api/previews" ada di projectmu, atau ganti URL ini ke Supabase Storage URL
+const resolvePreviewUrl = (filename: string) => {
+  if (!filename) return null;
+  // Jika filename sudah berupa URL lengkap (https://...), biarkan
+  if (filename.startsWith('http') || filename.startsWith('/') || filename.startsWith('data:')) return filename;
+  
+  // Jika cuma nama file, tambahkan path folder.
+  // GANTI '/api/previews/' dengan URL Supabase Storage-mu jika kamu tidak punya folder local api.
+  // Contoh Supabase: `https://[PROJECT_ID].supabase.co/storage/v1/object/public/previews/${filename}`
+  return `/api/previews/${filename}`; 
 };
 
 const DUMMY_LIBRARY = [
@@ -22,9 +28,15 @@ const DUMMY_LIBRARY = [
 // --- SUB-COMPONENT: DUAL IMAGE SLIDER ---
 const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
   const [index, setIndex] = useState(0);
-  // Gunakan fallback placeholder jika array kosong atau null
-  const hasImages = images && images.length > 0;
-  const displayImages = hasImages ? images : ['/api/placeholder/400/200', '/api/placeholder/400/201'];
+  // --- PARTIAL FIX ---
+  // 1. Resolve semua URL dulu
+  const resolvedImages = images.map(resolvePreviewUrl).filter(Boolean) as string[];
+
+  // 2. Cek apakah ada gambar valid
+  const hasImages = resolvedImages.length > 0;
+  
+  // 3. Fallback ke placeholder jika kosong
+  const displayImages = hasImages ? resolvedImages : ['/api/placeholder/400/200', '/api/placeholder/400/201'];
 
   useEffect(() => {
     if (!hasImages) return; 
@@ -33,11 +45,11 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
     }, 4000);
     return () => clearInterval(timer);
   }, [displayImages.length, hasImages]);
-
-  // Handler jika gambar rusak (404)
+  
+  // Handler jika gambar error/broken
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://placehold.co/400x200?text=No+Preview'; // External fallback yang pasti jalan
-    e.currentTarget.onerror = null; 
+    e.currentTarget.src = 'https://placehold.co/400x200?text=No+Image';
+    e.currentTarget.onerror = null;
   };
 
   // Baris atas (Geser Kanan) dan Baris bawah (Geser Kiri)
@@ -53,15 +65,11 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
           className="flex h-full transition-transform duration-1000 ease-in-out"
           style={{ transform: `translateX(-${topIndex * 100}%)` }}
         >
+          {/* --- PARTIAL FIX --- */}
           {displayImages.map((img, i) => (
-            <img 
-              key={i} 
-              src={img} 
-              className="min-w-full h-full object-cover grayscale" 
-              alt="Font Preview Top"
-              onError={handleImageError} 
-            />
+            <img key={i} src={img} className="min-w-full h-full object-cover grayscale" alt="Preview Top" onError={handleImageError} />
           ))}
+{/* --- END FIX --- */}
         </div>
       </div>
       {/* Baris Bawah */}
@@ -70,15 +78,7 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
           className="flex h-full transition-transform duration-1000 ease-in-out"
           style={{ transform: `translateX(-${bottomIndex * 100}%)` }}
         >
-          {displayImages.map((img, i) => (
-            <img 
-              key={i} 
-              src={img} 
-              className="min-w-full h-full object-cover grayscale" 
-              alt="Font Preview Bottom"
-              onError={handleImageError}
-            />
-          ))}
+{/* --- PARTIAL FIX --- */}
         </div>
       </div>
     </div>
