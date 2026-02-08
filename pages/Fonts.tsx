@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { MoveRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
+// Helper: Tambahkan prefix path jika URL hanya berupa nama file
 const resolvePreviewUrl = (url: string) => {
   if (!url) return null;
   if (url.startsWith('http') || url.startsWith('/') || url.startsWith('data:')) return url;
