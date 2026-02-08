@@ -31,36 +31,33 @@ const DUMMY_LIBRARY = [
 
 
 // --- SUB-COMPONENT: DUAL IMAGE SLIDER ---
+// --- Context Anchor (Above) --- 
+// --- SUB-COMPONENT: DUAL IMAGE SLIDER ---
 const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
   const resolvedImages = images.map(resolvePreviewUrl).filter(Boolean) as string[];
   const hasImages = resolvedImages.length > 0;
   
-  // Fallback ke placeholder jika array kosong
   const baseImages = hasImages ? resolvedImages : [
     'https://placehold.co/400x200?text=Preview+1',
     'https://placehold.co/400x200?text=Preview+2',
     'https://placehold.co/400x200?text=Preview+3'
   ];
 
-  /**
-   * Teknik Infinity Loop:
-   * Kita menduplikasi array gambar agar saat animasi mencapai 50% (akhir set pertama),
-   * ia akan terlihat menyambung dengan set kedua, lalu mereset ke 0% tanpa jeda.
-   */
-  const row1Images = [...baseImages, ...baseImages];
-  const row2Images = [...baseImages].reverse(); // Urutan berbeda untuk baris bawah
-  const row2Double = [...row2Images, ...row2Images];
+  // Duplikasi array untuk infinity loop yang sempurna
+  const row1Images = [...baseImages, ...baseImages, ...baseImages];
+  const row2Images = [...baseImages].reverse();
+  const row2Triple = [...row2Images, ...row2Images, ...row2Images];
 
   return (
-    <div className="hidden md:grid grid-rows-2 h-full w-[300px] border-r border-black overflow-hidden group/slider">
+    <div className="hidden md:grid grid-rows-2 h-full w-[300px] border-r border-black overflow-hidden group/slider bg-white">
       {/* Baris Atas: Animasi ke KIRI */}
-      <div className="border-b border-black relative overflow-hidden bg-white flex items-center">
-        <div className="flex animate-marquee-left group-hover/slider:pause">
+      <div className="border-b border-black relative overflow-hidden flex items-center">
+        <div className="flex flex-nowrap w-max animate-marquee-left group-hover/slider:pause">
           {row1Images.map((img, i) => (
             <img 
               key={i} 
               src={img} 
-              className="w-[300px] h-full object-cover border-r border-black/5" 
+              className="w-[300px] h-full object-cover flex-shrink-0 border-r border-black/10" 
               alt="Preview Top" 
             />
           ))}
@@ -68,13 +65,13 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
       </div>
 
       {/* Baris Bawah: Animasi ke KANAN */}
-      <div className="relative overflow-hidden bg-white flex items-center">
-        <div className="flex animate-marquee-right group-hover/slider:pause">
-          {row2Double.map((img, i) => (
+      <div className="relative overflow-hidden flex items-center">
+        <div className="flex flex-nowrap w-max animate-marquee-right group-hover/slider:pause">
+          {row2Triple.map((img, i) => (
             <img 
               key={i} 
               src={img} 
-              className="w-[300px] h-full object-cover border-r border-black/5" 
+              className="w-[300px] h-full object-cover flex-shrink-0 border-r border-black/10" 
               alt="Preview Bottom" 
             />
           ))}
@@ -84,17 +81,17 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
       <style>{`
         @keyframes marquee-left {
           0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          100% { transform: translateX(-33.33%); }
         }
         @keyframes marquee-right {
-          0% { transform: translateX(-50%); }
+          0% { transform: translateX(-33.33%); }
           100% { transform: translateX(0); }
         }
         .animate-marquee-left {
-          animation: marquee-left 25s linear infinite;
+          animation: marquee-left 15s linear infinite;
         }
         .animate-marquee-right {
-          animation: marquee-right 25s linear infinite;
+          animation: marquee-right 15s linear infinite;
         }
         .pause {
           animation-play-state: paused;
@@ -103,6 +100,7 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
     </div>
   );
 };
+// --- END FIX ---
 
 // --- MAIN COMPONENT ---
 const Fonts: React.FC = () => {
@@ -225,40 +223,43 @@ const Fonts: React.FC = () => {
                       </span>
                     </div>
                     
-                    <div className="mt-8">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="inline-block border border-black rounded-full px-3 py-0.5 font-mono italic text-[10px] titlecase">
-                          starting at
-                        </span>
-                        {promo && (
-                           <span className="inline-block border border-orange-600 rounded-full px-2 py-0.5 font-mono font-bold text-[10px] uppercase text-red-600 bg-transparent leading-none">
-                             {promo.discount_percent}% OFF
+                   <div className="mt-8">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-4">
+                           <span className="inline-block border border-black rounded-full px-3 py-1 font-mono italic text-[11px] md:text-[12px] titlecase text-black bg-transparent leading-none">
+                             starting at
                            </span>
-                        )}
-                      </div>
-
-                      {promo ? (
-                        <div className="flex flex-col items-start">
-                           <div className="flex items-baseline gap-3">
-                             <span className="text-6xl font-light tracking-tighter leading-none text-black">
-                               ${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}
+                           {promo && (
+                             <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-mono font-bold text-[11px] md:text-[12px] uppercase text-red-600 bg-transparent leading-none">
+                               {promo.discount_percent}% OFF
                              </span>
-                             <div className="relative">
-                               <span className="text-2xl font-bold text-red-600 font-mono leading-none">
-                                 ${basePrice}
+                           )}
+                        </div>
+                        <div className="flex flex-col">
+                           {promo ? (
+                             <div className="flex items-start gap-3 md:gap-5">
+                               <span className="text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">
+                                 ${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}
                                </span>
-                               <div className="absolute top-[50%] left-[-10%] w-[120%] h-[2px] bg-orange-600"></div>
+                               <div className="flex flex-col items-center gap-1 md:gap-2 mt-2 md:mt-4 w-fit">
+                                 <div className="relative w-full text-center">
+                                   <span className="text-4xl md:text-5xl font-bold text-red-600 font-mono leading-none">
+                                     ${basePrice}
+                                   </span>
+                                   <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
+                                 </div>
+                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-mono font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full min-w-max">
+                                   {calculateDaysLeft(promo.end_date)}
+                                 </span>
+                               </div>
                              </div>
-                           </div>
-                           <span className="text-[10px] font-mono font-bold uppercase text-red-600 mt-1">
-                             {calculateDaysLeft(promo.end_date)}
-                           </span>
+                           ) : (
+                             <div className="text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">
+                               ${basePrice}
+                             </div>
+                           )}
                         </div>
-                      ) : (
-                        <div className="text-6xl font-light tracking-tighter leading-none">
-                          ${basePrice}
-                        </div>
-                      )}
+                      </div>
                     </div>
                   </div>
 
@@ -277,8 +278,12 @@ const Fonts: React.FC = () => {
                   <PreviewSlider images={fontPreviews.map(resolvePreviewUrl).filter(Boolean) as string[]} />
 
                   {/* d. ACTION COLUMN */}
-                  <div className="p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group/arrow">
-                    <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover/arrow:scale-125" />
+                  <div className="p-4 flex items-center justify-center hover:bg-black hover:text-white transition-all duration-300 cursor-pointer group/arrow border-black">
+                    <MoveRight 
+                      size={48} 
+                      strokeWidth={1} 
+                      className="text-black group-hover/arrow:text-white transition-transform duration-500 group-hover/arrow:scale-125" 
+                    />
                   </div>
 
                   {/* 4. MOBILE SPACER (GRID KOSONG): Diperbarui agar selaras dengan Home */}
