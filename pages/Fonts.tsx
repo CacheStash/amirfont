@@ -2,18 +2,43 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { MoveRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
+const resolvePreviewUrl = (url: string) => {
+  if (!url) return null;
+  // Jika sudah URL lengkap (http/https) atau path absolut (/), gunakan langsung
+  if (url.startsWith('http') || url.startsWith('/') || url.startsWith('data:')) return url;
+  // Jika hanya nama file, tambahkan prefix path (sesuaikan dengan folder public/api Anda)
+  return `/api/previews/${url}`; 
+};
+
+const DUMMY_LIBRARY = [
+  "One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin.",
+  "The quick brown fox jumps over the lazy dog, showcasing the elegant curves and sharp terminals of this unique typeface.",
+  "Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.",
+  "A wonderful serenity has taken possession of my entire soul, like these sweet mornings of spring which I enjoy with my whole heart.",
+  "But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account."
+];
+
+
 // --- SUB-COMPONENT: DUAL IMAGE SLIDER ---
 const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
   const [index, setIndex] = useState(0);
   // Pastikan ada gambar dummy jika database kosong
-  const displayImages = images && images.length > 0 ? images : ['/api/placeholder/400/200', '/api/placeholder/400/201'];
+  const hasImages = images && images.length > 0;
+  const displayImages = hasImages ? images : ['/api/placeholder/400/200', '/api/placeholder/400/201'];
 
   useEffect(() => {
+    if (!hasImages) return; // Jangan auto-slide jika hanya placeholder
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % displayImages.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, [displayImages.length]);
+  }, [displayImages.length, hasImages]);
+
+  // Handler jika gambar gagal di-load (broken link)
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = '/api/placeholder/400/200'; // Fallback ke placeholder
+    e.currentTarget.onerror = null; // Mencegah loop error
+  };
 
   // Baris atas (Geser Kanan) dan Baris bawah (Geser Kiri)
   // Logic: Index yang berbeda agar gambar tidak sama persis atas-bawah
@@ -59,6 +84,31 @@ const Fonts: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (fonts.length > 0) {
+      const styleId = 'library-fonts-css';
+      let styleEl = document.getElementById(styleId) as HTMLStyleElement;
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+      }
+
+      const fontFaceRules = fonts.flatMap(f => {
+        const files = Array.isArray(f.font_files) ? f.font_files : [f.file_url];
+        // Pastikan path sesuai dengan API route Anda (mirip Home.tsx)
+        return files.map((file: string, idx: number) => `
+          @font-face {
+            font-family: "${f.name}-${idx}";
+            src: url("/api/fonts/${file}");
+            font-display: swap;
+          }
+        `);
+      }).join('\n');
+      styleEl.innerHTML = fontFaceRules;
+    }
+  }, [fonts]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -123,6 +173,11 @@ const Fonts: React.FC = () => {
               const promo = getActivePromo(font.id);
               const basePrice = font.price || 25;
 
+              // Pilih teks random berdasarkan index
+              const randomText = DUMMY_LIBRARY[idx % DUMMY_LIBRARY.length];
+              // Gunakan index 0 sebagai default view
+              const fontFamilyStyle = `"${font.name}-0"`;
+
               return (
                 <section key={font.id || idx} className="grid grid-cols-1 md:grid-cols-[280px_1fr_300px_100px] border-b border-black group transition-colors hover:bg-white/50">
                   
@@ -176,9 +231,9 @@ const Fonts: React.FC = () => {
                   <div className="p-6 md:p-8 border-b md:border-b-0 md:border-r border-black flex items-center overflow-hidden bg-transparent">
                     <span 
                       className="text-4xl md:text-6xl break-words md:whitespace-nowrap opacity-90 transition-opacity group-hover:opacity-100"
-                      style={{ fontFamily: `"${font.name}-0"` }}
+                      style={{ fontFamily: fontFamilyStyle }}
                     >
-                      The quick brown fox jumps over the lazy dog
+                      {randomText}
                     </span>
                   </div>
 
