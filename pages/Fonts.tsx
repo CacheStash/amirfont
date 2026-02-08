@@ -32,60 +32,74 @@ const DUMMY_LIBRARY = [
 
 // --- SUB-COMPONENT: DUAL IMAGE SLIDER ---
 const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
-  const [index, setIndex] = useState(0);
-  // --- PARTIAL FIX ---
-  // 1. Resolve semua URL dulu
   const resolvedImages = images.map(resolvePreviewUrl).filter(Boolean) as string[];
-
-  // 2. Cek apakah ada gambar valid
   const hasImages = resolvedImages.length > 0;
   
-  // 3. Fallback ke placeholder jika kosong
-  const displayImages = hasImages ? resolvedImages : ['/api/placeholder/400/200', '/api/placeholder/400/201'];
+  // Fallback ke placeholder jika array kosong
+  const baseImages = hasImages ? resolvedImages : [
+    'https://placehold.co/400x200?text=Preview+1',
+    'https://placehold.co/400x200?text=Preview+2',
+    'https://placehold.co/400x200?text=Preview+3'
+  ];
 
-  useEffect(() => {
-    if (!hasImages) return; 
-    const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % displayImages.length);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [displayImages.length, hasImages]);
-  
-  // Handler jika gambar error/broken
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://placehold.co/400x200?text=No+Image';
-    e.currentTarget.onerror = null;
-  };
-
-  // Baris atas (Geser Kanan) dan Baris bawah (Geser Kiri)
-  // Logic: Index yang berbeda agar gambar tidak sama persis atas-bawah
-  const topIndex = index;
-  const bottomIndex = (index + 1) % displayImages.length;
+  /**
+   * Teknik Infinity Loop:
+   * Kita menduplikasi array gambar agar saat animasi mencapai 50% (akhir set pertama),
+   * ia akan terlihat menyambung dengan set kedua, lalu mereset ke 0% tanpa jeda.
+   */
+  const row1Images = [...baseImages, ...baseImages];
+  const row2Images = [...baseImages].reverse(); // Urutan berbeda untuk baris bawah
+  const row2Double = [...row2Images, ...row2Images];
 
   return (
-    <div className="hidden md:grid grid-rows-2 h-full w-[300px] border-r border-black">
-      {/* Baris Atas */}
-      <div className="border-b border-black relative overflow-hidden bg-white">
-        <div 
-          className="flex h-full transition-transform duration-1000 ease-in-out"
-          style={{ transform: `translateX(-${topIndex * 100}%)` }}
-        >
-          {/* --- PARTIAL FIX --- */}
-          {displayImages.map((img, i) => (
-            <img key={i} src={img} className="min-w-full h-full object-cover grayscale" alt="Preview Top" onError={handleImageError} />
+    <div className="hidden md:grid grid-rows-2 h-full w-[300px] border-r border-black overflow-hidden group/slider">
+      {/* Baris Atas: Animasi ke KIRI */}
+      <div className="border-b border-black relative overflow-hidden bg-white flex items-center">
+        <div className="flex animate-marquee-left group-hover/slider:pause">
+          {row1Images.map((img, i) => (
+            <img 
+              key={i} 
+              src={img} 
+              className="w-[300px] h-full object-cover border-r border-black/5" 
+              alt="Preview Top" 
+            />
           ))}
-{/* --- END FIX --- */}
         </div>
       </div>
-      {/* Baris Bawah */}
-      <div className="relative overflow-hidden bg-white">
-        <div 
-          className="flex h-full transition-transform duration-1000 ease-in-out"
-          style={{ transform: `translateX(-${bottomIndex * 100}%)` }}
-        >
-{/* --- PARTIAL FIX --- */}
+
+      {/* Baris Bawah: Animasi ke KANAN */}
+      <div className="relative overflow-hidden bg-white flex items-center">
+        <div className="flex animate-marquee-right group-hover/slider:pause">
+          {row2Double.map((img, i) => (
+            <img 
+              key={i} 
+              src={img} 
+              className="w-[300px] h-full object-cover border-r border-black/5" 
+              alt="Preview Bottom" 
+            />
+          ))}
         </div>
       </div>
+
+      <style>{`
+        @keyframes marquee-left {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        @keyframes marquee-right {
+          0% { transform: translateX(-50%); }
+          100% { transform: translateX(0); }
+        }
+        .animate-marquee-left {
+          animation: marquee-left 25s linear infinite;
+        }
+        .animate-marquee-right {
+          animation: marquee-right 25s linear infinite;
+        }
+        .pause {
+          animation-play-state: paused;
+        }
+      `}</style>
     </div>
   );
 };
