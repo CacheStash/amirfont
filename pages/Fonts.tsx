@@ -52,22 +52,41 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
 const Fonts: React.FC = () => {
   const [fonts, setFonts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [promos, setPromos] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const fontsPerPage = 10;
 
   useEffect(() => {
-    fetchFonts();
+    fetchData();
   }, []);
 
-  const fetchFonts = async () => {
+  const fetchData = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from('fonts')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const [fontsRes, promosRes] = await Promise.all([
+      supabase.from('fonts').select('*').order('created_at', { ascending: false }),
+      supabase.from('promotions').select('*').eq('is_active', true)
+    ]);
     
-    if (data) setFonts(data);
+    if (fontsRes.data) setFonts(fontsRes.data);
+    if (promosRes.data) setPromos(promosRes.data);
     setLoading(false);
+  };
+
+  const getActivePromo = (fontId: string) => {
+    const now = new Date();
+    return promos.find(p => {
+      const start = new Date(p.start_date);
+      const end = new Date(p.end_date);
+      const isTargeted = p.type === 'global' || p.font_ids?.includes(fontId);
+      return now >= start && now <= end && isTargeted;
+    });
+  };
+
+  const calculateDaysLeft = (endDate: string) => {
+    const diff = new Date(endDate).getTime() - new Date().getTime();
+    const days = Math.ceil(diff / (1000 * 3600 * 24));
+    if (days <= 0) return "Ends today";
+    return `${days} day${days > 1 ? 's' : ''} left`;
   };
 
   // Logic Pagination
@@ -77,7 +96,8 @@ const Fonts: React.FC = () => {
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent overflow-x-hidden">
       {/* Background Orbs agar selaras dengan Home */}
-      <div className="grain-orb-base orb-top-right opacity-50" />
+      <div className="grain-orb-base orb-top-right" />
+      <div className="grain-orb-base orb-bottom-left" />
       
       <div className="max-w-full mx-auto">
         {/* Header Section */}
@@ -100,6 +120,8 @@ const Fonts: React.FC = () => {
             currentFonts.map((font, idx) => {
               const styleCount = Array.isArray(font.font_files) ? font.font_files.length : 1;
               const fontPreviews = Array.isArray(font.font_previews) ? font.font_previews : [];
+              const promo = getActivePromo(font.id);
+              const basePrice = font.price || 25;
 
               return (
                 <section key={font.id || idx} className="grid grid-cols-1 md:grid-cols-[280px_1fr_300px_100px] border-b border-black group transition-colors hover:bg-white/50">
@@ -112,13 +134,41 @@ const Fonts: React.FC = () => {
                         {styleCount} STYLES
                       </span>
                     </div>
+                    
                     <div className="mt-8">
-                      <span className="inline-block border border-black rounded-full px-3 py-0.5 font-mono italic text-[10px] titlecase mb-2">
-                        starting at
-                      </span>
-                      <div className="text-6xl font-light tracking-tighter leading-none">
-                        ${font.price || 25}
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-block border border-black rounded-full px-3 py-0.5 font-mono italic text-[10px] titlecase">
+                          starting at
+                        </span>
+                        {promo && (
+                           <span className="inline-block border border-orange-600 rounded-full px-2 py-0.5 font-mono font-bold text-[10px] uppercase text-red-600 bg-transparent leading-none">
+                             {promo.discount_percent}% OFF
+                           </span>
+                        )}
                       </div>
+
+                      {promo ? (
+                        <div className="flex flex-col items-start">
+                           <div className="flex items-baseline gap-3">
+                             <span className="text-6xl font-light tracking-tighter leading-none text-black">
+                               ${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}
+                             </span>
+                             <div className="relative">
+                               <span className="text-2xl font-bold text-red-600 font-mono leading-none">
+                                 ${basePrice}
+                               </span>
+                               <div className="absolute top-[50%] left-[-10%] w-[120%] h-[2px] bg-orange-600"></div>
+                             </div>
+                           </div>
+                           <span className="text-[10px] font-mono font-bold uppercase text-red-600 mt-1">
+                             {calculateDaysLeft(promo.end_date)}
+                           </span>
+                        </div>
+                      ) : (
+                        <div className="text-6xl font-light tracking-tighter leading-none">
+                          ${basePrice}
+                        </div>
+                      )}
                     </div>
                   </div>
 
