@@ -11,15 +11,9 @@ const R2_PUBLIC_URL = 'https://pub-d342f8aa58364a918b27d36c9bd3cfe5.r2.dev';
 // Helper: Mengubah nama file dari database menjadi URL lengkap R2
 const resolvePreviewUrl = (filename: string) => {
   if (!filename) return null;
-  
-  // Jika database menyimpan URL lengkap (http/https), pakai langsung
   if (filename.startsWith('http') || filename.startsWith('https')) return filename;
-  
-  // Gabungkan Domain R2 + Nama File
-  // Hasil: https://pub-xxx.r2.dev/1770526836266-01_optimized.jpeg
   return `${R2_PUBLIC_URL}/${filename}`; 
 };
-// --- END FIX ---
 
 const DUMMY_LIBRARY = [
   "One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin.",
@@ -43,59 +37,32 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
     'https://placehold.co/400x200?text=Preview+3'
   ];
 
-  // Duplikasi array untuk infinity loop yang sempurna
   const row1Images = [...baseImages, ...baseImages, ...baseImages];
   const row2Images = [...baseImages].reverse();
   const row2Triple = [...row2Images, ...row2Images, ...row2Images];
 
   return (
-    <div className="hidden md:grid grid-rows-2 h-full w-[300px] border-r border-black overflow-hidden group/slider bg-white">
-      {/* Baris Atas: Animasi ke KIRI */}
+    <div className="grid grid-rows-2 h-[200px] md:h-full w-full md:w-[300px] border-b md:border-b-0 md:border-r border-black overflow-hidden group/slider bg-white">
       <div className="border-b border-black relative overflow-hidden flex items-center">
         <div className="flex flex-nowrap w-max animate-marquee-left group-hover/slider:pause">
           {row1Images.map((img, i) => (
-            <img 
-              key={i} 
-              src={img} 
-              className="w-[300px] h-full object-cover flex-shrink-0 border-r border-black/10" 
-              alt="Preview Top" 
-            />
+            <img key={i} src={img} className="w-[200px] md:w-[300px] h-full object-cover flex-shrink-0 border-r border-black/10" alt="Top" />
           ))}
         </div>
       </div>
-
-      {/* Baris Bawah: Animasi ke KANAN */}
       <div className="relative overflow-hidden flex items-center">
         <div className="flex flex-nowrap w-max animate-marquee-right group-hover/slider:pause">
           {row2Triple.map((img, i) => (
-            <img 
-              key={i} 
-              src={img} 
-              className="w-[300px] h-full object-cover flex-shrink-0 border-r border-black/10" 
-              alt="Preview Bottom" 
-            />
+            <img key={i} src={img} className="w-[200px] md:w-[300px] h-full object-cover flex-shrink-0 border-r border-black/10" alt="Bottom" />
           ))}
         </div>
       </div>
-
       <style>{`
-        @keyframes marquee-left {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-33.33%); }
-        }
-        @keyframes marquee-right {
-          0% { transform: translateX(-33.33%); }
-          100% { transform: translateX(0); }
-        }
-        .animate-marquee-left {
-          animation: marquee-left 15s linear infinite;
-        }
-        .animate-marquee-right {
-          animation: marquee-right 15s linear infinite;
-        }
-        .pause {
-          animation-play-state: paused;
-        }
+        @keyframes marquee-left { 0% { transform: translateX(0); } 100% { transform: translateX(-33.333%); } }
+        @keyframes marquee-right { 0% { transform: translateX(-33.333%); } 100% { transform: translateX(0); } }
+        .animate-marquee-left { animation: marquee-left 40s linear infinite; }
+        .animate-marquee-right { animation: marquee-right 40s linear infinite; }
+        .pause { animation-play-state: paused; }
       `}</style>
     </div>
   );
@@ -212,7 +179,7 @@ const Fonts: React.FC = () => {
               const fontFamilyStyle = `"${font.name}-0"`;
 
               return (
-                <section key={font.id || idx} className="grid grid-cols-1 md:grid-cols-[280px_1fr_300px_100px] border-b border-black group transition-colors hover:bg-white/50">
+                <section key={font.id || idx} className="grid grid-cols-1 md:grid-cols-[380px_1fr_300px_100px] border-b border-black group transition-colors hover:bg-white/50">
                   
                   {/* a. INFO COLUMN */}
                   <div className="p-6 md:p-8 border-b md:border-b-0 md:border-r border-black flex flex-col justify-between">
@@ -264,9 +231,9 @@ const Fonts: React.FC = () => {
                   </div>
 
                   {/* b. TYPE VIEW COLUMN */}
-                  <div className="p-6 md:p-8 border-b md:border-b-0 md:border-r border-black flex items-center overflow-hidden bg-transparent">
+                  <div className="p-6 md:p-8 border-b md:border-b-0 md:border-r border-black flex items-center bg-transparent">
                     <span 
-                      className="text-4xl md:text-6xl truncate w-full block opacity-90 transition-opacity group-hover:opacity-100"
+                      className="text-4xl md:text-6xl break-words w-full block opacity-90 transition-opacity group-hover:opacity-100"
                       style={{ fontFamily: fontFamilyStyle }}
                     >
                       {randomText}
