@@ -5,7 +5,7 @@ import { MoveRight, ChevronLeft, ChevronRight } from 'lucide-react';
 const resolvePreviewUrl = (url: string) => {
   if (!url) return null;
   if (url.startsWith('http') || url.startsWith('/') || url.startsWith('data:')) return url;
-  // ASUMSI: Gambar disimpan di folder public/api/previews/ atau endpoint serupa
+  // ASUMSI: Gambar disimpan di folder public/api/previews/
   return `/api/previews/${url}`; 
 };
 
@@ -180,7 +180,9 @@ const Fonts: React.FC = () => {
           ) : currentFonts.length > 0 ? (
             currentFonts.map((font, idx) => {
               const styleCount = Array.isArray(font.font_files) ? font.font_files.length : 1;
-              const fontPreviews = Array.isArray(font.font_previews) ? font.font_previews : [];
+              // FIX: Menggunakan nama kolom 'preview_images' sesuai schema database
+              const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
+              
               const promo = getActivePromo(font.id);
               const basePrice = font.price || 25;
 
