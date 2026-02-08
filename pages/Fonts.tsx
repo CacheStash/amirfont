@@ -6,13 +6,19 @@ import { MoveRight, ChevronLeft, ChevronRight } from 'lucide-react';
 /** * 1. GUNAKAN PUBLIC DEVELOPMENT URL DARI SCREENSHOT R2 ANDA
  * URL ini adalah jembatan agar browser bisa mengambil file dari Cloudflare
  */
-const R2_PUBLIC_URL = 'https://pub-d342f8aa58364a918b27d36c9bd3cfe5.r2.dev'; 
+
 
 // Helper: Mengubah nama file dari database menjadi URL lengkap R2
 const resolvePreviewUrl = (filename: string) => {
   if (!filename) return null;
+  
+  // Jika URL sudah lengkap (http/https), biarkan apa adanya
   if (filename.startsWith('http') || filename.startsWith('https')) return filename;
-  return `${R2_PUBLIC_URL}/${filename}`; 
+  
+  // KUNCI PERBAIKAN IOS:
+  // Kita paksa browser memanggil lewat domain sendiri (/api/images/)
+  // Worker (index.js) nanti yang akan meneruskannya ke R2
+  return `/api/images/${filename}`; 
 };
 
 const DUMMY_LIBRARY = [
@@ -51,7 +57,7 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
               src={img} 
               crossOrigin="anonymous"
               decoding="async"
-              className="w-[200px] md:w-[300px] h-full object-cover flex-shrink-0 border-r border-black/10" 
+              className="w-full h-full object-cover block border-b border-black"
               alt="Top" 
             />
           ))}
@@ -65,7 +71,7 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
               src={img} 
               crossOrigin="anonymous"
               decoding="async"
-              className="w-[200px] md:w-[300px] h-full object-cover flex-shrink-0 border-r border-black/10" 
+              className="w-full h-full object-cover block border-b border-black"
               alt="Bottom" 
             />
           ))}

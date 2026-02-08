@@ -1,4 +1,5 @@
 import { getAssetFromKV, NotFoundError, MethodNotAllowedError } from '@cloudflare/kv-asset-handler';
+// @ts-ignore
 import manifestJSON from '__STATIC_CONTENT_MANIFEST';
 const assetManifest = JSON.parse(manifestJSON);
 
@@ -6,13 +7,13 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // 1. API Route for Fonts
+    // --- 1. API Route for Fonts ---
     if (url.pathname.startsWith('/api/fonts/')) {
-      const fontName = url.pathname.replace('/api/fonts/', '');
-      // Pastikan nama bucket sesuai binding di wrangler.toml (R2_BUCKET)
-      const object = await env.R2_BUCKET.get(fontName);
+      // FIX: Gunakan logic "pop()" agar bersih dari path folder
+      const fontName = decodeURIComponent(url.pathname.split('/').pop());
       
-      if (!object) return new Response('Font not found', { status: 404 });
+      const object = await env.R2_BUCKET.get(fontName);
+      if (!object) return new Response(`Font not found: ${fontName}`, { status: 404 });
 
       const headers = new Headers();
       object.writeHttpMetadata(headers);
@@ -21,22 +22,37 @@ export default {
       return new Response(object.body, { headers });
     }
 
-    // 2. API Route for Images (Fix iOS SSL Issue)
+    // --- 2. API Route for Images (FINAL FIX) ---
     if (url.pathname.startsWith('/api/images/')) {
-      const imageName = url.pathname.replace('/api/images/', '');
-      // Menggunakan binding yang sama
+      // FIX UTAMA: 
+      // Ambil bagian TERAKHIR dari URL (setelah slash terakhir). 
+      // Ini membuang '/api/images/' atau '/api/images//' secara otomatis & bersih.
+      const imageName = decodeURIComponent(url.pathname.split('/').pop());
+      
+      // Cek apakah file ada di R2
       const object = await env.R2_BUCKET.get(imageName);
       
-      if (!object) return new Response('Image not found', { status: 404 });
+      if (!object) {
+        // Debugging yang lebih jujur: Kasih tau apa nama file bersih yang dicari
+        return new Response(`Image not found in R2. Clean name searched: "${imageName}"`, { status: 404 });
+      }
 
       const headers = new Headers();
       object.writeHttpMetadata(headers);
       headers.set('Access-Control-Allow-Origin', '*');
-      headers.set('Cache-Control', 'public, max-age=86400'); 
+      headers.set('Cache-Control', 'public, max-age=86400');
+
+      // Force Content-Type (Penting untuk iOS/Browser)
+      const lowerName = imageName.toLowerCase();
+      if (lowerName.endsWith('.png')) headers.set('Content-Type', 'image/png');
+      else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) headers.set('Content-Type', 'image/jpeg');
+      else if (lowerName.endsWith('.webp')) headers.set('Content-Type', 'image/webp');
+      else if (lowerName.endsWith('.svg')) headers.set('Content-Type', 'image/svg+xml');
+
       return new Response(object.body, { headers });
     }
 
-    // 3. Serve Static Assets
+    // --- 3. Serve Static Assets ---
     try {
       return await getAssetFromKV(
         {
@@ -50,7 +66,6 @@ export default {
       );
     } catch (e) {
       if (e instanceof NotFoundError) {
-        // Fallback ke index.html untuk Single Page Application (SPA)
         try {
           const fallbackResponse = await getAssetFromKV(
             {
