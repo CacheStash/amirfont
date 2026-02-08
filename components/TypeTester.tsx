@@ -38,6 +38,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
+  const PRESET_SIZES = [12, 14, 16, 18, 20, 24, 32, 36, 48, 64, 72, 96, 120, 144, 200];
+
   const FEATURE_NAMES: Record<string, string> = {
     liga: 'Standard Ligatures',
     dlig: 'Discretionary Lig',
@@ -204,7 +207,43 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           <div className="flex items-center gap-2 px-4 md:px-8 py-4 md:py-8 border-r border-black justify-center md:justify-start">
              {viewMode === 'type' ? (
                 <>
-                  <Type size={16} /><input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} className="w-12 text-sm font-bold bg-transparent outline-none"/><span className="text-xs font-mono text-gray-500">PX</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[10px] text-gray-400 uppercase">Size</span>
+                    <div className="relative z-[110]">
+                       <button 
+                          onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
+                          className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[70px] justify-between relative z-10"
+                       >
+                          <span>{fontSize} PX</span>
+                          <ChevronDown size={14} className={`transition-transform duration-200 ${isSizeDropdownOpen ? 'rotate-180' : ''}`} />
+                       </button>
+
+                       {isSizeDropdownOpen && (
+                         <>
+                          <div className="fixed inset-0 z-40" onClick={() => setIsSizeDropdownOpen(false)} />
+                          <div className="absolute left-0 top-full mt-2 w-32 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-y-auto max-h-[300px] shadow-none custom-scrollbar">
+                              {PRESET_SIZES.map((size) => (
+                                <button
+                                  key={size}
+                                  onClick={(e) => { 
+                                      e.stopPropagation();
+                                      setFontSize(size); 
+                                      setIsSizeDropdownOpen(false); 
+                                  }}
+                                  className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors block ${
+                                    fontSize === size 
+                                      ? 'bg-black text-white' 
+                                      : 'text-black hover:bg-black hover:text-white'
+                                  }`}
+                                >
+                                  {size} PX
+                                </button>
+                              ))}
+                          </div>
+                         </>
+                       )}
+                    </div>
+                  </div>
                 </>
              ) : (
                [10, 20, 30].map(size => (
