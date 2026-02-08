@@ -211,7 +211,11 @@ const Home: React.FC = () => {
         )}
 
         <main id="collection-start" className="w-full px-0">
-          {filteredFonts.length > 0 ? (
+          {loading ? (
+            <div className="p-20 text-center font-mono uppercase text-gray-400 animate-pulse">
+              Loading collection...
+            </div>
+          ) : filteredFonts.length > 0 ? (
             filteredFonts.map((font, index) => {
               const isEven = index % 2 === 0; 
               // DESKTOP: Zig Zag logic
