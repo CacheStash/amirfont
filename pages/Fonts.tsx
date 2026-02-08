@@ -54,7 +54,13 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
           style={{ transform: `translateX(-${topIndex * 100}%)` }}
         >
           {displayImages.map((img, i) => (
-            <img key={i} src={img} className="min-w-full h-full object-cover grayscale" alt="Font Preview Top" />
+            <img 
+              key={i} 
+              src={img} 
+              className="min-w-full h-full object-cover grayscale" 
+              alt="Font Preview Top"
+              onError={handleImageError} 
+            />
           ))}
         </div>
       </div>
@@ -65,7 +71,13 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
           style={{ transform: `translateX(-${bottomIndex * 100}%)` }}
         >
           {displayImages.map((img, i) => (
-            <img key={i} src={img} className="min-w-full h-full object-cover grayscale" alt="Font Preview Bottom" />
+            <img 
+              key={i} 
+              src={img} 
+              className="min-w-full h-full object-cover grayscale" 
+              alt="Font Preview Bottom"
+              onError={handleImageError}
+            />
           ))}
         </div>
       </div>
@@ -238,7 +250,7 @@ const Fonts: React.FC = () => {
                   </div>
 
                   {/* c. PREVIEW IMAGES COLUMN (Dual Slider) */}
-                  <PreviewSlider images={fontPreviews} />
+                  <PreviewSlider images={fontPreviews.map(resolvePreviewUrl).filter(Boolean) as string[]} />
 
                   {/* d. ACTION COLUMN */}
                   <div className="p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group/arrow">
