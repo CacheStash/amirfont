@@ -4,9 +4,8 @@ import { MoveRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const resolvePreviewUrl = (url: string) => {
   if (!url) return null;
-  // Jika sudah URL lengkap (http/https) atau path absolut (/), gunakan langsung
   if (url.startsWith('http') || url.startsWith('/') || url.startsWith('data:')) return url;
-  // Jika hanya nama file, tambahkan prefix path (sesuaikan dengan folder public/api Anda)
+  // ASUMSI: Gambar disimpan di folder public/api/previews/ atau endpoint serupa
   return `/api/previews/${url}`; 
 };
 
@@ -22,22 +21,22 @@ const DUMMY_LIBRARY = [
 // --- SUB-COMPONENT: DUAL IMAGE SLIDER ---
 const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
   const [index, setIndex] = useState(0);
-  // Pastikan ada gambar dummy jika database kosong
+  // Gunakan fallback placeholder jika array kosong atau null
   const hasImages = images && images.length > 0;
   const displayImages = hasImages ? images : ['/api/placeholder/400/200', '/api/placeholder/400/201'];
 
   useEffect(() => {
-    if (!hasImages) return; // Jangan auto-slide jika hanya placeholder
+    if (!hasImages) return; 
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % displayImages.length);
     }, 4000);
     return () => clearInterval(timer);
   }, [displayImages.length, hasImages]);
 
-  // Handler jika gambar gagal di-load (broken link)
+  // Handler jika gambar rusak (404)
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = '/api/placeholder/400/200'; // Fallback ke placeholder
-    e.currentTarget.onerror = null; // Mencegah loop error
+    e.currentTarget.src = 'https://placehold.co/400x200?text=No+Preview'; // External fallback yang pasti jalan
+    e.currentTarget.onerror = null; 
   };
 
   // Baris atas (Geser Kanan) dan Baris bawah (Geser Kiri)
@@ -242,7 +241,7 @@ const Fonts: React.FC = () => {
                   {/* b. TYPE VIEW COLUMN */}
                   <div className="p-6 md:p-8 border-b md:border-b-0 md:border-r border-black flex items-center overflow-hidden bg-transparent">
                     <span 
-                      className="text-4xl md:text-6xl break-words md:whitespace-nowrap opacity-90 transition-opacity group-hover:opacity-100"
+                      className="text-4xl md:text-6xl truncate w-full block opacity-90 transition-opacity group-hover:opacity-100"
                       style={{ fontFamily: fontFamilyStyle }}
                     >
                       {randomText}
@@ -250,6 +249,7 @@ const Fonts: React.FC = () => {
                   </div>
 
                   {/* c. PREVIEW IMAGES COLUMN (Dual Slider) */}
+                  {/* FIX: Resolve URL sebelum dikirim ke slider */}
                   <PreviewSlider images={fontPreviews.map(resolvePreviewUrl).filter(Boolean) as string[]} />
 
                   {/* d. ACTION COLUMN */}
