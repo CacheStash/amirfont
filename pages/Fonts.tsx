@@ -6,7 +6,7 @@ import { MoveRight, ChevronLeft, ChevronRight } from 'lucide-react';
 /** * 1. GUNAKAN PUBLIC DEVELOPMENT URL DARI SCREENSHOT R2 ANDA
  * URL ini adalah jembatan agar browser bisa mengambil file dari Cloudflare
  */
-const R2_PUBLIC_URL = 'https://pub-68e16980b0b8418921b7e095b4fbe7d5.r2.dev'; 
+const R2_PUBLIC_URL = 'https://pub-d342f8aa58364a918b27d36c9bd3cfe5.r2.dev'; 
 
 // Helper: Mengubah nama file dari database menjadi URL lengkap R2
 const resolvePreviewUrl = (filename: string) => {
