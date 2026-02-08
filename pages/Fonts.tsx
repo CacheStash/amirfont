@@ -46,14 +46,28 @@ const PreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
       <div className="border-b border-black relative overflow-hidden flex items-center">
         <div className="flex flex-nowrap w-max animate-marquee-left group-hover/slider:pause">
           {row1Images.map((img, i) => (
-            <img key={i} src={img} className="w-[200px] md:w-[300px] h-full object-cover flex-shrink-0 border-r border-black/10" alt="Top" />
+            <img 
+              key={i} 
+              src={img} 
+              crossOrigin="anonymous"
+              decoding="async"
+              className="w-[200px] md:w-[300px] h-full object-cover flex-shrink-0 border-r border-black/10" 
+              alt="Top" 
+            />
           ))}
         </div>
       </div>
       <div className="relative overflow-hidden flex items-center">
         <div className="flex flex-nowrap w-max animate-marquee-right group-hover/slider:pause">
           {row2Triple.map((img, i) => (
-            <img key={i} src={img} className="w-[200px] md:w-[300px] h-full object-cover flex-shrink-0 border-r border-black/10" alt="Bottom" />
+            <img 
+              key={`row2-${i}`} 
+              src={img} 
+              crossOrigin="anonymous"
+              decoding="async"
+              className="w-[200px] md:w-[300px] h-full object-cover flex-shrink-0 border-r border-black/10" 
+              alt="Bottom" 
+            />
           ))}
         </div>
       </div>
