@@ -181,9 +181,13 @@ const Fonts: React.FC = () => {
           ) : currentFonts.length > 0 ? (
             currentFonts.map((font, idx) => {
               const styleCount = Array.isArray(font.font_files) ? font.font_files.length : 1;
-              // FIX: Menggunakan nama kolom 'preview_images' sesuai schema database
+              // --- PARTIAL FIX ---
+              // FIX: Ganti 'font.font_previews' jadi 'font.preview_images' (sesuai DB)
+              // Logika: Jika kolom preview_images ada isinya, pakai. Jika tidak, array kosong.
               const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
-              
+// --- END FIX ---
+
+
               const promo = getActivePromo(font.id);
               const basePrice = font.price || 25;
 
