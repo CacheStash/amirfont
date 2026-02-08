@@ -3,18 +3,23 @@ import { supabase } from '../lib/supabase';
 import { MoveRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // --- PARTIAL FIX ---
-// HELPER: Mengubah nama file dari database menjadi URL lengkap
-// PENTING: Pastikan folder "public/api/previews" ada di projectmu, atau ganti URL ini ke Supabase Storage URL
+/** * 1. GUNAKAN PUBLIC DEVELOPMENT URL DARI SCREENSHOT R2 ANDA
+ * URL ini adalah jembatan agar browser bisa mengambil file dari Cloudflare
+ */
+const R2_PUBLIC_URL = 'https://pub-68e16980b0b8418921b7e095b4fbe7d5.r2.dev'; 
+
+// Helper: Mengubah nama file dari database menjadi URL lengkap R2
 const resolvePreviewUrl = (filename: string) => {
   if (!filename) return null;
-  // Jika filename sudah berupa URL lengkap (https://...), biarkan
-  if (filename.startsWith('http') || filename.startsWith('/') || filename.startsWith('data:')) return filename;
   
-  // Jika cuma nama file, tambahkan path folder.
-  // GANTI '/api/previews/' dengan URL Supabase Storage-mu jika kamu tidak punya folder local api.
-  // Contoh Supabase: `https://[PROJECT_ID].supabase.co/storage/v1/object/public/previews/${filename}`
-  return `/api/previews/${filename}`; 
+  // Jika database menyimpan URL lengkap (http/https), pakai langsung
+  if (filename.startsWith('http') || filename.startsWith('https')) return filename;
+  
+  // Gabungkan Domain R2 + Nama File
+  // Hasil: https://pub-xxx.r2.dev/1770526836266-01_optimized.jpeg
+  return `${R2_PUBLIC_URL}/${filename}`; 
 };
+// --- END FIX ---
 
 const DUMMY_LIBRARY = [
   "One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin.",
@@ -182,8 +187,6 @@ const Fonts: React.FC = () => {
             currentFonts.map((font, idx) => {
               const styleCount = Array.isArray(font.font_files) ? font.font_files.length : 1;
               // --- PARTIAL FIX ---
-              // FIX: Ganti 'font.font_previews' jadi 'font.preview_images' (sesuai DB)
-              // Logika: Jika kolom preview_images ada isinya, pakai. Jika tidak, array kosong.
               const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
 // --- END FIX ---
 
