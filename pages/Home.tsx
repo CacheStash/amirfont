@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import React, { useRef, useState, useEffect } from 'react';
 import TypeTester from '../components/TypeTester';
 import { supabase } from '../lib/supabase';
@@ -92,8 +93,8 @@ const Home: React.FC = () => {
   const [fonts, setFonts] = useState<any[]>([]);
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTag, setActiveTag] = useState<string | null>(null);
-// Menambahkan state untuk melacak font yang sedang di-hover
+const [activeTag, setActiveTag] = useState<string | null>(null);
+  // State untuk melacak font mana yang sedang di-hover
   const [hoveredFontId, setHoveredFontId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -241,21 +242,24 @@ const Home: React.FC = () => {
                   onMouseLeave={() => setHoveredFontId(null)}
                   className={`border-b border-black grid grid-cols-1 ${gridLayoutClass} relative overflow-hidden group/row`}
                 >
-                  {/* BACKGROUND PREVIEW IMAGE (Subtle Reveal) */}
-                  <div 
-                    className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ease-in-out ${hoveredFontId === font.id ? 'opacity-20' : 'opacity-0'}`}
-                  >
-                    <img 
-                      // Mengasumsikan file di R2 bernama: nama-font-preview.webp
-                      src={`/api/images/${font.name.toLowerCase().replace(/\s+/g, '-')}-preview.webp`} 
-                      alt=""
-                      loading="lazy" // Hemat bandwidth: Gambar hanya dimuat saat diperlukan
-                      className="w-full h-full object-cover grayscale mix-blend-multiply"
-                    />
-                  </div>
-                  
+                  {/* GHOST PREVIEW IMAGE (Background Layer) */}
+                  {font.preview_url && (
+                    <div 
+                      className={`absolute inset-0 pointer-events-none z-0 transition-all duration-700 ease-in-out ${
+                        hoveredFontId === font.id ? 'opacity-15 translate-y-0' : 'opacity-0 translate-y-4'
+                      }`}
+                    >
+                      <img 
+                        src={font.preview_url} 
+                        alt=""
+                        loading="lazy" // Lazy loading untuk hemat bandwidth R2
+                        className="w-full h-full object-cover grayscale mix-blend-multiply"
+                      />
+                    </div>
+                  )}
+
                   {/* 1. INFO COLUMN */}
-                  {/* Ditambahkan relative z-10 agar teks selalu di atas gambar */}
+                  {/* Tambahkan z-10 agar teks di depan gambar */}
                   <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 order-1 relative z-10 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
                     <div>
                       {/* Header: Title Only (Tags moved to bottom for mobile) */}
@@ -354,7 +358,9 @@ const Home: React.FC = () => {
                   {/* 3. ACTION COLUMN */}
                   {/* MOBILE: Always Order 3. Border-t on mobile for separation. */}
                   <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group order-3 border-t border-black md:border-t-0 ${isEven ? 'md:order-3 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
-                     <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
+                    <Link to={`/fonts/${font.id}`} className="w-full h-full flex items-center justify-center">
+                       <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
+                    </Link>
                   </div>
 
                   {/* 4. MOBILE SPACER (GRID KOSONG): Diperbarui dengan warna orange transparan */}
