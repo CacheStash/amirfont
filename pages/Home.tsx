@@ -93,6 +93,8 @@ const Home: React.FC = () => {
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState<string | null>(null);
+// Menambahkan state untuk melacak font yang sedang di-hover
+  const [hoveredFontId, setHoveredFontId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -233,11 +235,28 @@ const Home: React.FC = () => {
               const basePrice = font.price || 25;
 
               return (
-                <section key={font.id} className={`border-b border-black grid grid-cols-1 ${gridLayoutClass}`}>
+               <section 
+                  key={font.id} 
+                  onMouseEnter={() => setHoveredFontId(font.id)}
+                  onMouseLeave={() => setHoveredFontId(null)}
+                  className={`border-b border-black grid grid-cols-1 ${gridLayoutClass} relative overflow-hidden group/row`}
+                >
+                  {/* BACKGROUND PREVIEW IMAGE (Subtle Reveal) */}
+                  <div 
+                    className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ease-in-out ${hoveredFontId === font.id ? 'opacity-20' : 'opacity-0'}`}
+                  >
+                    <img 
+                      // Mengasumsikan file di R2 bernama: nama-font-preview.webp
+                      src={`/api/images/${font.name.toLowerCase().replace(/\s+/g, '-')}-preview.webp`} 
+                      alt=""
+                      loading="lazy" // Hemat bandwidth: Gambar hanya dimuat saat diperlukan
+                      className="w-full h-full object-cover grayscale mix-blend-multiply"
+                    />
+                  </div>
                   
                   {/* 1. INFO COLUMN */}
-                  {/* MOBILE: Always Order 1. DESKTOP: Zig-Zag (Order 1 or 3) */}
-                  <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 order-1 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
+                  {/* Ditambahkan relative z-10 agar teks selalu di atas gambar */}
+                  <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 order-1 relative z-10 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
                     <div>
                       {/* Header: Title Only (Tags moved to bottom for mobile) */}
                       <div className="flex justify-between items-start gap-4 mb-2">
@@ -323,7 +342,7 @@ const Home: React.FC = () => {
                   {/* 2. TESTER COLUMN */}
                   {/* MOBILE: Always Order 2. DESKTOP: Always Middle (Order 2) */}
                   <div className="md:order-2 h-full border-b md:border-b-0 relative order-2">
-                     <div className="h-full">
+                     <div className="md:order-2 h-full border-b md:border-b-0 relative order-2 z-10 bg-transparent">
                         <TypeTester 
                           config={displayFont} 
                           isEven={isEven}
