@@ -2,7 +2,10 @@ name = "subqi-studio"
 main = "index.js"
 compatibility_date = "2026-02-02"
 
-# BAGIAN [site] SUDAH DIHAPUS UNTUK MENGHINDARI KONFLIK DENGAN --assets
+[assets]
+directory = "./dist"  # Sesuaikan dengan folder hasil build kamu (biasanya 'dist' atau 'build')
+binding = "ASSETS"
+
 
 [vars]
 VITE_SUPABASE_URL = "https://kghvuqdyppabhjyzkyhp.supabase.co"
