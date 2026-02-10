@@ -2,14 +2,16 @@ name = "subqi-studio"
 main = "index.js"
 compatibility_date = "2026-02-02"
 
-[assets]
-directory = "./dist"  # Sesuaikan dengan folder hasil build kamu (biasanya 'dist' atau 'build')
-binding = "ASSETS"
+# --- BAGIAN INI WAJIB (JANGAN DIUBAH) ---
+# Ini yang membuat __STATIC_CONTENT_MANIFEST muncul
+[site]
+bucket = "./dist"
+
 
 
 [vars]
-VITE_SUPABASE_URL = "https://kghvuqdyppabhjyzkyhp.supabase.co"
-VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnaHZ1cWR5cHBhYmhqeXpreWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyMzIyMjcsImV4cCI6MjA4NTgwODIyN30.HQUG8EW4Jx3zq7sRHN2_akQwzMcV0O8yqhtbDnQL9dk"
+VITE_SUPABASE_URL = "https://kghvuqdyppabhjyzkyhp.supabase.co" # (Isi sesuai aslimu)
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnaHZ1cWR5cHBhYmhqeXpreWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyMzIyMjcsImV4cCI6MjA4NTgwODIyN30.HQUG8EW4Jx3zq7sRHN2_akQwzMcV0O8yqhtbDnQL9dk" # (Isi sesuai aslimu)
 
 [[r2_buckets]]
 binding = "R2_BUCKET"
