@@ -2,7 +2,7 @@ name = "subqi-studio"
 main = "index.js"
 compatibility_date = "2026-02-02"
 
-# --- PERBAIKAN: GUNAKAN ASSETS, HAPUS [site] ---
+# MENGGUNAKAN ASSETS MODERN (HAPUS [site] TOTAL)
 assets = { directory = "./dist" }
 
 [vars]
