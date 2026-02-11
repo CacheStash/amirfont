@@ -15,8 +15,13 @@ export default {
       return new Response(object.body, { headers });
     }
 
-    // --- 2. API Images (Sesuai Fonts.tsx & Fix preview iOS) ---
+    // --- 2. API Images (Optimasi Speed + Fix iOS) ---
     if (url.pathname.startsWith('/api/images/')) {
+      const cache = caches.default;
+      // Cek apakah gambar sudah ada di lemari es (cache) Cloudflare
+      let response = await cache.match(request);
+      if (response) return response;
+
       const imageName = decodeURIComponent(url.pathname.split('/').pop());
       const object = await env.R2_BUCKET.get(imageName);
       
@@ -25,31 +30,35 @@ export default {
       const headers = new Headers();
       object.writeHttpMetadata(headers);
       headers.set('Access-Control-Allow-Origin', '*');
-      headers.set('Cache-Control', 'public, max-age=86400');
+      // Beritahu browser & Cloudflare untuk simpan gambar selama 7 hari
+      headers.set('Cache-Control', 'public, max-age=604800, s-maxage=604800');
 
-      // Paksa Content-Type manual agar Safari iOS mau menampilkan gambar
       const lowerName = imageName.toLowerCase();
       if (lowerName.endsWith('.png')) headers.set('Content-Type', 'image/png');
       else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) headers.set('Content-Type', 'image/jpeg');
       else if (lowerName.endsWith('.webp')) headers.set('Content-Type', 'image/webp');
       else if (lowerName.endsWith('.svg')) headers.set('Content-Type', 'image/svg+xml');
 
-      return new Response(object.body, { headers });
+      response = new Response(object.body, { headers });
+      
+      // Simpan hasil ke cache secara background agar loading berikutnya instan
+      ctx.waitUntil(cache.put(request, response.clone()));
+      
+      return response;
     }
 
-    // --- 3. Serve Frontend (Sistem env.ASSETS) ---
+    // --- 3. Serve Frontend & SPA Fix (Menghilangkan Server Error) ---
     try {
-      // Mengambil file dari folder /dist secara otomatis
       let response = await env.ASSETS.fetch(request);
       
-      // SPA Fallback: Jika rute tidak ditemukan (404), kirim index.html 
-      // agar React Router tidak error saat halaman di-refresh.
+      // Jika rute tidak ditemukan (seperti /admin), kirim index.html
       if (response.status === 404) {
         return await env.ASSETS.fetch(new Request(`${url.origin}/index.html`, request));
       }
       return response;
     } catch (e) {
-      return new Response('Server Error', { status: 500 });
+      // Jika terjadi error saat memanggil assets, paksa kirim index.html
+      return await env.ASSETS.fetch(new Request(`${url.origin}/index.html`, request));
     }
   },
 };
