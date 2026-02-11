@@ -4,13 +4,6 @@ import { supabase } from '../lib/supabase';
 import { FontConfig } from '../types';
 import { MousePointer2, MoveRight, Circle, Square, Triangle, X } from 'lucide-react';
 
-// Helper: Menggunakan undefined (bukan null) untuk memperbaiki Error TS 2322
-const resolvePreviewUrl = (filename: string) => {
-  if (!filename) return undefined;
-  if (filename.startsWith('http')) return filename;
-  return `/api/images/${filename}`; 
-};
-
 // --- GRAPHIC COMPONENT ---
 const BrutalistGraphic = () => (
   <div className="flex gap-1">
@@ -100,12 +93,6 @@ const Home: React.FC = () => {
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState<string | null>(null);
-  const [hoveredFontId, setHoveredFontId] = useState<string | null>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    setMousePos({ x: e.clientX, y: e.clientY });
-  };
 
   useEffect(() => {
     fetchData();
@@ -175,6 +162,7 @@ const Home: React.FC = () => {
       <div className="grain-orb-base orb-top-right" />
       <div className="grain-orb-base orb-bottom-left" />
 
+      {/* OVERFLOW-X-HIDDEN ADDED HERE TO FIX MOBILE SCROLL ISSUE */}
       <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent overflow-x-hidden">
         <header className="w-full border-b border-black bg-transparent relative overflow-hidden">
           <div className="absolute -top-20 -right-20 w-[600px] h-[400px] pointer-events-none z-0">
@@ -186,6 +174,7 @@ const Home: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-[1fr_450px] relative z-10">
             <div className="p-6 md:p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-black">
               <div className="flex flex-col items-start gap-0 w-full uppercase">
+                {/* Header Tagline Mobile: text-2xl */}
                 <FluidText text="Made of Quiet Lines," className="text-2xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] md:leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
                 <FluidText text="Shaped Into Living Type," className="text-2xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] md:leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
                 <FluidText text="Read In Every Place." className="text-2xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] md:leading-[0.85] tracking-tight hover:text-gray-700 transition-colors duration-300" />
@@ -229,6 +218,8 @@ const Home: React.FC = () => {
           ) : filteredFonts.length > 0 ? (
             filteredFonts.map((font, index) => {
               const isEven = index % 2 === 0; 
+              // DESKTOP: Zig Zag logic
+              // MOBILE: Always single column grid
               const gridLayoutClass = isEven ? "md:grid-cols-[450px_1fr_150px]" : "md:grid-cols-[150px_1fr_450px]";
               
               const displayFont = {
@@ -236,36 +227,19 @@ const Home: React.FC = () => {
                 family: `"${font.name}"`,
                 tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []),
                 styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
+                randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
               };
               const promo = getActivePromo(font.id || '');
               const basePrice = font.price || 25;
 
               return (
                 <section key={font.id} className={`border-b border-black grid grid-cols-1 ${gridLayoutClass}`}>
-                  <div 
-                    className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 order-1 relative ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}
-                    onMouseEnter={() => setHoveredFontId(font.id)}
-                    onMouseLeave={() => setHoveredFontId(null)}
-                    onMouseMove={handleMouseMove}
-                  >
-                    {/* Floating Preview Image (Fix TS src error) */}
-                    {hoveredFontId === font.id && font.preview_images?.[0] && (
-                      <div 
-                        className="fixed pointer-events-none z-[100] w-64 h-40 border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white overflow-hidden"
-                        style={{ 
-                          top: mousePos.y + 15, 
-                          left: mousePos.x + 15 
-                        }}
-                      >
-                        <img 
-                          src={resolvePreviewUrl(font.preview_images[0])} 
-                          alt={font.name}
-                          className="w-full h-full object-cover"
-                          crossOrigin="anonymous"
-                        />
-                      </div>
-                    )}
+                  
+                  {/* 1. INFO COLUMN */}
+                  {/* MOBILE: Always Order 1. DESKTOP: Zig-Zag (Order 1 or 3) */}
+                  <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 order-1 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
                     <div>
+                      {/* Header: Title Only (Tags moved to bottom for mobile) */}
                       <div className="flex justify-between items-start gap-4 mb-2">
                         <div className="flex-1">
                           <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h2>
@@ -277,6 +251,7 @@ const Home: React.FC = () => {
 
                       <div className="hidden md:block mb-8"><BrutalistGraphic /></div>
                       
+                      {/* Desktop Tags (Hidden on Mobile) */}
                       <div className="hidden md:flex flex-wrap gap-2 text-[10px] font-mono uppercase mb-6">
                         {displayFont.tags.map((tag: string) => (
                           <button 
@@ -327,7 +302,10 @@ const Home: React.FC = () => {
                            )}
                         </div>
                       </div>
+                      
                       <p className="text-gray-600 text-sm leading-relaxed font-mono mt-4">{font.description}</p>
+
+                      {/* MOBILE TAGS: Moved here (Below Description - Bottom Left) */}
                       <div className="flex flex-wrap gap-2 mt-6 md:hidden">
                         {displayFont.tags.map((tag: string) => (
                           <button 
@@ -342,6 +320,8 @@ const Home: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* 2. TESTER COLUMN */}
+                  {/* MOBILE: Always Order 2. DESKTOP: Always Middle (Order 2) */}
                   <div className="md:order-2 h-full border-b md:border-b-0 relative order-2">
                      <div className="h-full">
                         <TypeTester 
@@ -352,11 +332,15 @@ const Home: React.FC = () => {
                      </div>
                   </div>
 
+                  {/* 3. ACTION COLUMN */}
+                  {/* MOBILE: Always Order 3. Border-t on mobile for separation. */}
                   <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group order-3 border-t border-black md:border-t-0 ${isEven ? 'md:order-3 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
                      <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
                   </div>
 
+                  {/* 4. MOBILE SPACER (GRID KOSONG): Diperbarui dengan warna orange transparan */}
                   <div className="md:hidden order-4 h-12 border-t border-black w-full bg-orange-500/10" />
+
                 </section>
               );
             })
