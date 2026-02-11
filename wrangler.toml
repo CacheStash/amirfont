@@ -1,9 +1,11 @@
 name = "subqi-studio"
 main = "index.js"
-compatibility_date = "2026-02-02"
+compatibility_date = "2024-09-23"
 
-# MENGGUNAKAN ASSETS MODERN (HAPUS [site] TOTAL)
-assets = { directory = "./dist" }
+# --- PERBAIKAN: GUNAKAN FORMAT TABEL & EKSPLISIT BINDING ---
+[assets]
+directory = "./dist"
+binding = "ASSETS"
 
 [vars]
 VITE_SUPABASE_URL = "https://kghvuqdyppabhjyzkyhp.supabase.co"

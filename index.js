@@ -2,7 +2,17 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // --- 1. API Fonts (Aman) ---
+    // --- 0. DIAGNOSTIC CHECK (PENTING) ---
+    // Jika env.ASSETS hilang, kode ini akan memberitahu kita apa yang salah
+    if (!env.ASSETS) {
+      const availableBindings = JSON.stringify(Object.keys(env), null, 2);
+      return new Response(
+        `CRITICAL ERROR: env.ASSETS is missing!\n\nAvailable Bindings:\n${availableBindings}\n\nPlease check wrangler.toml [assets] configuration.`,
+        { status: 500 }
+      );
+    }
+
+    // --- 1. API Fonts ---
     if (url.pathname.startsWith('/api/fonts/')) {
       const fontName = decodeURIComponent(url.pathname.split('/').pop());
       try {
@@ -19,11 +29,10 @@ export default {
       }
     }
 
-    // --- 2. API Images (Cache + iOS Fix) ---
+    // --- 2. API Images ---
     if (url.pathname.startsWith('/api/images/')) {
       try {
         const cache = caches.default;
-        // Cek Cache Cloudflare dulu
         let response = await cache.match(request);
         if (response) return response;
 
@@ -52,23 +61,18 @@ export default {
       }
     }
 
-    // --- 3. Serve Frontend & SPA Handler (ANTI-CRASH FIX) ---
+    // --- 3. Serve Frontend (Stable SPA Handler) ---
     try {
-      // Coba ambil file asli (assets/style.css, dll)
       let response = await env.ASSETS.fetch(request);
       
-      // Jika 404 (Halaman tidak ketemu), kirim index.html (SPA Fallback)
-      // TAPI: Kecuali jika url diawali /api/ (biar API error tetap error)
       if (response.status === 404 && !url.pathname.startsWith('/api/')) {
         const indexUrl = new URL('/index.html', request.url);
-        // PENTING: Buat Request BARU yang bersih, tanpa header lama
+        // Buat Request baru yang bersih
         return await env.ASSETS.fetch(new Request(indexUrl));
       }
-      
       return response;
 
     } catch (e) {
-      // Safety Net Terakhir: Jika masih error, tampilkan pesan teks (bukan Error 1101)
       return new Response(`System Error: ${e.message}`, { status: 500 });
     }
   },
