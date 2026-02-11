@@ -2,7 +2,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // --- 1. API Fonts (Aman & Stabil) ---
+    // --- 1. API Fonts (Aman) ---
     if (url.pathname.startsWith('/api/fonts/')) {
       const fontName = decodeURIComponent(url.pathname.split('/').pop());
       try {
@@ -19,10 +19,11 @@ export default {
       }
     }
 
-    // --- 2. API Images (Cache & iOS Fix) ---
+    // --- 2. API Images (Cache + iOS Fix) ---
     if (url.pathname.startsWith('/api/images/')) {
       try {
         const cache = caches.default;
+        // Cek Cache Cloudflare dulu
         let response = await cache.match(request);
         if (response) return response;
 
@@ -51,33 +52,24 @@ export default {
       }
     }
 
-    // --- 3. Serve Frontend & SPA Handler (ANTI-CRASH) ---
+    // --- 3. Serve Frontend & SPA Handler (ANTI-CRASH FIX) ---
     try {
-      // Coba ambil file asli (misal: /style.css, /logo.png)
+      // Coba ambil file asli (assets/style.css, dll)
       let response = await env.ASSETS.fetch(request);
       
-      // Jika file tidak ketemu (404), berarti user sedang akses rute React (misal: /admin, /blog)
-      // Kita harus kirim index.html, TAPI dengan request baru yang bersih.
+      // Jika 404 (Halaman tidak ketemu), kirim index.html (SPA Fallback)
+      // TAPI: Kecuali jika url diawali /api/ (biar API error tetap error)
       if (response.status === 404 && !url.pathname.startsWith('/api/')) {
         const indexUrl = new URL('/index.html', request.url);
-        return await env.ASSETS.fetch(new Request(indexUrl, {
-            method: 'GET',
-            headers: request.headers
-        }));
+        // PENTING: Buat Request BARU yang bersih, tanpa header lama
+        return await env.ASSETS.fetch(new Request(indexUrl));
       }
       
       return response;
 
     } catch (e) {
-      // --- EMERGENCY FALLBACK ---
-      // Jika semua cara di atas gagal/crash, kirim index.html sebagai upaya terakhir.
-      // Ini mencegah Error 1101 muncul di layar user.
-      try {
-          const indexUrl = new URL('/index.html', request.url);
-          return await env.ASSETS.fetch(indexUrl);
-      } catch (err) {
-          return new Response("Critical System Error: Unable to load application.", { status: 500 });
-      }
+      // Safety Net Terakhir: Jika masih error, tampilkan pesan teks (bukan Error 1101)
+      return new Response(`System Error: ${e.message}`, { status: 500 });
     }
   },
 };
