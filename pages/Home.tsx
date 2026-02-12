@@ -29,6 +29,7 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
 
   return (
     <div className="relative w-full h-full bg-white flex items-center overflow-hidden">
+      {/* flex-nowrap dan flex-none sangat penting agar gambar tidak menciut */}
       <div 
         className="flex flex-nowrap transition-transform duration-500 ease-in-out h-full"
         style={{ 
@@ -39,7 +40,7 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
         {resolvedImages.map((img, i) => (
           <div 
             key={i} 
-            className="flex-none h-full p-6 flex items-center justify-center border-r border-black/5" 
+            className="flex-none h-full p-4 flex items-center justify-center border-r border-black/5" 
             style={{ width: `${100 / count}%` }} 
           >
              <img src={img} alt={`Preview ${i}`} className="w-full h-full object-contain pointer-events-none" />
