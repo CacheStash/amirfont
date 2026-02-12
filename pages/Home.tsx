@@ -11,8 +11,7 @@ const resolvePreviewUrl = (filename: string) => {
   return `/api/images/${filename}`; 
 };
 
-const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+const ScrollableImageStack: React.FC<{ images: string[], onImageClick: (url: string) => void }> = ({ images, onImageClick }) => {
   const resolvedImages = images.map(resolvePreviewUrl).filter(Boolean) as string[];
 
   if (resolvedImages.length === 0) return (
@@ -21,56 +20,17 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
     </div>
   );
 
-  const count = resolvedImages.length;
-  // Geser maksimal sampai sisa 2 gambar terakhir terlihat
-  const maxIndex = Math.max(0, count - 2);
-  const next = () => setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
-  const prev = () => setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
-
- return (
-    <div className="relative w-full h-full bg-white flex items-center overflow-hidden">
-      {/* STRIP CONTAINER: 
-          Kita tidak membatasi lebar container ini. 
-          Biarkan item di dalamnya (w-1/2) yang menentukan lebar strip secara otomatis.
-      */}
-      <div 
-        className="flex flex-nowrap transition-transform duration-500 ease-in-out h-full items-center w-full"
-        style={{ transform: `translateX(-${currentIndex * 50}%)` }}
-      >
-        {resolvedImages.map((img, i) => (
-          <div 
-            key={i} 
-            /* KUNCI PERBAIKAN:
-               w-1/2 -> Memaksa container gambar selebar 50% dari view kolom tengah.
-               flex-none -> Mencegah flexbox mengecilkan gambar (mencegah gambar jadi kecil).
-            */
-            className="w-1/2 flex-none h-full p-2 flex items-center justify-center border-r border-black/5"
-          >
-             <img 
-               src={img} 
-               alt={`Preview ${i}`} 
-               className="w-full h-full object-contain pointer-events-none" 
-             />
-          </div>
-        ))}
-      </div>
-
-      {count > 2 && (
-        <div className="absolute inset-x-0 bottom-6 flex justify-center gap-4 z-50">
-          <button 
-            onClick={(e) => { e.stopPropagation(); prev(); }} 
-            className="p-2 bg-black text-white hover:bg-gray-800 transition-all border border-white/20 active:scale-90"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <button 
-            onClick={(e) => { e.stopPropagation(); next(); }} 
-            className="p-2 bg-black text-white hover:bg-gray-800 transition-all border border-white/20 active:scale-90"
-          >
-            <ChevronRight size={20} />
-          </button>
-        </div>
-      )}
+  return (
+    <div className="h-full w-full overflow-y-auto bg-white scrollbar-hide cursor-zoom-in">
+       {resolvedImages.map((img, i) => (
+         <img 
+           key={i} 
+           src={img} 
+           onClick={(e) => { e.stopPropagation(); onImageClick(img); }}
+           className="w-full h-auto block" 
+           alt={`Preview ${i}`} 
+         />
+       ))}
     </div>
   );
 };
@@ -166,6 +126,7 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [expandedFontId, setExpandedFontId] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -420,7 +381,10 @@ const Home: React.FC = () => {
                             : (isExpanded ? 'translate-x-0' : 'translate-x-full')  // Genap: Muncul dari arah kanan (toggle)
                           }`}
                       >
-                        <ManualPreviewSlider images={fontPreviews} />
+                        <ScrollableImageStack 
+                          images={fontPreviews} 
+                          onImageClick={(url) => setSelectedImage(url)} 
+                        />
                         
                         <button 
                           onClick={(e) => { e.stopPropagation(); setExpandedFontId(null); }}
@@ -459,6 +423,23 @@ const Home: React.FC = () => {
           )}
         </main>
       </div>
+      {/* FULL SCREEN IMAGE MODAL */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-12 cursor-zoom-out"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button className="absolute top-8 right-8 text-white hover:rotate-90 transition-transform duration-300">
+            <X size={48} strokeWidth={1} />
+          </button>
+          <img 
+            src={selectedImage} 
+            className="max-w-full max-h-full object-contain animate-in zoom-in-95 duration-300 shadow-2xl border border-white/10"
+            alt="Full Preview" 
+          />
+        </div>
+      )}
+      
     </>
   );
 };
