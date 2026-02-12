@@ -3,6 +3,7 @@ import TypeTester from '../components/TypeTester';
 import { supabase } from '../lib/supabase';
 import { FontConfig } from '../types';
 import { MousePointer2, MoveRight, Circle, Square, Triangle, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // --- GRAPHIC COMPONENT ---
 const BrutalistGraphic = () => (
@@ -12,6 +13,50 @@ const BrutalistGraphic = () => (
     <Triangle size={24} strokeWidth={1.5} className="fill-transparent stroke-black" />
   </div>
 );
+
+const resolvePreviewUrl = (filename: string) => {
+  if (!filename) return null;
+  if (filename.startsWith('http')) return filename;
+  return `/api/images/${filename}`; 
+};
+
+const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const resolvedImages = images.map(resolvePreviewUrl).filter(Boolean) as string[];
+
+  if (resolvedImages.length === 0) return (
+    <div className="w-full h-full flex items-center justify-center font-mono text-xs text-gray-400 bg-gray-50">NO PREVIEWS</div>
+  );
+
+  const next = () => setCurrentIndex((prev) => (prev + 1) % resolvedImages.length);
+  const prev = () => setCurrentIndex((prev) => (prev - 1 + resolvedImages.length) % resolvedImages.length);
+
+  return (
+    <div className="relative w-full h-full group/slider bg-white flex items-center overflow-hidden">
+      <div 
+        className="flex transition-transform duration-500 ease-out h-full"
+        style={{ transform: `translateX(-${currentIndex * 50}%)`, width: `${resolvedImages.length * 50}%` }}
+      >
+        {resolvedImages.map((img, i) => (
+          <div key={i} className="w-full px-1">
+             <img src={img} alt="Preview" className="w-full h-auto object-contain block" />
+          </div>
+        ))}
+      </div>
+      
+      {resolvedImages.length > 2 && (
+        <>
+          <button onClick={prev} className="absolute left-2 z-30 p-2 bg-black/10 hover:bg-black hover:text-white transition-colors backdrop-blur-md">
+            <ChevronLeft size={20} />
+          </button>
+          <button onClick={next} className="absolute right-2 z-30 p-2 bg-black/10 hover:bg-black hover:text-white transition-colors backdrop-blur-md">
+            <ChevronRight size={20} />
+          </button>
+        </>
+      )}
+    </div>
+  );
+};
 
 const DUMMY_LIBRARY = [
   "One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin.",
@@ -93,6 +138,7 @@ const Home: React.FC = () => {
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [expandedFontId, setExpandedFontId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -220,8 +266,13 @@ const Home: React.FC = () => {
               const isEven = index % 2 === 0; 
               // DESKTOP: Zig Zag logic
               // MOBILE: Always single column grid
-              const gridLayoutClass = isEven ? "md:grid-cols-[450px_1fr_150px]" : "md:grid-cols-[150px_1fr_450px]";
+              const gridLayoutClass = isEven 
+                ? "md:grid-cols-[450px_60px_1fr_150px]" 
+                : "md:grid-cols-[150px_1fr_60px_450px]";
               
+              const isExpanded = expandedFontId === font.id;
+              const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
+
               const displayFont = {
                 ...font,
                 family: `"${font.name}"`,
@@ -229,6 +280,8 @@ const Home: React.FC = () => {
                 styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
                 randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
               };
+
+
               const promo = getActivePromo(font.id || '');
               const basePrice = font.price || 25;
 
@@ -320,16 +373,51 @@ const Home: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 2. TESTER COLUMN */}
-                  {/* MOBILE: Always Order 2. DESKTOP: Always Middle (Order 2) */}
-                  <div className="md:order-2 h-full border-b md:border-b-0 relative order-2">
-                     <div className="h-full">
+                  {/* 1.5 TOGGLE COLUMN (DESKTOP) */}
+                  <div 
+                    onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
+                    className={`hidden md:flex items-center justify-center border-black cursor-pointer hover:bg-black/5 transition-colors z-40
+                      ${isEven ? 'md:order-2 border-r' : 'md:order-3 border-l'}`}
+                  >
+                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                      <MoveRight size={20} className={isEven ? "rotate-0" : "rotate-180"} />
+                    </div>
+                  </div>
+
+                  {/* 2. TESTER & SLIDER COLUMN */}
+                  <div className={`relative min-h-[400px] border-b md:border-b-0 order-2 flex items-center ${isEven ? 'md:order-3' : 'md:order-2'}`}>
+                      {/* SLIDE PREVIEW LAYER */}
+                      <div 
+                        className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out border-black
+                          ${isEven 
+                            ? (isExpanded ? 'translate-x-0' : 'translate-x-full') // Genap: Slide ke Kiri (Muncul dari kanan)
+                            : (isExpanded ? 'translate-x-0' : '-translate-x-full') // Ganjil: Slide ke Kanan (Muncul dari kiri)
+                          }
+                          ${isEven ? 'border-l' : 'border-r'}`}
+                      >
+                        <ManualPreviewSlider images={fontPreviews} />
+                        
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setExpandedFontId(null); }}
+                          className="absolute top-4 right-4 z-50 p-2 bg-black text-white rounded-full hover:scale-110 transition-transform shadow-xl"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+
+                      {/* BASE TYPE TESTER */}
+                      <div className="w-full h-full flex items-center">
                         <TypeTester 
                           config={displayFont} 
                           isEven={isEven}
                           defaultText={isEven ? "The quick brown fox jumps over the lazy dog." : undefined} 
                         />
-                     </div>
+                      </div>
+                  </div>
+
+                  {/* 3. ACTION COLUMN */}
+                  <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group order-3 border-t border-black md:border-t-0 ${isEven ? 'md:order-4 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
+                     <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
                   </div>
 
                   {/* 3. ACTION COLUMN */}
