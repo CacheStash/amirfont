@@ -79,10 +79,10 @@ const Navbar: React.FC = () => {
       {isOpen && (
         <div className="fixed top-[57px] md:top-[65px] left-0 w-full h-[calc(100vh-60px)] bg-[#EDEBE6]/95 border-t border-black z-40 p-0 flex flex-col md:flex-row backdrop-blur-xl">
             <div className="w-full md:w-1/2 border-r-0 md:border-r border-black p-8 md:p-12 flex flex-col gap-6">
-                 {['Fonts', 'License', 'Blog', 'About', 'Contact'].map((item) => (
+                 {['Fonts', 'License', 'Blog', 'About', 'Contact', 'Admin'].map((item) => (
                     <Link 
                         key={item} 
-                        to={`/${item.toLowerCase()}`}
+                        to={item === 'Admin' ? '/admin' : `/${item.toLowerCase()}`}
                         className="text-4xl md:text-6xl font-black uppercase tracking-tight hover:italic hover:translate-x-4 transition-all"
                         onClick={() => setIsOpen(false)}
                     >
