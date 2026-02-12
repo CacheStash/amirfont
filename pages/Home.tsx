@@ -29,25 +29,28 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
 
  return (
     <div className="relative w-full h-full bg-white flex items-center overflow-hidden">
-      {/* flex-nowrap wajib ada agar gambar tidak menciut ke dalam 100% lebar layar */}
+      {/* STRIP CONTAINER: 
+          Kita tidak membatasi lebar container ini. 
+          Biarkan item di dalamnya (w-1/2) yang menentukan lebar strip secara otomatis.
+      */}
       <div 
-        className="flex flex-nowrap transition-transform duration-500 ease-in-out h-full items-center"
-        style={{ 
-          // Jika ada 4 gambar, lebar strip menjadi 200% (agar tiap gambar = 50% lebar kolom tengah)
-          width: count <= 1 ? '100%' : `${count * 50}%`, 
-          transform: `translateX(-${currentIndex * (100 / count)}%)` 
-        }}
+        className="flex flex-nowrap transition-transform duration-500 ease-in-out h-full items-center w-full"
+        style={{ transform: `translateX(-${currentIndex * 50}%)` }}
       >
         {resolvedImages.map((img, i) => (
           <div 
             key={i} 
-            className="flex-none h-full p-4 flex items-center justify-center border-r border-black/5" 
-            style={{ 
-              // Menghitung lebar item relatif terhadap strip container
-              width: count <= 1 ? '100%' : `${100 / count}%` 
-            }} 
+            /* KUNCI PERBAIKAN:
+               w-1/2 -> Memaksa container gambar selebar 50% dari view kolom tengah.
+               flex-none -> Mencegah flexbox mengecilkan gambar (mencegah gambar jadi kecil).
+            */
+            className="w-1/2 flex-none h-full p-2 flex items-center justify-center border-r border-black/5"
           >
-             <img src={img} alt={`Preview ${i}`} className="max-w-full max-h-full object-contain pointer-events-none" />
+             <img 
+               src={img} 
+               alt={`Preview ${i}`} 
+               className="w-full h-full object-contain pointer-events-none" 
+             />
           </div>
         ))}
       </div>
