@@ -27,27 +27,31 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
   const next = () => setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
   const prev = () => setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
 
-  return (
+ return (
     <div className="relative w-full h-full bg-white flex items-center overflow-hidden">
-      {/* flex-nowrap dan flex-none sangat penting agar gambar tidak menciut */}
+      {/* flex-nowrap wajib ada agar gambar tidak menciut ke dalam 100% lebar layar */}
       <div 
-        className="flex flex-nowrap transition-transform duration-500 ease-in-out h-full"
+        className="flex flex-nowrap transition-transform duration-500 ease-in-out h-full items-center"
         style={{ 
-          width: `${count * 50}%`, 
-          transform: `translateX(-${(currentIndex * 100) / count}%)` 
+          // Jika ada 4 gambar, lebar strip menjadi 200% (agar tiap gambar = 50% lebar kolom tengah)
+          width: count <= 1 ? '100%' : `${count * 50}%`, 
+          transform: `translateX(-${currentIndex * (100 / count)}%)` 
         }}
       >
         {resolvedImages.map((img, i) => (
           <div 
             key={i} 
             className="flex-none h-full p-4 flex items-center justify-center border-r border-black/5" 
-            style={{ width: `${100 / count}%` }} 
+            style={{ 
+              // Menghitung lebar item relatif terhadap strip container
+              width: count <= 1 ? '100%' : `${100 / count}%` 
+            }} 
           >
-             <img src={img} alt={`Preview ${i}`} className="w-full h-full object-contain pointer-events-none" />
+             <img src={img} alt={`Preview ${i}`} className="max-w-full max-h-full object-contain pointer-events-none" />
           </div>
         ))}
       </div>
-      
+
       {count > 2 && (
         <div className="absolute inset-x-0 bottom-6 flex justify-center gap-4 z-50">
           <button 
