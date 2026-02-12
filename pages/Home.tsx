@@ -31,7 +31,7 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
       <div 
         className="flex transition-transform duration-500 ease-in-out h-full"
         style={{ 
-          width: `${(maxCount / 2) * 100}%`, // Container fleksibel mengikuti jumlah gambar
+          width: `${(maxCount / 2) * 100}%`, 
           transform: `translateX(-${currentIndex * (100 / maxCount)}%)` 
         }}
       >
@@ -39,7 +39,7 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
           <div 
             key={i} 
             className="flex-none h-full p-4 flex items-center justify-center" 
-            style={{ width: `${100 / maxCount}%` }} // Setiap gambar mengambil 50% area terlihat
+            style={{ width: `${100 / maxCount}%` }} 
           >
              <img src={img} alt={`Preview ${i}`} className="w-full h-full object-contain" />
           </div>
