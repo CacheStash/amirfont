@@ -22,7 +22,7 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
   );
 
   const count = resolvedImages.length;
-  // Geser maksimal sampai gambar terakhir terlihat (untuk 2-up, maxIndex adalah count - 2)
+  // Geser maksimal sampai sisa 2 gambar terakhir terlihat
   const maxIndex = Math.max(0, count - 2);
   const next = () => setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
   const prev = () => setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
@@ -30,9 +30,8 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
   return (
     <div className="relative w-full h-full bg-white flex items-center overflow-hidden">
       <div 
-        className="flex transition-transform duration-500 ease-in-out h-full"
+        className="flex flex-nowrap transition-transform duration-500 ease-in-out h-full"
         style={{ 
-          // Lebar kontainer = (jumlah gambar * 50%). Jadi jika ada 4 gambar, lebar 200%.
           width: `${count * 50}%`, 
           transform: `translateX(-${(currentIndex * 100) / count}%)` 
         }}
@@ -40,27 +39,27 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
         {resolvedImages.map((img, i) => (
           <div 
             key={i} 
-            className="flex-none h-full p-4 flex items-center justify-center border-r border-black/5" 
-            style={{ width: `${100 / count}%` }} // Setiap item = 1/jumlah_gambar dari lebar kontainer (hasilnya 50% layar)
+            className="flex-none h-full p-6 flex items-center justify-center border-r border-black/5" 
+            style={{ width: `${100 / count}%` }} 
           >
-             <img src={img} alt={`Preview ${i}`} className="w-full h-full object-contain" />
+             <img src={img} alt={`Preview ${i}`} className="w-full h-full object-contain pointer-events-none" />
           </div>
         ))}
       </div>
       
       {count > 2 && (
-        <div className="absolute inset-x-0 bottom-4 flex justify-center gap-4 z-50">
+        <div className="absolute inset-x-0 bottom-6 flex justify-center gap-4 z-50">
           <button 
             onClick={(e) => { e.stopPropagation(); prev(); }} 
-            className="p-2 bg-black text-white hover:bg-gray-800 transition-colors shadow-lg"
+            className="p-2 bg-black text-white hover:bg-gray-800 transition-all border border-white/20 active:scale-90"
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={20} />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); next(); }} 
-            className="p-2 bg-black text-white hover:bg-gray-800 transition-colors shadow-lg"
+            className="p-2 bg-black text-white hover:bg-gray-800 transition-all border border-white/20 active:scale-90"
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={20} />
           </button>
         </div>
       )}
