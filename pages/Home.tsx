@@ -4,16 +4,6 @@ import { supabase } from '../lib/supabase';
 import { FontConfig } from '../types';
 import { MousePointer2, MoveRight, Circle, Square, Triangle, X } from 'lucide-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-// --- GRAPHIC COMPONENT ---
-const BrutalistGraphic = () => (
-  <div className="flex gap-1">
-    <Circle size={24} strokeWidth={1.5} className="fill-transparent stroke-black" />
-    <Square size={24} strokeWidth={1.5} className="fill-black stroke-black" />
-    <Triangle size={24} strokeWidth={1.5} className="fill-transparent stroke-black" />
-  </div>
-);
-
 const resolvePreviewUrl = (filename: string) => {
   if (!filename) return null;
   if (filename.startsWith('http')) return filename;
@@ -25,38 +15,66 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
   const resolvedImages = images.map(resolvePreviewUrl).filter(Boolean) as string[];
 
   if (resolvedImages.length === 0) return (
-    <div className="w-full h-full flex items-center justify-center font-mono text-xs text-gray-400 bg-gray-50">NO PREVIEWS</div>
+    <div className="w-full h-full flex items-center justify-center font-mono text-xs text-gray-400 bg-gray-50 uppercase tracking-widest">
+      No Previews
+    </div>
   );
 
-  const next = () => setCurrentIndex((prev) => (prev + 1) % resolvedImages.length);
-  const prev = () => setCurrentIndex((prev) => (prev - 1 + resolvedImages.length) % resolvedImages.length);
+  // Logika 2-up: Geser per 50% lebar kolom
+  const maxCount = resolvedImages.length;
+  const maxIndex = Math.max(0, maxCount - 2);
+  const next = () => setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
+  const prev = () => setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
 
   return (
-    <div className="relative w-full h-full group/slider bg-white flex items-center overflow-hidden">
+    <div className="relative w-full h-full bg-white flex items-center overflow-hidden">
       <div 
-        className="flex transition-transform duration-500 ease-out h-full"
-        style={{ transform: `translateX(-${currentIndex * 50}%)`, width: `${resolvedImages.length * 50}%` }}
+        className="flex transition-transform duration-500 ease-in-out h-full"
+        style={{ 
+          width: `${(maxCount / 2) * 100}%`, // Container fleksibel mengikuti jumlah gambar
+          transform: `translateX(-${currentIndex * (100 / maxCount)}%)` 
+        }}
       >
         {resolvedImages.map((img, i) => (
-          <div key={i} className="w-full px-1">
-             <img src={img} alt="Preview" className="w-full h-auto object-contain block" />
+          <div 
+            key={i} 
+            className="flex-none h-full p-4 flex items-center justify-center" 
+            style={{ width: `${100 / maxCount}%` }} // Setiap gambar mengambil 50% area terlihat
+          >
+             <img src={img} alt={`Preview ${i}`} className="w-full h-full object-contain" />
           </div>
         ))}
       </div>
       
-      {resolvedImages.length > 2 && (
-        <>
-          <button onClick={prev} className="absolute left-2 z-30 p-2 bg-black/10 hover:bg-black hover:text-white transition-colors backdrop-blur-md">
-            <ChevronLeft size={20} />
+      {maxCount > 2 && (
+        <div className="absolute inset-x-0 bottom-4 flex justify-center gap-4 z-50">
+          <button 
+            onClick={(e) => { e.stopPropagation(); prev(); }} 
+            className="p-2 bg-black text-white hover:bg-gray-800 transition-colors shadow-lg border border-white/20"
+          >
+            <ChevronLeft size={16} />
           </button>
-          <button onClick={next} className="absolute right-2 z-30 p-2 bg-black/10 hover:bg-black hover:text-white transition-colors backdrop-blur-md">
-            <ChevronRight size={20} />
+          <button 
+            onClick={(e) => { e.stopPropagation(); next(); }} 
+            className="p-2 bg-black text-white hover:bg-gray-800 transition-colors shadow-lg border border-white/20"
+          >
+            <ChevronRight size={16} />
           </button>
-        </>
+        </div>
       )}
     </div>
   );
 };
+
+// --- GRAPHIC COMPONENT ---
+const BrutalistGraphic = () => (
+  <div className="flex gap-1">
+    <Circle size={24} strokeWidth={1.5} className="fill-transparent stroke-black" />
+    <Square size={24} strokeWidth={1.5} className="fill-black stroke-black" />
+    <Triangle size={24} strokeWidth={1.5} className="fill-transparent stroke-black" />
+  </div>
+);
+
 
 const DUMMY_LIBRARY = [
   "One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin.",
@@ -266,7 +284,7 @@ const Home: React.FC = () => {
               const isEven = index % 2 === 0; 
               // DESKTOP: Zig Zag logic
               // MOBILE: Always single column grid
-              const gridLayoutClass = isEven 
+             const gridLayoutClass = isEven 
                 ? "md:grid-cols-[450px_60px_1fr_150px]" 
                 : "md:grid-cols-[150px_1fr_60px_450px]";
               
@@ -280,7 +298,6 @@ const Home: React.FC = () => {
                 styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
                 randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
               };
-
 
               const promo = getActivePromo(font.id || '');
               const basePrice = font.price || 25;
@@ -373,7 +390,7 @@ const Home: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 1.5 TOGGLE COLUMN (DESKTOP) */}
+                 {/* 1.5 TOGGLE COLUMN (HIDDEN ON MOBILE) */}
                   <div 
                     onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
                     className={`hidden md:flex items-center justify-center border-black cursor-pointer hover:bg-black/5 transition-colors z-40
@@ -385,13 +402,13 @@ const Home: React.FC = () => {
                   </div>
 
                   {/* 2. TESTER & SLIDER COLUMN */}
-                  <div className={`relative min-h-[400px] border-b md:border-b-0 order-2 flex items-center ${isEven ? 'md:order-3' : 'md:order-2'}`}>
+                  <div className={`relative min-h-[400px] border-b md:border-b-0 order-2 flex items-center overflow-hidden ${isEven ? 'md:order-3' : 'md:order-2'}`}>
                       {/* SLIDE PREVIEW LAYER */}
                       <div 
                         className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out border-black
                           ${isEven 
-                            ? (isExpanded ? 'translate-x-0' : 'translate-x-full') // Genap: Slide ke Kiri (Muncul dari kanan)
-                            : (isExpanded ? 'translate-x-0' : '-translate-x-full') // Ganjil: Slide ke Kanan (Muncul dari kiri)
+                            ? (isExpanded ? 'translate-x-0' : '-translate-x-full') // Row Ganjil: Slider muncul dari kiri (arah kanan)
+                            : (isExpanded ? 'translate-x-0' : 'translate-x-full')  // Row Genap: Slider muncul dari kanan (arah kiri)
                           }
                           ${isEven ? 'border-l' : 'border-r'}`}
                       >
@@ -417,12 +434,6 @@ const Home: React.FC = () => {
 
                   {/* 3. ACTION COLUMN */}
                   <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group order-3 border-t border-black md:border-t-0 ${isEven ? 'md:order-4 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
-                     <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
-                  </div>
-
-                  {/* 3. ACTION COLUMN */}
-                  {/* MOBILE: Always Order 3. Border-t on mobile for separation. */}
-                  <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group order-3 border-t border-black md:border-t-0 ${isEven ? 'md:order-3 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
                      <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
                   </div>
 
