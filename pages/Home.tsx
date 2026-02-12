@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { FontConfig } from '../types';
 import { MousePointer2, MoveRight, Circle, Square, Triangle, X } from 'lucide-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 const resolvePreviewUrl = (filename: string) => {
   if (!filename) return null;
   if (filename.startsWith('http')) return filename;
@@ -15,14 +16,14 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
   const resolvedImages = images.map(resolvePreviewUrl).filter(Boolean) as string[];
 
   if (resolvedImages.length === 0) return (
-    <div className="w-full h-full flex items-center justify-center font-mono text-xs text-gray-400 bg-gray-50 uppercase tracking-widest">
+    <div className="w-full h-full flex items-center justify-center font-mono text-xs text-gray-400 bg-white uppercase tracking-widest">
       No Previews
     </div>
   );
 
-  // Logika 2-up: Geser per 50% lebar kolom
-  const maxCount = resolvedImages.length;
-  const maxIndex = Math.max(0, maxCount - 2);
+  const count = resolvedImages.length;
+  // Geser maksimal sampai gambar terakhir terlihat (untuk 2-up, maxIndex adalah count - 2)
+  const maxIndex = Math.max(0, count - 2);
   const next = () => setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
   const prev = () => setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
 
@@ -31,32 +32,33 @@ const ManualPreviewSlider: React.FC<{ images: string[] }> = ({ images }) => {
       <div 
         className="flex transition-transform duration-500 ease-in-out h-full"
         style={{ 
-          width: `${(maxCount / 2) * 100}%`, 
-          transform: `translateX(-${currentIndex * (100 / maxCount)}%)` 
+          // Lebar kontainer = (jumlah gambar * 50%). Jadi jika ada 4 gambar, lebar 200%.
+          width: `${count * 50}%`, 
+          transform: `translateX(-${(currentIndex * 100) / count}%)` 
         }}
       >
         {resolvedImages.map((img, i) => (
           <div 
             key={i} 
-            className="flex-none h-full p-4 flex items-center justify-center" 
-            style={{ width: `${100 / maxCount}%` }} 
+            className="flex-none h-full p-4 flex items-center justify-center border-r border-black/5" 
+            style={{ width: `${100 / count}%` }} // Setiap item = 1/jumlah_gambar dari lebar kontainer (hasilnya 50% layar)
           >
              <img src={img} alt={`Preview ${i}`} className="w-full h-full object-contain" />
           </div>
         ))}
       </div>
       
-      {maxCount > 2 && (
+      {count > 2 && (
         <div className="absolute inset-x-0 bottom-4 flex justify-center gap-4 z-50">
           <button 
             onClick={(e) => { e.stopPropagation(); prev(); }} 
-            className="p-2 bg-black text-white hover:bg-gray-800 transition-colors shadow-lg border border-white/20"
+            className="p-2 bg-black text-white hover:bg-gray-800 transition-colors shadow-lg"
           >
             <ChevronLeft size={16} />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); next(); }} 
-            className="p-2 bg-black text-white hover:bg-gray-800 transition-colors shadow-lg border border-white/20"
+            className="p-2 bg-black text-white hover:bg-gray-800 transition-colors shadow-lg"
           >
             <ChevronRight size={16} />
           </button>
@@ -307,7 +309,7 @@ const Home: React.FC = () => {
                   
                   {/* 1. INFO COLUMN */}
                   {/* MOBILE: Always Order 1. DESKTOP: Zig-Zag (Order 1 or 3) */}
-                  <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 order-1 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-3 md:border-l border-black'}`}>
+                  <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 order-1 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-4 md:border-l border-black'}`}>
                     <div>
                       {/* Header: Title Only (Tags moved to bottom for mobile) */}
                       <div className="flex justify-between items-start gap-4 mb-2">
@@ -405,12 +407,11 @@ const Home: React.FC = () => {
                   <div className={`relative min-h-[400px] border-b md:border-b-0 order-2 flex items-center overflow-hidden ${isEven ? 'md:order-3' : 'md:order-2'}`}>
                       {/* SLIDE PREVIEW LAYER */}
                       <div 
-                        className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out border-black
+                        className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out
                           ${isEven 
-                            ? (isExpanded ? 'translate-x-0' : '-translate-x-full') // Row Ganjil: Slider muncul dari kiri (arah kanan)
-                            : (isExpanded ? 'translate-x-0' : 'translate-x-full')  // Row Genap: Slider muncul dari kanan (arah kiri)
-                          }
-                          ${isEven ? 'border-l' : 'border-r'}`}
+                            ? (isExpanded ? 'translate-x-0' : '-translate-x-full') // Ganjil: Muncul dari arah kiri (toggle)
+                            : (isExpanded ? 'translate-x-0' : 'translate-x-full')  // Genap: Muncul dari arah kanan (toggle)
+                          }`}
                       >
                         <ManualPreviewSlider images={fontPreviews} />
                         
