@@ -11,7 +11,10 @@ const resolvePreviewUrl = (filename: string) => {
   return `/api/images/${filename}`; 
 };
 
-const ScrollableImageStack: React.FC<{ images: string[], onImageClick: (url: string) => void }> = ({ images, onImageClick }) => {
+const ScrollableImageStack: React.FC<{ 
+  images: string[], 
+  onImageClick: (index: number, resolvedImages: string[]) => void 
+}> = ({ images, onImageClick }) => {
   const resolvedImages = images.map(resolvePreviewUrl).filter(Boolean) as string[];
 
   if (resolvedImages.length === 0) return (
@@ -26,8 +29,8 @@ const ScrollableImageStack: React.FC<{ images: string[], onImageClick: (url: str
          <img 
            key={i} 
            src={img} 
-           onClick={(e) => { e.stopPropagation(); onImageClick(img); }}
-           className="w-full h-auto block" 
+           onClick={(e) => { e.stopPropagation(); onImageClick(i, resolvedImages); }}
+           className="w-full h-auto block border-b border-black/5 last:border-0" 
            alt={`Preview ${i}`} 
          />
        ))}
@@ -126,7 +129,23 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [expandedFontId, setExpandedFontId] = useState<string | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null); // Tetap simpan URL untuk trigger modal
+  const [activeGallery, setActiveGallery] = useState<string[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const nextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newIndex = (activeIndex + 1) % activeGallery.length;
+    setActiveIndex(newIndex);
+    setSelectedImage(activeGallery[newIndex]);
+  };
+
+  const prevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newIndex = (activeIndex - 1 + activeGallery.length) % activeGallery.length;
+    setActiveIndex(newIndex);
+    setSelectedImage(activeGallery[newIndex]);
+  };
 
   useEffect(() => {
     fetchData();
@@ -383,7 +402,11 @@ const Home: React.FC = () => {
                       >
                         <ScrollableImageStack 
                           images={fontPreviews} 
-                          onImageClick={(url) => setSelectedImage(url)} 
+                          onImageClick={(index, allResolved) => {
+                            setActiveGallery(allResolved);
+                            setActiveIndex(index);
+                            setSelectedImage(allResolved[index]);
+                          }} 
                         />
                         
                         <button 
@@ -423,23 +446,50 @@ const Home: React.FC = () => {
           )}
         </main>
       </div>
-      {/* FULL SCREEN IMAGE MODAL */}
+      {/* FULL SCREEN GALLERY MODAL */}
       {selectedImage && (
         <div 
-          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-12 cursor-zoom-out"
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 md:p-8 select-none"
           onClick={() => setSelectedImage(null)}
         >
-          <button className="absolute top-8 right-8 text-white hover:rotate-90 transition-transform duration-300">
+          {/* Close Button */}
+          <button className="absolute top-8 right-8 text-white/50 hover:text-white z-[110] transition-colors">
             <X size={48} strokeWidth={1} />
           </button>
-          <img 
-            src={selectedImage} 
-            className="max-w-full max-h-full object-contain animate-in zoom-in-95 duration-300 shadow-2xl border border-white/10"
-            alt="Full Preview" 
-          />
+
+          {/* Navigation Arrows */}
+          {activeGallery.length > 1 && (
+            <>
+              <button 
+                onClick={prevImage}
+                className="absolute left-4 md:left-8 p-4 text-white/50 hover:text-white transition-all bg-white/5 rounded-full hover:bg-white/10"
+              >
+                <ChevronLeft size={32} />
+              </button>
+              <button 
+                onClick={nextImage}
+                className="absolute right-4 md:right-8 p-4 text-white/50 hover:text-white transition-all bg-white/5 rounded-full hover:bg-white/10"
+              >
+                <ChevronRight size={32} />
+              </button>
+            </>
+          )}
+
+          {/* Image Counter */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-white/40 text-sm tracking-widest">
+            {activeIndex + 1} / {activeGallery.length}
+          </div>
+
+          <div className="w-full h-full flex items-center justify-center">
+            <img 
+              key={selectedImage} // Key agar ada animasi setiap ganti gambar
+              src={selectedImage} 
+              className="max-w-full max-h-full object-contain animate-in zoom-in-95 fade-in duration-300 pointer-events-none shadow-2xl"
+              alt="Gallery View" 
+            />
+          </div>
         </div>
       )}
-      
     </>
   );
 };
