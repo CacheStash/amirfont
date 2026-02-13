@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search, ShoppingBag, ArrowRight } from 'lucide-react';
+import { Menu, X, Search, Plus, ArrowRight } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -51,7 +51,7 @@ const Navbar: React.FC = () => {
            </button>
 
            <button className="flex items-center gap-2 font-mono text-[10px] md:text-sm font-bold border border-black px-2 md:px-3 py-1 hover:bg-black hover:text-white transition-all whitespace-nowrap">
-              <ShoppingBag size={16} className="shrink-0" />
+              <Plus size={16} className="shrink-0" />
               <span>CART (0)</span>
            </button>
         </div>
