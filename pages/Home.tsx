@@ -313,8 +313,8 @@ const Home: React.FC = () => {
                          transform: 'translate(-50%, -50%)',
                          opacity: 0.8
                        }}>
-                       <div className="w-full h-full mix-blend-multiply blur-[100px]" 
-                            style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.7) 0%, rgba(253, 186, 116, 0.4) 50%, rgba(253, 186, 116, 0) 100%)' }} />
+                       <div className="w-full h-full mix-blend-multiply blur-[60px]" 
+                     style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
                   </div>
                   
                   {/* 1. INFO COLUMN */}
