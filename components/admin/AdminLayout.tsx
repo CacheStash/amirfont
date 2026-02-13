@@ -25,7 +25,7 @@ const AdminDashboard = () => {
         </div>
         
         <nav className="flex-grow p-4 space-y-2">
-          <button onClick={() => setActiveTab('stats')} className={`w-full flex items-center gap-3 px-4 py-3 font-mono font-bold uppercase text-[10px] transition-all ${activeTab === 'stats' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+          <button onClick={() => setActiveTab('stats')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'stats' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <LayoutDashboard size={18} /> Statistics
           </button>
           <button onClick={() => setActiveTab('products')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'products' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
