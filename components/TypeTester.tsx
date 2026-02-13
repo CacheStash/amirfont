@@ -155,7 +155,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           {/* GRID 2: Style Dropdown - FULL WIDTH ON MOBILE (col-span-2) */}
           <div className="col-span-2 md:col-span-1 md:ml-auto flex items-center gap-6 px-4 md:px-8 py-4 md:py-8 border-b md:border-b-0 md:border-l border-black justify-between md:justify-end md:order-last">
               <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
-                <span className="font-mono text-[10px] text-gray-400 uppercase">Style</span>
+                <span className="font-bold text-xs text-gray-400 uppercase">Style</span>
                 <div className="relative z-[100]">
                    <button 
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -208,7 +208,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
              {viewMode === 'type' ? (
                 <>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] text-gray-400 uppercase">Size</span>
+                    <span className="font-bold text-xs text-gray-400 uppercase">Size</span>
                     <div className="relative z-[110]">
                        <button 
                           onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
@@ -247,7 +247,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 </>
              ) : (
                [10, 20, 30].map(size => (
-                  <button key={size} onClick={() => { setMapGridSize(size); setMapPage(0); }} className={`px-2 py-1 text-[10px] font-bold border border-black ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent hover:bg-gray-200'}`}>{size}</button>
+                  <button key={size} onClick={() => { setMapGridSize(size); setMapPage(0); }} className={`px-3 py-1 text-xs font-bold border border-black ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent hover:bg-gray-200 uppercase'}`}>{size}</button>
                 ))
              )}
           </div>
@@ -261,9 +261,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   <button onClick={() => setAlign('right')} className={`p-2 ${align === 'right' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignRight size={16}/></button>
                 </>
              ) : (
-               <div className="flex gap-1">
-                  <button onClick={() => setMapPage(Math.max(0, mapPage - 1))} disabled={mapPage === 0} className="px-2 py-1 text-[10px] font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white">PREV</button>
-                  <button onClick={() => setMapPage(mapPage + 1)} disabled={(mapPage + 1) * glyphsPerPage >= filteredGlyphs.length} className="px-2 py-1 text-[10px] font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white">NEXT</button>
+              <div className="flex gap-1">
+                  <button onClick={() => setMapPage(Math.max(0, mapPage - 1))} disabled={mapPage === 0} className="px-3 py-1 text-xs font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white uppercase">PREV</button>
+                  <button onClick={() => setMapPage(mapPage + 1)} disabled={(mapPage + 1) * glyphsPerPage >= filteredGlyphs.length} className="px-3 py-1 text-xs font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white uppercase">NEXT</button>
                </div>
              )}
           </div>
@@ -305,27 +305,27 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         <div className="bg-transparent border-t border-black">
           <div className={`grid grid-cols-1 md:grid-cols-2 ${(hasAxes || hasFeatures) ? 'border-b border-black' : ''}`}>
               <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-b md:border-b-0 md:border-r border-black">
-                  <label className="w-24 font-mono text-xs font-bold uppercase">Leading</label>
+               <label className="w-24 font-bold text-xs uppercase">Leading</label>
                   <input type="range" min="0.8" max="2.0" step="0.1" value={lineHeight} onChange={(e) => setLineHeight(parseFloat(e.target.value))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
-                  <span className="w-12 text-right font-mono text-xs">{lineHeight.toFixed(1)}</span>
+                  <span className="w-12 text-right font-bold text-xs">{lineHeight.toFixed(1)}</span>
               </div>
               <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8">
-                  <label className="w-24 font-mono text-xs font-bold uppercase">Tracking</label>
+                  <label className="w-24 font-bold text-xs uppercase">Tracking</label>
                   <input type="range" min="-0.1" max="0.5" step="0.01" value={letterSpacing} onChange={(e) => setLetterSpacing(parseFloat(e.target.value))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
-                  <span className="w-12 text-right font-mono text-xs">{letterSpacing.toFixed(2)}</span>
-              </div>
+                  <span className="w-12 text-right font-bold text-xs">{letterSpacing.toFixed(2)}</span>
+                  </div>
           </div>
 
           {(hasAxes || hasFeatures) && (
             <div className={`grid grid-cols-1 ${hasAxes && hasFeatures ? 'md:grid-cols-3' : 'md:grid-cols-1'}`}>
                 {hasAxes && (
                   <div className={`${hasFeatures ? 'md:col-span-2 border-b md:border-b-0' : 'md:col-span-1'} space-y-4 px-4 md:px-8 py-6 md:py-8`}>
-                    <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Variable Axes</h4>
+                    <h4 className="font-bold text-xs uppercase text-gray-400 mb-4 tracking-widest">Variable Axes</h4>
                     {activeAxes.map((axis: any) => (
                       <div key={axis.tag} className="flex items-center gap-4">
-                        <label className="w-16 font-mono text-xs font-bold uppercase truncate">{axis.name}</label>
+                        <label className="w-16 font-bold text-xs uppercase truncate">{axis.name}</label>
                         <input type="range" min={axis.min} max={axis.max} step={1} value={axesValues[axis.tag] ?? axis.default} onChange={(e) => setAxesValues(p => ({...p, [axis.tag]: parseFloat(e.target.value)}))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
-                        <span className="w-12 text-right font-mono text-xs">{Math.round(axesValues[axis.tag] ?? axis.default)}</span>
+                        <span className="w-12 text-right font-bold text-xs">{Math.round(axesValues[axis.tag] ?? axis.default)}</span>
                       </div>
                     ))}
                   </div>
@@ -333,11 +333,13 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 
                 {hasFeatures && (
                   <div className={`${hasAxes ? 'md:col-span-1 md:border-l' : 'md:col-span-1'} border-black px-4 md:px-8 py-6 md:py-8 border-t md:border-t-0`}>
-                    <h4 className="font-mono text-xs uppercase text-gray-500 mb-4">Features</h4>
+                    <h4 className="font-bold text-xs uppercase text-gray-400 mb-4 tracking-widest">Features</h4>
                     <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar">
                       {dynamicFeatures.map((feat) => (
                         <label key={feat.tag} className="flex items-center justify-between cursor-pointer group select-none">
-                          <span className="text-sm font-bold uppercase group-hover:text-gray-600 transition-colors">{feat.name} <span className="text-gray-400 font-mono text-xs ml-2">.{feat.tag}</span></span>
+                          <span className="text-sm font-bold uppercase group-hover:text-gray-600 transition-colors">
+                            {feat.name} <span className="text-gray-400 font-bold text-[10px] ml-2">.{feat.tag}</span>
+                          </span>
                           <div className="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" className="sr-only peer" checked={activeFeatures[feat.tag] || false} onChange={() => toggleFeature(feat.tag)} />
                             <div className="w-9 h-5 rounded-full bg-transparent border border-black peer-checked:bg-black peer-checked:border-black after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-black after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:bg-white"></div>

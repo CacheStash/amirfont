@@ -171,7 +171,7 @@ const Fonts: React.FC = () => {
          <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-6">
             All Fonts
           </h2>
-          <p className="font-mono text-xs md:text-sm font-bold text-gray-600 uppercase tracking-widest">
+          <p className="text-xs md:text-sm font-bold text-gray-600 uppercase tracking-widest">
             Retail & Custom Typefaces
           </p>
         </header>
@@ -179,7 +179,7 @@ const Fonts: React.FC = () => {
         {/* Fonts List Container */}
         <main className="w-full">
           {loading ? (
-            <div className="p-20 text-center font-mono uppercase text-gray-400 animate-pulse">
+            <div className="p-20 text-center font-bold uppercase text-gray-400 animate-pulse tracking-widest">
               Loading Library...
             </div>
           ) : currentFonts.length > 0 ? (
@@ -205,7 +205,7 @@ const Fonts: React.FC = () => {
                   <div className="p-6 md:p-8 border-b md:border-b-0 md:border-r border-black flex flex-col justify-between">
                     <div>
                       <h3 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h3>
-                      <span className="block font-mono text-[10px] font-bold text-gray-500 uppercase">
+                      <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">
                         {styleCount} STYLES
                       </span>
                     </div>
@@ -213,11 +213,11 @@ const Fonts: React.FC = () => {
                    <div className="mt-8">
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2 mb-4">
-                           <span className="inline-block border border-black rounded-full px-3 py-1 font-mono italic text-[11px] md:text-[12px] titlecase text-black bg-transparent leading-none">
+                           <span className="inline-block border border-black rounded-full px-3 py-1 font-regular italic text-[11px] md:text-[14px] lowercase text-black bg-transparent leading-none">
                              starting at
                            </span>
                            {promo && (
-                             <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-mono font-bold text-[11px] md:text-[12px] uppercase text-red-600 bg-transparent leading-none">
+                             <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-bold text-[11px] md:text-[14px] uppercase text-red-600 bg-transparent leading-none">
                                {promo.discount_percent}% OFF
                              </span>
                            )}
@@ -235,7 +235,7 @@ const Fonts: React.FC = () => {
                                    </span>
                                    <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
                                  </div>
-                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-mono font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full min-w-max">
+                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full min-w-max">
                                    {calculateDaysLeft(promo.end_date)}
                                  </span>
                                </div>
@@ -279,7 +279,7 @@ const Fonts: React.FC = () => {
               );
             })
           ) : (
-            <div className="p-20 text-center font-mono uppercase text-gray-400">
+            <div className="p-20 text-center font-bold uppercase text-gray-400 tracking-widest">
               No fonts available in the library.
             </div>
           )}
@@ -296,7 +296,7 @@ const Fonts: React.FC = () => {
               <ChevronLeft size={24} />
             </button>
             
-            <div className="font-mono text-sm font-bold uppercase tracking-widest">
+            <div className="text-sm font-bold uppercase tracking-widest">
               Page {currentPage} / {totalPages}
             </div>
 

@@ -33,27 +33,24 @@ const Navbar: React.FC = () => {
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
           
-          <Link to="/" className="font-mono font-bold tracking-tighter text-lg md:text-xl uppercase hover:opacity-70 transition-opacity truncate">
+         <Link to="/" className="font-normal tracking-tighter text-xl md:text-2xl uppercase hover:opacity-70 transition-opacity truncate">
             Subqi Studio
           </Link>
         </div>
 
-        {/* Right: Search & Cart 
-            FIX: border-l-0 (mobile) agar tidak double border dengan elemen kiri. 
-            md:border-l (desktop) agar border muncul kembali saat elemen terpisah.
-        */}
+        {/* Right: Search & Cart */}
         <div className="flex items-center justify-end gap-2 md:gap-4 h-full border-l-0 md:border-l border-black px-3 md:px-8 shrink-0 bg-inherit">
-           <button
-             onClick={() => setIsSearchOpen(!isSearchOpen)}
-             className={`p-1 transition-colors border border-transparent ${isSearchOpen ? 'bg-black text-white' : 'hover:bg-black hover:text-white hover:border-black'}`}
-           >
-              {isSearchOpen ? <X size={20} /> : <Search size={20} />}
-           </button>
+            <button
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className={`p-1 transition-colors border border-transparent ${isSearchOpen ? 'bg-black text-white' : 'hover:bg-black hover:text-white hover:border-black'}`}
+            >
+               {isSearchOpen ? <X size={20} /> : <Search size={20} />}
+            </button>
 
-           <button className="flex items-center gap-2 font-mono text-[10px] md:text-sm font-bold border border-black px-2 md:px-3 py-1 hover:bg-black hover:text-white transition-all whitespace-nowrap">
-              <Plus size={16} className="shrink-0" />
-              <span>CART (0)</span>
-           </button>
+            <button className="flex items-center gap-2 font-bold text-xs md:text-sm border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-all whitespace-nowrap uppercase">
+               <Plus size={16} className="shrink-0" />
+               <span>CART (0)</span>
+            </button>
         </div>
       </div>
 
@@ -66,7 +63,7 @@ const Navbar: React.FC = () => {
                 <input 
                     type="text" 
                     placeholder="TYPE TO SEARCH FONTS..." 
-                    className="w-full p-3 font-mono text-sm uppercase bg-transparent outline-none placeholder:text-gray-400"
+                    className="w-full p-3 font-normal text-sm uppercase bg-transparent outline-none placeholder:text-gray-400"
                     autoFocus
                 />
                 <button className="p-3 hover:bg-black hover:text-white border-l border-black transition-colors">
@@ -93,12 +90,12 @@ const Navbar: React.FC = () => {
             </div>
 
             <div className="hidden md:flex w-1/2 p-12 flex-col justify-between">
-                <div className="font-mono text-sm">
-                    <p className="uppercase font-bold mb-4">Office</p>
+                <div className="font-bold uppercase text-xs md:text-sm tracking-wider space-y-1">
+                    <p className="text-gray-400 mb-4">Office</p>
                     <p>Subqi Studio HQ</p>
                     <p>Jakarta, Indonesia</p>
                 </div>
-                <div className="text-9xl font-black opacity-5 pointer-events-none select-none">
+                <div className="text-9xl font-normal opacity-5 pointer-events-none select-none tracking-tighter">
                     MENU
                 </div>
             </div>

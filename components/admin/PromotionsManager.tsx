@@ -99,11 +99,13 @@ const PromotionsManager = () => {
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-4xl font-normal uppercase tracking-tight">Campaigns</h2>
-          <p className="font-mono text-xs font-bold text-gray-500 uppercase mt-1">Discount Management</p>
+          <p className="text-xs font-bold text-gray-400 uppercase mt-1 tracking-wider">
+            Discount Management
+          </p>
         </div>
         <button 
           onClick={() => setIsAdding(true)}
-          className="bg-black text-white px-6 py-3 font-mono font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+          className="bg-black text-white px-6 py-3 font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
         >
           <Plus size={16} /> Create Promo
         </button>
@@ -112,26 +114,34 @@ const PromotionsManager = () => {
       {/* PROMO LIST */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {loading ? (
-          <div className="col-span-2 p-20 text-center font-mono text-xs uppercase animate-pulse">Loading campaigns...</div>
+          <div className="col-span-2 p-20 text-center font-bold text-xs uppercase animate-pulse tracking-widest text-gray-400">Loading campaigns...</div>
         ) : promos.length === 0 ? (
-          <div className="col-span-2 p-20 border-2 border-dashed border-gray-300 text-center text-gray-400 font-mono text-xs uppercase">No active promotions.</div>
+          <div className="col-span-2 p-20 border-2 border-dashed border-gray-300 text-center text-gray-400 font-bold text-xs uppercase tracking-widest">No active promotions.</div>
         ) : (
           promos.map(p => (
             <div key={p.id} className="border-2 border-black p-6 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <div className="flex justify-between items-start mb-4">
-                <span className="bg-yellow-300 px-2 py-1 text-[10px] font-black uppercase border border-black">{p.discount_percent}% OFF</span>
-                <span className="font-mono text-[9px] uppercase">Ends: {p.end_date}</span>
+                <span className="bg-yellow-300 px-2 py-1 text-[10px] font-bold uppercase border border-black">
+                  {p.discount_percent}% OFF
+                </span>
+                <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                  Ends: {p.end_date}
+                </span>
               </div>
               <h3 className="text-xl font-bold uppercase mb-1">{p.name}</h3>
-              <p className="text-[10px] font-mono text-gray-500 mb-4 uppercase">{p.type === 'global' ? 'Store-wide Sale' : `${p.font_ids?.length} Fonts Selected`}</p>
+              <p className="text-[10px] font-bold text-gray-500 mb-4 uppercase tracking-wide">
+                {p.type === 'global' ? 'Store-wide Sale' : `${p.font_ids?.length} Fonts Selected`}
+              </p>
               <div className="flex gap-4">
                <button 
                  onClick={() => handleEdit(p)} 
-                 className="text-[10px] font-bold border-b-2 border-black uppercase"
+                 className="text-xs font-bold border-b-2 border-black uppercase"
                >
                  Edit Campaign
                </button>
-               <button onClick={() => handleDelete(p.id)} className="text-red-500 font-bold uppercase text-[10px] border-b-2 border-red-500">End Campaign</button>
+               <button onClick={() => handleDelete(p.id)} className="text-red-500 font-bold uppercase text-xs border-b-2 border-red-500">
+                 End Campaign
+               </button>
              </div>
             </div>
           ))
@@ -149,28 +159,28 @@ const PromotionsManager = () => {
 
             <form onSubmit={handleSavePromo} className="space-y-4">
               <div className="space-y-1">
-                <label className="block font-mono text-[10px] font-bold uppercase">Campaign Name</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Campaign Name</label>
                 <input type="text" value={promoName} onChange={e => setPromoName(e.target.value)} className="w-full border border-black p-2 font-bold uppercase text-sm outline-none focus:bg-yellow-50" placeholder="E.G. RAMADAN SALE" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="block font-mono text-[10px] font-bold uppercase">Discount (%)</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Discount (%)</label>
                   <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} className="w-full border border-black p-2 font-bold text-sm outline-none" placeholder="30" />
                 </div>
                 <div className="space-y-1">
-                  <label className="block font-mono text-[10px] font-bold uppercase">End Date</label>
-                  <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full border border-black p-2 font-mono text-xs outline-none" />
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">End Date</label>
+                  <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full border border-black p-2 font-bold uppercase text-xs outline-none focus:bg-yellow-50" />
                 </div>
               </div>
 
               <div className="space-y-2 pt-2">
-                <label className="block font-mono text-[10px] font-bold uppercase">Target Fonts</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Target Fonts</label>
                 <div className="flex gap-4 mb-2">
-                  <label className="flex items-center gap-2 font-mono text-[10px] cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-bold uppercase cursor-pointer">
                     <input type="radio" checked={targetType === 'all'} onChange={() => setTargetType('all')} /> ALL FONTS
                   </label>
-                  <label className="flex items-center gap-2 font-mono text-[10px] cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-bold uppercase cursor-pointer">
                     <input type="radio" checked={targetType === 'specific'} onChange={() => setTargetType('specific')} /> SELECT FONTS
                   </label>
                 </div>
@@ -178,7 +188,7 @@ const PromotionsManager = () => {
                 {targetType === 'specific' && (
                   <div className="max-h-32 overflow-y-auto border border-black p-2 space-y-1 bg-gray-50">
                     {fonts.map(f => (
-                      <label key={f.id} className="flex items-center gap-2 font-mono text-[9px] uppercase cursor-pointer hover:bg-white p-1">
+                      <label key={f.id} className="flex items-center gap-2 text-[10px] font-bold uppercase cursor-pointer hover:bg-white p-1">
                         <input 
                           type="checkbox" 
                           checked={selectedFonts.includes(f.id)}

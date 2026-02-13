@@ -28,10 +28,10 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('stats')} className={`w-full flex items-center gap-3 px-4 py-3 font-mono font-bold uppercase text-[10px] transition-all ${activeTab === 'stats' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <LayoutDashboard size={18} /> Statistics
           </button>
-          <button onClick={() => setActiveTab('products')} className={`w-full flex items-center gap-3 px-4 py-3 font-mono font-bold uppercase text-[10px] transition-all ${activeTab === 'products' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+          <button onClick={() => setActiveTab('products')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'products' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <Type size={18} /> Products
           </button>
-          <button onClick={() => setActiveTab('promotions')} className={`w-full flex items-center gap-3 px-4 py-3 font-mono font-bold uppercase text-[10px] transition-all ${activeTab === 'promotions' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+          <button onClick={() => setActiveTab('promotions')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'promotions' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <Tag size={18} /> Promotions
           </button>
           <button onClick={() => setActiveTab('orders')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'orders' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
@@ -50,8 +50,8 @@ const AdminDashboard = () => {
       <main className="flex-grow p-10 overflow-y-auto">
         {activeTab === 'products' && <ProductManager />}
         {activeTab === 'promotions' && <PromotionsManager />}
-        {activeTab === 'stats' && <div className="p-20 text-center font-mono opacity-20 uppercase">Stats Dashboard (Coming Soon)</div>}
-        {activeTab === 'orders' && <div className="p-20 text-center font-mono opacity-20 uppercase">Orders History (Coming Soon)</div>}
+        {activeTab === 'stats' && <div className="p-20 text-center font-bold opacity-20 uppercase text-xs tracking-[0.2em]">Stats Dashboard (Coming Soon)</div>}
+        {activeTab === 'orders' && <div className="p-20 text-center font-bold opacity-20 uppercase text-xs tracking-[0.2em]">Orders History (Coming Soon)</div>}
       </main>
     </div>
   );

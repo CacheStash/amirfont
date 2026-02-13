@@ -158,7 +158,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
     <form className="space-y-6" onSubmit={handleSaveProduct}>
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="block font-mono text-[10px] font-bold uppercase tracking-widest text-gray-500">Font Name</label>
+          <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Font Name</label>
           <input 
             type="text" 
             value={fontName}
@@ -169,7 +169,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           />
         </div>
         <div className="space-y-2">
-          <label className="block font-mono text-xs font-bold uppercase">Basic Price ($)</label>
+          <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Basic Price ($)</label>
           <input 
             type="number" 
             required
@@ -209,9 +209,9 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
 
       {/* PRICING PREVIEW & TAGS INPUT */}
       <div className="grid grid-cols-2 gap-6">
-        <div className="p-4 bg-gray-50 border border-black font-mono text-[9px] space-y-1 leading-tight">
-          <p className="font-bold uppercase border-b border-black mb-1 text-black text-[10px]">License Preview (Solo/Base)</p>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+        <div className="p-4 bg-gray-50 border border-black text-[10px] space-y-1 leading-tight">
+          <p className="font-bold uppercase border-b border-black mb-2 text-black tracking-widest">License Preview (Solo/Base)</p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-bold uppercase text-gray-600">
             <div className="flex items-center gap-1">
               <span>Desktop: $</span>
               <input 
@@ -278,7 +278,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           </div>
         </div>
         <div className="space-y-2">
-          <label className="block font-mono text-xs font-bold uppercase">Tags (Pisahkan dengan koma)</label>
+          <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Tags (Separated by Comma)</label>
           <input 
             type="text" 
             value={tags}
@@ -290,7 +290,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       </div>
 
       <div className="space-y-2">
-        <label className="block font-mono text-xs font-bold uppercase">Font Binaries (Multiples .ttf, .otf)</label>
+        <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Font Binaries (Multiples .ttf, .otf)</label>
         <div 
           onDragOver={handleDragOver}
           onDrop={(e) => handleDropFiles(e, 'fonts')}
@@ -302,8 +302,9 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           />
           <label htmlFor="fontFiles" className="cursor-pointer">
             <Plus className="mx-auto mb-2" />
-            <p className="text-[10px] font-mono uppercase">Drag & Drop or Click to Add Fonts</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Drag & Drop or Click to Add Fonts</p>
           </label>
+
           {(existingFontFiles.length > 0 || fontFiles.length > 0) && (
             <div className="mt-4 flex flex-wrap gap-2 justify-center">
               {existingFontFiles.map((f, i) => (
@@ -321,7 +322,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       </div>
 
       <div className="space-y-2">
-        <label className="block font-mono text-xs font-bold uppercase">Preview Images (Max 12)</label>
+        <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Preview Images (Max 12)</label>
         <div 
           onDragOver={handleDragOver}
           onDrop={(e) => handleDropFiles(e, 'previews')}
@@ -372,11 +373,11 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       </div>
 
       <div className="space-y-2">
-        <label className="block font-mono text-xs font-bold uppercase">Description</label>
+        <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Description</label>
         <textarea 
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full border border-black p-3 outline-none h-32 focus:bg-yellow-50" 
+          className="w-full border border-black p-4 outline-none h-32 font-normal text-sm focus:bg-yellow-50" 
           placeholder="Tell the story of this font..."
         />
       </div>
@@ -384,7 +385,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       <button 
         type="submit"
         disabled={isUploading}
-        className="w-full bg-black text-white p-4 font-bold uppercase tracking-widest hover:translate-x-[2px] hover:translate-y-[2px] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[4px] active:translate-y-[4px] disabled:bg-gray-400 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+        className="w-full bg-black text-white p-5 font-bold uppercase tracking-[0.2em] text-xs hover:translate-x-[2px] hover:translate-y-[2px] transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[4px] active:translate-y-[4px] disabled:bg-gray-400 disabled:cursor-not-allowed flex justify-center items-center gap-2"
       >
         {isUploading ? (
           <><Loader2 className="animate-spin" /> Processing...</>

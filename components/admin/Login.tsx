@@ -25,24 +25,25 @@ const Login = () => {
   return (
     <div className="max-w-md mx-auto my-20 p-8 border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
       <h2 className="text-3xl font-normal uppercase mb-6 border-b-2 border-black pb-2 tracking-tight">Admin Access</h2>
-      <form onSubmit={handleLogin} className="space-y-4 font-mono text-sm">
+      <form onSubmit={handleLogin} className="space-y-4 text-sm">
         <div>
-          <label className="block mb-1 font-bold text-[10px] uppercase">Email Address</label>
+          <label className="block mb-1 font-bold text-xs uppercase tracking-wider text-gray-500">Email Address</label>
           <input 
             type="email" 
             value={email} 
             onChange={e => setEmail(e.target.value)} 
-            className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
+            className="w-full border border-black p-3 outline-none font-bold focus:bg-yellow-50 transition-colors uppercase text-xs" 
+            placeholder="ADMIN@SUBQI.STUDIO"
             required 
           />
         </div>
         <div>
-          <label className="block mb-1 font-bold text-xs">PASSWORD</label>
+          <label className="block mb-1 font-bold text-xs uppercase tracking-wider text-gray-500">Password</label>
           <input 
             type="password" 
             value={password} 
             onChange={e => setPassword(e.target.value)} 
-            className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
+            className="w-full border border-black p-3 outline-none font-bold focus:bg-yellow-50 transition-colors text-xs" 
             required 
           />
         </div>

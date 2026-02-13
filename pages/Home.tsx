@@ -19,7 +19,7 @@ const ScrollableImageStack: React.FC<{
   const resolvedImages = images.map(resolvePreviewUrl).filter(Boolean) as string[];
 
   if (resolvedImages.length === 0) return (
-    <div className="w-full h-full flex items-center justify-center font-mono text-xs text-gray-400 bg-white uppercase tracking-widest">
+    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-gray-400 bg-white uppercase tracking-widest">
       No Previews
     </div>
   );
@@ -244,7 +244,7 @@ const Home: React.FC = () => {
                   <MousePointer2 size={16} />
                   <span>START YOUR COLLECTION</span>
                 </button>
-                <div className="font-mono text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed">
+                <div className="text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed">
                   <p>Find Your Typeface.</p>
                   <p>Begin Today.</p>
                 </div>
@@ -255,7 +255,7 @@ const Home: React.FC = () => {
 
         {activeTag && (
           <div className="w-full border-b border-black bg-white/10 backdrop-blur-md px-6 py-4 md:px-8 flex justify-between items-center sticky top-0 z-50 transition-all">
-            <div className="font-mono text-xs uppercase font-bold flex items-center gap-2">
+            <div className="text-xs md:text-sm uppercase font-bold flex items-center gap-2">
               FILTER ACTIVE: <span className="bg-black text-white px-2 py-1 rounded-full">{activeTag}</span>
             </div>
             <button onClick={() => setActiveTag(null)} className="flex items-center gap-1 text-xs font-bold uppercase hover:underline">
@@ -266,7 +266,7 @@ const Home: React.FC = () => {
 
         {/* 0. TITLE BAR COLUMN */}
         <div className="w-full border-b border-black py-6 flex justify-center items-center bg-transparent">
-          <h2 className="font-mono text-[10px] md:text-[18px] font-bold uppercase tracking-[0.4em] text-gray-600">
+          <h2 className="text-[10px] md:text-[18px] font-bold uppercase tracking-[0.4em] text-gray-600">
             Recent Fonts
           </h2>
         </div>
@@ -310,7 +310,7 @@ const Home: React.FC = () => {
                       <div className="flex justify-between items-start gap-4 mb-2">
                         <div className="flex-1">
                           <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h2>
-                          <span className="block font-mono text-[10px] md:text-base font-bold text-gray-500 uppercase">
+                          <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase">
                               {displayFont.styleCount} STYLES
                           </span>
                         </div>
@@ -319,7 +319,7 @@ const Home: React.FC = () => {
                       <div className="hidden md:block mb-8"><BrutalistGraphic /></div>
                       
                       {/* Desktop Tags (Hidden on Mobile) */}
-                      <div className="hidden md:flex flex-wrap gap-2 text-[10px] font-mono uppercase mb-6">
+                      <div className="hidden md:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
                         {displayFont.tags.map((tag: string) => (
                           <button 
                             key={tag} 
@@ -335,11 +335,11 @@ const Home: React.FC = () => {
                     <div className="mb-6">
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2 mb-4">
-                           <span className="inline-block border border-black rounded-full px-3 py-1 font-mono italic text-[11px] md:text-[12px] titlecase text-black bg-transparent leading-none">
+                           <span className="inline-block border border-black rounded-full px-3 py-1 font-regular italic text-[11px] md:text-[14px] lowercase text-black bg-transparent leading-none">
                              starting at
                            </span>
                            {promo && (
-                             <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-mono font-bold text-[11px] md:text-[12px] uppercase text-red-600 bg-transparent leading-none">
+                             <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-bold text-[11px] md:text-[14px] uppercase text-red-600 bg-transparent leading-none">
                                {promo.discount_percent}% OFF
                              </span>
                            )}
@@ -352,12 +352,12 @@ const Home: React.FC = () => {
                                </span>
                                <div className="flex flex-col items-center gap-1 md:gap-2 mt-2 md:mt-4 w-fit">
                                  <div className="relative w-full text-center">
-                                   <span className="text-4xl md:text-5xl font-bold text-red-600 font-mono leading-none">
+                                  <span className="text-4xl md:text-5xl font-bold text-red-600 leading-none">
                                      ${basePrice}
                                    </span>
                                    <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
                                  </div>
-                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-mono font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full min-w-max">
+                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full min-w-max">
                                    {calculateDaysLeft(promo.end_date)}
                                  </span>
                                </div>
@@ -370,7 +370,8 @@ const Home: React.FC = () => {
                         </div>
                       </div>
                       
-                      <p className="text-gray-600 text-sm leading-relaxed font-mono mt-4">{font.description}</p>
+                      <p className="text-gray-600 text-sm leading-relaxed mt-4">{font.description}</p>
+
 
                       {/* MOBILE TAGS: Moved here (Below Description - Bottom Left) */}
                       <div className="flex flex-wrap gap-2 mt-6 md:hidden">
@@ -498,7 +499,7 @@ const Home: React.FC = () => {
           )}
 
           {/* Image Counter */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-white/40 text-sm tracking-widest">
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 font-bold text-white/40 text-sm tracking-widest uppercase">
             {activeIndex + 1} / {activeGallery.length}
           </div>
 
