@@ -16,12 +16,11 @@ import Fonts from './pages/Fonts';
 import License from './pages/License';
 import FAQ from './pages/Faq'; 
 import Policy from './pages/Policy';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Insights from './pages/Insights';
 
 // Placeholders
-const About = () => <div className="p-20 text-center text-4xl font-normal uppercase tracking-tighter">About Page <br/> Coming Soon</div>;
-const Contact = () => <div className="p-20 text-center text-4xl font-normal uppercase tracking-tighter">Contact Page <br/> Coming Soon</div>;
-const Insights = () => <div className="p-20 text-center text-4xl font-normal uppercase tracking-tighter">Insights Page <br/> Coming Soon</div>;
-
 const App: React.FC = () => {
   const [session, setSession] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
