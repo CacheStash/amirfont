@@ -171,7 +171,7 @@ const Fonts: React.FC = () => {
          <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-6">
             All Fonts
           </h2>
-          <p className="text-xs md:text-sm font-bold text-gray-600 uppercase tracking-widest">
+          <p className="text-xs md:text-sm font-normal text-gray-600 uppercase tracking-widest">
             Retail & Custom Typefaces
           </p>
         </header>
