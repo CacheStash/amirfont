@@ -12,7 +12,7 @@ import BackToTop from './components/BackToTop';
 import Home from './pages/Home';
 import Fonts from './pages/Fonts'; // Pastikan file ini ada (dari jawaban sebelumnya)
 import Blog from './pages/Blog';   // Pastikan file ini ada (dari jawaban sebelumnya)
-
+import License from './pages/License'; // Import file baru Anda
 
 const App: React.FC = () => {
   const [session, setSession] = React.useState<any>(null);
@@ -46,8 +46,7 @@ const App: React.FC = () => {
             <Route path="/" element={<Home />} />
             <Route path="/fonts" element={<Fonts />} />
             <Route path="/blog" element={<Blog />} />
-            <Route path="/license" element={<div className="p-20 text-center font-mono uppercase">License Page (Coming Soon)</div>} />
-            
+            <Route path="/license" element={<License />} />
             {/* TAMBAHKAN ROUTE LOGIN DI SINI */}
             <Route path="/login" element={!session ? <Login /> : <Navigate to="/admin" />} />
 
