@@ -1,18 +1,26 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from './components/Navbar';
-
-import FontUploadForm from './components/admin/FontUploadForm';
-
 import { supabase } from './lib/supabase';
-import Login from './components/admin/Login'; // Pastikan file Login.tsx sudah ada di folder ini
 
-import AdminDashboard from './components/admin/AdminLayout'; // Import layout baru
+// Layout & Global Components
+import Navbar from './components/Navbar';
 import BackToTop from './components/BackToTop';
+
+// Admin Components
+import Login from './components/admin/Login';
+import AdminDashboard from './components/admin/AdminLayout';
+
+// Pages
 import Home from './pages/Home';
-import Fonts from './pages/Fonts'; // Pastikan file ini ada (dari jawaban sebelumnya)
-import Blog from './pages/Blog';   // Pastikan file ini ada (dari jawaban sebelumnya)
-import License from './pages/License'; // Import file baru Anda
+import Fonts from './pages/Fonts';
+import License from './pages/License';
+import FAQ from './pages/Faq';
+import Policy from './pages/Policy';
+
+// Placeholders untuk Page yang akan datang (Agar rute tidak error)
+const About = () => <div className="p-20 text-center text-4xl font-normal uppercase tracking-tighter">About Page <br/> Coming Soon</div>;
+const Contact = () => <div className="p-20 text-center text-4xl font-normal uppercase tracking-tighter">Contact Page <br/> Coming Soon</div>;
+const Insights = () => <div className="p-20 text-center text-4xl font-normal uppercase tracking-tighter">Insights Page <br/> Coming Soon</div>;
 
 const App: React.FC = () => {
   const [session, setSession] = React.useState<any>(null);
@@ -33,52 +41,72 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) return <div className="p-20 text-center font-mono">Verifying Access...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#EDEBE6] flex items-center justify-center font-sans uppercase tracking-widest text-sm">
+        Verifying Access...
+      </div>
+    );
+  }
+
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 text-black font-sans selection:bg-black selection:text-white relative flex flex-col">
-        {/* Menu Navigasi Sticky */}
+      {/* Container utama dengan warna dasar studio yang konsisten */}
+      <div className="min-h-screen bg-[#EDEBE6] text-black font-sans selection:bg-black selection:text-white relative flex flex-col uppercase">
+        
+        {/* Navigasi Utama */}
         <Navbar />
         
-        {/* Konten Halaman Berubah di Sini */}
-        <div className="flex-grow">
+        {/* Area Konten Utama */}
+        <main className="flex-grow">
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/fonts" element={<Fonts />} />
-            <Route path="/blog" element={<Blog />} />
             <Route path="/license" element={<License />} />
-            {/* TAMBAHKAN ROUTE LOGIN DI SINI */}
-            <Route path="/login" element={!session ? <Login /> : <Navigate to="/admin" />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/policy" element={<Policy />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/insights" element={<Insights />} />
 
-            {/* PROTEKSI ROUTE ADMIN: Jika tidak ada session, lempar ke /login */}
+            {/* Admin & Auth Routes */}
+            <Route path="/login" element={!session ? <Login /> : <Navigate to="/admin" />} />
             <Route 
-              path="/admin" 
+              path="/admin/*" 
               element={session ? <AdminDashboard /> : <Navigate to="/login" />} 
             />
 
-            <Route path="/about" element={<div className="p-20 text-center font-mono uppercase">About Page (Coming Soon)</div>} />
-            <Route path="/contact" element={<div className="p-20 text-center font-mono uppercase">Contact Page (Coming Soon)</div>} />
+            {/* Fallback ke Home jika route tidak ditemukan */}
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
-        </div>
+        </main>
 
         <BackToTop />
         
-        {/* Footer Global (Akan muncul di semua halaman) */}
-        <footer className="max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-4 gap-8 border-t-[4px] border-black pt-12 text-xs font-mono uppercase tracking-wider text-gray-500 mb-20 mt-32 px-4 md:px-0">
-          <div>
-            <span className="block text-black font-bold mb-2">License</span>
-            <p>Desktop, Web, App, Epub</p>
-          </div>
-          <div>
-            <span className="block text-black font-bold mb-2">Support</span>
-            <p>info@subqistudio.com</p>
-          </div>
-          <div>
-            <span className="block text-black font-bold mb-2">Social</span>
-            <p>Instagram / Twitter / Behance</p>
-          </div>
-          <div className="md:text-right">
-            &copy; SUBQI STUDIO 2026
+        {/* Footer Global dengan Grid Style yang Harmonis */}
+        <footer className="w-full border-t border-black bg-transparent py-16 px-6 md:px-8">
+          <div className="max-w-full mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 text-[10px] md:text-xs font-normal tracking-[0.2em] text-gray-500 uppercase">
+            <div className="space-y-4">
+              <span className="block text-black font-bold">License</span>
+              <p className="normal-case leading-relaxed">Desktop, Web, App, Social Media, Broadcast, and Corporate Full Suite.</p>
+            </div>
+            <div className="space-y-4">
+              <span className="block text-black font-bold">Support</span>
+              <p className="text-black font-bold">amisubqisetiaji@gmail.com</p>
+            </div>
+            <div className="space-y-4">
+              <span className="block text-black font-bold">Social</span>
+              <div className="flex flex-col gap-2">
+                <a href="#" className="hover:text-black transition-colors">Instagram</a>
+                <a href="#" className="hover:text-black transition-colors">Twitter (X)</a>
+                <a href="#" className="hover:text-black transition-colors">Behance</a>
+              </div>
+            </div>
+            <div className="md:text-right flex flex-col justify-end">
+              <span className="text-black font-bold">&copy; SUBQI STUDIO 2026</span>
+              <p className="mt-1">Jakarta, Indonesia</p>
+            </div>
           </div>
         </footer>
       </div>

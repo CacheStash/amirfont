@@ -8,6 +8,13 @@ const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
 
+  const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Insights'];
+
+  useEffect(() => {
+    setIsOpen(false);
+    setIsSearchOpen(false);
+  }, [location]);
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -17,23 +24,22 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <nav className={`w-full border-b border-black sticky top-0 z-50 transition-all duration-300 ${
-      isScrolled 
-        ? 'bg-[#EDEBE6]/80 backdrop-blur-md supports-[backdrop-filter]:bg-[#EDEBE6]/60' 
-        : 'bg-transparent'
+    <nav className={`w-full sticky top-0 z-[100] transition-all duration-300 ${
+      isScrolled ? 'bg-[#EDEBE6]/90 backdrop-blur-md' : 'bg-[#EDEBE6]'
     }`}>
-      <div className="w-full flex justify-between items-center h-14 md:h-16 px-0 relative z-50">
+      {/* Navbar Inner: Border BUKAN kondisional lagi, tapi PERMANEN black agar tidak hilang saat static */}
+      <div className="w-full flex justify-between items-center h-14 md:h-16 px-0 relative z-[110] bg-[#EDEBE6] border-b border-black">
         
-        {/* Left: Menu Trigger & Logo */}
+        {/* Left: Logo Area - Padding sejajar dengan menu nanti (md:px-8) */}
         <div className="flex items-center gap-2 md:gap-4 h-full border-r border-black px-3 md:px-8 flex-1 md:flex-none md:w-[450px] min-w-0">
           <button 
             onClick={() => setIsOpen(!isOpen)}
-            className="p-1 hover:bg-black hover:text-white transition-colors border border-transparent hover:border-black shrink-0"
+            className="p-1 hover:bg-black hover:text-white transition-colors border border-black md:border-transparent md:hover:border-black shrink-0"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
           
-         <Link to="/" className="font-normal tracking-tighter text-xl md:text-2xl uppercase hover:opacity-70 transition-opacity truncate">
+          <Link to="/" className="font-normal tracking-tighter text-xl md:text-2xl uppercase hover:opacity-70 transition-opacity truncate">
             Subqi Studio
           </Link>
         </div>
@@ -54,53 +60,55 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {isSearchOpen && (
-        <div className="absolute top-full left-0 w-full border-b border-black bg-[#EDEBE6]/90 px-4 md:px-8 py-4 animate-in slide-in-from-top-2 duration-200 z-40 backdrop-blur-md">
-            <div className="flex items-center w-full gap-0 border border-black bg-transparent">
-                <div className="p-3 border-r border-black bg-transparent">
-                    <Search size={20} className="opacity-50"/>
-                </div>
-                <input 
-                    type="text" 
-                    placeholder="TYPE TO SEARCH FONTS..." 
-                    className="w-full p-3 font-normal text-sm uppercase bg-transparent outline-none placeholder:text-gray-400"
-                    autoFocus
-                />
-                <button className="p-3 hover:bg-black hover:text-white border-l border-black transition-colors">
-                    <ArrowRight size={20} />
-                </button>
-            </div>
-        </div>
-      )}
+      {/* Fullscreen Navigation Menu - Animasi Slide */}
+      <div className={`fixed inset-0 top-0 w-full h-screen bg-[#EDEBE6] z-[105] transition-transform duration-700 cubic-bezier(0.85, 0, 0.15, 1) flex flex-col ${
+        isOpen ? 'translate-y-0' : '-translate-y-full'
+      }`}>
+          {/* Spacer di belakang navbar bar */}
+          <div className="h-14 md:h-16 w-full border-b border-black bg-[#EDEBE6] flex-shrink-0"></div>
 
-      {isOpen && (
-        <div className="fixed top-[57px] md:top-[65px] left-0 w-full h-[calc(100vh-60px)] bg-[#EDEBE6]/95 border-t border-black z-40 p-0 flex flex-col md:flex-row backdrop-blur-xl">
-            <div className="w-full md:w-1/2 border-r-0 md:border-r border-black p-8 md:p-12 flex flex-col gap-6">
-                 {['Fonts', 'License', 'Blog', 'About', 'Contact', 'Admin'].map((item) => (
-                    <Link 
-                        key={item} 
-                        to={item === 'Admin' ? '/admin' : `/${item.toLowerCase()}`}
-                        className="text-2xl md:text-3xl font-normal uppercase tracking-tight p-6 md:p-8 border-b border-black last:border-b-0 hover:bg-black hover:text-white transition-all flex justify-between items-center group"
-                        onClick={() => setIsOpen(false)}
-                    >
-                        <span>{item}</span>
-                        <ArrowRight size={24} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                    </Link>
-                 ))}
-            </div>
+          {/* Menu Items Container: md:pt-10 dipindah ke dalam kolom agar grid line nempel ke atas tanpa gap */}
+          <div className="flex-1 overflow-y-auto pt-0"> 
+              <div className="grid grid-cols-1 md:grid-cols-2 w-full h-full">
+                  {/* Kolom 1 (4 Items: Fonts, License, About, Contact) */}
+                  <div className="flex flex-col border-r-0 md:border-r border-black md:pt-10">
+                      {menuItems.slice(0, 4).map((item) => (
+                        <Link 
+                          key={item} 
+                          to={`/${item.toLowerCase()}`}
+                          className="text-3xl md:text-6xl font-normal uppercase tracking-tighter px-3 md:px-8 py-6 md:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <span>{item}</span>
+                          <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        </Link>
+                      ))}
+                  </div>
 
-            <div className="hidden md:flex w-1/2 p-12 flex-col justify-between">
-                <div className="font-bold uppercase text-xs md:text-sm tracking-wider space-y-1">
-                    <p className="text-gray-400 mb-4">Office</p>
-                    <p>Subqi Studio HQ</p>
-                    <p>Jakarta, Indonesia</p>
-                </div>
-                <div className="text-9xl font-normal opacity-5 pointer-events-none select-none tracking-tighter">
-                    MENU
-                </div>
-            </div>
-        </div>
-      )}
+                  {/* Kolom 2 (3 Items: Policy, FAQ, Insights) */}
+                  <div className="flex flex-col md:pt-10">
+                      {menuItems.slice(4).map((item) => (
+                        <Link 
+                          key={item} 
+                          to={`/${item.toLowerCase()}`}
+                          className="text-3xl md:text-6xl font-normal uppercase tracking-tighter px-3 md:px-8 py-6 md:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <span>{item}</span>
+                          <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        </Link>
+                      ))}
+                      {/* Area kosong di bawah menu kanan agar grid tetap melintang penuh */}
+                      <div className="flex-1 border-b border-black md:border-b-0"></div>
+                  </div>
+              </div>
+
+              {/* Sidebar Info Area (Diletakkan di bawah atau samping jika perlu, di sini saya buat minimalis) */}
+              <div className="p-3 md:px-8 py-10 opacity-30">
+                  <div className="font-bold uppercase text-[10px] tracking-widest">Subqi Studio HQ — Jakarta, ID</div>
+              </div>
+          </div>
+      </div>
     </nav>
   );
 };

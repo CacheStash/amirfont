@@ -27,7 +27,7 @@ const License: React.FC = () => {
             License Agreement
           </h2>
           <p className="text-xs md:text-sm font-normal text-gray-600 uppercase tracking-widest">
-            Terms and Conditions
+            Clear Terms for Creative Freedom
           </p>
         </header>
 
