@@ -301,14 +301,15 @@ const Home: React.FC = () => {
 
               return (
                 <section key={font.id} className={`relative border-b border-black grid grid-cols-1 ${gridLayoutClass} overflow-hidden md:overflow-visible`}>
-                  {/* BACKGROUND ORB EFFECT - Diletakkan di level section agar bisa melintas antar kolom */}
+                  {/* BACKGROUND ORB EFFECT - Posisi disesuaikan agar overlapping kolom Info & Tester */}
                   <div className="absolute z-0 pointer-events-none overflow-visible hidden md:block" 
                        style={{ 
                          width: '1000px', 
                          height: '600px',
                          top: '50%',
-                         // Memposisikan orb agar mengikuti area Tester & Toggle
-                         left: isEven ? '65%' : '35%', 
+                         // Ganjil (isEven=true): Posisi kolom Info/Toggle/Tester dominan di kiri -> Orb di kiri
+                         // Genap (isEven=false): Kolom Tester/Toggle/Info berpindah ke arah kanan -> Orb di kanan
+                         left: isEven ? '30%' : '70%', 
                          transform: 'translate(-50%, -50%)',
                          opacity: 0.8
                        }}>
