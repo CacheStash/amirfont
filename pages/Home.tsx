@@ -266,7 +266,7 @@ const Home: React.FC = () => {
 
         {/* 0. TITLE BAR COLUMN */}
         <div className="w-full border-b border-black py-6 flex justify-center items-center bg-transparent">
-          <h2 className="text-[10px] md:text-[18px] font-normal uppercase tracking-[0.4em] text-gray-600">
+          <h2 className="text-[10px] md:text-[18px] font-regular uppercase tracking-[0.4em] text-gray-600">
             Recent Fonts
           </h2>
         </div>
@@ -300,7 +300,21 @@ const Home: React.FC = () => {
               const basePrice = font.price || 25;
 
               return (
-                <section key={font.id} className={`border-b border-black grid grid-cols-1 ${gridLayoutClass}`}>
+                <section key={font.id} className={`relative border-b border-black grid grid-cols-1 ${gridLayoutClass} overflow-hidden md:overflow-visible`}>
+                  {/* BACKGROUND ORB EFFECT - Diletakkan di level section agar bisa melintas antar kolom */}
+                  <div className="absolute z-0 pointer-events-none overflow-visible hidden md:block" 
+                       style={{ 
+                         width: '1000px', 
+                         height: '600px',
+                         top: '50%',
+                         // Memposisikan orb agar mengikuti area Tester & Toggle
+                         left: isEven ? '65%' : '35%', 
+                         transform: 'translate(-50%, -50%)',
+                         opacity: 0.8
+                       }}>
+                       <div className="w-full h-full mix-blend-multiply blur-[100px]" 
+                            style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.7) 0%, rgba(253, 186, 116, 0.4) 50%, rgba(253, 186, 116, 0) 100%)' }} />
+                  </div>
                   
                   {/* 1. INFO COLUMN */}
                   {/* MOBILE: Always Order 1. DESKTOP: Zig-Zag (Order 1 or 3) */}

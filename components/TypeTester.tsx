@@ -139,10 +139,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   return (
     <div className="w-full relative group bg-transparent">
-      <div className="absolute z-0 pointer-events-none overflow-visible" style={{ left: isEven ? '-380px' : 'auto', right: isEven ? 'auto' : '-380px', top: '15%', width: '600px', height: '400px' }}>
-          <div className="w-full h-full mix-blend-multiply blur-[60px]" style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
-      </div>
-
+      {/* ORB LAMA DI SINI SUDAH DIHAPUS DAN DIPINDAHKAN KE HOME.TSX */}
       <div className="relative z-10">
         <div className="grid grid-cols-2 md:flex md:flex-wrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
           
