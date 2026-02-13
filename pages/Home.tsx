@@ -309,7 +309,7 @@ const Home: React.FC = () => {
                          top: '50%',
                          // Ganjil (isEven=true): Posisi kolom Info/Toggle/Tester dominan di kiri -> Orb di kiri
                          // Genap (isEven=false): Kolom Tester/Toggle/Info berpindah ke arah kanan -> Orb di kanan
-                         left: isEven ? '30%' : '70%', 
+                         left: isEven ? '22%' : '78%', 
                          transform: 'translate(-50%, -50%)',
                          opacity: 0.8
                        }}>
