@@ -10,14 +10,14 @@ import BackToTop from './components/BackToTop';
 import Login from './components/admin/Login';
 import AdminDashboard from './components/admin/AdminLayout';
 
-// Pages
+// Pages - Pastikan penamaan file FAQ.tsx menggunakan huruf BESAR semua
 import Home from './pages/Home';
 import Fonts from './pages/Fonts';
 import License from './pages/License';
-import FAQ from './pages/Faq';
+import FAQ from './pages/Faq'; 
 import Policy from './pages/Policy';
 
-// Placeholders untuk Page yang akan datang (Agar rute tidak error)
+// Placeholders
 const About = () => <div className="p-20 text-center text-4xl font-normal uppercase tracking-tighter">About Page <br/> Coming Soon</div>;
 const Contact = () => <div className="p-20 text-center text-4xl font-normal uppercase tracking-tighter">Contact Page <br/> Coming Soon</div>;
 const Insights = () => <div className="p-20 text-center text-4xl font-normal uppercase tracking-tighter">Insights Page <br/> Coming Soon</div>;
@@ -25,15 +25,16 @@ const Insights = () => <div className="p-20 text-center text-4xl font-normal upp
 const App: React.FC = () => {
   const [session, setSession] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
+  
+  // STATE BARU: Untuk memantau apakah menu/search sedang terbuka
+  const [isNavActive, setIsNavActive] = React.useState(false);
 
   React.useEffect(() => {
-    // Ambil status login saat ini
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
 
-    // Pantau perubahan status (login/logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
@@ -51,16 +52,13 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      {/* Container utama dengan warna dasar studio yang konsisten */}
       <div className="min-h-screen bg-[#EDEBE6] text-black font-sans selection:bg-black selection:text-white relative flex flex-col uppercase">
         
-        {/* Navigasi Utama */}
-        <Navbar />
+        {/* Kirim fungsi setIsNavActive ke Navbar */}
+        <Navbar onStateChange={setIsNavActive} />
         
-        {/* Area Konten Utama */}
         <main className="flex-grow">
           <Routes>
-            {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/fonts" element={<Fonts />} />
             <Route path="/license" element={<License />} />
@@ -70,21 +68,19 @@ const App: React.FC = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/insights" element={<Insights />} />
 
-            {/* Admin & Auth Routes */}
             <Route path="/login" element={!session ? <Login /> : <Navigate to="/admin" />} />
             <Route 
               path="/admin/*" 
               element={session ? <AdminDashboard /> : <Navigate to="/login" />} 
             />
 
-            {/* Fallback ke Home jika route tidak ditemukan */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
 
-        <BackToTop />
+        {/* Tombol BackToTop hanya muncul jika Navigasi (Menu/Search) sedang TIDAK aktif */}
+        {!isNavActive && <BackToTop />}
         
-        {/* Footer Global dengan Grid Style yang Harmonis */}
         <footer className="w-full border-t border-black bg-transparent py-16 px-6 md:px-8">
           <div className="max-w-full mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 text-[10px] md:text-xs font-normal tracking-[0.2em] text-gray-500 uppercase">
             <div className="space-y-4">

@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Search, Plus, ArrowRight } from 'lucide-react';
 
-const Navbar: React.FC = () => {
+// Menambahkan interface Props untuk berkomunikasi dengan App.tsx
+interface NavbarProps {
+  onStateChange?: (isActive: boolean) => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -10,6 +15,13 @@ const Navbar: React.FC = () => {
 
   const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Insights'];
 
+  // LAPORKAN STATUS KE APP.TSX
+  // Setiap kali isOpen atau isSearchOpen berubah, kirim status ke Parent
+  useEffect(() => {
+    onStateChange?.(isOpen || isSearchOpen);
+  }, [isOpen, isSearchOpen, onStateChange]);
+
+  // Tutup semua overlay jika rute berubah
   useEffect(() => {
     setIsOpen(false);
     setIsSearchOpen(false);
@@ -29,18 +41,18 @@ const Navbar: React.FC = () => {
     }`}>
       
       {/* 1. NAVBAR BAR (LOGO & BUTTONS) 
-          Z-INDEX PALING TINGGI (130) Agar selalu menutupi elemen yang slide di belakangnya.
-          Background harus SOLID saat Menu/Search terbuka agar tidak 'bocor' lewat blur. */}
+          Z-INDEX (130) - Harus paling depan.
+          Background SOLID saat terbuka agar overlay di belakang tidak tembus pandang. */}
       <div className={`w-full flex justify-between items-center h-14 md:h-16 px-0 relative z-[130] border-b border-black transition-colors duration-300 ${
         (isOpen || isSearchOpen) ? 'bg-[#EDEBE6]' : 'bg-transparent'
       }`}>
         
-        {/* Left: Logo & Toggle */}
+        {/* Left: Toggle & Logo */}
         <div className="flex items-center gap-2 md:gap-4 h-full border-r border-black px-3 md:px-8 flex-1 md:flex-none md:w-[450px] min-w-0">
           <button 
             onClick={() => {
               setIsOpen(!isOpen);
-              setIsSearchOpen(false); // Tutup search jika menu dibuka
+              setIsSearchOpen(false);
             }}
             className="p-1 hover:bg-black hover:text-white transition-colors border border-black md:border-transparent md:hover:border-black shrink-0"
           >
@@ -53,11 +65,11 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Right: Search & Cart */}
-        <div className="flex items-center justify-end gap-2 md:gap-4 h-full border-l-0 md:border-l border-black px-3 md:px-8 shrink-0">
+        <div className="flex items-center justify-end gap-2 md:gap-4 h-full border-l-0 md:border-l border-black px-3 md:px-8 shrink-0 bg-inherit">
             <button
               onClick={() => {
                 setIsSearchOpen(!isSearchOpen);
-                setIsOpen(false); // Tutup menu jika search dibuka
+                setIsOpen(false);
               }}
               className={`p-1 transition-colors border border-transparent ${isSearchOpen ? 'bg-black text-white' : 'hover:bg-black hover:text-white hover:border-black'}`}
             >
@@ -71,15 +83,12 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. SEARCH OVERLAY - SLIDE DOWN ANIMATION
-          Z-INDEX (120) Di bawah Bar tapi di atas Menu. */}
+      {/* 2. SEARCH OVERLAY - SLIDE DOWN
+          Z-INDEX (120) - Di bawah Bar Utama. */}
       <div className={`fixed inset-0 top-0 w-full h-fit bg-[#EDEBE6] z-[120] border-b border-black transition-transform duration-700 cubic-bezier(0.85, 0, 0.15, 1) ${
         isSearchOpen ? 'translate-y-0' : '-translate-y-full'
       }`}>
-          {/* Spacer Bar */}
           <div className="h-14 md:h-16 w-full border-b border-black"></div>
-          
-          {/* Search Content */}
           <div className="p-4 md:p-10 max-w-full">
               <div className="flex items-center w-full gap-0 border border-black bg-transparent overflow-hidden">
                   <div className="p-4 border-r border-black flex items-center justify-center bg-transparent">
@@ -95,21 +104,19 @@ const Navbar: React.FC = () => {
                       SEARCH
                   </button>
               </div>
-            
           </div>
       </div>
 
-      {/* 3. FULL NAVIGATION MENU - SLIDE DOWN ANIMATION
-          Z-INDEX (110) Layer paling bawah. */}
+      {/* 3. FULL NAVIGATION MENU - SLIDE DOWN
+          Z-INDEX (110) - Layer paling bawah. */}
       <div className={`fixed inset-0 top-0 w-full h-screen bg-[#EDEBE6] z-[110] transition-transform duration-700 cubic-bezier(0.85, 0, 0.15, 1) flex flex-col ${
         isOpen ? 'translate-y-0' : '-translate-y-full'
       }`}>
-          {/* Spacer Bar */}
           <div className="h-14 md:h-16 w-full border-b border-black bg-[#EDEBE6] flex-shrink-0"></div>
 
           <div className="flex-1 overflow-y-auto pt-0"> 
               <div className="grid grid-cols-1 md:grid-cols-2 w-full h-full">
-                  {/* Kolom 1 */}
+                  {/* Kolom 1 (Menu 1-4) */}
                   <div className="flex flex-col border-r-0 md:border-r border-black md:pt-10">
                       {menuItems.slice(0, 4).map((item) => (
                         <Link 
@@ -123,7 +130,7 @@ const Navbar: React.FC = () => {
                       ))}
                   </div>
 
-                  {/* Kolom 2 */}
+                  {/* Kolom 2 (Menu 5-7) */}
                   <div className="flex flex-col md:pt-10">
                       {menuItems.slice(4).map((item) => (
                         <Link 
