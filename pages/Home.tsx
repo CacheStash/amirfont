@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { FontConfig } from '../types';
 import { MousePointer2, MoveRight, Circle, Square, Triangle, X } from 'lucide-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Eye } from 'lucide-react';
 
 const resolvePreviewUrl = (filename: string) => {
   if (!filename) return null;
@@ -427,9 +428,23 @@ const Home: React.FC = () => {
                       </div>
                   </div>
 
-                  {/* 3. ACTION COLUMN */}
-                  <div className={`p-4 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer group order-3 border-t border-black md:border-t-0 ${isEven ? 'md:order-4 md:border-l border-black' : 'md:order-1 md:border-r border-black'}`}>
-                     <MoveRight size={48} strokeWidth={1} className="transition-transform duration-500 group-hover:scale-125" />
+                  {/* 3. ACTION COLUMN (SPLIT INTO 2 ROWS) */}
+                  <div className={`flex flex-col order-3 border-t border-black md:border-t-0 ${isEven ? 'md:order-4 md:border-l' : 'md:order-1 md:border-r'} border-black overflow-hidden`}>
+                     {/* Row 1: Add to Cart */}
+                     <button 
+                       className="flex-1 p-4 flex items-center justify-center border-b border-black hover:bg-black hover:text-white transition-all group/cart"
+                       title="Add to Cart"
+                     >
+                        <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90" />
+                     </button>
+                     
+                     {/* Row 2: View/Action */}
+                     <button 
+                       className="flex-1 p-4 flex items-center justify-center hover:bg-black hover:text-white transition-all group/view"
+                       title="View Details"
+                     >
+                        <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125" />
+                     </button>
                   </div>
 
                   {/* 4. MOBILE SPACER (GRID KOSONG): Diperbarui dengan warna orange transparan */}
