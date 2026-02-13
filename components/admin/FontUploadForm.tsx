@@ -158,14 +158,14 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
     <form className="space-y-6" onSubmit={handleSaveProduct}>
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="block font-mono text-xs font-bold uppercase">Font Name</label>
+          <label className="block font-mono text-[10px] font-bold uppercase tracking-widest text-gray-500">Font Name</label>
           <input 
             type="text" 
-            required
             value={fontName}
             onChange={(e) => setFontName(e.target.value)}
-            className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
-            placeholder="e.g. Royal Grande" 
+            className="w-full border border-black p-3 outline-none font-normal uppercase text-xl focus:bg-yellow-50 transition-colors" 
+            placeholder="E.G. ROYAL GRANDE"
+            required
           />
         </div>
         <div className="space-y-2">

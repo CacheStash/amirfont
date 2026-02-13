@@ -21,17 +21,17 @@ const AdminDashboard = () => {
       {/* SIDEBAR */}
       <aside className="w-64 border-r border-black bg-white flex flex-col">
         <div className="p-8 border-b border-black">
-          <h1 className="font-bold uppercase tracking-tighter text-xl">Fontshop Admin</h1>
+         <h1 className="font-normal uppercase tracking-tighter text-xl">Studio Admin</h1>
         </div>
         
         <nav className="flex-grow p-4 space-y-2">
-          <button onClick={() => setActiveTab('stats')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'stats' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
-            <LayoutDashboard size={18} /> Stats
+          <button onClick={() => setActiveTab('stats')} className={`w-full flex items-center gap-3 px-4 py-3 font-mono font-bold uppercase text-[10px] transition-all ${activeTab === 'stats' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+            <LayoutDashboard size={18} /> Statistics
           </button>
-          <button onClick={() => setActiveTab('products')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'products' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
-            <Type size={18} /> My Fonts
+          <button onClick={() => setActiveTab('products')} className={`w-full flex items-center gap-3 px-4 py-3 font-mono font-bold uppercase text-[10px] transition-all ${activeTab === 'products' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+            <Type size={18} /> Products
           </button>
-          <button onClick={() => setActiveTab('promotions')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'promotions' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+          <button onClick={() => setActiveTab('promotions')} className={`w-full flex items-center gap-3 px-4 py-3 font-mono font-bold uppercase text-[10px] transition-all ${activeTab === 'promotions' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <Tag size={18} /> Promotions
           </button>
           <button onClick={() => setActiveTab('orders')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'orders' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>

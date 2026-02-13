@@ -83,10 +83,11 @@ const Navbar: React.FC = () => {
                     <Link 
                         key={item} 
                         to={item === 'Admin' ? '/admin' : `/${item.toLowerCase()}`}
-                        className="text-4xl md:text-6xl font-black uppercase tracking-tight hover:italic hover:translate-x-4 transition-all"
+                        className="text-2xl md:text-3xl font-normal uppercase tracking-tight p-6 md:p-8 border-b border-black last:border-b-0 hover:bg-black hover:text-white transition-all flex justify-between items-center group"
                         onClick={() => setIsOpen(false)}
                     >
-                        {item}
+                        <span>{item}</span>
+                        <ArrowRight size={24} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                     </Link>
                  ))}
             </div>

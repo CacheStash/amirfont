@@ -24,10 +24,10 @@ const Login = () => {
 
   return (
     <div className="max-w-md mx-auto my-20 p-8 border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-      <h2 className="text-2xl font-bold uppercase mb-6 border-b-2 border-black pb-2">Admin Login</h2>
+      <h2 className="text-3xl font-normal uppercase mb-6 border-b-2 border-black pb-2 tracking-tight">Admin Access</h2>
       <form onSubmit={handleLogin} className="space-y-4 font-mono text-sm">
         <div>
-          <label className="block mb-1 font-bold text-xs">EMAIL</label>
+          <label className="block mb-1 font-bold text-[10px] uppercase">Email Address</label>
           <input 
             type="email" 
             value={email} 

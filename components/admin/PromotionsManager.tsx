@@ -98,12 +98,12 @@ const PromotionsManager = () => {
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
-          <h2 className="text-4xl font-black uppercase tracking-tighter text-black">Promotions</h2>
-          <p className="font-mono text-xs text-gray-500">Set discounts for specific fonts or store-wide.</p>
+          <h2 className="text-4xl font-normal uppercase tracking-tight">Campaigns</h2>
+          <p className="font-mono text-xs font-bold text-gray-500 uppercase mt-1">Discount Management</p>
         </div>
         <button 
           onClick={() => setIsAdding(true)}
-          className="bg-black text-white px-6 py-3 font-bold uppercase text-xs flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+          className="bg-black text-white px-6 py-3 font-mono font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
         >
           <Plus size={16} /> Create Promo
         </button>

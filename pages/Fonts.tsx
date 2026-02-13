@@ -168,10 +168,10 @@ const Fonts: React.FC = () => {
       <div className="max-w-full mx-auto">
         {/* Header Section */}
         <header className="px-6 py-12 md:px-8 border-b border-black">
-          <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-6">
+         <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-6">
             All Fonts
           </h2>
-          <p className="font-mono text-xs md:text-sm text-gray-600 uppercase tracking-widest">
+          <p className="font-mono text-xs md:text-sm font-bold text-gray-600 uppercase tracking-widest">
             Retail & Custom Typefaces
           </p>
         </header>
