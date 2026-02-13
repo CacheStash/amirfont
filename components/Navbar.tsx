@@ -117,7 +117,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
           <div className="flex-1 overflow-y-auto pt-0"> 
               <div className="grid grid-cols-1 md:grid-cols-2 w-full h-full">
                   {/* Kolom 1 (Menu 1-4) */}
-                  <div className="flex flex-col border-r-0 md:border-r border-black md:pt-10">
+                  <div className="flex flex-col border-r-0 md:border-r border-black">
                       {menuItems.slice(0, 4).map((item) => (
                         <Link 
                           key={item} 
@@ -131,7 +131,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                   </div>
 
                   {/* Kolom 2 (Menu 5-7) */}
-                  <div className="flex flex-col md:pt-10">
+                  <div className="flex flex-col">
                       {menuItems.slice(4).map((item) => (
                         <Link 
                           key={item} 

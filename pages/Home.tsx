@@ -266,7 +266,7 @@ const Home: React.FC = () => {
 
         {/* 0. TITLE BAR COLUMN */}
         <div className="w-full border-b border-black py-6 flex justify-center items-center bg-transparent">
-          <h2 className="text-[10px] md:text-[18px] font-regular uppercase tracking-[0.4em] text-gray-600">
+          <h2 className="text-[10px] md:text-[18px] font-regular uppercase tracking-[0.4em] text-black">
             Recent Fonts
           </h2>
         </div>
