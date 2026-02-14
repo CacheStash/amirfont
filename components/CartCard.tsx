@@ -84,8 +84,8 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices, discount = 0 }) =
       });
     }
 
-    // APLIKASI DISKON: Harga mentah dipotong persentase diskon dari promos
-    const discountedPrice = discount > 0 ? Math.floor(baseTotal * (1 - discount / 100)) : baseTotal;
+  // APLIKASI DISKON: Gunakan Math.round agar sinkron dengan .toFixed(0) di Homepage
+    const discountedPrice = discount > 0 ? Math.round(baseTotal * (1 - discount / 100)) : baseTotal;
     return discountedPrice;
   }, [selectedTier, selectedUsages, webTier, isCorporate, isTrial, prices, discount]);
 

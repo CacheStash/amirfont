@@ -462,9 +462,13 @@ const Home: React.FC = () => {
                      {/* Row 1: Add to Cart */}
                      <button 
                      onClick={() => {
+                       // 1. Cari promo aktif untuk font ini
                        const promo = getActivePromo(font.id);
-                       const discount = promo ? promo.discount_percent : 0;
-                       openConfigurator({ ...font, activeDiscount: discount });
+                       // 2. Ambil persentase diskonnya (jika tidak ada promo, beri 0)
+                       const discountPercent = promo ? promo.discount_percent : 0;
+                       
+                       // 3. Kirim font ke configurator, sisipkan properti activeDiscount
+                       openConfigurator({ ...font, activeDiscount: discountPercent });
                      }}
                        className="flex-1 p-4 flex items-center justify-center border-b border-black hover:bg-black hover:text-white transition-all group/cart"
                        title="Add to Cart"
