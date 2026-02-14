@@ -8,6 +8,8 @@ export interface CartItem {
   tier: string;
   usages: string[];
   webTierLabel?: string;
+  hasTrial?: boolean;
+  trialFileUrl?: string;
 }
 
 interface CartContextType {

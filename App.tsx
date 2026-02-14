@@ -19,6 +19,8 @@ import Policy from './pages/Policy';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Insights from './pages/Insights';
+import UserAuth from './pages/user/UserAuth';
+import UserDashboard from './pages/user/Dashboard';
 import { CartProvider, useCart } from './context/CartContext';
 import CartPage from './pages/shop/CartPage';
 import Checkout from './pages/shop/Checkout'; // Ubah dari CartPage menjadi Checkout
@@ -100,6 +102,16 @@ const App: React.FC = () => {
 
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<Checkout />} />
+
+            {/* USER / BUYER ROUTES */}
+            <Route 
+              path="/user/auth" 
+              element={!session ? <UserAuth /> : <Navigate to="/user/dashboard" />} 
+            />
+            <Route 
+              path="/user/dashboard/*" 
+              element={session ? <UserDashboard /> : <Navigate to="/user/userauth" />} 
+            />
 
             <Route path="/login" element={!session ? <Login /> : <Navigate to="/admin" />} />
             <Route 

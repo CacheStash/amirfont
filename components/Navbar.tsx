@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search, Plus, ArrowRight } from 'lucide-react';
+import { Menu, X, Search, Plus, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { supabase } from '../lib/supabase';
+import { User } from '@supabase/supabase-js';
 
-// Menambahkan interface Props untuk berkomunikasi dengan App.tsx
 interface NavbarProps {
   onStateChange?: (isActive: boolean) => void;
 }
@@ -12,28 +13,43 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  
   const location = useLocation();
-
   const { cartCount } = useCart();
 
   const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Insights'];
 
-  // LAPORKAN STATUS KE APP.TSX
-  // Setiap kali isOpen atau isSearchOpen berubah, kirim status ke Parent
+  // AUTH LOGIC
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsOpen(false);
+  };
+
+  // OVERLAY LOGIC
   useEffect(() => {
     onStateChange?.(isOpen || isSearchOpen);
   }, [isOpen, isSearchOpen, onStateChange]);
 
-  // Tutup semua overlay jika rute berubah
   useEffect(() => {
     setIsOpen(false);
     setIsSearchOpen(false);
   }, [location]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -43,9 +59,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
       isScrolled ? 'backdrop-blur-xl bg-[#EDEBE6]/70' : 'bg-[#EDEBE6]'
     }`}>
       
-      {/* 1. NAVBAR BAR (LOGO & BUTTONS) 
-          Z-INDEX (130) - Harus paling depan.
-          Background SOLID saat terbuka agar overlay di belakang tidak tembus pandang. */}
+      {/* 1. MAIN BAR */}
       <div className={`w-full flex justify-between items-center h-14 md:h-16 px-0 relative z-[130] border-b border-black transition-colors duration-300 ${
         (isOpen || isSearchOpen) ? 'bg-[#EDEBE6]' : 'bg-transparent'
       }`}>
@@ -53,15 +67,11 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
         {/* Left: Toggle & Logo */}
         <div className="flex items-center gap-2 md:gap-4 h-full border-r border-black px-3 md:px-8 flex-1 md:flex-none md:w-[450px] min-w-0">
           <button 
-            onClick={() => {
-              setIsOpen(!isOpen);
-              setIsSearchOpen(false);
-            }}
+            onClick={() => { setIsOpen(!isOpen); setIsSearchOpen(false); }}
             className="p-1 hover:bg-black hover:text-white transition-colors border border-black md:border-transparent md:hover:border-black shrink-0"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          
           <Link to="/" className="font-normal tracking-tighter text-xl md:text-2xl uppercase hover:opacity-70 transition-opacity truncate">
             Subqi Studio
           </Link>
@@ -70,10 +80,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
         {/* Right: Search & Cart */}
         <div className="flex items-center justify-end gap-2 md:gap-4 h-full border-l-0 md:border-l border-black px-3 md:px-8 shrink-0 bg-inherit">
             <button
-              onClick={() => {
-                setIsSearchOpen(!isSearchOpen);
-                setIsOpen(false);
-              }}
+              onClick={() => { setIsSearchOpen(!isSearchOpen); setIsOpen(false); }}
               className={`p-1 transition-colors border border-transparent ${isSearchOpen ? 'bg-black text-white' : 'hover:bg-black hover:text-white hover:border-black'}`}
             >
                {isSearchOpen ? <X size={20} /> : <Search size={20} />}
@@ -89,8 +96,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
         </div>
       </div>
 
-      {/* 2. SEARCH OVERLAY - SLIDE DOWN
-          Z-INDEX (120) - Di bawah Bar Utama. */}
+      {/* 2. SEARCH OVERLAY */}
       <div className={`fixed inset-0 top-0 w-full h-fit bg-[#EDEBE6] z-[120] border-b border-black transition-transform duration-700 cubic-bezier(0.85, 0, 0.15, 1) ${
         isSearchOpen ? 'translate-y-0' : '-translate-y-full'
       }`}>
@@ -101,10 +107,10 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                       <Search size={24} className="opacity-50"/>
                   </div>
                   <input 
-                      type="text" 
-                      placeholder="TYPE TO SEARCH ANYTHING AT THIS SITE..." 
-                      className="w-full p-4 md:text-2xl font-normal uppercase bg-transparent outline-none placeholder:text-gray-400"
-                      autoFocus={isSearchOpen}
+                    type="text" 
+                    placeholder="TYPE TO SEARCH ANYTHING AT THIS SITE..." 
+                    className="w-full p-4 md:text-2xl font-normal uppercase bg-transparent outline-none placeholder:text-gray-400"
+                    autoFocus={isSearchOpen}
                   />
                   <button className="p-4 px-6 hover:bg-black hover:text-white border-l border-black transition-colors md:text-xl font-bold">
                       SEARCH
@@ -113,16 +119,16 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
           </div>
       </div>
 
-      {/* 3. FULL NAVIGATION MENU - SLIDE DOWN
-          Z-INDEX (110) - Layer paling bawah. */}
+      {/* 3. NAVIGATION MENU OVERLAY */}
       <div className={`fixed inset-0 top-0 w-full h-screen bg-[#EDEBE6] z-[110] transition-transform duration-700 cubic-bezier(0.85, 0, 0.15, 1) flex flex-col ${
         isOpen ? 'translate-y-0' : '-translate-y-full'
       }`}>
           <div className="h-14 md:h-16 w-full border-b border-black bg-[#EDEBE6] flex-shrink-0"></div>
 
           <div className="flex-1 overflow-y-auto pt-0"> 
-              <div className="grid grid-cols-1 md:grid-cols-2 w-full h-full">
-                  {/* Kolom 1 (Menu 1-4) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 w-full h-full border-black">
+                  
+                  {/* Column 1: Items 1-4 */}
                   <div className="flex flex-col border-r-0 md:border-r border-black">
                       {menuItems.slice(0, 4).map((item) => (
                         <Link 
@@ -136,7 +142,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                       ))}
                   </div>
 
-                  {/* Kolom 2 (Menu 5-7) */}
+                  {/* Column 2: Items 5-7 + Auth Button */}
                   <div className="flex flex-col">
                       {menuItems.slice(4).map((item) => (
                         <Link 
@@ -148,6 +154,26 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                           <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                         </Link>
                       ))}
+
+                      {/* Baris ke-4 Kolom Kanan: Login/Logout */}
+                      {user ? (
+                        <button 
+                          onClick={handleLogout}
+                          className="text-3xl md:text-6xl font-normal uppercase tracking-tighter px-3 md:px-8 py-6 md:py-10 border-b border-black hover:bg-red-600 hover:text-white transition-all flex justify-between items-center group text-left w-full"
+                        >
+                          <span>LOGOUT</span>
+                          <ArrowLeft size={32} className="opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        </button>
+                      ) : (
+                        <Link 
+                          to="/user/auth"
+                          className="text-3xl md:text-6xl font-normal uppercase tracking-tighter px-3 md:px-8 py-6 md:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
+                        >
+                          <span>LOGIN</span>
+                          <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        </Link>
+                      )}
+                      
                       <div className="flex-1 border-b border-black md:border-b-0"></div>
                   </div>
               </div>

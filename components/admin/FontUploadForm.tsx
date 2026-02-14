@@ -50,9 +50,11 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   };
 
   const [fontFiles, setFontFiles] = useState<File[]>([]);
+  const [trialFile, setTrialFile] = useState<File | null>(null);
   const [previewImages, setPreviewImages] = useState<File[]>([]);
   const [existingFontFiles, setExistingFontFiles] = useState<string[]>(initialData?.font_files || []);
   const [existingPreviewImages, setExistingPreviewImages] = useState<string[]>(initialData?.preview_images || []);
+  const [existingTrialFile, setExistingTrialFile] = useState<string>(initialData?.trial_file_url || '');
   const [isUploading, setIsUploading] = useState(false);
 
   const removeExistingFont = (index: number) => {
@@ -120,6 +122,12 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       const uploadedFontUrls = await uploadToR2(fontFiles);
       const uploadedPreviewUrls = await uploadToR2(previewImages);
 
+      let uploadedTrialUrl = existingTrialFile;
+      if (trialFile) {
+        const trialResult = await uploadToR2([trialFile]);
+        uploadedTrialUrl = trialResult[0];
+      }
+
       const payload = {
         name: fontName,
         price: parseFloat(price),
@@ -127,12 +135,13 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         price_app: licensePrices.app.solo,
         license_prices: licensePrices,
         description: description,
-        // FIX TS7006: Menambahkan tipe : string
         tags: tags.split(',').map((t: string) => t.trim()).filter((t: string) => t !== ""),
-        // Gabungkan file lama jika ada (mode edit)
         font_files: [...existingFontFiles, ...uploadedFontUrls],
         preview_images: [...existingPreviewImages, ...uploadedPreviewUrls],
+        trial_file_url: uploadedTrialUrl,
+        has_trial: uploadedTrialUrl !== ''
       };
+
 
       if (initialData?.id) {
         // Mode UPDATE
@@ -317,6 +326,25 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
                 <span key={`new-f-${i}`} className="bg-black text-white text-[9px] px-2 py-1 uppercase">{f.name}</span>
               ))}
             </div>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">
+          Trial / Demo Version (.zip / .ttf)
+        </label>
+        <div className="border-2 border-black p-4 bg-yellow-50/50 relative">
+          <input 
+            type="file" 
+            accept=".zip,.ttf,.otf"
+            onChange={(e) => setTrialFile(e.target.files?.[0] || null)}
+            className="w-full text-[10px] font-mono cursor-pointer"
+          />
+          {(existingTrialFile || trialFile) && (
+            <p className="text-[9px] mt-2 font-bold uppercase text-black">
+              STATUS: {trialFile ? `NEW: ${trialFile.name}` : `EXISTING: ${existingTrialFile}`}
+            </p>
           )}
         </div>
       </div>

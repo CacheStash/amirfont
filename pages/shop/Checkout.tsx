@@ -3,15 +3,50 @@ import { useCart } from '../../context/CartContext';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { supabase } from '../../lib/supabase';
+import { User } from '@supabase/supabase-js';
 
 const Checkout: React.FC = () => {
   const { cart } = useCart();
+  const [user, setUser] = React.useState<User | null>(null);
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+  }, []);
   const total = cart.reduce((acc, curr) => acc + curr.price, 0);
   const orderId = `SQ-${Math.floor(100000 + Math.random() * 900000)}`;
 
 
   const [isPaid, setIsPaid] = React.useState(false);
 
+const handleFreeTrial = async () => {
+    if (!user) {
+      alert("PLEASE LOGIN TO CLAIM YOUR FREE DEMO.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Masukkan setiap item di cart ke tabel font_history
+      const historyEntries = cart.map(item => ({
+        user_id: user.id,
+        font_id: item.fontId,
+        download_type: 'trial'
+      }));
+
+      const { error } = await supabase.from('font_history').insert(historyEntries);
+      
+      if (error) throw error;
+
+      setIsPaid(true);
+      alert("DEMO FONTS ADDED TO YOUR LIBRARY! CHECK YOUR DASHBOARD.");
+    } catch (err: any) {
+      alert("ERROR: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const TicketEdges = () => (
     <div className="flex justify-between w-full overflow-hidden pointer-events-none select-none -mt-[1px]">
@@ -107,22 +142,35 @@ const Checkout: React.FC = () => {
             <div className="w-full flex flex-col gap-10 print:hidden">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                 
-                {/* BLOCK 01: LOCAL PAYMENT (MIDTRANS) */}
+                {/* BLOCK 01: DYNAMICAL BLOCK (TRIAL OR MIDTRANS) */}
                 <div className="flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative group">
                   <div className="absolute -top-3 left-4 bg-[#EDEBE6] px-2 text-[10px] font-black tracking-widest border border-black">
-                    01. LOCAL (IDN)
+                    {total === 0 ? "01. TRIAL ACCESS" : "01. LOCAL (IDN)"}
                   </div>
-                  <span className="text-[10px] font-black tracking-widest text-black/40">QRIS / VIRTUAL ACCOUNT / GOPAY</span>
-                  <button 
-                    onClick={() => alert("Midtrans Integration Coming Soon...")}
-                    className="w-full bg-black text-white py-5 text-sm font-black tracking-[0.2em] hover:invert transition-all"
-                  >
-                    PAY WITH MIDTRANS
-                  </button>
+                  <span className="text-[10px] font-black tracking-widest text-black/40">
+                    {total === 0 ? "NO PAYMENT REQUIRED" : "QRIS / VIRTUAL ACCOUNT / GOPAY"}
+                  </span>
+                  
+                  {isPaid ? (
+                    <Link 
+                      to="/user/dashboard"
+                      className="w-full bg-green-600 text-white py-5 text-center text-sm font-black tracking-[0.2em] hover:invert transition-all"
+                    >
+                      GO TO MY LIBRARY
+                    </Link>
+                  ) : (
+                    <button 
+                      onClick={total === 0 ? handleFreeTrial : () => alert("Midtrans Coming Soon...")}
+                      disabled={loading}
+                      className="w-full bg-black text-white py-5 text-sm font-black tracking-[0.2em] hover:invert transition-all disabled:opacity-50"
+                    >
+                      {total === 0 ? (loading ? "PROCESSING..." : "CLAIM FREE DEMO") : "PAY WITH MIDTRANS"}
+                    </button>
+                  )}
                 </div>
 
                 {/* BLOCK 02: GLOBAL PAYMENT (PAYPAL) */}
-                <div className="flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative">
+                <div className={`flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative ${total === 0 ? 'opacity-20 pointer-events-none' : ''}`}>
                   <div className="absolute -top-3 left-4 bg-[#EDEBE6] px-2 text-[10px] font-black tracking-widest border border-black">
                     02. GLOBAL (USD)
                   </div>
