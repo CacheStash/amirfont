@@ -9,6 +9,10 @@ const Checkout: React.FC = () => {
   const total = cart.reduce((acc, curr) => acc + curr.price, 0);
   const orderId = `SQ-${Math.floor(100000 + Math.random() * 900000)}`;
 
+
+  const [isPaid, setIsPaid] = React.useState(false);
+
+
   const TicketEdges = () => (
     <div className="flex justify-between w-full overflow-hidden pointer-events-none select-none -mt-[1px]">
       {[...Array(60)].map((_, i) => (
@@ -65,7 +69,14 @@ const Checkout: React.FC = () => {
               </div>
               <div className="space-y-2 md:text-right">
                 <div className="flex justify-between md:justify-end md:gap-10"><span>CASHIER</span> <span>SYSTEM_WEB_01</span></div>
-                <div className="flex justify-between md:justify-end md:gap-10"><span>STATUS</span> <span className="text-red-600 font-black animate-pulse">UNPAID</span></div>
+                <div className="flex justify-between md:justify-end md:gap-10">
+                  
+                  <span>STATUS</span> 
+  <span className={isPaid ? "text-green-600 font-black" : "text-red-600 font-black animate-pulse"}>
+    {isPaid ? "PAID" : "UNPAID"}
+  </span>
+
+                </div>
               </div>
             </div>
 
@@ -133,11 +144,10 @@ const Checkout: React.FC = () => {
                         });
                       }}
                       onApprove={async (data, actions) => {
-                        const details = await actions.order?.capture();
-                        /* FIX 3: Tambahkan fallback jika payer/name kosong */
-                        const payerName = details?.payer?.name?.given_name || "CUSTOMER";
-                        alert(`TRANSACTION SUCCESSFUL, ${payerName}! CHECK YOUR EMAIL.`);
-                      }}
+  const details = await actions.order?.capture();
+  setIsPaid(true); // Mengubah status menjadi PAID di struk
+  alert(`TRANSACTION SUCCESSFUL, ${details?.payer?.name?.given_name}!`);
+}}
                     />
                   </div>
                 </div>
