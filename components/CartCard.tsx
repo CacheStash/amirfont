@@ -206,9 +206,9 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices, discount = 0 }) =
         {/* INFO BOXES (Conditional) */}
         {isTrial && (
           <div className="mt-6 p-4 bg-[#EDEBE6] border border-black border-dashed animate-in fade-in slide-in-from-top-2">
-            <span className="text-[10px] font-black block mb-1 tracking-widest">FREE TRIAL TERMS:</span>
+            <span className="text-[10px] font-black block mb-1 tracking-widest">FREE VERSION TERMS:</span>
             <p className="text-[9px] normal-case leading-relaxed font-bold italic text-gray-600">
-              PERSONAL USE ONLY. TRIAL FILES HAVE LIMITED CHARACTER SETS. NO COMMERCIAL OR CLIENT WORK ALLOWED.
+              PERSONAL USE ONLY. FREE VERSION FILES HAVE LIMITED CHARACTER SETS. NO COMMERCIAL OR CLIENT WORK ALLOWED.
             </p>
           </div>
         )}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Search, Plus, ArrowRight } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 
 // Menambahkan interface Props untuk berkomunikasi dengan App.tsx
 interface NavbarProps {
@@ -12,6 +13,8 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+
+  const { cartCount } = useCart();
 
   const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Insights'];
 
@@ -76,10 +79,13 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                {isSearchOpen ? <X size={20} /> : <Search size={20} />}
             </button>
 
-            <button className="flex items-center gap-2 font-bold text-xs md:text-sm border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-all whitespace-nowrap uppercase">
-               <Plus size={16} className="shrink-0" />
-               <span>CART (0)</span>
-            </button>
+            <Link 
+              to="/cart" 
+              className="flex items-center gap-2 font-bold text-xs md:text-sm border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-all whitespace-nowrap uppercase group"
+            >
+               <Plus size={16} className="shrink-0 group-hover:rotate-90 transition-transform duration-300" />
+               <span>CART ({cartCount})</span>
+            </Link>
         </div>
       </div>
 
