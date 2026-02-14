@@ -1,17 +1,16 @@
 import React from 'react';
 import { useCart } from '../../context/CartContext';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 
 const Checkout: React.FC = () => {
   const { cart } = useCart();
   const total = cart.reduce((acc, curr) => acc + curr.price, 0);
   const orderId = `SQ-${Math.floor(100000 + Math.random() * 900000)}`;
 
-  // FIX POINT 1: Outline mengikuti lubang karcis
   const TicketEdges = () => (
     <div className="flex justify-between w-full overflow-hidden pointer-events-none select-none -mt-[1px]">
-      {[...Array(40)].map((_, i) => (
+      {[...Array(60)].map((_, i) => (
         <div 
           key={i} 
           className="w-8 h-8 bg-[#EDEBE6] rounded-full border border-black -mt-4 shrink-0" 
@@ -20,33 +19,28 @@ const Checkout: React.FC = () => {
     </div>
   );
 
-  // FIX POINT 3: Fungsi Print
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <div className="min-h-screen bg-[#EDEBE6] py-12 px-3 md:px-8 flex flex-col items-center uppercase font-mono print:p-0 print:bg-white">
-      {/* Back Button & Tools (Hidden when printing) */}
+      {/* HEADER TOOLS */}
       <div className="w-full max-w-full mb-8 flex justify-between items-center text-[10px] font-bold print:hidden">
         <Link to="/cart" className="flex items-center gap-2 hover:underline">
           <ArrowLeft size={14} /> BACK TO SUMMARY
         </Link>
-        <div className="flex gap-4">
-          <button 
-            onClick={handlePrint}
-            className="flex items-center gap-1 hover:bg-black hover:text-white px-2 py-1 border border-transparent hover:border-black transition-all"
-          >
-            <Printer size={14} /> PRINT RECEIPT / PDF
-          </button>
-        </div>
+        
+        {/* REPLACEMENT: Browse More Fonts instead of Print */}
+        <Link 
+          to="/fonts" 
+          className="flex items-center gap-2 bg-transparent hover:bg-black hover:text-white px-3 py-1.5 border border-black transition-all"
+        >
+          <Plus size={14} /> BROWSE MORE FONTS
+        </Link>
       </div>
 
       {/* THE RECEIPT STRIP */}
-      {/* FIX POINT 1 & 2: Hapus shadow, border hanya samping dan bawah */}
-      <div className="w-full bg-white border-x border-b border-black relative flex flex-col items-center print:border-none">
+      {/* FIX: Hapus 'border-b' di sini untuk menghilangkan double border di bawah */}
+      <div className="w-full bg-white border-x border-black relative flex flex-col items-center overflow-hidden print:border-none">
         
-        {/* lubang karcis sebagai border atas */}
+        {/* Lubang karcis atas (Serrated Edge) */}
         <div className="absolute top-0 left-0 w-full z-20 flex">
           <TicketEdges />
         </div>
@@ -97,12 +91,11 @@ const Checkout: React.FC = () => {
             <span className="text-6xl md:text-8xl font-normal tracking-tighter">${total}</span>
           </div>
 
-          {/* FIX POINT 4: Payment Gateway Section */}
+          {/* Payment Gateway Section */}
           <div className="flex flex-col items-center gap-8 print:hidden">
             <div className="w-full max-w-md p-6 border-2 border-black border-dashed bg-black/5 flex flex-col items-center gap-6">
               <span className="text-xs font-black tracking-widest">SECURE CHECKOUT</span>
               
-              {/* Ini adalah tombol trigger untuk payment gateway nanti */}
               <button 
                 className="w-full bg-black text-white py-6 text-xl font-black hover:bg-gray-800 transition-all flex items-center justify-center gap-4 group"
                 onClick={() => alert("Payment Gateway Integration Started...")}
@@ -123,8 +116,9 @@ const Checkout: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Edges */}
-        <div className="absolute bottom-0 left-0 w-full z-20 rotate-180">
+        {/* Lubang karcis bawah (Serrated Edge) */}
+        {/* FIX: Karena 'border-b' di container sudah dihapus, bulatan ini sekarang menjadi satu-satunya outline bawah */}
+        <div className="absolute bottom-0 left-0 w-full z-20 rotate-180 flex">
           <TicketEdges />
         </div>
       </div>
