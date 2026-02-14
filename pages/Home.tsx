@@ -172,7 +172,9 @@ const Home: React.FC = () => {
     return promos.find(p => {
       const start = new Date(p.start_date);
       const end = new Date(p.end_date);
-      const isTargeted = p.type === 'global' || p.font_ids?.includes(fontId);
+      // Mendukung format JSON string dari Supabase atau array murni
+      const fontIds = typeof p.font_ids === 'string' ? JSON.parse(p.font_ids) : (p.font_ids || []);
+      const isTargeted = p.type === 'global' || fontIds.includes(fontId);
       return now >= start && now <= end && isTargeted;
     });
   };
@@ -459,7 +461,11 @@ const Home: React.FC = () => {
                   <div className={`flex flex-col order-3 border-t border-black md:border-t-0 ${isEven ? 'md:order-4 md:border-l' : 'md:order-1 md:border-r'} border-black overflow-hidden`}>
                      {/* Row 1: Add to Cart */}
                      <button 
-                     onClick={() => openConfigurator(font)}
+                     onClick={() => {
+                       const promo = getActivePromo(font.id);
+                       const discount = promo ? promo.discount_percent : 0;
+                       openConfigurator({ ...font, activeDiscount: discount });
+                     }}
                        className="flex-1 p-4 flex items-center justify-center border-b border-black hover:bg-black hover:text-white transition-all group/cart"
                        title="Add to Cart"
                      >

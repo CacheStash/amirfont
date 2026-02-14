@@ -30,9 +30,10 @@ interface LicensePrices {
 interface CartCardProps {
   fontName: string;
   prices: LicensePrices;
+  discount?: number;
 }
 
-const CartCard: React.FC<CartCardProps> = ({ fontName, prices }) => {
+const CartCard: React.FC<CartCardProps> = ({ fontName, prices, discount = 0 }) => {
   const { addToCart, closeConfigurator } = useCart();
   const [selectedTier, setSelectedTier] = useState<'solo' | 'team' | 'studio' | 'enterprise'>('solo');
   const [selectedUsages, setSelectedUsages] = useState<string[]>(['desktop']);
@@ -65,22 +66,28 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices }) => {
   const totalPrice = useMemo(() => {
     if (!prices) return 0;
     if (isTrial) return 0;
-    if (isCorporate) return prices.corporate_full_suite || 0;
+    
+    let baseTotal = 0;
+    if (isCorporate) {
+      baseTotal = prices.corporate_full_suite || 0;
+    } else {
+      selectedUsages.forEach(usage => {
+        if (usage === 'social_web') {
+          const webKey = webTier === 'small' ? 'small_50k' : 
+                         webTier === 'medium' ? 'medium_500k' : 
+                         webTier === 'large' ? 'large_5m' : 'enterprise_unlimited';
+          baseTotal += prices.social_web?.[webKey as keyof WebTierPrices] || 0;
+        } else {
+          const categoryData = prices[usage as keyof Omit<LicensePrices, 'corporate_full_suite' | 'social_web'>];
+          if (categoryData) baseTotal += categoryData[selectedTier] || 0;
+        }
+      });
+    }
 
-    let total = 0;
-    selectedUsages.forEach(usage => {
-      if (usage === 'social_web') {
-        const webKey = webTier === 'small' ? 'small_50k' : 
-                       webTier === 'medium' ? 'medium_500k' : 
-                       webTier === 'large' ? 'large_5m' : 'enterprise_unlimited';
-        total += prices.social_web?.[webKey as keyof WebTierPrices] || 0;
-      } else {
-        const categoryData = prices[usage as keyof Omit<LicensePrices, 'corporate_full_suite' | 'social_web'>];
-        if (categoryData) total += categoryData[selectedTier] || 0;
-      }
-    });
-    return total;
-  }, [selectedTier, selectedUsages, webTier, isCorporate, isTrial, prices]);
+    // APLIKASI DISKON: Harga mentah dipotong persentase diskon dari promos
+    const discountedPrice = discount > 0 ? Math.floor(baseTotal * (1 - discount / 100)) : baseTotal;
+    return discountedPrice;
+  }, [selectedTier, selectedUsages, webTier, isCorporate, isTrial, prices, discount]);
 
   const handleAdd = () => {
     addToCart({
@@ -210,7 +217,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices }) => {
           <div className="mt-6 p-4 bg-[#EDEBE6] border border-black border-dashed animate-in fade-in slide-in-from-top-2">
             <span className="text-[10px] font-black block mb-1 tracking-widest">CORPORATE TERMS:</span>
             <p className="text-[9px] normal-case leading-relaxed font-bold italic text-gray-600">
-              COMPREHENSIVE ALL-IN-ONE LICENSE COVERING ALL USAGES (DESKTOP, WEB, LOGO, APP, BROADCAST, AND SERVER) WITH UNLIMITED SEATS.
+              COMPREHENSIVE ALL-IN-ONE LICENSE COVERING ALL USAGES (DESKTOP, WEB, LOGO, APP, BROADCAST, AND SERVER) WITH UNLIMITED SEATS. 
             </p>
           </div>
         )}
