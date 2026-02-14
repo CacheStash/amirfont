@@ -8,6 +8,14 @@ const CartPage: React.FC = () => {
   const { cart, removeFromCart } = useCart();
   const total = cart.reduce((acc, curr) => acc + curr.price, 0);
 
+  const TicketEdges = () => (
+    <div className="flex justify-between w-full px-2 -mx-2 overflow-hidden pointer-events-none select-none">
+      {[...Array(30)].map((_, i) => (
+        <div key={i} className="w-4 h-4 bg-[#EDEBE6] rounded-full -mt-2 border border-black/5" />
+      ))}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-[#EDEBE6] p-6 md:p-20 flex justify-center">
       <div className="w-full max-w-xl bg-white border border-black p-8 md:p-12 relative">

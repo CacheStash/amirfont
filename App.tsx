@@ -21,6 +21,7 @@ import Contact from './pages/Contact';
 import Insights from './pages/Insights';
 import { CartProvider, useCart } from './context/CartContext';
 import CartPage from './pages/shop/CartPage';
+import Checkout from './pages/shop/Checkout'; // Ubah dari CartPage menjadi Checkout
 import CartCard from './components/CartCard';
 
 
@@ -98,7 +99,7 @@ const App: React.FC = () => {
             <Route path="/insights" element={<Insights />} />
 
             <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<div className="p-20 text-center uppercase tracking-widest min-h-[50vh]">Checkout Coming Soon</div>} />
+            <Route path="/checkout" element={<Checkout />} />
 
             <Route path="/login" element={!session ? <Login /> : <Navigate to="/admin" />} />
             <Route 
