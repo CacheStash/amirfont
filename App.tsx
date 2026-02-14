@@ -34,7 +34,7 @@ const CartConfiguratorModal = () => {
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeConfigurator} />
       <div className="relative z-[210] animate-in zoom-in-95 duration-300">
-        <CartCard fontName={selectedFont.name} prices={selectedFont.prices} />
+        <CartCard fontName={selectedFont.name} prices={selectedFont.license_prices} />
       </div>
     </div>
   );

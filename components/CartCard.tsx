@@ -1,14 +1,30 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Info, ArrowRight, Check } from 'lucide-react';
+import { Plus, Info, ArrowRight, Check, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
+
+// Interface sesuai dengan struktur JSON di kolom license_prices database
+interface TierPrices {
+  solo: number;
+  team: number;
+  studio: number;
+  enterprise: number;
+}
+
+interface WebTierPrices {
+  small_50k: number;
+  medium_500k: number;
+  large_5m: number;
+  enterprise_unlimited: number;
+}
 
 interface LicensePrices {
-  desktop: number;
-  logo_branding: number;
-  app: number;
-  broadcast: number;
-  server: number;
-  social_web: number; // Harga dasar untuk tier 'Small'
+  desktop: TierPrices;
+  logo_branding: TierPrices;
+  app: TierPrices;
+  broadcast: TierPrices;
+  server: TierPrices;
+  social_web: WebTierPrices;
   corporate_full_suite: number;
 }
 
@@ -18,44 +34,43 @@ interface CartCardProps {
 }
 
 const CartCard: React.FC<CartCardProps> = ({ fontName, prices }) => {
+  const { addToCart, closeConfigurator } = useCart();
   const [selectedTier, setSelectedTier] = useState<'solo' | 'team' | 'studio' | 'enterprise'>('solo');
   const [selectedUsages, setSelectedUsages] = useState<string[]>(['desktop']);
   const [webTier, setWebTier] = useState<'small' | 'medium' | 'large' | 'enterprise'>('small');
   const [isCorporate, setIsCorporate] = useState(false);
 
-  // --- RUMUS MULTIPLIER KONSISTEN (1x, 4x, 10x, 40x) ---
-  const getMultiplier = (tier: string) => {
-    switch (tier) {
-      case 'medium':
-      case 'team': return 4;
-      case 'large':
-      case 'studio': return 10;
-      case 'enterprise': return 40;
-      default: return 1;
-    }
-  };
-
   const totalPrice = useMemo(() => {
-    if (isCorporate) return prices.corporate_full_suite;
+    if (!prices) return 0;
+    if (isCorporate) return prices.corporate_full_suite || 0;
 
     let total = 0;
-    const seatMultiplier = getMultiplier(selectedTier);
-
     selectedUsages.forEach(usage => {
       if (usage === 'social_web') {
-        // SPECIAL CASE: Multiplier berdasarkan Impressions Reach
-        const webMultiplier = getMultiplier(webTier);
-        total += Math.floor(prices.social_web * webMultiplier);
+        const webKey = webTier === 'small' ? 'small_50k' : 
+                       webTier === 'medium' ? 'medium_500k' : 
+                       webTier === 'large' ? 'large_5m' : 'enterprise_unlimited';
+        total += prices.social_web?.[webKey as keyof WebTierPrices] || 0;
       } else {
-        // STANDARD CASE: Multiplier berdasarkan Seat Tier
-        const baseCategoryPrice = prices[usage as keyof LicensePrices] || 0;
-        total += Math.floor(baseCategoryPrice * seatMultiplier);
+        const categoryData = prices[usage as keyof Omit<LicensePrices, 'corporate_full_suite' | 'social_web'>];
+        if (categoryData) total += categoryData[selectedTier] || 0;
       }
     });
-
     return total;
   }, [selectedTier, selectedUsages, webTier, isCorporate, prices]);
 
+  const handleAdd = () => {
+    addToCart({
+      cartId: crypto.randomUUID(),
+      fontId: fontName,
+      name: fontName,
+      price: totalPrice,
+      tier: isCorporate ? 'Corporate' : selectedTier,
+      usages: selectedUsages,
+      webTierLabel: selectedUsages.includes('social_web') ? webTier : undefined
+    });
+  };
+// --- END FIX ---
   const toggleUsage = (id: string) => {
     if (isCorporate) return;
     setSelectedUsages(prev => 
@@ -78,9 +93,13 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices }) => {
   );
 
   return (
-    <div className="w-full max-w-[500px] bg-white border border-black relative font-sans text-black overflow-hidden uppercase">
+    <div className="w-[90vw] max-w-[500px] bg-white border border-black relative font-sans text-black overflow-hidden uppercase">
       {/* Top Edge Texture */}
       <div className="absolute top-0 left-0 w-full z-20"><TicketEdges /></div>
+      
+      <button onClick={closeConfigurator} className="absolute top-4 right-4 z-30 p-1 hover:bg-black hover:text-white transition-colors">
+        <X size={20} />
+      </button>
 
       <div className="p-8 pt-12 pb-12">
         <div className="border-b border-black pb-6 mb-8 text-center">
@@ -123,7 +142,6 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices }) => {
               </button>
             ))}
 
-            {/* CORPORATE TOGGLE */}
             <button onClick={handleCorporateToggle}
               className={`w-full flex items-center justify-between p-5 border-2 border-black mt-6 transition-all ${isCorporate ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}>
               <div className="text-left">
@@ -163,8 +181,8 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices }) => {
           <div className="flex flex-col">
             <span className="text-[10px] font-bold tracking-[0.2em] text-gray-400 mb-1">Estimated Investment</span>
             <div className="flex items-start">
-              <span className="text-xl font-bold mt-1 mr-1 tracking-tighter">$</span>
-              <span className="text-7xl font-normal tracking-tighter leading-none">{totalPrice}</span>
+              <span className="text-xl font-bold mt-1 mr-1 tracking-tighter text-black">$</span>
+              <span className="text-7xl font-normal tracking-tighter leading-none text-black">{totalPrice}</span>
             </div>
           </div>
           <Link to="/license" className="text-[10px] font-bold underline flex items-center gap-1 hover:text-red-600 transition-colors mb-2">
@@ -174,7 +192,10 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices }) => {
       </div>
 
       {/* FOOTER BUTTON */}
-      <button className="w-full bg-black text-white py-8 flex items-center justify-center gap-6 hover:bg-gray-900 transition-all group border-t border-black">
+      <button 
+        onClick={handleAdd}
+        className="w-full bg-black text-white py-8 flex items-center justify-center gap-6 hover:bg-gray-900 transition-all group border-t border-black"
+      >
         <span className="text-base font-black tracking-[0.4em]">ADD TO ORDER</span>
         <ArrowRight size={24} className="group-hover:translate-x-3 transition-transform" />
       </button>

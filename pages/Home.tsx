@@ -5,6 +5,9 @@ import { FontConfig } from '../types';
 import { MousePointer2, MoveRight, Circle, Square, Triangle, X } from 'lucide-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Plus, Eye } from 'lucide-react';
+import { useCart } from '../context/CartContext'; // Pastikan path benar
+
+
 
 const resolvePreviewUrl = (filename: string) => {
   if (!filename) return null;
@@ -128,6 +131,7 @@ const Home: React.FC = () => {
   const [fonts, setFonts] = useState<any[]>([]);
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { openConfigurator } = useCart();
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [expandedFontId, setExpandedFontId] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null); // Tetap simpan URL untuk trigger modal
@@ -455,6 +459,7 @@ const Home: React.FC = () => {
                   <div className={`flex flex-col order-3 border-t border-black md:border-t-0 ${isEven ? 'md:order-4 md:border-l' : 'md:order-1 md:border-r'} border-black overflow-hidden`}>
                      {/* Row 1: Add to Cart */}
                      <button 
+                     onClick={() => openConfigurator(font)}
                        className="flex-1 p-4 flex items-center justify-center border-b border-black hover:bg-black hover:text-white transition-all group/cart"
                        title="Add to Cart"
                      >
