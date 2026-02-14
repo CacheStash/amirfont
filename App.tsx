@@ -31,14 +31,19 @@ const CartConfiguratorModal = () => {
   const { isModalOpen, selectedFont, closeConfigurator } = useCart();
   if (!isModalOpen || !selectedFont) return null;
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeConfigurator} />
-      <div className="relative z-[210] animate-in zoom-in-95 duration-300">
-        <CartCard 
-          fontName={selectedFont.name} 
-          prices={selectedFont.license_prices} 
-          discount={selectedFont.activeDiscount || 0}
-        />
+    <div className="fixed inset-0 z-[200] overflow-y-auto">
+      {/* Backdrop: Diubah ke fixed agar tetap di posisi belakang saat konten di-scroll */}
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={closeConfigurator} />
+      
+      {/* Centering Wrapper: Memastikan kartu di tengah jika pendek, dan bisa scroll jika panjang */}
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="relative z-[210] animate-in zoom-in-95 duration-300">
+          <CartCard 
+            fontName={selectedFont.name} 
+            prices={selectedFont.license_prices} 
+            discount={selectedFont.activeDiscount || 0}
+          />
+        </div>
       </div>
     </div>
   );
