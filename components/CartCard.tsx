@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Plus, Info, ArrowRight, Check, X, ShoppingCart, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
-// Interface sesuai dengan struktur JSON di kolom license_prices database
 interface TierPrices {
   solo: number;
   team: number;
@@ -39,10 +38,33 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices }) => {
   const [selectedUsages, setSelectedUsages] = useState<string[]>(['desktop']);
   const [webTier, setWebTier] = useState<'small' | 'medium' | 'large' | 'enterprise'>('small');
   const [isCorporate, setIsCorporate] = useState(false);
-  const [isAdded, setIsAdded] = useState(false); // State untuk menampilkan tombol post-action
+  const [isTrial, setIsTrial] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
+
+  // AUTO-SWITCH LOGIC: Jika Enterprise + 6 Usages dipilih, otomatis pindah ke Corporate
+  useEffect(() => {
+    if (!isCorporate && selectedTier === 'enterprise' && selectedUsages.length === 6) {
+      handleCorporateToggle();
+    }
+  }, [selectedTier, selectedUsages]);
+
+  const seatDetails = {
+    solo: '1 SEAT',
+    team: 'UP TO 25 SEATS',
+    studio: 'UP TO 100 SEATS',
+    enterprise: 'UNLIMITED SEATS'
+  };
+
+  const webTierDetails = {
+    small: 'UP TO 50K VIEWS',
+    medium: 'UP TO 500K VIEWS',
+    large: 'UP TO 5M VIEWS',
+    enterprise: 'UNLIMITED VIEWS'
+  };
 
   const totalPrice = useMemo(() => {
     if (!prices) return 0;
+    if (isTrial) return 0;
     if (isCorporate) return prices.corporate_full_suite || 0;
 
     let total = 0;
@@ -58,7 +80,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices }) => {
       }
     });
     return total;
-  }, [selectedTier, selectedUsages, webTier, isCorporate, prices]);
+  }, [selectedTier, selectedUsages, webTier, isCorporate, isTrial, prices]);
 
   const handleAdd = () => {
     addToCart({
@@ -66,15 +88,15 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices }) => {
       fontId: fontName,
       name: fontName,
       price: totalPrice,
-      tier: isCorporate ? `Corporate (${selectedTier.toUpperCase()})` : selectedTier,
-      usages: selectedUsages,
-      webTierLabel: selectedUsages.includes('social_web') ? webTier : undefined
+      tier: isTrial ? 'TRY IT FIRST / DEMO' : (isCorporate ? 'CORPORATE FULL SUITE' : `${selectedTier.toUpperCase()} TIER`),
+      usages: isTrial ? ['PERSONAL USE'] : (isCorporate ? ['ALL-IN-ONE'] : selectedUsages),
+      webTierLabel: selectedUsages.includes('social_web') && !isCorporate && !isTrial ? webTier : undefined
     });
-    setIsAdded(true); // Tampilkan pilihan checkout/belanja lagi
+    setIsAdded(true);
   };
 
   const toggleUsage = (id: string) => {
-    if (isCorporate) return;
+    if (isCorporate || isTrial) return;
     setSelectedUsages(prev => 
       prev.includes(id) ? prev.filter(u => u !== id) : [...prev, id]
     );
@@ -82,153 +104,167 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices }) => {
 
   const handleCorporateToggle = () => {
     setIsCorporate(!isCorporate);
-    if (!isCorporate) setSelectedUsages(['corporate_full_suite']);
+    setIsTrial(false);
+    if (!isCorporate) setSelectedUsages(['desktop', 'logo_branding', 'social_web', 'app', 'broadcast', 'server']);
     else setSelectedUsages(['desktop']);
+  };
+
+  const handleTrialToggle = () => {
+    setIsTrial(!isTrial);
+    setIsCorporate(false);
+    if (!isTrial) {
+      setSelectedTier('solo');
+      setSelectedUsages([]);
+    } else {
+      setSelectedUsages(['desktop']);
+    }
   };
 
   const TicketEdges = () => (
     <div className="flex justify-between w-full px-2 -mx-2 overflow-hidden pointer-events-none select-none">
-      {[...Array(30)].map((_, i) => (
-        <div key={i} className="w-3 h-3 bg-[#EDEBE6] border border-black rounded-full -mt-[7px]" />
+      {[...Array(25)].map((_, i) => (
+        <div key={i} className="w-4 h-4 bg-[#EDEBE6] rounded-full -mt-2" />
       ))}
     </div>
   );
 
   return (
-    <div className="w-[95vw] max-w-[800px] bg-white border border-black relative font-sans text-black overflow-hidden uppercase shadow-2xl">
-      {/* Top Edge Texture */}
+    <div className="w-[95vw] max-w-[850px] bg-white border-x border-black relative font-sans text-black overflow-hidden uppercase shadow-2xl">
       <div className="absolute top-0 left-0 w-full z-20"><TicketEdges /></div>
       
-      <button onClick={closeConfigurator} className="absolute top-4 right-4 z-30 p-1 hover:bg-black hover:text-white transition-colors border border-transparent hover:border-black">
+      <button onClick={closeConfigurator} className="absolute top-6 right-6 z-30 p-1 hover:bg-black hover:text-white transition-colors border border-black">
         <X size={20} />
       </button>
 
-      <div className="p-6 md:p-10 pt-12 pb-12">
-        <div className="border-b border-black pb-6 mb-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4">
-          <div>
-            <span className="text-[10px] tracking-[0.3em] font-bold text-gray-400 block mb-1">License Configurator</span>
-            <h2 className="text-4xl md:text-5xl font-normal tracking-tighter leading-none">{fontName}</h2>
-          </div>
-          <div className="text-right hidden md:block">
-            <span className="text-[10px] font-bold tracking-[0.2em] text-gray-400 block">Status</span>
-            <span className="text-xs font-bold text-green-600">● Available for Licensing</span>
-          </div>
+      <div className="p-6 md:p-12 pt-14 pb-14">
+        <div className="border-b border-black pb-8 mb-10 text-left">
+          <span className="text-[10px] tracking-[0.3em] font-bold text-gray-400 block mb-2">LICENSE CONFIGURATOR</span>
+          <h2 className="text-5xl md:text-7xl font-normal tracking-tighter leading-[0.8]">{fontName}</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-          {/* LEFT COLUMN: SEAT SIZE */}
-          <div className="md:col-span-4 border-r-0 md:border-r border-black md:pr-8">
-            <label className="text-[10px] font-bold tracking-[0.2em] mb-4 block">01. Organization Size</label>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+          {/* 01. SEATS LEVELS */}
+          <div className={`md:col-span-5 border-r-0 md:border-r border-black md:pr-10 transition-opacity duration-300 ${isCorporate || isTrial ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
+            <label className="text-[10px] font-bold tracking-[0.2em] mb-6 block text-black/40">01. SEATS LEVELS</label>
             <div className="flex flex-col gap-2">
-              {['solo', 'team', 'studio', 'enterprise'].map((t) => (
-                <button key={t} onClick={() => setSelectedTier(t as any)}
-                  className={`py-3 px-4 border border-black text-[10px] font-bold tracking-widest text-left transition-all flex justify-between items-center ${selectedTier === t ? 'bg-black text-white' : 'hover:bg-black/5'}`}>
-                  {t}
-                  {selectedTier === t && <Check size={12} />}
+              {Object.entries(seatDetails).map(([tier, seats]) => (
+                <button key={tier} onClick={() => setSelectedTier(tier as any)}
+                  className={`py-4 px-5 border border-black text-[11px] font-black tracking-widest text-left transition-all flex justify-between items-center group ${selectedTier === tier ? 'bg-black text-white' : 'hover:bg-black/5'}`}>
+                  <span>{tier.toUpperCase()}</span>
+                  <span className={`text-[9px] ${selectedTier === tier ? 'text-white/60' : 'text-black/40'}`}>{seats}</span>
                 </button>
               ))}
             </div>
-            <p className="text-[8px] normal-case text-gray-400 mt-4 leading-relaxed italic">
-              Organization size determines the number of users & devices allowed to install the font software.
-            </p>
           </div>
 
-          {/* RIGHT COLUMN: USAGE TERMS */}
-          <div className="md:col-span-8">
-            <label className="text-[10px] font-bold tracking-[0.2em] mb-4 block">02. Usage Terms (Select multiple)</label>
-            
-            {/* 2 COLUMN GRID FOR USAGES */}
-            <div className="grid grid-cols-2 gap-2 mb-2">
+          {/* 02. USAGE TERMS */}
+          <div className="md:col-span-7">
+            <label className="text-[10px] font-bold tracking-[0.2em] mb-6 block text-black/40">02. USAGE TERMS (CAN SELECT MULTIPLE)</label>
+            <div className="grid grid-cols-2 gap-2 mb-3">
               {[
-                { id: 'desktop', label: 'Desktop' },
-                { id: 'logo_branding', label: 'Logo' },
-                { id: 'social_web', label: 'Social/Web' },
-                { id: 'app', label: 'App/SaaS' },
-                { id: 'broadcast', label: 'Broadcast' },
-                { id: 'server', label: 'Server' },
+                { id: 'desktop', label: 'DESKTOP' },
+                { id: 'logo_branding', label: 'LOGO' },
+                { id: 'social_web', label: 'SOCIAL/WEB' },
+                { id: 'app', label: 'APP/SAAS' },
+                { id: 'broadcast', label: 'BROADCAST' },
+                { id: 'server', label: 'SERVER' },
               ].map((u) => (
-                <button key={u.id} onClick={() => toggleUsage(u.id)} disabled={isCorporate}
-                  className={`flex items-center justify-between p-3 border border-black transition-all ${
-                    isCorporate ? 'opacity-20' : 
+                <button key={u.id} onClick={() => toggleUsage(u.id)} disabled={isCorporate || isTrial}
+                  className={`flex items-center justify-between p-4 border border-black transition-all ${
+                    (isCorporate || isTrial) ? 'opacity-20' : 
                     selectedUsages.includes(u.id) ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'
                   }`}>
-                  <span className="text-[10px] font-bold tracking-widest">{u.label}</span>
+                  <span className="text-[10px] font-black tracking-widest">{u.label}</span>
                   <Plus size={14} className={`transition-transform duration-300 ${selectedUsages.includes(u.id) ? 'rotate-45' : ''}`} />
                 </button>
               ))}
-            </div>
+              
+              {/* CORPORATE BUTTON (Grid Row 4) */}
+              <button onClick={handleCorporateToggle} disabled={isTrial}
+                className={`flex items-center justify-between p-4 border border-black transition-all ${isTrial ? 'opacity-20' : isCorporate ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}>
+                <span className="text-[10px] font-black tracking-widest">CORPORATE</span>
+                {isCorporate ? <Check size={14} /> : <Plus size={14} />}
+              </button>
 
-            {/* CORPORATE FULL WIDTH BELOW */}
-            <button onClick={handleCorporateToggle}
-              className={`w-full flex items-center justify-between p-4 border-2 border-black mt-2 transition-all ${isCorporate ? 'bg-black text-white' : 'bg-transparent hover:bg-black/10'}`}>
-              <div className="text-left">
-                <span className="text-[11px] font-black tracking-widest block italic">CORPORATE FULL SUITE</span>
-                <span className={`text-[8px] normal-case block mt-1 ${isCorporate ? 'text-gray-400' : 'text-gray-500'}`}>All-in-one / Unlimited access for all terms</span>
-              </div>
-              {isCorporate && <Check size={20} />}
-            </button>
+              {/* TRY IT FIRST BUTTON (Grid Row 4) */}
+              <button onClick={handleTrialToggle} disabled={isCorporate}
+                className={`flex items-center justify-between p-4 border border-black transition-all ${isCorporate ? 'opacity-20' : isTrial ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}>
+                <span className="text-[10px] font-black tracking-widest">TRY IT FIRST</span>
+                {isTrial ? <Check size={14} /> : <Plus size={14} />}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* WEB TIER - ONLY IF SELECTED */}
-        {selectedUsages.includes('social_web') && !isCorporate && (
-          <div className="mt-8 p-4 bg-[#EDEBE6] border border-black border-dashed">
-            <label className="text-[9px] font-bold tracking-[0.2em] mb-3 block">Monthly Web/Social Impressions</label>
+        {/* INFO BOXES (Conditional) */}
+        {isTrial && (
+          <div className="mt-6 p-4 bg-[#EDEBE6] border border-black border-dashed animate-in fade-in slide-in-from-top-2">
+            <span className="text-[10px] font-black block mb-1 tracking-widest">FREE TRIAL TERMS:</span>
+            <p className="text-[9px] normal-case leading-relaxed font-bold italic text-gray-600">
+              PERSONAL USE ONLY. TRIAL FILES HAVE LIMITED CHARACTER SETS. NO COMMERCIAL OR CLIENT WORK ALLOWED.
+            </p>
+          </div>
+        )}
+
+        {isCorporate && (
+          <div className="mt-6 p-4 bg-[#EDEBE6] border border-black border-dashed animate-in fade-in slide-in-from-top-2">
+            <span className="text-[10px] font-black block mb-1 tracking-widest">CORPORATE TERMS:</span>
+            <p className="text-[9px] normal-case leading-relaxed font-bold italic text-gray-600">
+              COMPREHENSIVE ALL-IN-ONE LICENSE COVERING ALL USAGES (DESKTOP, WEB, LOGO, APP, BROADCAST, AND SERVER) WITH UNLIMITED SEATS.
+            </p>
+          </div>
+        )}
+
+        {selectedUsages.includes('social_web') && !isCorporate && !isTrial && (
+          <div className="mt-6 p-5 bg-[#EDEBE6] border border-black border-dashed animate-in fade-in slide-in-from-top-2">
+            <label className="text-[10px] font-bold tracking-[0.2em] mb-4 block">MONTHLY IMPRESSIONS REACH</label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {['small', 'medium', 'large', 'enterprise'].map((w) => (
-                <button key={w} onClick={() => setWebTier(w as any)}
-                  className={`px-2 py-2 text-[9px] font-bold tracking-widest border border-black transition-all ${webTier === w ? 'bg-black text-white' : 'bg-white hover:bg-black/5'}`}>
-                  {w}
+              {Object.entries(webTierDetails).map(([key, label]) => (
+                <button key={key} onClick={() => setWebTier(key as any)}
+                  className={`px-2 py-3 text-[10px] font-black tracking-widest border border-black transition-all flex flex-col items-center gap-1 ${webTier === key ? 'bg-black text-white' : 'bg-white hover:bg-black/5'}`}>
+                  <span>{key.toUpperCase()}</span>
+                  <span className={`text-[7px] ${webTier === key ? 'text-white/50' : 'text-black/40'}`}>{label}</span>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* TOTAL & POLICY */}
-        <div className="border-t-2 border-black border-dashed mt-10 pt-8 flex justify-between items-end">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold tracking-[0.2em] text-gray-400 mb-1">Total Investment</span>
-            <div className="flex items-start">
-              <span className="text-xl font-bold mt-1 mr-1">$</span>
-              <span className="text-7xl font-normal tracking-tighter leading-none">{totalPrice}</span>
+        {/* FOOTER SECTION */}
+        <div className="border-t-2 border-black border-dashed mt-10 pt-8 flex flex-col md:flex-row justify-between items-center md:items-end gap-8">
+          <div className="flex flex-col text-center md:text-left">
+            <span className="text-[10px] font-bold tracking-[0.2em] text-black/40 mb-2">INVESTMENT TOTAL</span>
+            <div className="flex items-start justify-center md:justify-start">
+              <span className="text-2xl font-bold mt-2 mr-1 tracking-tighter">$</span>
+              <span className="text-8xl font-normal tracking-tighter leading-[0.7]">{totalPrice}</span>
             </div>
           </div>
-          <Link to="/license" className="text-[10px] font-bold underline flex items-center gap-1 hover:text-red-600 transition-colors mb-2">
-            <Info size={14} /> License Info
-          </Link>
+
+          <div className="flex flex-col items-center md:items-end gap-4 w-full md:w-auto">
+            <Link to="/license" className="text-[10px] font-black underline flex items-center gap-2 hover:text-red-600 transition-colors">
+              <Info size={14} /> LICENSE INFORMATION
+            </Link>
+            
+            {!isAdded ? (
+              <button onClick={handleAdd} className="w-full md:w-[280px] bg-black text-white py-5 px-8 flex items-center justify-center gap-4 hover:bg-gray-800 transition-all group">
+                <span className="text-sm font-black tracking-[0.3em]">ADD TO ORDER</span>
+                <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
+              </button>
+            ) : (
+              <div className="flex flex-col gap-2 w-full md:w-[280px] animate-in fade-in zoom-in-95 duration-300">
+                <Link to="/cart" onClick={closeConfigurator} className="w-full bg-black text-white py-5 px-8 flex items-center justify-center gap-4 hover:invert transition-all">
+                  <ShoppingCart size={18} /> <span className="text-sm font-black tracking-[0.3em]">CHECKOUT</span>
+                </Link>
+                <button onClick={closeConfigurator} className="w-full py-3 text-[10px] font-black border border-black hover:bg-black hover:text-white transition-all">
+                  CONTINUE SHOPPING
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* FOOTER ACTIONS */}
-      {!isAdded ? (
-        <button 
-          onClick={handleAdd}
-          className="w-full bg-black text-white py-8 flex items-center justify-center gap-6 hover:invert transition-all group border-t border-black"
-        >
-          <span className="text-base font-black tracking-[0.4em]">ADD TO ORDER</span>
-          <ArrowRight size={24} className="group-hover:translate-x-3 transition-transform" />
-        </button>
-      ) : (
-        <div className="flex flex-col md:flex-row w-full border-t border-black animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <button 
-            onClick={closeConfigurator}
-            className="flex-1 bg-white text-black py-8 flex items-center justify-center gap-4 hover:bg-gray-100 transition-all border-b md:border-b-0 md:border-r border-black font-black tracking-[0.2em] text-sm"
-          >
-            <ArrowLeft size={18} /> CONTINUE BROWSING
-          </button>
-          <Link 
-            to="/cart"
-            onClick={closeConfigurator}
-            className="flex-1 bg-black text-white py-8 flex items-center justify-center gap-4 hover:invert transition-all font-black tracking-[0.2em] text-sm"
-          >
-            <ShoppingCart size={18} /> GO TO CHECKOUT <ArrowRight size={18} />
-          </Link>
-        </div>
-      )}
-
-      {/* Bottom Edge Texture */}
-      <div className="absolute bottom-[88px] left-0 w-full z-20 rotate-180"><TicketEdges /></div>
+      <div className="absolute bottom-0 left-0 w-full z-20 rotate-180"><TicketEdges /></div>
     </div>
   );
 };
