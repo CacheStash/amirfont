@@ -19,8 +19,27 @@ import Policy from './pages/Policy';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Insights from './pages/Insights';
+import { CartProvider, useCart } from './context/CartContext';
+import CartPage from './pages/shop/CartPage';
+import CartCard from './components/CartCard';
+
+
 
 // Placeholders
+
+const CartConfiguratorModal = () => {
+  const { isModalOpen, selectedFont, closeConfigurator } = useCart();
+  if (!isModalOpen || !selectedFont) return null;
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeConfigurator} />
+      <div className="relative z-[210] animate-in zoom-in-95 duration-300">
+        <CartCard fontName={selectedFont.name} prices={selectedFont.prices} />
+      </div>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const [session, setSession] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
@@ -50,6 +69,8 @@ const App: React.FC = () => {
   }
 
   return (
+
+    <CartProvider>
     <Router>
       <div className="min-h-screen bg-[#EDEBE6] text-black font-sans selection:bg-black selection:text-white relative flex flex-col uppercase">
         
@@ -67,6 +88,9 @@ const App: React.FC = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/insights" element={<Insights />} />
 
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<div className="p-20 text-center uppercase tracking-widest min-h-[50vh]">Checkout Coming Soon</div>} />
+
             <Route path="/login" element={!session ? <Login /> : <Navigate to="/admin" />} />
             <Route 
               path="/admin/*" 
@@ -76,6 +100,8 @@ const App: React.FC = () => {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
+
+        <CartConfiguratorModal />
 
         {/* Tombol BackToTop hanya muncul jika Navigasi (Menu/Search) sedang TIDAK aktif */}
         {!isNavActive && <BackToTop />}
@@ -106,6 +132,7 @@ const App: React.FC = () => {
         </footer>
       </div>
     </Router>
+    </CartProvider>
   );
 };
 

@@ -41,3 +41,9 @@ export interface Promotion {
   font_ids?: string[]; // Untuk bundle pack
   is_active: boolean;
 }
+
+export interface ToggleProps {
+  label: string;
+  isActive: boolean;
+  onToggle: () => void;
+}
