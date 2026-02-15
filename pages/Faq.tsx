@@ -237,6 +237,31 @@ const FAQ: React.FC = () => {
             </div>
             <div className="hidden md:block bg-transparent" />
           </section>
+           
+           {/* Q8: Account Benefits */}
+          <section className="grid grid-cols-1 md:grid-cols-[600px_1fr_250px] border-b border-black items-stretch">
+            <div className="p-6 md:p-10 border-b md:border-b-0 md:border-r border-black flex items-start bg-transparent">
+               <h3 className="text-2xl md:text-5xl font-normal tracking-tight leading-[1.1] mt-1">
+                 Why should I <br/> create a <br/> member account?
+               </h3>
+            </div>
+            <div className="p-6 md:p-10 md:border-r border-black space-y-10">
+              <p className="text-lg md:text-xl font-normal normal-case leading-relaxed text-gray-800 italic">
+                Your dashboard acts as a permanent vault for your assets.
+              </p>
+              <ul className="space-y-6">
+                <li className="flex gap-4 items-start">
+                  <PlusBullet />
+                  <span className="text-base md:text-lg normal-case text-gray-600 leading-relaxed">Any font license you purchase is stored there forever, allowing you to re-download your files anytime.</span>
+                </li>
+                <li className="flex gap-4 items-start">
+                  <PlusBullet />
+                  <span className="text-base md:text-lg normal-case text-gray-600 leading-relaxed">Accounts that only contain "Free Trial" fonts are automatically cleared every 30 days to maintain database health.</span>
+                </li>
+              </ul>
+            </div>
+            <div className="hidden md:block bg-transparent" />
+          </section>
 
           {/* ========================== 
               COMPARISON TABLES SECTION

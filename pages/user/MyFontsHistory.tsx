@@ -34,6 +34,34 @@ const MyFontsHistory = () => {
     setLoading(false);
   };
 
+  const handleSecureDownload = async (fileName: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) return alert("Session expired. Please login again.");
+
+    try {
+      const res = await fetch(`/api/download-zip?file=${fileName}`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+      
+      if (!res.ok) throw new Error("Unauthorized or File not found.");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (err: any) {
+      alert("DOWNLOAD_ERROR: " + err.message);
+    }
+  };
+
   if (loading) return <div className="text-[10px] font-bold animate-pulse">LOADING_DATABASE...</div>;
 
   return (

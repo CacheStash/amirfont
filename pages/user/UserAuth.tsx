@@ -9,6 +9,17 @@ const UserAuth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+
+  const handleSocialLogin = async (provider: 'google' | 'github') => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/user/dashboard`,
+      },
+    });
+    if (error) alert(error.message);
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -65,13 +76,36 @@ const UserAuth = () => {
           />
         </div>
 
+        {/* CLOUDFLARE TURNSTILE GUARD */}
+        <div 
+          className="cf-turnstile py-2 flex justify-center" 
+          data-sitekey="0x4AAAAAACcxxQ0Q2-zEqr8s"
+          data-theme="light"
+        ></div>
+
+        <button 
+          disabled={loading} 
+          className="w-full bg-black text-white p-4 font-black uppercase hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+        >
+          {loading ? 'Processing...' : isRegister ? 'Join Studio' : 'Access My Fonts'}
+        </button>
+      </form>
+
+      {/* QUICK SOCIAL ACCESS */}
+      <div className="mt-4 grid grid-cols-2 gap-4">
         <button 
-          disabled={loading} 
-          className="w-full bg-black text-white p-4 font-black uppercase hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+          onClick={() => handleSocialLogin('google')}
+          className="border-2 border-black p-3 text-[10px] font-black uppercase hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
         >
-          {loading ? 'Processing...' : isRegister ? 'Join Studio' : 'Access My Fonts'}
+          Google
         </button>
-      </form>
+        <button 
+          onClick={() => handleSocialLogin('github')}
+          className="border-2 border-black p-3 text-[10px] font-black uppercase hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
+        >
+          GitHub
+        </button>
+      </div>
 
       <div className="mt-6 pt-6 border-t border-black border-dashed flex flex-col items-center gap-2">
         <p className="text-[10px] font-bold text-gray-400 uppercase">

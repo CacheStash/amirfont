@@ -11,6 +11,10 @@ binding = "ASSETS"
 VITE_SUPABASE_URL = "https://kghvuqdyppabhjyzkyhp.supabase.co"
 VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnaHZ1cWR5cHBhYmhqeXpreWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyMzIyMjcsImV4cCI6MjA4NTgwODIyN30.HQUG8EW4Jx3zq7sRHN2_akQwzMcV0O8yqhtbDnQL9dk"
 
+
+TURNSTILE_SECRET_KEY = "0x4AAAAAACcxxX-b1Z1TWoRidj3Ckpj8YdI"
+
+
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "fontshop-assets"

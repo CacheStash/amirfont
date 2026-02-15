@@ -138,6 +138,19 @@ const handleFreeTrial = async () => {
               <span className="text-6xl md:text-8xl font-normal tracking-tighter">${total}</span>
             </div>
 
+              {/* ACCOUNT RECOMMENDATION NOTICE */}
+            {!user && (
+              <div className="mb-10 p-5 border-2 border-black bg-yellow-400 font-bold text-[11px] leading-tight shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <p className="uppercase tracking-[0.15em] mb-2 flex items-center gap-2">
+                  <Plus size={14} className="rotate-45" /> HIGHLY_RECOMMENDED:
+                </p>
+                <p className="normal-case text-sm md:text-base font-normal">
+                  Please <Link to="/user/auth" className="font-black underline decoration-2 underline-offset-2">Create an Account</Link> before finishing. 
+                  Your download links will be stored in your personal dashboard as a permanent backup if your files are lost.
+                </p>
+              </div>
+            )}
+
             {/* Dual Payment Gateway Section */}
             <div className="w-full flex flex-col gap-10 print:hidden">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">

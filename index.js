@@ -1,3 +1,34 @@
+async function verifyTurnstile(token, secretKey) {
+  const formData = new FormData();
+  formData.append('secret', secretKey);
+  formData.append('response', token);
+
+  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    body: formData
+  });
+
+  const outcome = await res.json();
+  return outcome.success;
+}
+
+async function getSupabaseUser(authHeader, env) {
+  if (!authHeader) return null;
+
+  const res = await fetch(`${env.VITE_SUPABASE_URL}/auth/v1/user`, {
+    headers: {
+      'Authorization': authHeader,
+      'apikey': env.VITE_SUPABASE_ANON_KEY,
+    }
+  });
+
+  if (res.ok) {
+    const user = await res.json();
+    return user;
+  }
+  return null;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -58,6 +89,44 @@ export default {
         return response;
       } catch (e) {
         return new Response('Error fetching image', { status: 500 });
+      }
+    }
+
+    if (url.pathname === '/api/verify-bot' && request.method === 'POST') {
+      const { token } = await request.json();
+      const isHuman = await verifyTurnstile(token, env.TURNSTILE_SECRET_KEY);
+      return new Response(JSON.stringify({ success: isHuman }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // --- 2.6 API Secure ZIP Download ---
+    if (url.pathname.startsWith('/api/download-zip')) {
+      const fontFile = url.searchParams.get('file'); // Misal: font.zip atau font.ttf
+      
+      try {
+        // 1. Validasi User via Supabase JWT
+        const authHeader = request.headers.get('Authorization');
+        const user = await getSupabaseUser(authHeader, env);
+
+        if (!user) {
+          return new Response("UNAUTHORIZED: Please login to download.", { status: 401 });
+        }
+
+        // 2. Tarik file dari R2
+        const object = await env.R2_BUCKET.get(fontFile);
+        if (!object) return new Response("File Not Found", { status: 404 });
+
+        // 3. Kirim file dengan header attachment
+        const headers = new Headers();
+        headers.set('Content-Type', 'application/octet-stream');
+        headers.set('Content-Disposition', `attachment; filename="${fontFile}"`);
+        headers.set('Access-Control-Allow-Origin', '*');
+        headers.set('Access-Control-Allow-Headers', 'Authorization, apikey');
+
+        return new Response(object.body, { headers });
+      } catch (e) {
+        return new Response("Download Failed", { status: 500 });
       }
     }
 
