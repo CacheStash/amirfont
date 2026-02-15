@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { Link } from 'react-router-dom';
 import { Download, Info } from 'lucide-react';
+
 
 const MyFontsHistory = () => {
   const [history, setHistory] = useState<any[]>([]);
@@ -91,11 +93,21 @@ const MyFontsHistory = () => {
                   {item.download_type === 'trial' ? 'DEMO' : 'FULL'}
                 </div>
                 <button 
-                  onClick={() => alert("Re-downloading...")} // Nanti kita arahkan ke URL file
+                  onClick={() => handleSecureDownload(item.download_type === 'trial' ? item.fonts.trial_file_url : item.fonts.font_files[0])}
                   className="bg-black text-white p-3 border border-white group-hover:bg-white group-hover:text-black transition-all"
                 >
                   <Download size={20} />
                 </button>
+                {/* VIEW LICENSE BUTTON */}
+                {item.download_type !== 'trial' && (
+                  <Link 
+                    to={`/user/receipt/${item.transaction_id}`}
+                    className="bg-white text-black p-3 border border-black hover:bg-yellow-400 transition-all"
+                    title="View Official License"
+                  >
+                    <Info size={20} />
+                  </Link>
+                )}
               </div>
             </div>
           ))}

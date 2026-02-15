@@ -102,7 +102,8 @@ export default {
 
     // --- 2.6 API Secure ZIP Download ---
     if (url.pathname.startsWith('/api/download-zip')) {
-      const fontFile = url.searchParams.get('file'); // Misal: font.zip atau font.ttf
+     const fontFile = url.searchParams.get('file'); 
+      const transactionId = url.searchParams.get('order'); // Menangkap ID dari Checkout
       
       try {
         // 1. Validasi User via Supabase JWT
@@ -117,14 +118,21 @@ export default {
         const object = await env.R2_BUCKET.get(fontFile);
         if (!object) return new Response("File Not Found", { status: 404 });
 
-        // 3. Kirim file dengan header attachment
+        // 3. Kirim file dengan header attachment & Metadata Lisensi
         const headers = new Headers();
         headers.set('Content-Type', 'application/octet-stream');
-        headers.set('Content-Disposition', `attachment; filename="${fontFile}"`);
+        headers.set('Content-Disposition', `attachment; filename="SUBQI_STUDIO_${fontFile.split('.')[0]}.zip"`);
+        
+        // INJEKSI DATA LISENSI KE HEADER
+        headers.set('X-License-Owner', user.email);
+        headers.set('X-Order-ID', transactionId || 'N/A');
+        headers.set('X-License-Status', 'VALID_COMMERCIAL');
+        
         headers.set('Access-Control-Allow-Origin', '*');
-        headers.set('Access-Control-Allow-Headers', 'Authorization, apikey');
+        headers.set('Access-Control-Allow-Headers', 'Authorization, apikey, X-Order-ID');
 
         return new Response(object.body, { headers });
+        
       } catch (e) {
         return new Response("Download Failed", { status: 500 });
       }

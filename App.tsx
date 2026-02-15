@@ -25,6 +25,7 @@ import { CartProvider, useCart } from './context/CartContext';
 import CartPage from './pages/shop/CartPage';
 import Checkout from './pages/shop/Checkout'; // Ubah dari CartPage menjadi Checkout
 import CartCard from './components/CartCard';
+import LicenseReceipt from './pages/user/LicenseReceipt';
 
 
 
@@ -113,6 +114,7 @@ const App: React.FC = () => {
               element={session ? <UserDashboard /> : <Navigate to="/user/userauth" />} 
             />
 
+<Route path="/user/receipt/:orderId" element={<LicenseReceipt />} />
             <Route path="/login" element={!session ? <Login /> : <Navigate to="/admin" />} />
             <Route 
               path="/admin/*" 

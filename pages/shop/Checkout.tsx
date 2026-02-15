@@ -20,7 +20,65 @@ const Checkout: React.FC = () => {
 
   const [isPaid, setIsPaid] = React.useState(false);
 
-const handleFreeTrial = async () => {
+const [email, setEmail] = React.useState(''); // State untuk email wajib
+
+  const handlePurchaseSuccess = async (finalOrderId: string) => {
+    setLoading(true);
+    try {
+      // 1. AUTO-REGISTER (Password = Order ID dari image_d6a53f.png)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email,
+        password: finalOrderId,
+      });
+
+      if (authError && authError.message !== "User already registered") throw authError;
+
+      // 2. INSERT FONT HISTORY (Full Version)
+      const targetUserId = authData.user?.id || (await supabase.auth.getUser()).data.user?.id;
+      
+      const historyEntries = cart.map(item => ({
+        user_id: targetUserId,
+        font_id: item.fontId,
+        download_type: 'full',
+        transaction_id: finalOrderId
+      }));
+
+      const { error: histError } = await supabase.from('font_history').insert(historyEntries);
+      if (histError) throw histError;
+
+      setIsPaid(true);
+    } catch (err: any) {
+      alert("PROCESS_ERROR: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+   const handleSecureDownload = async (fileName: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return alert("SESSION_EXPIRED. PLEASE LOGIN.");
+
+    try {
+      // Panggil Worker dengan token keamanan
+      const res = await fetch(`/api/download-zip?file=${fileName}&order=${orderId}`, {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+      
+      if (!res.ok) throw new Error("UNAUTHORIZED_ACCESS");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SUBQI_STUDIO_${fileName.split('.')[0]}.zip`; // Force format ZIP
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (e: any) {
+      alert("DOWNLOAD_FAILED: " + e.message);
+    }
+  };
+
+  const handleFreeTrial = async () => {
     if (!user) {
       alert("PLEASE LOGIN TO CLAIM YOUR FREE DEMO.");
       return;
@@ -138,6 +196,43 @@ const handleFreeTrial = async () => {
               <span className="text-6xl md:text-8xl font-normal tracking-tighter">${total}</span>
             </div>
 
+            {/* 00. MANDATORY EMAIL FIELD */}
+            {!isPaid && (
+              <div className="mb-10 p-6 border-2 border-black bg-black text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                <label className="block text-[10px] font-black tracking-[0.2em] mb-3 italic">00. PROVIDE_RECEIVER_EMAIL*</label>
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-white text-black p-4 font-mono font-black outline-none border-none text-sm placeholder:text-gray-300"
+                  placeholder="NAME@DOMAIN.COM"
+                  required
+                />
+                <p className="text-[9px] mt-3 opacity-60 italic">* YOUR ACCOUNT WILL BE CREATED AUTOMATICALLY. PASSWORD = YOUR ORDER ID.</p>
+              </div>
+            )}
+
+            {/* INSTANT DOWNLOAD AFTER PAYMENT */}
+            {isPaid && (
+              <div className="mb-12 p-8 border-4 border-double border-green-600 bg-green-50 text-center animate-in zoom-in-95">
+                <h4 className="text-2xl font-black text-green-600 mb-2 italic">PAYMENT_SUCCESSFUL</h4>
+                <p className="text-[10px] font-bold mb-6 text-black/60">
+                  LOGIN CREATED. PASSWORD: <span className="bg-yellow-300 px-2 text-black">{orderId}</span>
+                </p>
+                <div className="flex flex-col gap-3">
+                  {cart.map((item) => (
+                    <button 
+                      key={item.cartId}
+                      onClick={() => alert(`Downloading Secure ZIP for ${item.name}...`)} 
+                      className="bg-black text-white px-8 py-5 font-black tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-4"
+                    >
+                      DOWNLOAD_{item.name.replace(/\s+/g, '_')}_ZIP
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
               {/* ACCOUNT RECOMMENDATION NOTICE */}
             {!user && (
               <div className="mb-10 p-5 border-2 border-black bg-yellow-400 font-bold text-[11px] leading-tight shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -205,10 +300,13 @@ const handleFreeTrial = async () => {
                         });
                       }}
                       onApprove={async (data, actions) => {
-  const details = await actions.order?.capture();
-  setIsPaid(true); // Mengubah status menjadi PAID di struk
-  alert(`TRANSACTION SUCCESSFUL, ${details?.payer?.name?.given_name}!`);
-}}
+                        const details = await actions.order?.capture();
+                        if (details) {
+                          // PANGGIL LOGIKA AUTO-REGISTER
+                          await handlePurchaseSuccess(orderId);
+                          alert(`TRANSACTION SUCCESSFUL, ${details?.payer?.name?.given_name}!`);
+                        }
+                      }}
                     />
                   </div>
                 </div>

@@ -3,43 +3,22 @@ import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
 const UserAuth = () => {
-  const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-
-  const handleSocialLogin = async (provider: 'google' | 'github') => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/user/dashboard`,
-      },
-    });
-    if (error) alert(error.message);
-  };
-
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    if (isRegister) {
-      // PROSES DAFTAR (SIGN UP)
-      const { error, data } = await supabase.auth.signUp({ email, password });
-      if (error) {
-        alert(error.message);
-      } else {
-        alert("Verification email sent! Please check your inbox.");
-      }
-    } else {
-      // PROSES MASUK (SIGN IN)
-      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        alert(error.message);
-      } else if (data.session) {
-        navigate('/user/dashboard'); // Arahkan ke dashboard buyer
-      }
+    // PROSES MASUK (SIGN IN) - MURNI LOGIN
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      alert(error.message);
+    } else if (data.session) {
+      navigate('/user/dashboard'); 
     }
     setLoading(false);
   };
@@ -48,9 +27,9 @@ const UserAuth = () => {
     <div className="max-w-md mx-auto my-20 p-8 border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] font-mono">
       <div className="flex justify-between items-baseline mb-6 border-b-2 border-black pb-2">
         <h2 className="text-3xl font-black uppercase tracking-tight">
-          {isRegister ? 'Create Account' : 'Buyer Login'}
+          Buyer Login
         </h2>
-        <span className="text-[10px] font-bold opacity-30">TYPE_02_USER</span>
+        <span className="text-[10px] font-bold opacity-30">EXISTING_BUYER</span>
       </div>
 
       <form onSubmit={handleAuth} className="space-y-4 text-sm">
@@ -83,39 +62,24 @@ const UserAuth = () => {
           data-theme="light"
         ></div>
 
-        <button 
-          disabled={loading} 
-          className="w-full bg-black text-white p-4 font-black uppercase hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
-        >
-          {loading ? 'Processing...' : isRegister ? 'Join Studio' : 'Access My Fonts'}
-        </button>
-      </form>
-
-      {/* QUICK SOCIAL ACCESS */}
-      <div className="mt-4 grid grid-cols-2 gap-4">
         <button 
-          onClick={() => handleSocialLogin('google')}
-          className="border-2 border-black p-3 text-[10px] font-black uppercase hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
+          disabled={loading} 
+          className="w-full bg-black text-white p-4 font-black uppercase hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
         >
-          Google
+          {loading ? 'Processing...' : 'Access My Fonts'}
         </button>
-        <button 
-          onClick={() => handleSocialLogin('github')}
-          className="border-2 border-black p-3 text-[10px] font-black uppercase hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
-        >
-          GitHub
-        </button>
-      </div>
+      </form>
 
+      {/* FOOTER NOTICE - MENGARAHKAN USER BARU KE SHOP */}
       <div className="mt-6 pt-6 border-t border-black border-dashed flex flex-col items-center gap-2">
-        <p className="text-[10px] font-bold text-gray-400 uppercase">
-          {isRegister ? 'Already have an account?' : 'Need to try some fonts?'}
+        <p className="text-[10px] font-bold text-gray-400 uppercase text-center">
+          New buyer? Your account is created automatically during checkout.
         </p>
         <button 
-          onClick={() => setIsRegister(!isRegister)}
+          onClick={() => navigate('/fonts')}
           className="text-xs font-black uppercase underline hover:text-red-600 transition-colors"
         >
-          {isRegister ? 'Sign In Instead' : 'Create Free Account'}
+          Go to Font Collection
         </button>
       </div>
     </div>
