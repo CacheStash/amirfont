@@ -113,18 +113,17 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
             'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': file.type
           },
-          body: file // Kirim file mentah (Binary)
+          body: file 
         });
 
         if (!res.ok) {
-          // FIX ERROR 18046: Cast unknown to error object
           const errorData = (await res.json()) as { error?: string };
           throw new Error(errorData.error || `Server Error: ${res.status}`);
         }
 
-        // FIX ERROR 18046: Cast unknown to UploadResponse
+        // SINKRONISASI KUNCI: Gunakan data.fileName sesuai response Worker terbaru
         const data = (await res.json()) as UploadResponse;
-        if (data.success) {
+        if (data.success && data.fileName) {
           uploadedUrls.push(data.fileName);
         } else {
           throw new Error('Upload gagal tanpa alasan');
