@@ -33,17 +33,28 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // --- 0. DIAGNOSTIC CHECK (PENTING) ---
-    // Jika env.ASSETS hilang, kode ini akan memberitahu kita apa yang salah
+    // --- 1. HANDLING CORS (PREFLIGHT) ---
+    // Penting agar browser mengizinkan upload (PUT/POST) dan header Custom
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+          'Access-Control-Allow-Headers': 'Authorization, apikey, Content-Type, X-Order-ID',
+        }
+      });
+    }
+
+    // --- 2. DIAGNOSTIC CHECK ---
     if (!env.ASSETS) {
       const availableBindings = JSON.stringify(Object.keys(env), null, 2);
       return new Response(
-        `CRITICAL ERROR: env.ASSETS is missing!\n\nAvailable Bindings:\n${availableBindings}\n\nPlease check wrangler.toml [assets] configuration.`,
+        `CRITICAL ERROR: env.ASSETS is missing!\n\nAvailable Bindings:\n${availableBindings}`,
         { status: 500 }
       );
     }
 
-    // --- 1. API Fonts ---
+    // --- 3. API FONTS (PUBLIC READ) ---
     if (url.pathname.startsWith('/api/fonts/')) {
       const fontName = decodeURIComponent(url.pathname.split('/').pop());
       try {
@@ -60,7 +71,7 @@ export default {
       }
     }
 
-    // --- 2. API Images ---
+    // --- 4. API IMAGES (PUBLIC READ WITH CACHE) ---
     if (url.pathname.startsWith('/api/images/')) {
       try {
         const cache = caches.default;
@@ -92,21 +103,57 @@ export default {
       }
     }
 
+    // --- 5. API ADMIN UPLOAD (WRITE TO R2) ---
+    if (url.pathname.startsWith('/api/admin/upload/') && (request.method === 'PUT' || request.method === 'POST')) {
+      try {
+        const authHeader = request.headers.get('Authorization');
+        const user = await getSupabaseUser(authHeader, env);
+
+        // DAFTAR EMAIL ADMIN YANG DIIZINKAN
+        const allowedAdmins = ['amisubqisetiaji@gmail.com', 'ameervg@gmail.com'];
+
+        if (!user || !allowedAdmins.includes(user.email)) {
+          return new Response(JSON.stringify({ error: "UNAUTHORIZED_ADMIN_ONLY" }), { 
+            status: 403,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
+        const fileName = decodeURIComponent(url.pathname.split('/').pop());
+        const contentType = request.headers.get('Content-Type') || 'application/octet-stream';
+
+        // Simpan file ke R2 Bucket
+        await env.R2_BUCKET.put(fileName, request.body, {
+          httpMetadata: { contentType: contentType }
+        });
+
+        return new Response(JSON.stringify({ success: true, file: fileName }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // --- 6. API VERIFY BOT (TURNSTILE) ---
     if (url.pathname === '/api/verify-bot' && request.method === 'POST') {
       const { token } = await request.json();
       const isHuman = await verifyTurnstile(token, env.TURNSTILE_SECRET_KEY);
       return new Response(JSON.stringify({ success: isHuman }), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
       });
     }
 
-    // --- 2.6 API Secure ZIP Download ---
+    // --- 7. API SECURE ZIP DOWNLOAD (FOR BUYERS) ---
     if (url.pathname.startsWith('/api/download-zip')) {
-     const fontFile = url.searchParams.get('file'); 
-      const transactionId = url.searchParams.get('order'); // Menangkap ID dari Checkout
+      const fontFile = url.searchParams.get('file'); 
+      const transactionId = url.searchParams.get('order'); 
       
       try {
-        // 1. Validasi User via Supabase JWT
         const authHeader = request.headers.get('Authorization');
         const user = await getSupabaseUser(authHeader, env);
 
@@ -114,16 +161,14 @@ export default {
           return new Response("UNAUTHORIZED: Please login to download.", { status: 401 });
         }
 
-        // 2. Tarik file dari R2
         const object = await env.R2_BUCKET.get(fontFile);
         if (!object) return new Response("File Not Found", { status: 404 });
 
-        // 3. Kirim file dengan header attachment & Metadata Lisensi
         const headers = new Headers();
         headers.set('Content-Type', 'application/octet-stream');
         headers.set('Content-Disposition', `attachment; filename="SUBQI_STUDIO_${fontFile.split('.')[0]}.zip"`);
         
-        // INJEKSI DATA LISENSI KE HEADER
+        // INJEKSI METADATA LISENSI KE HEADER
         headers.set('X-License-Owner', user.email);
         headers.set('X-Order-ID', transactionId || 'N/A');
         headers.set('X-License-Status', 'VALID_COMMERCIAL');
@@ -138,13 +183,13 @@ export default {
       }
     }
 
-    // --- 3. Serve Frontend (Stable SPA Handler) ---
+    // --- 8. SERVE FRONTEND (SPA HANDLER) ---
     try {
       let response = await env.ASSETS.fetch(request);
       
+      // Jika route tidak ditemukan (404) dan bukan API, arahkan ke index.html (SPA)
       if (response.status === 404 && !url.pathname.startsWith('/api/')) {
         const indexUrl = new URL('/index.html', request.url);
-        // Buat Request baru yang bersih
         return await env.ASSETS.fetch(new Request(indexUrl));
       }
       return response;

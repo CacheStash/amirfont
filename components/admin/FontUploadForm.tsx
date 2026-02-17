@@ -87,21 +87,36 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   // Fungsi upload helper ke R2 (Tetap dipertahankan sesuai backup)
   const uploadToR2 = async (files: File[]) => {
     const uploadedUrls = [];
-    for (const file of files) {
-      const formData = new FormData();
-      formData.append('file', file);
-     try {
-        const res = await fetch('/api/upload', { method: 'POST', body: formData });
-        if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(`Server Error (${res.status}): ${errorText || 'Gagal upload'}`);
-        }
-        const data = (await res.json()) as UploadResponse;
-        if (data.success) {
-          uploadedUrls.push(data.fileName);
-        } else {
-          throw new Error(data.error || 'Upload gagal tanpa alasan');
-        }
+    // Ambil token sesi admin untuk verifikasi
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("Akses ditolak. Silakan login kembali.");
+
+    for (const file of files) {
+     try {
+        // Tembak jalur Admin Upload dengan method PUT & Token
+        const res = await fetch(`/api/admin/upload/${file.name}`, { 
+          method: 'PUT', 
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': file.type
+          },
+          body: file // Kirim file mentah (Binary)
+        });
+
+        if (!res.ok) {
+          // FIX ERROR 18046: Cast unknown to error object
+          const errorData = (await res.json()) as { error?: string };
+          throw new Error(errorData.error || `Server Error: ${res.status}`);
+        }
+
+        // FIX ERROR 18046: Cast unknown to UploadResponse
+        const data = (await res.json()) as UploadResponse;
+        if (data.success) {
+          uploadedUrls.push(data.fileName);
+        } else {
+          throw new Error('Upload gagal tanpa alasan');
+        }
+
       } catch (err: any) {
         console.error("Upload error detail:", err);
         throw new Error(`Gagal mengunggah ${file.name}: ${err.message}`);
