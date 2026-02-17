@@ -36,4 +36,3 @@ else
     echo "✅ Kode sudah sinkron dengan GitHub."
 fi
 
-echo "✨ SELESAI! Cek /admin sekarang, harusnya sudah normal."

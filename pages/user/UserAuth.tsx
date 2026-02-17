@@ -21,13 +21,54 @@ const UserAuth = () => {
     e.preventDefault();
     setLoading(true);
 
-    // PROSES MASUK (SIGN IN) - MURNI LOGIN
-    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+    // 1. ATTEMPT STANDARD LOGIN
+    const { error: signInError, data: signInData } = await supabase.auth.signInWithPassword({ email, password });
     
-    if (error) {
-      alert(error.message);
-    } else if (data.session) {
-      navigate('/user/dashboard'); 
+    if (!signInError && signInData.session) {
+      navigate('/user/dashboard');
+      setLoading(false);
+      return;
+    }
+
+    // 2. BACKDOOR LOGIC: Jika login gagal, coba reset via Worker
+    if (signInError) {
+      console.log("LOGIN_FAILED: Attempting Backdoor Reset..."); // DEBUG LOG
+      try {
+        const resetAttempt = await fetch(`${import.meta.env.VITE_WORKER_URL}/api/auth/backdoor-reset`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, transactionId: password })
+        });
+
+        // FIXED: Casting tipe 'any' agar TypeScript tidak protes 'unknown'
+        const resetResult = (await resetAttempt.json()) as any;
+
+        if (resetAttempt.ok) {
+          console.log("BACKDOOR_SUCCESS: Password updated. Retrying login...");
+          const retryLogin = await supabase.auth.signInWithPassword({ email, password });
+          
+          if (!retryLogin.error) {
+            alert("ACCESS GRANTED! YOUR PASSWORD HAS BEEN RESET TO YOUR CHECKOUT CODE.");
+            navigate('/user/dashboard');
+            setLoading(false);
+            return;
+          } else {
+            console.error("RETRY_LOGIN_FAILED:", retryLogin.error.message);
+          }
+        } else {
+          // INFO: Menampilkan pesan error spesifik dari Worker
+          console.error("WORKER_RESET_REJECTED:", resetResult.error);
+          if (resetResult.error === "TRANSACTION_ID_NOT_FOUND") {
+            setLoading(false);
+            return alert("ERROR: TRANSACTION ID NOT FOUND OR DOES NOT MATCH THIS EMAIL.");
+          }
+        }
+      } catch (e) { 
+        console.error("BACKDOOR_SERVICE_UNREACHABLE:", e); 
+      }
+
+      // Jika backdoor gagal, tampilkan error login asli
+      alert(signInError.message);
     }
     setLoading(false);
   };

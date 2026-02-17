@@ -37,13 +37,14 @@ const MyFontsHistory = () => {
     setLoading(false);
   };
 
-  const handleSecureDownload = async (fileName: string) => {
+  const handleSecureDownload = async (fileName: string, orderId: string, downloadType: string) => { 
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) return alert("Session expired. Please login again.");
 
     try {
-      const res = await fetch(`/api/download-zip?file=${fileName}`, {
+      // FIXED: Masukkan &type=${downloadType} ke URL agar Worker langsung tau status filenya
+      const res = await fetch(`/api/download-zip?file=${encodeURIComponent(fileName)}&order=${orderId}&type=${downloadType}`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         }
@@ -52,10 +53,13 @@ const MyFontsHistory = () => {
       if (!res.ok) throw new Error("Unauthorized or File not found.");
 
       const blob = await res.blob();
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName;
+      const cleanName = fileName.replace(/^\d+-/, '').split('.')[0];
+      a.download = `SUBQI_STUDIO_${cleanName}.zip`;
+    
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -94,21 +98,23 @@ const MyFontsHistory = () => {
                   {item.download_type === 'trial' ? 'DEMO' : 'FULL'}
                 </div>
                 <button 
-                  onClick={() => handleSecureDownload(item.download_type === 'trial' ? item.fonts.trial_file_url : item.fonts.font_files[0])}
+                  onClick={() => handleSecureDownload(
+                    item.download_type === 'trial' ? item.fonts.trial_file_url : item.fonts.font_files[0],
+                    item.transaction_id,
+                    item.download_type // FIXED: Kirim jenis download (trial/commercial)
+                  )}
                   className="bg-black text-white p-3 border border-white group-hover:bg-white group-hover:text-black transition-all"
                 >
                   <Download size={20} />
                 </button>
                 {/* VIEW LICENSE BUTTON */}
-                {item.download_type !== 'trial' && (
-                  <Link 
-                    to={`/user/receipt/${item.transaction_id}`}
-                    className="bg-white text-black p-3 border border-black hover:bg-yellow-400 transition-all"
-                    title="View Official License"
-                  >
-                    <Info size={20} />
-                  </Link>
-                )}
+              <Link 
+                  to={`/user/receipt/${item.transaction_id}`}
+                  className="bg-white text-black p-3 border border-black hover:bg-yellow-400 transition-all"
+                  title="View Official License"
+                >
+                  <Info size={20} />
+                </Link>
               </div>
             </div>
           ))}

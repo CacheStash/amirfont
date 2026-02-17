@@ -34,10 +34,17 @@ interface CartCardProps {
   discount?: number;
 }
 
+import { useNavigate } from 'react-router-dom'; // FIXED: Wajib tambah ini
+
 const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount = 0 }) => {
   const { addToCart, closeConfigurator } = useCart();
+  const navigate = useNavigate(); // FIXED: Inisialisasi navigasi
   const [selectedTier, setSelectedTier] = useState<'solo' | 'team' | 'studio' | 'enterprise'>('solo');
   const [selectedUsages, setSelectedUsages] = useState<string[]>(['desktop']);
+
+  // DEFINISI LISENSI TINGGI: Pilihan ini otomatis sudah include hak Desktop
+  const higherTierUsages = ['logo_branding', 'app', 'broadcast', 'server'];
+  const hasHigherTier = useMemo(() => selectedUsages.some(u => higherTierUsages.includes(u)), [selectedUsages]);
   const [webTier, setWebTier] = useState<'small' | 'medium' | 'large' | 'enterprise'>('small');
   const [isCorporate, setIsCorporate] = useState(false);
   const [isTrial, setIsTrial] = useState(false);
@@ -90,25 +97,44 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     return discountedPrice;
   }, [selectedTier, selectedUsages, webTier, isCorporate, isTrial, prices, discount]);
 
-  const handleAdd = () => {
+  const handleAdd = (redirect: boolean = false) => {
+    // LOGIKA METADATA: Jika lisensi tinggi dipilih, pastikan 'desktop' masuk ke metadata
+    const finalUsages = [...selectedUsages];
+    if (hasHigherTier && !finalUsages.includes('desktop')) {
+      finalUsages.push('desktop');
+    }
+
     addToCart({
       cartId: crypto.randomUUID(),
-      id: fontId, // FIXED: Memasukkan UUID asli (id) ke dalam CartItem
-      fontId: fontName, // Ini tetap nama font untuk keperluan display/slug
+      id: fontId, 
+      fontId: fontName, 
       name: fontName,
       price: totalPrice,
       tier: isTrial ? 'TRY IT FIRST / DEMO' : (isCorporate ? 'CORPORATE FULL SUITE' : `${selectedTier.toUpperCase()} TIER`),
-      usages: isTrial ? ['PERSONAL USE'] : (isCorporate ? ['ALL-IN-ONE'] : selectedUsages),
+      usages: isTrial ? ['PERSONAL USE'] : (isCorporate ? ['ALL-IN-ONE'] : finalUsages),
       webTierLabel: selectedUsages.includes('social_web') && !isCorporate && !isTrial ? webTier : undefined
     });
-    setIsAdded(true);
+
+    if (redirect) {
+      navigate('/checkout'); // FIXED: Langsung ke halaman checkout
+      closeConfigurator();
+    } else {
+      setIsAdded(true);
+    }
   };
 
   const toggleUsage = (id: string) => {
     if (isCorporate || isTrial) return;
-    setSelectedUsages(prev => 
-      prev.includes(id) ? prev.filter(u => u !== id) : [...prev, id]
-    );
+    setSelectedUsages(prev => {
+      const isSelected = prev.includes(id);
+      let next = isSelected ? prev.filter(u => u !== id) : [...prev, id];
+      
+      // LOGIKA AUTO-DESELECT: Jika pilih Logo/App/dsb, otomatis lepas Desktop manual
+      if (!isSelected && higherTierUsages.includes(id)) {
+        next = next.filter(u => u !== 'desktop');
+      }
+      return next;
+    });
   };
 
   const handleCorporateToggle = () => {
@@ -178,9 +204,10 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
                 { id: 'broadcast', label: 'BROADCAST' },
                 { id: 'server', label: 'SERVER' },
               ].map((u) => (
-                <button key={u.id} onClick={() => toggleUsage(u.id)} disabled={isCorporate || isTrial}
+                <button key={u.id} onClick={() => toggleUsage(u.id)} 
+                  disabled={isCorporate || isTrial || (u.id === 'desktop' && hasHigherTier)} // FIXED: Disable desktop jika ada lisensi tinggi
                   className={`flex items-center justify-between p-4 border border-black transition-all ${
-                    (isCorporate || isTrial) ? 'opacity-20' : 
+                    (isCorporate || isTrial || (u.id === 'desktop' && hasHigherTier)) ? 'opacity-20 cursor-not-allowed' : 
                     selectedUsages.includes(u.id) ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'
                   }`}>
                   <span className="text-[10px] font-black tracking-widest">{u.label}</span>
@@ -224,6 +251,16 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
           </div>
         )}
 
+{/* INFO BOX: Muncul jika memilih lisensi yang otomatis include Desktop */}
+        {hasHigherTier && !isCorporate && !isTrial && (
+          <div className="mt-6 p-4 bg-[#EDEBE6] border border-black border-dashed animate-in fade-in slide-in-from-top-2">
+            <span className="text-[10px] font-black block mb-1 tracking-widest">LICENSE INCLUSION:</span>
+            <p className="text-[9px] normal-case leading-relaxed font-bold italic text-gray-600 uppercase">
+              SELECTING LOGO, APP, BROADCAST, OR SERVER LICENSE AUTOMATICALLY INCLUDES ALL TERMS AND PERMISSIONS OF THE STANDARD DESKTOP LICENSE.
+            </p>
+          </div>
+        )}
+
         {selectedUsages.includes('social_web') && !isCorporate && !isTrial && (
           <div className="mt-6 p-5 bg-[#EDEBE6] border border-black border-dashed animate-in fade-in slide-in-from-top-2">
             <label className="text-[10px] font-bold tracking-[0.2em] mb-4 block">MONTHLY IMPRESSIONS REACH</label>
@@ -255,10 +292,17 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
             </Link>
             
             {!isAdded ? (
-              <button onClick={handleAdd} className="w-full md:w-[280px] bg-black text-white py-5 px-8 flex items-center justify-center gap-4 hover:bg-gray-800 transition-all group">
-                <span className="text-sm font-black tracking-[0.3em]">ADD TO ORDER</span>
-                <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
-              </button>
+              <div className="flex gap-2 w-full md:w-auto">
+                {/* TOMBOL ADD TO CART */}
+                <button onClick={() => handleAdd(false)} className="flex-1 md:w-[180px] bg-white text-black border border-black py-5 px-4 flex items-center justify-center gap-3 hover:bg-black hover:text-white transition-all group font-black text-[10px] tracking-widest uppercase">
+                  ADD TO CART
+                </button>
+                {/* TOMBOL DIRECT CHECKOUT */}
+                <button onClick={() => handleAdd(true)} className="flex-1 md:w-[180px] bg-black text-white py-5 px-4 flex items-center justify-center gap-3 hover:bg-gray-800 transition-all group font-black text-[10px] tracking-widest uppercase">
+                  CHECKOUT
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
             ) : (
               <div className="flex flex-col gap-2 w-full md:w-[280px] animate-in fade-in zoom-in-95 duration-300">
                 <Link to="/cart" onClick={closeConfigurator} className="w-full bg-black text-white py-5 px-8 flex items-center justify-center gap-4 hover:invert transition-all">

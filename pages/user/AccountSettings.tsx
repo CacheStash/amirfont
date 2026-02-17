@@ -43,13 +43,13 @@ const AccountSettings = () => {
     <div className="max-w-md font-mono uppercase">
       <div className="mb-10 p-6 border-2 border-black bg-yellow-50 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
         <label className="block text-[10px] font-black tracking-widest mb-2 opacity-50 flex items-center gap-2">
-          <Key size={12} /> YOUR_INITIAL_PASSWORD
+          <Key size={12} /> YOUR_INITIAL_PASSWORD & PASSWORD_RESETTER
         </label>
         <div className="text-xl font-black tracking-tighter bg-white border border-black p-3 select-all">
           {initialPassword}
         </div>
         <p className="text-[9px] mt-3 font-bold opacity-60 leading-tight">
-          * This code was generated during your first checkout. Use it to log in if you haven't changed your password yet.
+          * This code was generated during your first checkout. Use it to log in if you haven't changed your password yet. * This code can also be used to reset your password in case you forget your new one.
         </p>
       </div>
 

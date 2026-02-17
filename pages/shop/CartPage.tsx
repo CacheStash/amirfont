@@ -3,9 +3,12 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import CartItem from '../../pages/shop/CartItem';
 import { ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; // FIXED: Tambahkan import untuk navigasi
+import { X } from 'lucide-react'; // FIXED: Tambahkan icon X
 
 const CartPage: React.FC = () => {
   const { cart, removeFromCart } = useCart();
+  const navigate = useNavigate(); // FIXED: Inisialisasi navigate
   const total = cart.reduce((acc, curr) => acc + curr.price, 0);
 
   // FIX: Lubang karcis dengan border hitam agar outline tersambung
@@ -24,7 +27,13 @@ const CartPage: React.FC = () => {
     <div className="min-h-screen bg-[#EDEBE6] p-6 md:p-20 flex justify-center">
       {/* FIX: Hapus border-b dan Hapus shadow */}
       <div className="w-full max-w-xl bg-white border-x border-black relative overflow-hidden">
-        
+        {/* TOMBOL CLOSE: Mengembalikan user ke halaman sebelumnya */}
+        <button 
+          onClick={() => navigate(-1)} 
+          className="absolute top-6 right-6 z-30 p-1 hover:bg-black hover:text-white transition-colors border border-black"
+        >
+          <X size={20} />
+        </button>
         {/* Lubang karcis atas */}
         <div className="absolute top-0 left-0 w-full z-20 flex">
           <TicketEdges />

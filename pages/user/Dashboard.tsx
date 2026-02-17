@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Library, Settings, LifeBuoy, LogOut, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
@@ -7,6 +7,16 @@ import AccountSettings from './AccountSettings'; // FIXED: Tambahkan import ini
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('library');
+
+const [userEmail, setUserEmail] = useState('');
+
+  // Ambil data user saat dashboard dibuka
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) setUserEmail(user.email);
+    });
+  }, []);
+
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -25,7 +35,9 @@ const UserDashboard = () => {
           <Link to="/" className="flex items-center gap-1 text-[10px] font-black opacity-30 hover:opacity-100 transition-opacity">
             <ArrowLeft size={10} /> BACK TO STORE
           </Link>
-          <h1 className="font-normal tracking-tighter text-xl italic">HELLO FELLAS!</h1>
+          <h1 className="font-normal tracking-tighter text-lg md:text-xl italic break-all">
+            {userEmail ? `Hello\n${userEmail}` : 'HELLO FELLAS!'}
+          </h1>
         </div>
         
         <nav className="flex-grow p-4 space-y-2">

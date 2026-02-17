@@ -166,12 +166,12 @@ const License: React.FC = () => {
             <div className="p-6 md:p-10 md:border-r border-black space-y-12">
               <div className="grid grid-cols-1 gap-y-10">
                 {[
-                  { title: "A. Desktop License", desc: "Allows installation on a computer to create static designs (PNG, JPG), printed materials (flyers, posters, books), and commercial projects. Pricing follows the Solo, Team, Studio, or Enterprise tiers." },
-                  { title: "B. Social Media & Web License (Reach Based)", desc: "Specifically for digital platforms, including website embedding and social media content (Instagram, TikTok, YouTube, etc.). This license is tiered by monthly impressions/pageviews: Small (50k), Medium (500k), Large (5m), Enterprise (Unlimited)." },
-                  { title: "C. Logo & Branding License", desc: "Required when the font is a primary element of a logo, wordmark, or brand identity system. Pricing follows the Solo, Team, Studio, or Enterprise tiers based on company size." },
-                  { title: "D. App / SaaS License", desc: "Required for embedding font files into mobile applications, software, or SaaS platforms. Pricing follows the Solo, Team, Studio, or Enterprise tiers." },
-                  { title: "E. Broadcast License", desc: "Required for use in television, cinema, streaming services, and large-scale video advertisements. Pricing follows the Solo, Team, Studio, or Enterprise tiers." },
-                  { title: "F. Server License", desc: "Required for platforms that allow customers to generate their own custom products (web-to-print) using the font. Pricing follows the Solo, Team, Studio, or Enterprise tiers." },
+                  { title: "A. Desktop License", desc: "Grants the right to install the font software on a local machine to create static visual content (PNG, JPG, PDF) for digital and print media, including commercial projects." },
+                  { title: "B. Social Media & Web License (Reach Based)", desc: "Specifically for digital platforms, including website embedding and social media content (Instagram, TikTok, YouTube, etc.). Tiered by monthly impressions: Small (50k), Medium (500k), Large (5m), Enterprise (Unlimited)." },
+                  { title: "C. Logo & Branding License", desc: "Grants the right to utilize the font as a core element of a visual identity system, including logos and wordmarks. This license includes all permissions associated with a standard Desktop License." },
+                  { title: "D. App / SaaS License", desc: "Grants the right to embed the font software into mobile applications, software, or SaaS platforms. This license includes all permissions associated with a standard Desktop License." },
+                  { title: "E. Broadcast License", desc: "Grants the right to utilize the font software in motion graphics, television, cinema, streaming services, and video advertisements. This license includes all permissions associated with a standard Desktop License." },
+                  { title: "F. Server License", desc: "Grants the right to install the font software on a server to facilitate end-user product customization (Web-to-Print). This license includes all permissions associated with a standard Desktop License." },
                 ].map((item) => (
                    <div key={item.title} className="flex gap-4 items-start">
                      <PlusBullet />
