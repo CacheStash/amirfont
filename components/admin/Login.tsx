@@ -73,13 +73,7 @@ const Login = () => {
       </form>
 
       {/* FIXED: Tambahkan tombol toggle untuk mendaftarkan admin baru */}
-      <button 
-        type="button"
-        onClick={() => setIsRegister(!isRegister)} 
-        className="mt-6 text-[10px] font-bold uppercase underline tracking-widest text-gray-400 hover:text-black transition-colors"
-      >
-        {isRegister ? "Already an Admin? Login here" : "Need to register new admin? Click here"}
-      </button>
+      
     </div>
   );
 };
