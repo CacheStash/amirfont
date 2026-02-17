@@ -79,26 +79,38 @@ const [email, setEmail] = React.useState(''); // State untuk email wajib
   };
 
   const handleFreeTrial = async () => {
-    if (!user) {
-      alert("PLEASE LOGIN TO CLAIM YOUR FREE DEMO.");
+    // 1. Validasi format email ketat (name@domain.com)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert("PLEASE ENTER A VALID EMAIL ADDRESS (E.G. NAME@DOMAIN.COM)");
       return;
     }
 
     setLoading(true);
     try {
-      // Masukkan setiap item di cart ke tabel font_history
+      // 2. Auto-Register menggunakan Order ID sebagai Password
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email,
+        password: orderId,
+      });
+
+      if (authError && authError.message !== "User already registered") throw authError;
+
+      // 3. Catat history download sebagai tipe 'trial'
+      const targetUserId = authData.user?.id || (await supabase.auth.getUser()).data.user?.id;
       const historyEntries = cart.map(item => ({
-        user_id: user.id,
+        user_id: targetUserId,
         font_id: item.fontId,
-        download_type: 'trial'
+        download_type: 'trial',
+        transaction_id: orderId
       }));
 
-      const { error } = await supabase.from('font_history').insert(historyEntries);
-      
-      if (error) throw error;
+      const { error: histError } = await supabase.from('font_history').insert(historyEntries);
+      if (histError) throw histError;
 
-      setIsPaid(true);
-      alert("DEMO FONTS ADDED TO YOUR LIBRARY! CHECK YOUR DASHBOARD.");
+      // 4. Redirect Opsi A: Ke login dengan data terisi di URL
+      window.location.href = `/user/auth?email=${encodeURIComponent(email)}&key=${encodeURIComponent(orderId)}`;
+      
     } catch (err: any) {
       alert("ERROR: " + err.message);
     } finally {
@@ -165,9 +177,10 @@ const [email, setEmail] = React.useState(''); // State untuk email wajib
                 <div className="flex justify-between md:justify-end md:gap-10">
                   
                   <span>STATUS</span> 
-  <span className={isPaid ? "text-green-600 font-black" : "text-red-600 font-black animate-pulse"}>
-    {isPaid ? "PAID" : "UNPAID"}
-  </span>
+  {/* Mengubah UNPAID menjadi FREE jika total 0 */}
+                  <span className={isPaid ? "text-green-600 font-black" : "text-red-600 font-black animate-pulse"}>
+                    {isPaid ? "PAID" : (total === 0 ? "FREE" : "UNPAID")}
+                  </span>
 
                 </div>
               </div>
@@ -233,18 +246,7 @@ const [email, setEmail] = React.useState(''); // State untuk email wajib
               </div>
             )}
 
-              {/* ACCOUNT RECOMMENDATION NOTICE */}
-            {!user && (
-              <div className="mb-10 p-5 border-2 border-black bg-yellow-400 font-bold text-[11px] leading-tight shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <p className="uppercase tracking-[0.15em] mb-2 flex items-center gap-2">
-                  <Plus size={14} className="rotate-45" /> HIGHLY_RECOMMENDED:
-                </p>
-                <p className="normal-case text-sm md:text-base font-normal">
-                  Please <Link to="/user/auth" className="font-black underline decoration-2 underline-offset-2">Create an Account</Link> before finishing. 
-                  Your download links will be stored in your personal dashboard as a permanent backup if your files are lost.
-                </p>
-              </div>
-            )}
+            
 
             {/* Dual Payment Gateway Section */}
             <div className="w-full flex flex-col gap-10 print:hidden">

@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Tambahkan useEffect
 import { supabase } from '../../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom'; // Tambahkan useSearchParams
 
 const UserAuth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams(); // Mengambil parameter dari URL
+
+  // Sinkronisasi data dari URL ke dalam form
+  useEffect(() => {
+    const preEmail = searchParams.get('email');
+    const preKey = searchParams.get('key');
+    if (preEmail) setEmail(preEmail);
+    if (preKey) setPassword(preKey);
+  }, [searchParams]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
