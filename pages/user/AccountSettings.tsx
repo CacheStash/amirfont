@@ -48,9 +48,13 @@ const AccountSettings = () => {
         <div className="text-xl font-black tracking-tighter bg-white border border-black p-3 select-all">
           {initialPassword}
         </div>
-        <p className="text-[9px] mt-3 font-bold opacity-60 leading-tight">
-          * This code was generated during your first checkout. Use it to log in if you haven't changed your password yet. * This code can also be used to reset your password in case you forget your new one.
-        </p>
+        <p className="text-[9px] font-bold opacity-60 leading-tight">
+  * This code was generated during your first checkout. Use it to log in if you haven't changed your password yet.
+</p>
+<p className="text-[9px] font-bold opacity-60 leading-tight">
+  * This code can also be used to reset your password in case you forget your new one.
+</p>
+
       </div>
 
       <form onSubmit={handleUpdatePassword} className="space-y-6">
