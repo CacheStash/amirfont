@@ -20,7 +20,9 @@ const Orders = () => {
     const to = from + itemsPerPage - 1;
 
     try {
-      // SINKRONISASI: Menggunakan spasi pada 'fonts ( name )' seperti di MyFontsHistory.tsx
+      // Menambahkan 'metadata' ke dalam select untuk mengambil data MPV
+      // Jika Anda memiliki tabel 'profiles', Anda bisa melakukan join email di sini. 
+      // Untuk saat ini kita ambil user_id sebagai identitas buyer.
       let query = supabase
         .from('font_history')
         .select(`
@@ -31,11 +33,12 @@ const Orders = () => {
           tier,
           usages,
           user_id,
+          metadata,
           fonts ( name )
         `, { count: 'exact' });
 
       if (searchTerm) {
-        query = query.or(`transaction_id.ilike.%${searchTerm}%`);
+        query = query.or(`transaction_id.ilike.%${searchTerm}%,user_id.ilike.%${searchTerm}%`);
       }
 
       const { data, error, count } = await query
@@ -71,7 +74,7 @@ const Orders = () => {
         <div className="relative group">
           <input 
             type="text" 
-            placeholder="SEARCH_ORDER_ID..." 
+            placeholder="SEARCH_BY_ORDER_OR_USER..." 
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             className="bg-white border-2 border-black px-10 py-3 text-xs font-bold outline-none focus:bg-yellow-50 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] w-64 uppercase"
@@ -80,24 +83,25 @@ const Orders = () => {
         </div>
       </div>
 
-      {/* ORDERS TABLE - Tanpa menghapus kolom apapun */}
+      {/* ORDERS TABLE - Tanpa menghapus kolom, ditambah Email & MPV */}
       <div className="border-2 border-black bg-white overflow-x-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-        <table className="w-full text-left border-collapse min-w-[1000px]">
+        <table className="w-full text-left border-collapse min-w-[1200px]">
           <thead>
             <tr className="border-b-2 border-black bg-gray-50">
               <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Date</th>
               <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Order_ID</th>
+              <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Buyer_ID</th>
               <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Typeface</th>
               <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500 text-center">Type</th>
-              <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Tier</th>
+              <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Tier_&_Reach</th>
               <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Usage_Terms</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="p-10 text-center animate-pulse font-bold">LOADING_DATABASE...</td></tr>
+              <tr><td colSpan={7} className="p-10 text-center animate-pulse font-bold">LOADING_DATABASE...</td></tr>
             ) : orders.length === 0 ? (
-              <tr><td colSpan={6} className="p-10 text-center opacity-30 font-bold">NO_ORDERS_FOUND</td></tr>
+              <tr><td colSpan={7} className="p-10 text-center opacity-30 font-bold">NO_ORDERS_FOUND</td></tr>
             ) : orders.map((order) => (
               <tr key={order.id} className="border-b border-black hover:bg-yellow-50 transition-colors">
                 <td className="p-4 text-[11px] font-bold">
@@ -105,6 +109,10 @@ const Orders = () => {
                 </td>
                 <td className="p-4">
                   <span className="bg-black text-white px-2 py-1 text-[10px] font-bold">{order.transaction_id}</span>
+                </td>
+                {/* Kolom Buyer ID/Email */}
+                <td className="p-4 text-[10px] font-bold truncate max-w-[150px]" title={order.user_id}>
+                  {order.user_id}
                 </td>
                 <td className="p-4 font-black text-sm uppercase italic">
                   {order.fonts?.name || 'UNKNOWN'}
@@ -116,7 +124,17 @@ const Orders = () => {
                     {order.download_type?.toUpperCase() || 'N/A'}
                   </span>
                 </td>
-                <td className="p-4 text-[11px] font-bold uppercase">{order.tier || 'SOLO'}</td>
+                {/* Kolom Tier & MPV Reach */}
+                <td className="p-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[11px] font-black uppercase">{order.tier || 'SOLO'}</span>
+                    {order.metadata?.mpv && (
+                      <span className="text-[9px] bg-black text-white px-1 w-fit font-bold italic">
+                        {order.metadata.mpv} MPV_REACH
+                      </span>
+                    )}
+                  </div>
+                </td>
                 <td className="p-4">
                   <div className="flex flex-wrap gap-1">
                     {order.usages?.map((u: string) => (

@@ -242,11 +242,11 @@ export default {
         // 3. Ambil data biner font asli
         const fontData = await object.arrayBuffer();
 
-        // 4. Fetch database (Silent fallback jika RLS blokir)
+        // 4. Fetch database (Sertakan metadata untuk MPV)
         let txData = {};
         try {
           const txRes = await fetch(
-            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${transactionId}&select=tier,usages,download_type`,
+            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${transactionId}&select=tier,usages,download_type,metadata`,
             { headers: { 'apikey': supabaseKey, 'Authorization': authHeader } }
           );
           const txRows = txRes.ok ? await txRes.json() : [];
@@ -257,7 +257,18 @@ export default {
         const typeStr = (injectedType || txData.download_type || '').toLowerCase();
         const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
         
-        const currentTier = (isTrial ? 'SOLO' : txData.tier || 'SOLO').toUpperCase();
+        // LOGIKA DETAIL SEAT TIERS
+        const tierMap = {
+          'SOLO': 'Authorized for 1 User/Seat',
+          'TEAM': 'Authorized for up to 25 Users/Seats',
+          'STUDIO': 'Authorized for up to 100 Users/Seats',
+          'ENTERPRISE': 'Unlimited Users/Seats'
+        };
+
+        const rawTier = (isTrial ? 'SOLO' : txData.tier || 'SOLO').toUpperCase();
+        const tierDescription = tierMap[rawTier] || tierMap['SOLO'];
+        const displayTier = `${rawTier} - ${tierDescription}`;
+
         const usages = isTrial ? ['trial'] : (txData.usages && txData.usages.length > 0 ? txData.usages : ['desktop']);
 
         // 5. DATABASE TEKS LISENSI (100% Sync dengan visual LicenseReceipt.tsx)
@@ -285,7 +296,13 @@ export default {
         licenseBody += `LICENSE HOLDER : ${user.email} (USE AS LOGIN USERNAME)\n`;
         licenseBody += `ISSUE DATE     : ${issueDate}\n`;
         licenseBody += `ASSET NAME     : ${cleanFontName}\n`;
-        licenseBody += `SEAT TIER      : ${currentTier}\n`;
+        licenseBody += `SEAT TIER      : ${displayTier}\n`;
+        
+        // OTOMATIS: Tambahkan baris MPV Reach jika ada di metadata
+        if (!isTrial && txData.metadata?.mpv) {
+          licenseBody += `MONTHLY REACH  : ${txData.metadata.mpv} MPV (MONTHLY PAGE VIEWS)\n`;
+        }
+        
         licenseBody += `--------------------------------------------\n\n`;
 
         licenseBody += `LICENSED USAGE TERMS:\n\n`;
