@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Search, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Orders = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -16,36 +16,40 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     setLoading(true);
-    
-    // Menghitung range untuk pagination
     const from = (currentPage - 1) * itemsPerPage;
     const to = from + itemsPerPage - 1;
 
-    let query = supabase
-      .from('font_history')
-      .select(`
-        id,
-        transaction_id,
-        download_type,
-        download_date,
-        tier,
-        usages,
-        user_id,
-        fonts ( name )
-      `, { count: 'exact' });
+    try {
+      // SINKRONISASI: Menggunakan spasi pada 'fonts ( name )' seperti di MyFontsHistory.tsx
+      let query = supabase
+        .from('font_history')
+        .select(`
+          id,
+          transaction_id,
+          download_type,
+          download_date,
+          tier,
+          usages,
+          user_id,
+          fonts ( name )
+        `, { count: 'exact' });
 
-    // Fitur Search: Cek transaction_id atau filter via logika (Supabase filter)
-    if (searchTerm) {
-      query = query.or(`transaction_id.ilike.%${searchTerm}%`);
-    }
+      if (searchTerm) {
+        query = query.or(`transaction_id.ilike.%${searchTerm}%`);
+      }
 
-    const { data, error, count } = await query
-      .order('download_date', { ascending: false })
-      .range(from, to);
+      const { data, error, count } = await query
+        .order('download_date', { ascending: false })
+        .range(from, to);
 
-    if (!error && data) {
-      setOrders(data);
-      if (count) setTotalCount(count);
+      if (error) {
+        console.error("DEBUG_QUERY_ERROR:", error.message);
+      } else if (data) {
+        setOrders(data);
+        if (count) setTotalCount(count);
+      }
+    } catch (err) {
+      console.error("FETCH_ERROR:", err);
     }
     setLoading(false);
   };
@@ -54,7 +58,7 @@ const Orders = () => {
 
   return (
     <div className="space-y-8 font-mono">
-      {/* HEADER SECTION */}
+      {/* HEADER SECTION - Style Konsisten dengan ProductManager */}
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-4xl font-normal uppercase tracking-tight italic">Sales_History</h2>
@@ -76,7 +80,7 @@ const Orders = () => {
         </div>
       </div>
 
-      {/* ORDERS TABLE */}
+      {/* ORDERS TABLE - Tanpa menghapus kolom apapun */}
       <div className="border-2 border-black bg-white overflow-x-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <table className="w-full text-left border-collapse min-w-[1000px]">
           <thead>
@@ -91,7 +95,9 @@ const Orders = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="p-10 text-center animate-pulse font-bold">LOADING_ORDERS...</td></tr>
+              <tr><td colSpan={6} className="p-10 text-center animate-pulse font-bold">LOADING_DATABASE...</td></tr>
+            ) : orders.length === 0 ? (
+              <tr><td colSpan={6} className="p-10 text-center opacity-30 font-bold">NO_ORDERS_FOUND</td></tr>
             ) : orders.map((order) => (
               <tr key={order.id} className="border-b border-black hover:bg-yellow-50 transition-colors">
                 <td className="p-4 text-[11px] font-bold">
@@ -105,9 +111,9 @@ const Orders = () => {
                 </td>
                 <td className="p-4 text-center">
                   <span className={`px-2 py-1 text-[9px] font-black border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
-                    order.download_type === 'trial' ? 'bg-yellow-400' : 'bg-green-500 text-white'
+                    order.download_type === 'trial' ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white'
                   }`}>
-                    {order.download_type?.toUpperCase()}
+                    {order.download_type?.toUpperCase() || 'N/A'}
                   </span>
                 </td>
                 <td className="p-4 text-[11px] font-bold uppercase">{order.tier || 'SOLO'}</td>
@@ -117,7 +123,7 @@ const Orders = () => {
                       <span key={u} className="text-[9px] bg-gray-100 border border-black px-1 font-bold uppercase">
                         {u.replace('_', ' ')}
                       </span>
-                    )) || <span className="text-[9px] opacity-30">NONE</span>}
+                    )) || <span className="text-[9px] opacity-30 italic">NO_DATA</span>}
                   </div>
                 </td>
               </tr>
@@ -132,19 +138,17 @@ const Orders = () => {
           <button 
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(prev => prev - 1)}
-            className="p-2 border-2 border-black bg-white hover:bg-black hover:text-white disabled:opacity-20 disabled:hover:bg-white disabled:hover:text-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+            className="p-2 border-2 border-black bg-white hover:bg-black hover:text-white disabled:opacity-20 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
           >
             <ChevronLeft size={20} />
           </button>
-          
           <span className="font-black text-xs uppercase tracking-widest">
             Page {currentPage} of {totalPages}
           </span>
-
           <button 
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(prev => prev + 1)}
-            className="p-2 border-2 border-black bg-white hover:bg-black hover:text-white disabled:opacity-20 disabled:hover:bg-white disabled:hover:text-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+            className="p-2 border-2 border-black bg-white hover:bg-black hover:text-white disabled:opacity-20 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
           >
             <ChevronRight size={20} />
           </button>
