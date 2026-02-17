@@ -25,7 +25,7 @@ const UserDashboard = () => {
           <Link to="/" className="flex items-center gap-1 text-[10px] font-black opacity-30 hover:opacity-100 transition-opacity">
             <ArrowLeft size={10} /> BACK TO STORE
           </Link>
-          <h1 className="font-normal tracking-tighter text-xl italic">SUBQI_MEMBER</h1>
+          <h1 className="font-normal tracking-tighter text-xl italic">HELLO FELLAS!</h1>
         </div>
         
         <nav className="flex-grow p-4 space-y-2">
@@ -59,7 +59,7 @@ const UserDashboard = () => {
       {/* MAIN CONTENT */}
       <main className="flex-grow p-10 overflow-y-auto">
         {activeTab === 'library' && <MyFontsHistory />}
-        {activeTab === 'settings' && <div className="p-20 text-center font-bold opacity-20 text-xs tracking-[0.2em]">Manage your profile (Coming Soon)</div>}
+        {activeTab === 'settings' && <AccountSettings />}
         {activeTab === 'support' && <div className="p-20 text-center font-bold opacity-20 text-xs tracking-[0.2em]">Need help? Email support@subqi.studio</div>}
       </main>
     </div>
