@@ -43,6 +43,7 @@ const CartConfiguratorModal = () => {
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative z-[210] animate-in zoom-in-95 duration-300">
           <CartCard 
+            fontId={selectedFont.id} // FIXED: Mengirimkan UUID asli dari database
             fontName={selectedFont.name} 
             prices={selectedFont.license_prices} 
             discount={selectedFont.activeDiscount || 0}

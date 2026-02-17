@@ -28,12 +28,13 @@ interface LicensePrices {
 }
 
 interface CartCardProps {
+  fontId: string; // FIXED: Tambahkan ID ke props interface
   fontName: string;
   prices: LicensePrices;
   discount?: number;
 }
 
-const CartCard: React.FC<CartCardProps> = ({ fontName, prices, discount = 0 }) => {
+const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount = 0 }) => {
   const { addToCart, closeConfigurator } = useCart();
   const [selectedTier, setSelectedTier] = useState<'solo' | 'team' | 'studio' | 'enterprise'>('solo');
   const [selectedUsages, setSelectedUsages] = useState<string[]>(['desktop']);
@@ -92,7 +93,8 @@ const CartCard: React.FC<CartCardProps> = ({ fontName, prices, discount = 0 }) =
   const handleAdd = () => {
     addToCart({
       cartId: crypto.randomUUID(),
-      fontId: fontName,
+      id: fontId, // FIXED: Memasukkan UUID asli (id) ke dalam CartItem
+      fontId: fontName, // Ini tetap nama font untuk keperluan display/slug
       name: fontName,
       price: totalPrice,
       tier: isTrial ? 'TRY IT FIRST / DEMO' : (isCorporate ? 'CORPORATE FULL SUITE' : `${selectedTier.toUpperCase()} TIER`),
