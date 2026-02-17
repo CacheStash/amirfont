@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState } from 'react';
 
 export interface CartItem {
   cartId: string; // ID unik untuk setiap baris di keranjang
-  fontId: string;
+  id: string; // FIXED: Tambahkan ID (UUID database) ke interface agar tidak error
+  fontId: string; // Ini tetap ada sebagai nama font/slug
   name: string;
   price: number;
   tier: string;

@@ -36,9 +36,9 @@ const [email, setEmail] = React.useState(''); // State untuk email wajib
       // 2. INSERT FONT HISTORY (Full Version)
       const targetUserId = authData.user?.id || (await supabase.auth.getUser()).data.user?.id;
       
-      const historyEntries = cart.map(item => ({
+     const historyEntries = cart.map(item => ({
         user_id: targetUserId,
-        font_id: item.fontId,
+        font_id: item.id, // MENGGUNAKAN UUID asli dari database
         download_type: 'full',
         transaction_id: finalOrderId
       }));
@@ -80,7 +80,7 @@ const [email, setEmail] = React.useState(''); // State untuk email wajib
 
   const handleFreeTrial = async () => {
     // 1. Validasi format email ketat (name@domain.com)
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       alert("PLEASE ENTER A VALID EMAIL ADDRESS (E.G. NAME@DOMAIN.COM)");
       return;
@@ -96,11 +96,11 @@ const [email, setEmail] = React.useState(''); // State untuk email wajib
 
       if (authError && authError.message !== "User already registered") throw authError;
 
-      // 3. Catat history download sebagai tipe 'trial'
+      // 3. Catat history download (FIX UUID ERROR: Gunakan item.id)
       const targetUserId = authData.user?.id || (await supabase.auth.getUser()).data.user?.id;
       const historyEntries = cart.map(item => ({
         user_id: targetUserId,
-        font_id: item.fontId,
+        font_id: item.id, // MENGGUNAKAN UUID asli dari database
         download_type: 'trial',
         transaction_id: orderId
       }));
@@ -108,7 +108,7 @@ const [email, setEmail] = React.useState(''); // State untuk email wajib
       const { error: histError } = await supabase.from('font_history').insert(historyEntries);
       if (histError) throw histError;
 
-      // 4. Redirect Opsi A: Ke login dengan data terisi di URL
+      // 4. Redirect Opsi A: Ke login dengan data terisi otomatis via URL
       window.location.href = `/user/auth?email=${encodeURIComponent(email)}&key=${encodeURIComponent(orderId)}`;
       
     } catch (err: any) {
