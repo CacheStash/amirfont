@@ -22,10 +22,28 @@ async function getSupabaseUser(authHeader, env) {
   return null;
 }
 
+// FUNGSI BARU: Cek apakah user ada di tabel fontadmin
+async function isUserAdmin(userId, env) {
+  try {
+    const res = await fetch(
+      `${env.VITE_SUPABASE_URL}/rest/v1/fontadmin?id=eq.${userId}&select=id`,
+      { 
+        headers: { 
+          'apikey': env.VITE_SUPABASE_ANON_KEY, 
+          'Authorization': `Bearer ${env.VITE_SUPABASE_ANON_KEY}` 
+        } 
+      }
+    );
+    const data = await res.json();
+    return data && data.length > 0; // Jika ID ada di tabel fontadmin, return true
+  } catch (e) { return false; }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    // 1. Handling CORS (Preflight)
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         headers: {
@@ -36,9 +54,16 @@ export default {
       });
     }
 
-    if (!env.ASSETS) return new Response("CRITICAL ERROR: env.ASSETS is missing!", { status: 500 });
+    // --- 2. DIAGNOSTIC CHECK ---
+    if (!env.ASSETS) {
+      const availableBindings = JSON.stringify(Object.keys(env), null, 2);
+      return new Response(
+        `CRITICAL ERROR: env.ASSETS is missing!\n\nAvailable Bindings:\n${availableBindings}`,
+        { status: 500 }
+      );
+    }
 
-    // --- 1. API Fonts ---
+    // --- 3. API Fonts (Public Read) ---
     if (url.pathname.startsWith('/api/fonts/')) {
       const fontName = decodeURIComponent(url.pathname.split('/').pop());
       try {
@@ -52,7 +77,7 @@ export default {
       } catch (e) { return new Response('Error fetching font', { status: 500 }); }
     }
 
-    // --- 2. API Images ---
+    // --- 4. API Images (Public Read With Cache) ---
     if (url.pathname.startsWith('/api/images/')) {
       try {
         const cache = caches.default;
@@ -76,28 +101,30 @@ export default {
       } catch (e) { return new Response('Error fetching image', { status: 500 }); }
     }
 
-    // --- 3. API Admin Upload (DIPERBAIKI) ---
-    if (url.pathname.startsWith('/api/admin/upload/') && (request.method === 'PUT' || request.method === 'POST')) {
+    // --- 5. API Admin Upload (Proteksi via Tabel fontadmin) ---
+    if (url.pathname.startsWith('/api/admin/upload/') && request.method === 'PUT') {
       try {
         const authHeader = request.headers.get('Authorization');
         const user = await getSupabaseUser(authHeader, env);
-
-        // HAK AKSES LONGGAR: Selama Login (Authenticated), Bisa Upload
-        if (!user) return new Response("UNAUTHORIZED", { status: 401 });
+        
+        // Proteksi: Hanya user yang terdaftar di tabel fontadmin yang bisa upload
+        if (!user || !(await isUserAdmin(user.id, env))) {
+          return new Response(JSON.stringify({ error: "ADMIN_ONLY_ACCESS" }), { status: 403 });
+        }
 
         const fileName = decodeURIComponent(url.pathname.split('/').pop());
         await env.R2_BUCKET.put(fileName, request.body, {
           httpMetadata: { contentType: request.headers.get('Content-Type') || 'application/octet-stream' }
         });
 
-        // FIXED: Gunakan kunci "fileName" agar sinkron dengan Frontend
+        // FIXED: Gunakan kunci "fileName" agar cocok dengan FontUploadForm.tsx
         return new Response(JSON.stringify({ success: true, fileName: fileName }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500 }); }
     }
 
-    // --- 4. API Verify Bot ---
+    // --- 6. API Verify Bot (Turnstile) ---
     if (url.pathname === '/api/verify-bot' && request.method === 'POST') {
       const { token } = await request.json();
       const isHuman = await verifyTurnstile(token, env.TURNSTILE_SECRET_KEY);
@@ -106,7 +133,7 @@ export default {
       });
     }
 
-    // --- 5. API Secure ZIP Download ---
+    // --- 7. API Secure ZIP Download (For Buyers) ---
     if (url.pathname.startsWith('/api/download-zip')) {
       const fontFile = url.searchParams.get('file'); 
       const transactionId = url.searchParams.get('order'); 
@@ -128,7 +155,7 @@ export default {
       } catch (e) { return new Response("Download Failed", { status: 500 }); }
     }
 
-    // --- 6. Serve Frontend ---
+    // --- 8. Serve Frontend (SPA Handler) ---
     try {
       let response = await env.ASSETS.fetch(request);
       if (response.status === 404 && !url.pathname.startsWith('/api/')) {

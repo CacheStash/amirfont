@@ -107,7 +107,12 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
     for (const file of files) {
      try {
         // Tembak jalur Admin Upload dengan method PUT & Token
-        const res = await fetch(`/api/admin/upload/${file.name}`, { 
+        const timestamp = Date.now();
+        const cleanFileName = file.name.replace(/\s+/g, '_');
+        const uniqueFileName = `${timestamp}-${cleanFileName}`;
+
+        // 2. Tembak jalur Admin Upload dengan nama file unik
+        const res = await fetch(`/api/admin/upload/${uniqueFileName}`, { 
           method: 'PUT', 
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
@@ -117,11 +122,11 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         });
 
         if (!res.ok) {
-          const errorData = (await res.json()) as { error?: string };
+          const errorData = (await res.json()) as { error?: string };
           throw new Error(errorData.error || `Server Error: ${res.status}`);
         }
 
-        // SINKRONISASI KUNCI: Gunakan data.fileName sesuai response Worker terbaru
+        // 3. Tangkap fileName dari response Worker (Sinkron dengan index.js)
         const data = (await res.json()) as UploadResponse;
         if (data.success && data.fileName) {
           uploadedUrls.push(data.fileName);
