@@ -3,6 +3,7 @@ import { Library, Settings, LifeBuoy, LogOut, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import MyFontsHistory from './MyFontsHistory';
+import AccountSettings from './AccountSettings'; // FIXED: Tambahkan import ini
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('library');

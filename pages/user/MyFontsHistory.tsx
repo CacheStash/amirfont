@@ -21,6 +21,7 @@ const MyFontsHistory = () => {
       .from('font_history')
       .select(`
         id,
+        transaction_id, 
         download_type,
         download_date,
         fonts (

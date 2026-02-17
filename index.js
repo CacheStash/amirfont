@@ -145,13 +145,13 @@ export default {
         const object = await env.R2_BUCKET.get(fontFile);
         if (!object) return new Response("File Not Found", { status: 404 });
 
-        // CLEAN FILENAME: Hapus prefix angka timestamp dan strip (misal: 1770123-Nama.otf -> Nama.zip)
-        const cleanName = fontFile.replace(/^\d+-/, '').split('.')[0];
+        // REGEX: Menghapus angka di depan dan tanda hubung (misal: 1770394-Font.otf -> Font.otf)
+        const cleanName = fontFile.replace(/^\d+-/, '');
 
         const headers = new Headers();
+        object.writeHttpMetadata(headers);
         headers.set('Content-Type', 'application/octet-stream');
-        // Force wrap dalam ZIP dan gunakan nama bersih
-        headers.set('Content-Disposition', `attachment; filename="SUBQI_STUDIO_${cleanName}.zip"`);
+        headers.set('Content-Disposition', `attachment; filename="SUBQI_STUDIO_${cleanName}"`);
         headers.set('X-License-Owner', user.email);
         headers.set('X-Order-ID', transactionId || 'N/A');
         headers.set('X-License-Status', 'VALID_COMMERCIAL');
