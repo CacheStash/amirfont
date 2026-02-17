@@ -35,9 +35,10 @@ const [userEmail, setUserEmail] = useState('');
           <Link to="/" className="flex items-center gap-1 text-[10px] font-black opacity-30 hover:opacity-100 transition-opacity">
             <ArrowLeft size={10} /> BACK TO STORE
           </Link>
-          <h1 className="font-normal tracking-tighter text-lg md:text-xl italic break-all">
-            {userEmail ? `Hello\n${userEmail}` : 'HELLO FELLAS!'}
-          </h1>
+          <h1 className="font-normal tracking-tighter text-lg md:text-xl italic break-all uppercase">
+  Hello,<br />
+  {userEmail ? userEmail.split('@')[0] : 'FELLAS!'}
+</h1>
         </div>
         
         <nav className="flex-grow p-4 space-y-2">

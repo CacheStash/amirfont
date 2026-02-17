@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { LayoutDashboard, Type, ShoppingCart, LogOut, Tag } from 'lucide-react';
 import ProductManager from './ProductManager';
 import PromotionsManager from './PromotionsManager'; 
+import Orders from './Orders';
 import { supabase } from '../../lib/supabase';
 
 const AdminDashboard = () => {
@@ -51,7 +52,7 @@ const AdminDashboard = () => {
         {activeTab === 'products' && <ProductManager />}
         {activeTab === 'promotions' && <PromotionsManager />}
         {activeTab === 'stats' && <div className="p-20 text-center font-bold opacity-20 uppercase text-xs tracking-[0.2em]">Stats Dashboard (Coming Soon)</div>}
-        {activeTab === 'orders' && <div className="p-20 text-center font-bold opacity-20 uppercase text-xs tracking-[0.2em]">Orders History (Coming Soon)</div>}
+        {activeTab === 'orders' && <Orders />}
       </main>
     </div>
   );
