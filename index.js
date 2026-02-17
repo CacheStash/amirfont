@@ -262,14 +262,16 @@ export default {
           'SOLO': 'Authorized for 1 User/Seat',
           'TEAM': 'Authorized for up to 25 Users/Seats',
           'STUDIO': 'Authorized for up to 100 Users/Seats',
-          'ENTERPRISE': 'Unlimited Users/Seats'
+          'ENTERPRISE': 'Unlimited Users/Seats',
+          'CORPORATE': 'Unlimited Users/Seats (Full Organization)'
         };
 
         const rawTier = (isTrial ? 'SOLO' : txData.tier || 'SOLO').toUpperCase();
         const tierDescription = tierMap[rawTier] || tierMap['SOLO'];
-        const displayTier = `${rawTier} - ${tierDescription}`;
+        const displayTier = `${rawTier} - ${tierDescription}`; // Hasil: SOLO - Authorized for 1 User/Seat
 
         const usages = isTrial ? ['trial'] : (txData.usages && txData.usages.length > 0 ? txData.usages : ['desktop']);
+
 
         // 5. DATABASE TEKS LISENSI (100% Sync dengan visual LicenseReceipt.tsx)
         const TEXT_DB = {
@@ -300,7 +302,7 @@ export default {
         
         // OTOMATIS: Tambahkan baris MPV Reach jika ada di metadata
         if (!isTrial && txData.metadata?.mpv) {
-          licenseBody += `MONTHLY REACH  : ${txData.metadata.mpv} MPV (MONTHLY PAGE VIEWS)\n`;
+          licenseBody += `MONTHLY REACH  : ${txData.metadata.mpv} (MONTHLY PAGE VIEWS)\n`;
         }
         
         licenseBody += `--------------------------------------------\n\n`;

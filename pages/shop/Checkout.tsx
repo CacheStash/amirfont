@@ -36,11 +36,14 @@ const [email, setEmail] = React.useState(''); // State untuk email wajib
       // 2. INSERT FONT HISTORY (Full Version)
       const targetUserId = authData.user?.id || (await supabase.auth.getUser()).data.user?.id;
       
-     const historyEntries = cart.map(item => ({
+     const historyEntries = cart.map((item: any) => ({ // FIXED: Ditambah : any untuk bunuh TS error
         user_id: targetUserId,
-        font_id: item.id, // MENGGUNAKAN UUID asli dari database
+        font_id: item.id, 
         download_type: 'full',
-        transaction_id: finalOrderId
+        transaction_id: finalOrderId,
+        tier: item.tier || 'SOLO', 
+        usages: item.usages || ['desktop'], 
+        metadata: item.metadata || {} // Pastikan metadata MPV ikut terkirim
       }));
 
       const { error: histError } = await supabase.from('font_history').insert(historyEntries);
@@ -98,11 +101,14 @@ const [email, setEmail] = React.useState(''); // State untuk email wajib
 
       // 3. Catat history download (FIX UUID ERROR: Gunakan item.id)
       const targetUserId = authData.user?.id || (await supabase.auth.getUser()).data.user?.id;
-      const historyEntries = cart.map(item => ({
+      const historyEntries = cart.map((item: any) => ({ // FIXED: Ditambah : any untuk bunuh TS error
         user_id: targetUserId,
-        font_id: item.id, // MENGGUNAKAN UUID asli dari database
+        font_id: item.id, 
         download_type: 'trial',
-        transaction_id: orderId
+        transaction_id: orderId,
+        tier: 'SOLO', // Trial dipaksa SOLO
+        usages: ['trial'], // Penanda untuk teks lisensi Worker
+        metadata: { mpv: "NONE" } 
       }));
 
       const { error: histError } = await supabase.from('font_history').insert(historyEntries);

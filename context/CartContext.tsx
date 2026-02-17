@@ -9,6 +9,9 @@ export interface CartItem {
   tier: string;
   usages: string[];
   webTierLabel?: string;
+  metadata?: {
+    mpv?: string;
+  };
   hasTrial?: boolean;
   trialFileUrl?: string;
 }

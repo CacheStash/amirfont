@@ -98,11 +98,17 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   }, [selectedTier, selectedUsages, webTier, isCorporate, isTrial, prices, discount]);
 
   const handleAdd = (redirect: boolean = false) => {
-    // LOGIKA METADATA: Jika lisensi tinggi dipilih, pastikan 'desktop' masuk ke metadata
     const finalUsages = [...selectedUsages];
     if (hasHigherTier && !finalUsages.includes('desktop')) {
       finalUsages.push('desktop');
     }
+
+    // NEW: Siapkan metadata MPV Reach untuk Social/Web
+    const metadata = {
+      mpv: selectedUsages.includes('social_web') && !isCorporate && !isTrial 
+           ? webTierDetails[webTier as keyof typeof webTierDetails] 
+           : undefined
+    };
 
     addToCart({
       cartId: crypto.randomUUID(),
@@ -110,9 +116,11 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
       fontId: fontName, 
       name: fontName,
       price: totalPrice,
-      tier: isTrial ? 'TRY IT FIRST / DEMO' : (isCorporate ? 'CORPORATE FULL SUITE' : `${selectedTier.toUpperCase()} TIER`),
+      // FIXED: Kirim tier murni (SOLO/TEAM/STUDIO) agar sinkron dengan index.js
+      tier: isTrial ? 'DEMO' : (isCorporate ? 'CORPORATE' : selectedTier.toUpperCase()),
       usages: isTrial ? ['PERSONAL USE'] : (isCorporate ? ['ALL-IN-ONE'] : finalUsages),
-      webTierLabel: selectedUsages.includes('social_web') && !isCorporate && !isTrial ? webTier : undefined
+      webTierLabel: selectedUsages.includes('social_web') && !isCorporate && !isTrial ? webTier : undefined,
+      metadata: metadata // Kirim metadata ke Cart
     });
 
     if (redirect) {
