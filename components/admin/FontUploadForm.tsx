@@ -57,6 +57,19 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   const [existingTrialFile, setExistingTrialFile] = useState<string>(initialData?.trial_file_url || '');
   const [isUploading, setIsUploading] = useState(false);
 
+  React.useEffect(() => {
+    if (initialData) {
+      setFontName(initialData.name || '');
+      setDescription(initialData.description || '');
+      setPrice(initialData.price?.toString() || '');
+      setLicensePrices(initialData.license_prices || licensePrices);
+      setTags(initialData.tags?.join(', ') || '');
+      setExistingFontFiles(initialData.font_files || []);
+      setExistingPreviewImages(initialData.preview_images || []);
+      setExistingTrialFile(initialData.trial_file_url || '');
+    }
+  }, [initialData]);
+
   const removeExistingFont = (index: number) => {
     setExistingFontFiles(prev => prev.filter((_, i) => i !== index));
   };
@@ -373,7 +386,8 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         >
           {existingPreviewImages.map((url, i) => (
             <div key={`ex-p-${i}`} className="aspect-square bg-white border border-black relative group overflow-hidden">
-              <img src={`/api/fonts/${url}`} className="w-full h-full object-cover" alt="preview" />
+              {/* GUNAKAN /api/images/ agar mendukung format .webp & caching */}
+              <img src={`/api/images/${url}`} className="w-full h-full object-cover" alt="preview" />
               <button 
                 type="button"
                 onClick={() => removeExistingPreview(i)}
