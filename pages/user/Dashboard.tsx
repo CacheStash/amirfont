@@ -38,7 +38,7 @@ const UserDashboard = () => {
             onClick={() => setActiveTab('settings')} 
             className={`w-full flex items-center gap-3 px-4 py-3 font-bold text-xs transition-all ${activeTab === 'settings' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
           >
-            <Settings size={18} /> Account Settings
+            <Settings size={18} /> Change Password
           </button>
           <button 
             onClick={() => setActiveTab('support')} 

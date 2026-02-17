@@ -141,11 +141,17 @@ export default {
         const authHeader = request.headers.get('Authorization');
         const user = await getSupabaseUser(authHeader, env);
         if (!user) return new Response("UNAUTHORIZED", { status: 401 });
+
         const object = await env.R2_BUCKET.get(fontFile);
         if (!object) return new Response("File Not Found", { status: 404 });
+
+        // CLEAN FILENAME: Hapus prefix angka timestamp dan strip (misal: 1770123-Nama.otf -> Nama.zip)
+        const cleanName = fontFile.replace(/^\d+-/, '').split('.')[0];
+
         const headers = new Headers();
         headers.set('Content-Type', 'application/octet-stream');
-        headers.set('Content-Disposition', `attachment; filename="SUBQI_STUDIO_${fontFile.split('.')[0]}.zip"`);
+        // Force wrap dalam ZIP dan gunakan nama bersih
+        headers.set('Content-Disposition', `attachment; filename="SUBQI_STUDIO_${cleanName}.zip"`);
         headers.set('X-License-Owner', user.email);
         headers.set('X-Order-ID', transactionId || 'N/A');
         headers.set('X-License-Status', 'VALID_COMMERCIAL');
