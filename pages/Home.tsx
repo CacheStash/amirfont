@@ -288,8 +288,8 @@ const Home: React.FC = () => {
               // DESKTOP: Zig Zag logic
               // Tablet Portrait (md) disamakan dengan Mobile. Desktop Layout dimulai pada 'lg' (1024px).
              const gridLayoutClass = isEven 
-                ? "lg:grid-cols-[450px_60px_1fr_150px]" 
-                : "lg:grid-cols-[150px_1fr_60px_450px]";
+                ? "lg:grid-cols-[320px_60px_1fr_100px]" 
+                : "lg:grid-cols-[100px_1fr_60px_320px]";
               
               const isExpanded = expandedFontId === font.id;
               const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
@@ -368,18 +368,18 @@ const Home: React.FC = () => {
                         </div>
                         <div className="flex flex-col">
                            {promo ? (
-                             <div className="flex items-start gap-3 md:gap-5">
+                            <div className="flex flex-col items-start gap-2">
                                <span className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">
                                  ${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}
                                </span>
-                               <div className="flex flex-col items-center gap-1 md:gap-2 mt-2 md:mt-4 w-fit">
-                                 <div className="relative w-full text-center">
-                                  <span className="text-4xl md:text-5xl font-bold text-red-600 leading-none">
+                               <div className="flex items-center gap-4 mt-2">
+                                 <div className="relative w-fit text-center">
+                                  <span className="text-3xl md:text-4xl font-bold text-red-600 leading-none">
                                      ${basePrice}
                                    </span>
                                    <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
                                  </div>
-                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full min-w-max">
+                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap">
                                    {calculateDaysLeft(promo.end_date)}
                                  </span>
                                </div>
