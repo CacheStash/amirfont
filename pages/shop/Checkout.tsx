@@ -93,17 +93,22 @@ if (subscribe) {
     }
   };
 
-   const handleSecureDownload = async (fileName: string) => {
+   const handleSecureDownload = async (fileName: string, type: 'trial' | 'full' = 'full') => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return alert("SESSION_EXPIRED. PLEASE LOGIN.");
 
+    // Validasi: Jangan jalankan fetch jika fileName tidak ada (mencegah file=null)
+    if (!fileName || fileName === 'null' || fileName === 'undefined') {
+      return alert("DOWNLOAD_ERROR: FILE_PATH_NOT_CONFIGURED. CHECK FONT DATABASE.");
+    }
+
     try {
-      // Panggil Worker dengan token keamanan
-      const res = await fetch(`/api/download-zip?file=${fileName}&order=${orderId}`, {
+      // Menambahkan parameter type ke URL agar sinkron dengan Worker
+      const res = await fetch(`/api/download-zip?file=${fileName}&order=${orderId}&type=${type}`, {
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       });
       
-      if (!res.ok) throw new Error("UNAUTHORIZED_ACCESS");
+      if (!res.ok) throw new Error("UNAUTHORIZED_OR_FILE_NOT_FOUND");
 
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
@@ -318,7 +323,10 @@ if (subscribe) {
                   {cart.map((item) => (
                     <button 
                       key={item.cartId}
-                      onClick={() => alert(`Downloading Secure ZIP for ${item.name}...`)} 
+                      onClick={() => handleSecureDownload(
+                        total === 0 ? item.trialFileUrl || 'null' : 'full_version_filename', // Gunakan trialFileUrl jika trial
+                        total === 0 ? 'trial' : 'full'
+                      )} 
                       className="bg-black text-white px-8 py-5 font-black tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-4"
                     >
                       DOWNLOAD_{item.name.replace(/\s+/g, '_')}_ZIP
