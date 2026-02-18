@@ -406,17 +406,17 @@ const Home: React.FC = () => {
                           </button>
                         ))}
                       </div>
-
-                      {/* MOBILE PREVIEW TOGGLE: Muncul di bawah info font */}
-                      <button 
-                        onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
-                        className="md:hidden w-full mt-8 flex items-center justify-center gap-4 py-4 border-y border-black group/m-toggle hover:bg-black hover:text-white transition-colors"
-                      >
-                        <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-                        <span className="text-[10px] font-black tracking-[0.3em]">PREVIEW IMAGES</span>
-                        <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-                      </button>
                     </div>
+
+                    {/* MOBILE PREVIEW TOGGLE: Full Width & Menempel ke Grid Bawah */}
+                    <button 
+                      onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
+                      className="md:hidden w-[calc(100%+3rem)] -mx-6 mb-[-1.5rem] mt-10 flex items-center justify-center gap-6 py-6 border-t border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
+                    >
+                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                      <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
+                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                    </button>
                   </div>
 
                  {/* 1.5 TOGGLE COLUMN (HIDDEN ON MOBILE) */}
@@ -487,20 +487,20 @@ const Home: React.FC = () => {
                          activeDiscount: discountPercent 
                        });
                      }}
-                       className="flex-1 p-4 flex flex-col items-center justify-center border-b border-black hover:bg-black hover:text-white transition-all group/cart"
+                       className="flex-1 p-4 flex items-center justify-center gap-4 border-b border-black hover:bg-black hover:text-white transition-all group/cart"
                        title="Add to Cart"
                      >
-                        <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90" />
-                        <span className="md:hidden text-[9px] font-black uppercase mt-1 tracking-widest">Add to Cart</span>
+                        <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90 flex-shrink-0" />
+                        <span className="md:hidden text-[10px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
                      </button>
                      
                      {/* Row 2: View/Action */}
                      <button 
-                       className="flex-1 p-4 flex flex-col items-center justify-center hover:bg-black hover:text-white transition-all group/view"
+                       className="flex-1 p-4 flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group/view"
                        title="View Details"
                      >
-                        <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125" />
-                        <span className="md:hidden text-[9px] font-black uppercase mt-1 tracking-widest">Font Details</span>
+                        <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
+                        <span className="md:hidden text-[10px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
                      </button>
                   </div>
 
