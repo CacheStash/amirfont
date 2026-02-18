@@ -286,10 +286,10 @@ const Home: React.FC = () => {
             filteredFonts.map((font, index) => {
               const isEven = index % 2 === 0; 
               // DESKTOP: Zig Zag logic
-              // MOBILE: Always single column grid
-             const gridLayoutClass = isEven 
-                ? "md:grid-cols-[450px_60px_1fr_150px]" 
-                : "md:grid-cols-[150px_1fr_60px_450px]";
+              // Tablet Portrait (md) disamakan dengan Mobile. Desktop Layout dimulai pada 'lg' (1024px).
+             const gridLayoutClass = isEven 
+                ? "lg:grid-cols-[450px_60px_1fr_150px]" 
+                : "lg:grid-cols-[150px_1fr_60px_450px]";
               
               const isExpanded = expandedFontId === font.id;
               const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
@@ -323,9 +323,8 @@ const Home: React.FC = () => {
                      style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
                   </div>
                   
-                  {/* 1. INFO COLUMN */}
-                  {/* MOBILE: Always Order 1. DESKTOP: Zig-Zag (Order 1 or 3) */}
-                  <div className={`p-6 md:p-8 flex flex-col justify-between border-b md:border-b-0 order-1 ${isEven ? 'md:order-1 md:border-r border-black' : 'md:order-4 md:border-l border-black'}`}>
+                  {/* 1. INFO COLUMN: Hilangkan border-b pada mobile/tablet (border-b-0) */}
+                  <div className={`p-6 lg:p-8 flex flex-col justify-between border-b-0 lg:border-b-0 order-1 ${isEven ? 'lg:order-1 lg:border-r border-black' : 'lg:order-4 lg:border-l border-black'}`}>
                     <div>
                       {/* Header: Title Only (Tags moved to bottom for mobile) */}
                       <div className="flex justify-between items-start gap-4 mb-2">
@@ -337,10 +336,10 @@ const Home: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="hidden md:block mb-8"><BrutalistGraphic /></div>
+                      <div className="hidden lg:block mb-8"><BrutalistGraphic /></div>
                       
-                      {/* Desktop Tags (Hidden on Mobile) */}
-                      <div className="hidden md:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
+                      {/* Desktop Tags (Hidden on Mobile/Tablet) */}
+                      <div className="hidden lg:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
                         {displayFont.tags.map((tag: string) => (
                           <button 
                             key={tag} 
@@ -393,9 +392,8 @@ const Home: React.FC = () => {
                       
                       <p className="text-gray-600 text-sm leading-relaxed mt-4">{font.description}</p>
 
-
-                      {/* MOBILE TAGS: Moved here (Below Description - Bottom Left) */}
-                      <div className="flex flex-wrap gap-2 mt-6 md:hidden">
+                      {/* MOBILE/TABLET TAGS */}
+                      <div className="flex flex-wrap gap-2 mt-6 lg:hidden">
                         {displayFont.tags.map((tag: string) => (
                           <button 
                             key={tag} 
@@ -408,13 +406,13 @@ const Home: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* MOBILE PREVIEW TOGGLE: Full Width & Menempel ke Grid Bawah */}
+                    {/* MOBILE/TABLET PREVIEW TOGGLE: Menempel ke Grid Bawah & Full Width (Flush) */}
                     <button 
                       onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
-                      className="md:hidden w-[calc(100%+3rem)] -mx-6 mb-[-1.5rem] mt-10 flex items-center justify-center gap-6 py-6 border-t border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
+                      className="lg:hidden w-[calc(100%+3rem)] -mx-6 mb-[-1.5rem] mt-10 flex items-center justify-center gap-6 py-6 border-t border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
                     >
                       <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                      <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
+                      <span className="text-[10px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
                       <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
                     </button>
                   </div>
@@ -487,20 +485,20 @@ const Home: React.FC = () => {
                          activeDiscount: discountPercent 
                        });
                      }}
-                       className="flex-1 p-4 flex items-center justify-center gap-4 border-b border-black hover:bg-black hover:text-white transition-all group/cart"
+                       className="flex-1 p-4 flex flex-row items-center justify-center gap-3 border-b border-black hover:bg-black hover:text-white transition-all group/cart"
                        title="Add to Cart"
                      >
                         <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90 flex-shrink-0" />
-                        <span className="md:hidden text-[10px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
+                        <span className="lg:hidden text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
                      </button>
                      
                      {/* Row 2: View/Action */}
                      <button 
-                       className="flex-1 p-4 flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group/view"
+                       className="flex-1 p-4 flex flex-row items-center justify-center gap-3 hover:bg-black hover:text-white transition-all group/view"
                        title="View Details"
                      >
                         <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
-                        <span className="md:hidden text-[10px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
+                        <span className="lg:hidden text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
                      </button>
                   </div>
 

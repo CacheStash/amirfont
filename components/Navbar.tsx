@@ -126,15 +126,16 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
           <div className="h-14 md:h-16 w-full border-b border-black bg-[#EDEBE6] flex-shrink-0"></div>
 
           <div className="flex-1 overflow-y-auto pt-0"> 
-              <div className="grid grid-cols-1 md:grid-cols-2 w-full md:h-full border-black">
+              {/* FIXED: Menghapus h-full pada mobile agar tidak ada gap antar blok menu */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 w-full lg:h-full border-black">
                   
                   {/* Column 1: Items 1-4 */}
-                  <div className="flex flex-col border-r-0 md:border-r border-black">
+                  <div className="flex flex-col border-r-0 lg:border-r border-black">
                       {menuItems.slice(0, 4).map((item) => (
                         <Link 
                           key={item} 
                           to={`/${item.toLowerCase()}`}
-                          className="text-3xl md:text-6xl font-normal uppercase tracking-tighter px-3 md:px-8 py-6 md:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
+                          className="text-3xl lg:text-6xl font-normal uppercase tracking-tighter px-3 lg:px-8 py-6 lg:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
                         >
                           <span>{item}</span>
                           <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />

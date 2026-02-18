@@ -1,5 +1,3 @@
-
-
 async function getSupabaseUser(authHeader, env) {
   if (!authHeader) return null;
   const res = await fetch(`${env.VITE_SUPABASE_URL}/auth/v1/user`, {

@@ -144,14 +144,14 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       <div className="relative z-10">
         <div className="grid grid-cols-2 md:flex md:flex-wrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
           
-          {/* GRID 1: View Mode (Type/Map) - HIDDEN ON MOBILE */}
-          <div className="hidden md:flex items-center gap-2 px-4 md:px-8 py-4 md:py-8 border-r border-black justify-start">
+          {/* GRID 1: View Mode - Titik transisi diubah ke lg */}
+          <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
               <button onClick={() => setViewMode('type')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'type' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Keyboard size={14}/> Type</button>
               <button onClick={() => setViewMode('glyphs')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'glyphs' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Grid size={14}/> Map</button>
           </div>
 
-          {/* GRID 2: Style Dropdown - FULL WIDTH ON MOBILE (col-span-2) */}
-          <div className="col-span-2 md:col-span-1 md:ml-auto flex items-center gap-6 px-4 md:px-8 py-4 md:py-8 border-b md:border-b-0 md:border-l border-black justify-between md:justify-end md:order-last">
+          {/* GRID 2: Style Dropdown */}
+          <div className="col-span-2 lg:col-span-1 lg:ml-auto flex items-center gap-6 px-4 lg:px-8 py-4 lg:py-8 border-b lg:border-b-0 lg:border-l border-black justify-between lg:justify-end lg:order-last">
               <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
                 <span className="font-bold text-xs text-gray-400 uppercase">Style</span>
                 <div className="relative z-[100]">
