@@ -57,26 +57,37 @@ const AccountSettings = () => {
         <label className="block text-[10px] font-black tracking-widest mb-2 opacity-50 flex items-center gap-2">
           <Key size={12} /> YOUR_CHECKOUT_CODES & RESETTER_KEYS
         </label>
-        <div className="relative">
-          <select 
-            className="w-full text-lg font-black tracking-tighter bg-white border border-black p-3 outline-none appearance-none cursor-pointer focus:bg-white"
-            defaultValue=""
-          >
-            {checkoutCodes.length > 0 ? (
-              checkoutCodes.map((code: string, idx: number) => (
-                <option key={idx} value={code}>{code}</option>
-              ))
-            ) : (
-              <option disabled value="">NO_CODES_FOUND</option>
-            )}
-          </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none font-black text-xs">
-            ▼
+        <div className="flex gap-2">
+          <div className="relative flex-grow">
+            <select 
+              value={selectedCode}
+              onChange={(e) => setSelectedCode(e.target.value)}
+              className="w-full text-lg font-black tracking-tighter bg-white border border-black p-3 outline-none appearance-none cursor-pointer focus:bg-white"
+            >
+              {checkoutCodes.length > 0 ? (
+                checkoutCodes.map((code: string, idx: number) => (
+                  <option key={idx} value={code}>{code}</option>
+                ))
+              ) : (
+                <option disabled value="">LOADING_CODES...</option>
+              )}
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none font-black text-xs">
+              ▼
+            </div>
           </div>
+          
+          <button 
+            type="button"
+            onClick={handleCopy}
+            className="bg-black text-white px-4 border-2 border-black font-black text-[10px] hover:bg-white hover:text-black transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+          >
+            COPY
+          </button>
         </div>
 
         <p className="text-[9px] mt-3 font-bold opacity-60 leading-tight">
-          * ALL CODES LISTED ABOVE ARE VALID INITIAL PASSWORDS OR RESETTER KEYS.
+          * ALL CODES LISTED ABOVE ARE VALID RESETTER KEYS.
           <br />
           * IF YOU FORGET YOUR CUSTOM PASSWORD, USE ANY OF THESE TRANSACTION CODES TO REGAIN ACCESS VIA LOGIN PAGE.
         </p>
