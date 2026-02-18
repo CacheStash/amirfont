@@ -10,22 +10,37 @@ const Checkout: React.FC = () => {
   const { cart } = useCart();
   const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(false);
+const [email, setEmail] = React.useState(''); 
+  const [isPaid, setIsPaid] = React.useState(false);
+  const [subscribe, setSubscribe] = React.useState(true);
 
+  // AUTH & PRE-FILL LOGIC
   React.useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-      if (user?.email) setEmail(user.email); // Otomatis isi email jika sudah login
+    // Ambil session aktif secara instan untuk pre-fill email pembeli
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        setEmail(session.user.email || '');
+      }
     });
+
+    // Pantau perubahan status login secara real-time
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        setEmail(session.user.email || '');
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
   
   const total = cart.reduce((acc, curr) => acc + curr.price, 0);
   const orderId = `SQ-${Math.floor(100000 + Math.random() * 900000)}`;
 
 
-  const [isPaid, setIsPaid] = React.useState(false);
-
-const [email, setEmail] = React.useState(''); // State untuk email wajib
-const [subscribe, setSubscribe] = React.useState(true); // Opsi newsletter default aktif
 
   const handlePurchaseSuccess = async (finalOrderId: string) => {
     setLoading(true);
@@ -137,9 +152,9 @@ if (subscribe) {
       if (!targetUserId) throw new Error("USER_NOT_FOUND");
 
       // 3. Catat history download (FIX UUID ERROR: Gunakan item.id)
-      const historyEntries = cart.map((item: any) => ({ // FIXED: Ditambah : any untuk bunuh TS error
+      const historyEntries = cart.map((item: any) => ({ 
         user_id: targetUserId,
-        font_id: item.id, 
+        font_id: item.id,
         download_type: 'trial',
         transaction_id: orderId,
         tier: 'SOLO', // Trial dipaksa SOLO
