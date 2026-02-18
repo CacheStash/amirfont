@@ -329,59 +329,95 @@ const Home: React.FC = () => {
                   <div className={`p-6 lg:p-8 flex flex-col justify-between border-b-0 lg:border-b-0 order-1 ${isEven ? 'lg:order-1 lg:border-r border-black' : 'lg:order-4 lg:border-l border-black'}`}>
                     <div>
                       {/* Header: Title Only */}
-                      <div className="flex justify-between items-start gap-4 mb-2">
-                        <div className="flex-1">
-                          <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h2>
-                          <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase">
-                              {displayFont.styleCount} STYLES
-                          </span>
-                        </div>
-                      </div>
+                      <div className="flex justify-between items-start gap-4 mb-2">
+                        <div className="flex-1">
+                          <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h2>
+                          <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase">
+                              {displayFont.styleCount} STYLES
+                          </span>
+                        </div>
+                      </div>
 
-                      <div className="hidden lg:block mb-8"><BrutalistGraphic /></div>
-                      
-                      {/* Desktop Tags (Hidden on Mobile/Tablet) */}
-                      <div className="hidden lg:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
-                        {displayFont.tags.map((tag: string) => (
-                          <button 
-                            key={tag} 
-                            onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} 
-                            className={`border px-3 py-1 rounded-full font-bold ${activeTag === tag.trim() ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'}`}
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                      <div className="hidden lg:block mb-8"><BrutalistGraphic /></div>
+                      
+                      {/* Desktop Tags (Hidden on Mobile/Tablet) */}
+                      <div className="hidden lg:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
+                        {displayFont.tags.map((tag: string) => (
+                          <button 
+                            key={tag} 
+                            onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} 
+                            className={`border px-3 py-1 rounded-full font-bold ${activeTag === tag.trim() ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'}`}
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     
                     <div className="mb-6">
-                      {/* ... harga dan deskripsi tetap ... */}
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-4">
+                           <span className="inline-block border border-black rounded-full px-3 py-1 font-regular italic text-[11px] md:text-[14px] lowercase text-black bg-transparent leading-none">
+                             starting at
+                           </span>
+                           {promo && (
+                             <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-bold text-[11px] md:text-[14px] uppercase text-red-600 bg-transparent leading-none">
+                               {promo.discount_percent}% OFF
+                             </span>
+                           )}
+                        </div>
+                        <div className="flex flex-col">
+                           {promo ? (
+                             <div className="flex items-start gap-3 md:gap-5">
+                               <span className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">
+                                 ${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}
+                               </span>
+                               <div className="flex flex-col items-center gap-1 md:gap-2 mt-2 md:mt-4 w-fit">
+                                 <div className="relative w-full text-center">
+                                  <span className="text-4xl md:text-5xl font-bold text-red-600 leading-none">
+                                     ${basePrice}
+                                   </span>
+                                   <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
+                                 </div>
+                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap text-center w-full min-w-max">
+                                   {calculateDaysLeft(promo.end_date)}
+                                 </span>
+                               </div>
+                             </div>
+                           ) : (
+                             <div className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">
+                               ${basePrice}
+                             </div>
+                           )}
+                        </div>
+                      </div>
+                      
                       <p className="text-gray-600 text-sm leading-relaxed mt-4">{font.description}</p>
 
                       {/* MOBILE TAGS */}
                       <div className="flex flex-wrap gap-2 mt-6 lg:hidden">
                         {displayFont.tags.map((tag: string) => (
-                          <button 
-                            key={tag} 
-                            onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())}
-                            className="border border-black px-2 py-1 rounded-full font-bold text-[10px] uppercase whitespace-nowrap bg-transparent text-black"
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                          <button 
+                            key={tag} 
+                            onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())}
+                            className="border border-black px-2 py-1 rounded-full font-bold text-[10px] uppercase whitespace-nowrap bg-transparent text-black"
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-                    {/* MOBILE PREVIEW TOGGLE: Full Width, Menempel ke Grid Bawah (Flush), Menggunakan border-y */}
-                    <button 
-                      onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
-                      className="lg:hidden w-[calc(100%+3rem)] -mx-6 mb-[-1.5rem] mt-10 flex items-center justify-center gap-6 py-6 border-y border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
-                    >
-                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                      <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
-                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-                  </div>
+                    {/* MOBILE PREVIEW TOGGLE: Full Width, Menempel ke Grid Bawah (Flush), Menggunakan border-y */}
+                    <button 
+                      onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
+                      className="lg:hidden w-[calc(100%+3rem)] -mx-6 mb-[-1.5rem] mt-10 flex items-center justify-center gap-6 py-6 border-y border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
+                    >
+                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                      <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
+                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
 
                  {/* 1.5 TOGGLE COLUMN (HIDDEN ON MOBILE & TABLET) */}
                   <div 
@@ -396,17 +432,17 @@ const Home: React.FC = () => {
 
                   {/* 2. TESTER & SLIDER COLUMN */}
                   <div className={`relative min-h-[400px] border-b-0 lg:border-b-0 order-2 flex items-center overflow-hidden ${isEven ? 'lg:order-3' : 'lg:order-2'}`}>
-                      {/* SLIDE PREVIEW LAYER */}
-                      <div 
-                        className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out
-                          ${isExpanded ? 'translate-x-0 translate-y-0' : ''}
-                          ${!isExpanded ? (
-                             isEven 
-                               ? 'lg:-translate-x-full -translate-y-full lg:translate-y-0' 
-                               : 'lg:translate-x-full -translate-y-full lg:translate-y-0'
-                          ) : ''}
-                        `}
-                      >
+                     {/* SLIDE PREVIEW LAYER */}
+                      <div 
+                        className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out
+                          ${isExpanded ? 'translate-x-0 translate-y-0' : ''}
+                          ${!isExpanded ? (
+                             isEven 
+                               ? 'lg:-translate-x-full -translate-y-full lg:translate-y-0' 
+                               : 'lg:translate-x-full -translate-y-full lg:translate-y-0'
+                          ) : ''}
+                        `}
+                      >
                         <ScrollableImageStack 
                           images={fontPreviews} 
                           onImageClick={(index, allResolved) => {
@@ -442,26 +478,26 @@ const Home: React.FC = () => {
                        const promo = getActivePromo(font.id);
                        const discountPercent = promo ? promo.discount_percent : 0;
                        openConfigurator({ 
-                         ...font, 
-                         trialFileUrl: font.trial_file_url,
-                         activeDiscount: discountPercent 
-                       });
-                     }}
-                       className="flex-1 p-4 flex flex-row items-center justify-center gap-4 border-b border-black hover:bg-black hover:text-white transition-all group/cart text-black"
-                       title="Add to Cart"
-                     >
-                        <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90 flex-shrink-0" />
-                        <span className="lg:hidden text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
-                     </button>
-                     
-                     {/* Row 2: View/Action */}
-                     <button 
-                       className="flex-1 p-4 flex flex-row items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group/view text-black"
-                       title="View Details"
-                     >
-                        <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
-                        <span className="lg:hidden text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
-                     </button>
+                         ...font, 
+                         trialFileUrl: font.trial_file_url, // Sinkronisasi nama properti
+                         activeDiscount: discountPercent 
+                       });
+                     }}
+                       className="flex-1 p-4 flex flex-row items-center justify-center gap-4 border-b border-black hover:bg-black hover:text-white transition-all group/cart text-black"
+                       title="Add to Cart"
+                     >
+                        <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90 flex-shrink-0" />
+                        <span className="lg:hidden text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
+                     </button>
+                     
+                     {/* Row 2: View/Action */}
+                     <button 
+                       className="flex-1 p-4 flex flex-row items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group/view text-black"
+                       title="View Details"
+                     >
+                        <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
+                        <span className="lg:hidden text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
+                     </button>
                   </div>
 
                   {/* 4. MOBILE SPACER (GRID KOSONG): Diperbarui dengan warna orange transparan */}
