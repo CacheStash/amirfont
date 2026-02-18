@@ -431,7 +431,7 @@ const Home: React.FC = () => {
                   </div>
 
                   {/* 2. TESTER & SLIDER COLUMN */}
-                  <div className={`relative min-h-[400px] border-b-0 lg:border-b-0 order-2 flex items-center overflow-hidden ${isEven ? 'lg:order-3' : 'lg:order-2'}`}>
+                  <div className={`relative min-h-[400px] border-b-0 lg:border-b-0 order-2 flex items-stretch overflow-hidden ${isEven ? 'lg:order-3' : 'lg:order-2'}`}>
                      {/* SLIDE PREVIEW LAYER */}
                       <div 
                         className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out

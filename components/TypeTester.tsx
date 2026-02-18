@@ -139,9 +139,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const hasFeatures = dynamicFeatures.length > 0;
 
   return (
-    <div className="w-full relative group bg-transparent">
+    <div className="w-full h-full relative group bg-transparent">
       {/* ORB LAMA DI SINI SUDAH DIHAPUS DAN DIPINDAHKAN KE HOME.TSX */}
-      <div className="relative z-10">
+      <div className="relative z-10 h-full flex flex-col">
         {/* FIXED: Menggunakan flex-nowrap agar satu baris di iPad Landscape/Desktop */}
         <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
           
