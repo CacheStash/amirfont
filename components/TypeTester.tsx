@@ -142,19 +142,19 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     <div className="w-full relative group bg-transparent">
       {/* ORB LAMA DI SINI SUDAH DIHAPUS DAN DIPINDAHKAN KE HOME.TSX */}
       <div className="relative z-10">
-        {/* FIXED: Menggunakan lg: agar Tablet Portrait tetap menggunakan layout grid mobile */}
-        <div className="grid grid-cols-2 lg:flex lg:flex-wrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
+        {/* FIXED: Menggunakan grid 2 kolom hingga 'xl' (1280px) untuk mencegah overlap di desktop nanggung */}
+        <div className="grid grid-cols-2 xl:flex xl:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
           
-          {/* GRID 1: View Mode - Titik transisi diubah ke lg */}
-          <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
+          {/* GRID 1: View Mode - Muncul di Tablet & Desktop sebagai kolom 1 baris 1 */}
+          <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start border-b xl:border-b-0">
               <button onClick={() => setViewMode('type')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'type' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Keyboard size={14}/> Type</button>
               <button onClick={() => setViewMode('glyphs')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'glyphs' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Grid size={14}/> Map</button>
           </div>
 
-          {/* GRID 2: Style Dropdown */}
-          <div className="col-span-2 lg:col-span-1 lg:ml-auto flex items-center gap-6 px-4 lg:px-8 py-4 lg:py-8 border-b lg:border-b-0 lg:border-l border-black justify-between lg:justify-end lg:order-last">
-              {/* FIXED: Menggunakan lg: agar pada Mobile & Tablet tetap w-full dan justify-between (Kiri-Kanan) */}
-              <div className="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-start">
+          {/* GRID 2: Style Dropdown - Full Width di Mobile, Kolom 2 baris 1 di Tablet/Desktop Nanggung */}
+          <div className="col-span-2 lg:col-span-1 lg:ml-auto flex items-center gap-6 px-4 lg:px-8 py-4 lg:py-8 border-b border-black xl:border-b-0 xl:border-l justify-between xl:justify-end lg:order-none xl:order-last">
+              {/* FIXED: justify-between agar label Style di kiri & dropdown di kanan (hingga xl) */}
+              <div className="flex items-center gap-2 w-full xl:w-auto justify-between xl:justify-start">
                 <span className="font-bold text-xs text-gray-400 uppercase">Style</span>
                 <div className="relative z-[100]">
                    <button 
@@ -253,7 +253,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           </div>
 
           {/* GRID 4: Align (Type) / Pagination (Map) - RIGHT COLUMN ON MOBILE */}
-          <div className="flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 justify-center lg:border-r lg:border-black lg:justify-start">
+          <div className="flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 justify-center xl:border-r xl:border-black lg:justify-start">
              {viewMode === 'type' ? (
                 <>
                   <button onClick={() => setAlign('left')} className={`p-2 ${align === 'left' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignLeft size={16}/></button>
