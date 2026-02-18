@@ -105,12 +105,7 @@ const UserAuth = () => {
           />
         </div>
 
-        {/* CLOUDFLARE TURNSTILE GUARD */}
-        <div 
-          className="cf-turnstile py-2 flex justify-center" 
-          data-sitekey="0x4AAAAAACcxxQ0Q2-zEqr8s"
-          data-theme="light"
-        ></div>
+      
 
         <button 
           disabled={loading} 

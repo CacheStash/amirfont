@@ -1,14 +1,4 @@
-async function verifyTurnstile(token, secretKey) {
-  const formData = new FormData();
-  formData.append('secret', secretKey);
-  formData.append('response', token);
-  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'POST',
-    body: formData
-  });
-  const outcome = await res.json();
-  return outcome.success;
-}
+
 
 async function getSupabaseUser(authHeader, env) {
   if (!authHeader) return null;
@@ -206,14 +196,7 @@ export default {
       } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500 }); }
     }
 
-    // --- 6. API Verify Bot (Turnstile) ---
-    if (url.pathname === '/api/verify-bot' && request.method === 'POST') {
-      const { token } = await request.json();
-      const isHuman = await verifyTurnstile(token, env.TURNSTILE_SECRET_KEY);
-      return new Response(JSON.stringify({ success: isHuman }), {
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-      });
-    }
+    
 
     // --- 7. API Secure ZIP Download (For Buyers) ---
     if (url.pathname.startsWith('/api/download-zip')) {
