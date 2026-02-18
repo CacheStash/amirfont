@@ -201,7 +201,7 @@ const Home: React.FC = () => {
         return files.map((file: string, idx: number) => `
           @font-face {
             font-family: "${f.name}-${idx}";
-            src: url("/api/fonts/${file}");
+            src: url("/api/fonts/${file}?v=${new Date(f.updated_at || f.created_at).getTime()}");
             font-display: swap;
           }
         `);

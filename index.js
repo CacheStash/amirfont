@@ -151,7 +151,10 @@ export default {
         const headers = new Headers();
         object.writeHttpMetadata(headers);
         headers.set('Access-Control-Allow-Origin', '*');
-        headers.set('Cache-Control', 'public, max-age=31536000');
+        
+        // Ubah dari 1 tahun menjadi 'no-cache' atau durasi pendek agar browser selalu validasi ke server
+        headers.set('Cache-Control', 'no-cache, no-store, must-revalidate'); 
+        
         return new Response(object.body, { headers });
       } catch (e) { return new Response('Error fetching font', { status: 500 }); }
     }

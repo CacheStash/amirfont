@@ -65,9 +65,10 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
     if (files[activeStyleIndex]) {
        const f = files[activeStyleIndex];
-       targetFile = f.startsWith('http') || f.startsWith('/') ? f : `/api/fonts/${f}`;
+       const configAny = config as any;
+       const version = new Date(configAny.updated_at || configAny.created_at || Date.now()).getTime();
+       targetFile = f.startsWith('http') || f.startsWith('/') ? f : `/api/fonts/${f}?v=${version}`;
     }
-
     if (!targetFile) return;
 
     setIsLoadingGlyphs(true);

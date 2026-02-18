@@ -28,6 +28,8 @@ export interface FontConfig {
     name: string;
   }[];
   is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Promotion {
