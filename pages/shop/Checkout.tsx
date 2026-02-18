@@ -21,6 +21,7 @@ const Checkout: React.FC = () => {
   const [isPaid, setIsPaid] = React.useState(false);
 
 const [email, setEmail] = React.useState(''); // State untuk email wajib
+const [subscribe, setSubscribe] = React.useState(true); // Opsi newsletter default aktif
 
   const handlePurchaseSuccess = async (finalOrderId: string) => {
     setLoading(true);
@@ -48,6 +49,10 @@ const [email, setEmail] = React.useState(''); // State untuk email wajib
 
       const { error: histError } = await supabase.from('font_history').insert(historyEntries);
       if (histError) throw histError;
+
+if (subscribe) {
+        await supabase.from('fontsubscribers').upsert({ email, source: 'checkout_purchase' });
+      }
 
       setIsPaid(true);
     } catch (err: any) {
@@ -113,6 +118,10 @@ const [email, setEmail] = React.useState(''); // State untuk email wajib
 
       const { error: histError } = await supabase.from('font_history').insert(historyEntries);
       if (histError) throw histError;
+
+if (subscribe) {
+        await supabase.from('fontsubscribers').upsert({ email, source: 'checkout_trial' });
+      }
 
       // 4. Redirect Opsi A: Ke login dengan data terisi otomatis via URL
       window.location.href = `/user/auth?email=${encodeURIComponent(email)}&key=${encodeURIComponent(orderId)}`;
@@ -227,6 +236,23 @@ const [email, setEmail] = React.useState(''); // State untuk email wajib
                   placeholder="NAME@DOMAIN.COM"
                   required
                 />
+                {/* SUBSCRIBE OPTION */}
+                <label className="flex items-center gap-3 cursor-pointer group mt-4">
+                  <div className="relative flex items-center">
+                    <input 
+                      type="checkbox" 
+                      checked={subscribe}
+                      onChange={() => setSubscribe(!subscribe)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-5 h-5 border-2 border-white bg-transparent peer-checked:bg-white transition-all flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]">
+                      {subscribe && <div className="w-2.5 h-2.5 bg-black" />}
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold tracking-widest group-hover:underline text-white">
+                    SUBSCRIBE TO NEWSLETTER & NEW RELEASES
+                  </span>
+                </label>
                 <p className="text-[9px] mt-3 opacity-60 italic">* YOUR ACCOUNT WILL BE CREATED AUTOMATICALLY. PASSWORD = YOUR ORDER ID.</p>
               </div>
             )}

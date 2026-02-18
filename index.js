@@ -293,7 +293,7 @@ export default {
         // 4. Susun isi LICENSE.txt
         const issueDate = new Date().toLocaleDateString();
         let licenseBody = `SUBQI STUDIO — OFFICIAL LICENSE CERTIFICATE\n`;
-        licenseBody += `============================================\n`;
+        licenseBody += `========================================================================\n`;
         licenseBody += `ORDER ID       : ${transactionId || 'N/A'} (USE AS INITIAL PASSWORD / RESETTER)\n`;
         licenseBody += `LICENSE HOLDER : ${user.email} (USE AS LOGIN USERNAME)\n`;
         licenseBody += `ISSUE DATE     : ${issueDate}\n`;
@@ -305,7 +305,7 @@ export default {
           licenseBody += `MONTHLY REACH  : ${txData.metadata.mpv} (MONTHLY PAGE VIEWS)\n`;
         }
         
-        licenseBody += `--------------------------------------------\n\n`;
+        licenseBody += `------------------------------------------------------------------------\n\n`;
 
         licenseBody += `LICENSED USAGE TERMS:\n\n`;
         usages.forEach((u, i) => {

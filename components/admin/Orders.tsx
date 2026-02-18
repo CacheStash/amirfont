@@ -85,71 +85,64 @@ const Orders = () => {
 
       {/* ORDERS TABLE - Tanpa menghapus kolom, ditambah Email & MPV */}
       <div className="border-2 border-black bg-white overflow-x-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-        <table className="w-full text-left border-collapse min-w-[1200px]">
-          <thead>
-            <tr className="border-b-2 border-black bg-gray-50">
-              <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Date</th>
-              <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Order_ID</th>
-              <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Buyer_ID</th>
-              <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Typeface</th>
-              <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500 text-center">Type</th>
-              <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Tier_&_Reach</th>
-              <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Usage_Terms</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={7} className="p-10 text-center animate-pulse font-bold">LOADING_DATABASE...</td></tr>
-            ) : orders.length === 0 ? (
-              <tr><td colSpan={7} className="p-10 text-center opacity-30 font-bold">NO_ORDERS_FOUND</td></tr>
-            ) : orders.map((order) => (
-              <tr key={order.id} className="border-b border-black hover:bg-yellow-50 transition-colors">
-                <td className="p-4 text-[11px] font-bold">
-                  {new Date(order.download_date).toLocaleDateString()}
-                </td>
-                <td className="p-4">
-                  <span className="bg-black text-white px-2 py-1 text-[10px] font-bold">{order.transaction_id}</span>
-                </td>
-                {/* Kolom Buyer ID/Email */}
-                <td className="p-4 text-[10px] font-bold truncate max-w-[150px]" title={order.user_id}>
-                  {order.user_id}
-                </td>
-                <td className="p-4 font-black text-sm uppercase italic">
-                  {order.fonts?.name || 'UNKNOWN'}
-                </td>
-                <td className="p-4 text-center">
-                  <span className={`px-2 py-1 text-[9px] font-black border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
-                    order.download_type === 'trial' ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white'
-                  }`}>
-                    {order.download_type?.toUpperCase() || 'N/A'}
-                  </span>
-                </td>
-                {/* Kolom Tier & MPV Reach */}
-                <td className="p-4">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[11px] font-black uppercase">{order.tier || 'SOLO'}</span>
-                    {order.metadata?.mpv && (
-                      <span className="text-[9px] bg-black text-white px-1 w-fit font-bold italic">
-                        {order.metadata.mpv} MPV_REACH
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="p-4">
-                  <div className="flex flex-wrap gap-1">
-                    {order.usages?.map((u: string) => (
-                      <span key={u} className="text-[9px] bg-gray-100 border border-black px-1 font-bold uppercase">
-                        {u.replace('_', ' ')}
-                      </span>
-                    )) || <span className="text-[9px] opacity-30 italic">NO_DATA</span>}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
+  <table className="w-full text-left border-collapse min-w-[1000px]">
+    <thead>
+      <tr className="border-b-2 border-black bg-gray-50">
+        <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Date</th>
+        <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Order_ID</th>
+        <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Typeface</th>
+        <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500 text-center">Type</th>
+        <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Tier_&_Reach</th>
+        <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Usage_Terms</th>
+      </tr>
+    </thead>
+    <tbody>
+      {loading ? (
+        <tr><td colSpan={6} className="p-10 text-center animate-pulse font-bold">LOADING_DATABASE...</td></tr>
+      ) : orders.length === 0 ? (
+        <tr><td colSpan={6} className="p-10 text-center opacity-30 font-bold">NO_ORDERS_FOUND</td></tr>
+      ) : orders.map((order) => (
+        <tr key={order.id} className="border-b border-black hover:bg-yellow-50 transition-colors">
+          <td className="p-4 text-[11px] font-bold">
+            {new Date(order.download_date).toLocaleDateString()}
+          </td>
+          <td className="p-4">
+            <span className="bg-black text-white px-2 py-1 text-[10px] font-bold">{order.transaction_id}</span>
+          </td>
+          <td className="p-4 font-black text-sm uppercase italic">
+            {order.fonts?.name || 'UNKNOWN'}
+          </td>
+          <td className="p-4 text-center">
+            <span className={`px-2 py-1 text-[9px] font-black border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+              order.download_type === 'trial' ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white'
+            }`}>
+              {order.download_type?.toUpperCase() || 'N/A'}
+            </span>
+          </td>
+          <td className="p-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] font-black uppercase">{order.tier || 'SOLO'}</span>
+              {order.metadata?.mpv && (
+                <span className="text-[9px] bg-black text-white px-1 w-fit font-bold italic">
+                  {order.metadata.mpv} MPV_REACH
+                </span>
+              )}
+            </div>
+          </td>
+          <td className="p-4">
+            <div className="flex flex-wrap gap-1">
+              {order.usages?.map((u: string) => (
+                <span key={u} className="text-[9px] bg-gray-100 border border-black px-1 font-bold uppercase">
+                  {u.replace('_', ' ')}
+                </span>
+              )) || <span className="text-[9px] opacity-30 italic">NO_DATA</span>}
+            </div>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
       {/* PAGINATION CONTROLS */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 mt-8">
