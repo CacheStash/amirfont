@@ -149,7 +149,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                         <Link 
                           key={item} 
                           to={`/${item.toLowerCase()}`}
-                          className="text-3xl md:text-6xl font-normal uppercase tracking-tighter px-3 md:px-8 py-6 md:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
+                          className="text-3xl lg:text-6xl font-normal uppercase tracking-tighter px-3 lg:px-8 py-6 lg:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
                         >
                           <span>{item}</span>
                           <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
