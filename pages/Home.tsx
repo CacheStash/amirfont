@@ -3,7 +3,7 @@ import TypeTester from '../components/TypeTester';
 import { supabase } from '../lib/supabase';
 import { FontConfig } from '../types';
 import { MousePointer2, MoveRight, Circle, Square, Triangle, X } from 'lucide-react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight , ChevronDown} from 'lucide-react';
 import { Plus, Eye } from 'lucide-react';
 import { useCart } from '../context/CartContext'; // Pastikan path benar
 
@@ -406,6 +406,16 @@ const Home: React.FC = () => {
                           </button>
                         ))}
                       </div>
+
+                      {/* MOBILE PREVIEW TOGGLE: Muncul di bawah info font */}
+                      <button 
+                        onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
+                        className="md:hidden w-full mt-8 flex items-center justify-center gap-4 py-4 border-y border-black group/m-toggle hover:bg-black hover:text-white transition-colors"
+                      >
+                        <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                        <span className="text-[10px] font-black tracking-[0.3em]">PREVIEW IMAGES</span>
+                        <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>
                     </div>
                   </div>
 
@@ -425,10 +435,13 @@ const Home: React.FC = () => {
                       {/* SLIDE PREVIEW LAYER */}
                       <div 
                         className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out
-                          ${isEven 
-                            ? (isExpanded ? 'translate-x-0' : '-translate-x-full') // Ganjil: Muncul dari arah kiri (toggle)
-                            : (isExpanded ? 'translate-x-0' : 'translate-x-full')  // Genap: Muncul dari arah kanan (toggle)
-                          }`}
+                          ${isExpanded ? 'translate-x-0 translate-y-0' : ''}
+                          ${!isExpanded ? (
+                             isEven 
+                               ? 'md:-translate-x-full -translate-y-full md:translate-y-0' 
+                               : 'md:translate-x-full -translate-y-full md:translate-y-0'
+                          ) : ''}
+                        `}
                       >
                         <ScrollableImageStack 
                           images={fontPreviews} 
@@ -474,18 +487,20 @@ const Home: React.FC = () => {
                          activeDiscount: discountPercent 
                        });
                      }}
-                       className="flex-1 p-4 flex items-center justify-center border-b border-black hover:bg-black hover:text-white transition-all group/cart"
+                       className="flex-1 p-4 flex flex-col items-center justify-center border-b border-black hover:bg-black hover:text-white transition-all group/cart"
                        title="Add to Cart"
                      >
                         <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90" />
+                        <span className="md:hidden text-[9px] font-black uppercase mt-1 tracking-widest">Add to Cart</span>
                      </button>
                      
                      {/* Row 2: View/Action */}
                      <button 
-                       className="flex-1 p-4 flex items-center justify-center hover:bg-black hover:text-white transition-all group/view"
+                       className="flex-1 p-4 flex flex-col items-center justify-center hover:bg-black hover:text-white transition-all group/view"
                        title="View Details"
                      >
                         <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125" />
+                        <span className="md:hidden text-[9px] font-black uppercase mt-1 tracking-widest">Font Details</span>
                      </button>
                   </div>
 
