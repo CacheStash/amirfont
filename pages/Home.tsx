@@ -340,7 +340,7 @@ const Home: React.FC = () => {
 
                       <div className="hidden lg:block mb-8"><BrutalistGraphic /></div>
                       
-                      {/* Desktop Tags */}
+                      {/* Desktop Tags (Hidden on Mobile/Tablet) */}
                       <div className="hidden lg:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
                         {displayFont.tags.map((tag: string) => (
                           <button 
@@ -355,7 +355,6 @@ const Home: React.FC = () => {
                     </div>
                     
                     <div className="mb-6">
-                      {/* HARGA TETAP AMAN DI SINI */}
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2 mb-4">
                            <span className="inline-block border border-black rounded-full px-3 py-1 font-regular italic text-[11px] md:text-[14px] lowercase text-black bg-transparent leading-none">
@@ -393,7 +392,7 @@ const Home: React.FC = () => {
                         </div>
                       </div>
                       
-                      {/* SECTION DESKRIPSI TELAH DIHAPUS SESUAI INSTRUKSI */}
+                    
 
                       {/* MOBILE TAGS */}
                       <div className="flex flex-wrap gap-2 mt-6 lg:hidden">
@@ -410,28 +409,37 @@ const Home: React.FC = () => {
                     </div>
 
                     {/* MOBILE PREVIEW TOGGLE: Full Width, Menempel ke Grid Bawah (Flush), Menggunakan border-y */}
-                    <button 
-                      onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
-                      className="lg:hidden w-[calc(100%+3rem)] -mx-6 mb-[-1.5rem] mt-10 flex items-center justify-center gap-6 py-6 border-y border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
-                    >
-                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                      <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
-                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-                  </div>
-
-                 {/* 1.5 TOGGLE COLUMN: Menambahkan Teks Vertikal di antara Panah */}
-                  <div 
-                    onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
-                    className={`hidden lg:flex flex-col items-center justify-between py-12 border-black cursor-pointer hover:bg-black/5 transition-colors z-40 order-2 ${isEven ? 'border-r' : 'border-l'}`}
-                  >
-                    <MoveRight size={20} className={isEven ? "rotate-0" : "rotate-180"} />
-                    <span className="uppercase text-[9px] font-black tracking-[0.4em] whitespace-nowrap -rotate-90 origin-center py-20">Preview Images</span>
-                    <MoveRight size={20} className={isEven ? "rotate-0" : "rotate-180"} />
+                    <button 
+                      onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
+                      className="lg:hidden w-[calc(100%+3rem)] -mx-6 mb-[-1.5rem] mt-10 flex items-center justify-center gap-6 py-6 border-y border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
+                    >
+                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                      <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
+                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                    </button>
                   </div>
 
+                 {/* 1.5 TOGGLE COLUMN (HIDDEN ON MOBILE & TABLET) */}
+                  <div 
+                    onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
+                    className={`hidden lg:flex items-center justify-center border-black cursor-pointer hover:bg-black/5 transition-colors z-40
+                      ${isEven ? 'lg:order-2 border-r' : 'lg:order-3 border-l'}`}
+                  >
+                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                      <MoveRight size={20} className={isEven ? "rotate-0" : "rotate-180"} />
+                    </div>
+
+                    <span className="uppercase text-[9px] font-black tracking-[0.4em] whitespace-nowrap -rotate-90 origin-center py-20">
+                      Preview Images
+                    </span>
+
+                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                      <MoveRight size={20} className={isEven ? "rotate-0" : "rotate-180"} />
+                    </div>
+                  </div>
+
                   {/* 2. TESTER & SLIDER COLUMN */}
-                  <div className={`relative min-h-[400px] border-b-0 lg:border-b-0 order-2 flex items-stretch overflow-hidden ${isEven ? 'lg:order-3' : 'lg:order-1'}`}>
+                  <div className={`relative min-h-[400px] border-b-0 lg:border-b-0 order-2 flex items-center overflow-hidden ${isEven ? 'lg:order-3' : 'lg:order-2'}`}>
                      {/* SLIDE PREVIEW LAYER */}
                       <div 
                         className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out
@@ -471,32 +479,32 @@ const Home: React.FC = () => {
                   </div>
 
                   {/* 3. NEW ACTION ROW: Full Width Baris Bawah (Horizontal) */}
-                  <div className="grid grid-cols-2 w-full border-t border-black bg-white relative z-50">
-                     <button 
-                       onClick={() => {
-                         const promo = getActivePromo(font.id);
-                         const discountPercent = promo ? promo.discount_percent : 0;
-                         openConfigurator({ 
-                           ...font, 
-                           trialFileUrl: font.trial_file_url,
-                           activeDiscount: discountPercent 
-                         });
-                       }}
-                       className="flex items-center justify-center gap-4 py-6 border-r border-black hover:bg-black hover:text-white transition-all group/cart text-black"
-                     >
-                        <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90 flex-shrink-0" />
-                        <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
-                     </button>
-                     
-                     <button 
-                       className="flex items-center justify-center gap-4 py-6 hover:bg-black hover:text-white transition-all group/view text-black"
-                     >
-                        <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
-                        <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
-                     </button>
-                  </div>
+                <div className="grid grid-cols-2 w-full border-t border-black bg-white relative z-50">
+                   <button 
+                     onClick={() => {
+                       const promo = getActivePromo(font.id);
+                       const discountPercent = promo ? promo.discount_percent : 0;
+                       openConfigurator({ 
+                         ...font, 
+                         trialFileUrl: font.trial_file_url,
+                         activeDiscount: discountPercent 
+                       });
+                     }}
+                     className="flex items-center justify-center gap-4 py-6 border-r border-black hover:bg-black hover:text-white transition-all group/cart text-black"
+                   >
+                      <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90 flex-shrink-0" />
+                      <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
+                   </button>
+                   
+                   <button 
+                     className="flex items-center justify-center gap-4 py-6 hover:bg-black hover:text-white transition-all group/view text-black"
+                   >
+                      <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
+                      <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
+                   </button>
+                </div>
 
-                  {/* 4. MOBILE/TABLET SPACER: Kotak oranye transparan */}
+                  {/* 4. MOBILE/TABLET SPACER (GRID KOSONG): Titik transisi ke lg */}
                   <div className="lg:hidden order-4 h-12 border-t border-black w-full bg-orange-500/10" />
 
                 </section>
