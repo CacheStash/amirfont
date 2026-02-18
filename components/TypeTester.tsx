@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlignLeft, AlignCenter, AlignRight, Type, Grid, Keyboard, ChevronDown } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Type, Grid, Keyboard, ChevronDown , ChevronLeft, ChevronRight } from 'lucide-react';
 import { FontConfig } from '../types';
 import opentype from 'opentype.js';
 
@@ -142,19 +142,24 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     <div className="w-full relative group bg-transparent">
       {/* ORB LAMA DI SINI SUDAH DIHAPUS DAN DIPINDAHKAN KE HOME.TSX */}
       <div className="relative z-10">
-        {/* FIXED: Mengubah breakpoint ke 'lg' (bukan 'xl') agar di iPad Landscape kontrol sudah menjadi satu baris (flex-nowrap) */}
+        {/* FIXED: Menggunakan flex-nowrap agar satu baris di iPad Landscape/Desktop */}
         <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
           
-          {/* GRID 1: View Mode - Muncul di baris yang sama pada iPad Landscape */}
+          {/* GRID 1: View Mode - SEKARANG HANYA SATU BUTTON TOGGLE (Hidden on Mobile) */}
           <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
-              <button onClick={() => setViewMode('type')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'type' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Keyboard size={14}/> Type</button>
-              <button onClick={() => setViewMode('glyphs')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'glyphs' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Grid size={14}/> Map</button>
+              <button 
+                onClick={() => setViewMode(viewMode === 'type' ? 'glyphs' : 'type')} 
+                className="flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors bg-black text-white hover:bg-gray-800"
+              >
+                {viewMode === 'type' ? <Grid size={14}/> : <Keyboard size={14}/>}
+                <span>{viewMode === 'type' ? 'Map View' : 'Type View'}</span>
+              </button>
           </div>
 
-          {/* GRID 2: Style Dropdown - Mempertahankan justify-between hanya di mobile/tab portrait */}
+          {/* GRID 2: Style Dropdown - Label "Style" hanya muncul di Mobile (lg:hidden) */}
           <div className="col-span-2 lg:col-span-1 lg:ml-auto flex items-center gap-6 px-4 lg:px-8 py-4 lg:py-8 border-b lg:border-b-0 lg:border-l border-black justify-between lg:justify-end lg:order-last">
               <div className="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-start">
-                <span className="font-bold text-xs text-gray-400 uppercase">Style</span>
+                <span className="font-bold text-xs text-gray-400 uppercase lg:hidden">Style</span>
                 <div className="relative z-[100]">
                    <button 
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -207,11 +212,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
              {viewMode === 'type' ? (
                 <>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs text-gray-400 uppercase">Size</span>
+                    {/* Label "Size" disembunyikan di desktop (lg:hidden) */}
+                    <span className="font-bold text-xs text-gray-400 uppercase lg:hidden">Size</span>
                     <div className="relative z-[110]">
                        <button 
                           onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
-                          className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[70px] justify-between relative z-10"
+                          className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[65px] justify-between relative z-10"
                        >
                           <span>{fontSize} PX</span>
                           <ChevronDown size={14} className={`transition-transform duration-200 ${isSizeDropdownOpen ? 'rotate-180' : ''}`} />
@@ -260,9 +266,21 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   <button onClick={() => setAlign('right')} className={`p-2 ${align === 'right' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignRight size={16}/></button>
                 </>
              ) : (
-              <div className="flex gap-1">
-                  <button onClick={() => setMapPage(Math.max(0, mapPage - 1))} disabled={mapPage === 0} className="px-3 py-1 text-xs font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white uppercase">PREV</button>
-                  <button onClick={() => setMapPage(mapPage + 1)} disabled={(mapPage + 1) * glyphsPerPage >= filteredGlyphs.length} className="px-3 py-1 text-xs font-bold border border-black disabled:opacity-20 hover:bg-black hover:text-white uppercase">NEXT</button>
+              <div className="flex gap-1 items-center">
+                  <button 
+                    onClick={() => setMapPage(Math.max(0, mapPage - 1))} 
+                    disabled={mapPage === 0} 
+                    className="p-2 border border-black disabled:opacity-20 hover:bg-black hover:text-white transition-colors"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button 
+                    onClick={() => setMapPage(mapPage + 1)} 
+                    disabled={(mapPage + 1) * glyphsPerPage >= filteredGlyphs.length} 
+                    className="p-2 border border-black disabled:opacity-20 hover:bg-black hover:text-white transition-colors"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
                </div>
              )}
           </div>
