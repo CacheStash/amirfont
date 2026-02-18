@@ -157,13 +157,13 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
 
                       {/* Baris ke-4 Kolom Kanan: Login/Logout */}
                       {user ? (
-                        <button 
-                          onClick={handleLogout}
-                          className="text-3xl md:text-6xl font-normal uppercase tracking-tighter px-3 md:px-8 py-6 md:py-10 border-b border-black hover:bg-red-600 hover:text-white transition-all flex justify-between items-center group text-left w-full"
+                        <Link 
+                          to="/user/dashboard"
+                          className="text-3xl md:text-6xl font-normal uppercase tracking-tighter px-3 md:px-8 py-6 md:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
                         >
-                          <span>LOGOUT</span>
-                          <ArrowLeft size={32} className="opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                        </button>
+                          <span>DASHBOARD</span>
+                          <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        </Link>
                       ) : (
                         <Link 
                           to="/user/auth"
