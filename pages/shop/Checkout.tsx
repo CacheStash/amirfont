@@ -14,9 +14,8 @@ const [email, setEmail] = React.useState('');
   const [isPaid, setIsPaid] = React.useState(false);
   const [subscribe, setSubscribe] = React.useState(true);
 
-  // AUTH & PRE-FILL LOGIC
+  // AUTH & PRE-FILL: Menggunakan getSession agar lebih instan dibanding getUser
   React.useEffect(() => {
-    // Ambil session aktif secara instan untuk pre-fill email pembeli
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
@@ -24,13 +23,10 @@ const [email, setEmail] = React.useState('');
       }
     });
 
-    // Pantau perubahan status login secara real-time
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(session.user);
         setEmail(session.user.email || '');
-      } else {
-        setUser(null);
       }
     });
 
@@ -47,7 +43,7 @@ const [email, setEmail] = React.useState('');
     try {
       let targetUserId = user?.id;
 
-      // 1. LOGIKA AUTH: Cek apakah user baru atau lama
+      // 1. LOGIKA AUTH: Ambil ID user yang sudah ada jika signUp gagal
       if (!targetUserId) {
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: email,
@@ -55,7 +51,7 @@ const [email, setEmail] = React.useState('');
         });
 
         if (authError && authError.message === "User already registered") {
-          // User sudah ada: Ambil ID dari tabel fontbuyer untuk relasi data
+          // Cari ID manual dari fontbuyer agar password user lama tidak berubah
           const { data: buyerData } = await supabase.from('fontbuyer').select('id').eq('email', email).single();
           targetUserId = buyerData?.id;
           alert("ACCOUNT RECOGNIZED. PLEASE LOGIN WITH YOUR EXISTING PASSWORD AFTER THIS.");
@@ -68,20 +64,20 @@ const [email, setEmail] = React.useState('');
 
       if (!targetUserId) throw new Error("AUTH_ID_MISSING");
       
-     const historyEntries = cart.map((item: any) => ({ // FIXED: Ditambah : any untuk bunuh TS error
+      const historyEntries = cart.map((item: any) => ({
         user_id: targetUserId,
         font_id: item.id, 
         download_type: 'full',
         transaction_id: finalOrderId,
         tier: item.tier || 'SOLO', 
         usages: item.usages || ['desktop'], 
-        metadata: item.metadata || {} // Pastikan metadata MPV ikut terkirim
+        metadata: item.metadata || {} 
       }));
 
       const { error: histError } = await supabase.from('font_history').insert(historyEntries);
       if (histError) throw histError;
 
-if (subscribe) {
+      if (subscribe) {
         await supabase.from('fontsubscribers').upsert({ email, source: 'checkout_purchase' });
       }
 
@@ -135,7 +131,7 @@ if (subscribe) {
       let targetUserId = user?.id;
       let isNewUser = false;
 
-      // 2. LOGIKA AUTH: Cek apakah user baru atau lama
+      // 1. LOGIKA AUTH: Ambil ID secara paksa dari database jika user sudah ada
       if (!targetUserId) {
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: email,
@@ -144,8 +140,9 @@ if (subscribe) {
 
         if (!authError && authData.user) {
           targetUserId = authData.user.id;
-          isNewUser = true; // Tandai untuk login otomatis
+          isNewUser = true;
         } else if (authError?.message === "User already registered") {
+          // Ambil ID dari tabel fontbuyer tanpa ubah password
           const { data: buyerData } = await supabase.from('fontbuyer').select('id').eq('email', email).single();
           targetUserId = buyerData?.id;
           isNewUser = false;
@@ -154,10 +151,10 @@ if (subscribe) {
         }
       }
 
-      if (!targetUserId) throw new Error("USER_NOT_FOUND");
+      if (!targetUserId) throw new Error("USER_NOT_FOUND_FOR_THIS_EMAIL");
 
-      // 3. Catat history download (FIX UUID ERROR: Gunakan item.id)
-      const historyEntries = cart.map((item: any) => ({ 
+      // 2. Catat history (Gunakan targetUserId yang sudah pasti ada)
+      const historyEntries = cart.map((item: any) => ({
         user_id: targetUserId,
         font_id: item.id,
         download_type: 'trial',
@@ -324,9 +321,10 @@ if (subscribe) {
                     <button 
                       key={item.cartId}
                       onClick={() => handleSecureDownload(
-                        total === 0 ? item.trialFileUrl || 'null' : 'full_version_filename', // Gunakan trialFileUrl jika trial
+                        // FIXED: Menghapus trial_file_url karena tidak ada di interface CartItem
+                        (item.trialFileUrl || 'null'), 
                         total === 0 ? 'trial' : 'full'
-                      )} 
+                      )}
                       className="bg-black text-white px-8 py-5 font-black tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-4"
                     >
                       DOWNLOAD_{item.name.replace(/\s+/g, '_')}_ZIP

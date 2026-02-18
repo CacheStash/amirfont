@@ -467,8 +467,12 @@ const Home: React.FC = () => {
                        // 2. Ambil persentase diskonnya (jika tidak ada promo, beri 0)
                        const discountPercent = promo ? promo.discount_percent : 0;
                        
-                       // 3. Kirim font ke configurator, sisipkan properti activeDiscount
-                       openConfigurator({ ...font, activeDiscount: discountPercent });
+                       // 3. MAPPING: Pastikan trial_file_url dipetakan ke trialFileUrl agar sinkron dengan Checkout
+                       openConfigurator({ 
+                         ...font, 
+                         trialFileUrl: font.trial_file_url, // Sinkronisasi nama properti
+                         activeDiscount: discountPercent 
+                       });
                      }}
                        className="flex-1 p-4 flex items-center justify-center border-b border-black hover:bg-black hover:text-white transition-all group/cart"
                        title="Add to Cart"
