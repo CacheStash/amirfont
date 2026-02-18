@@ -142,107 +142,36 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     <div className="w-full relative group bg-transparent">
       {/* ORB LAMA DI SINI SUDAH DIHAPUS DAN DIPINDAHKAN KE HOME.TSX */}
       <div className="relative z-10">
-        <div className="grid grid-cols-2 md:flex md:flex-wrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
+        {/* GRID UTAMA: Diubah ke lg agar Tablet Portrait menumpuk ke bawah (1 kolom) */}
+        <div className="flex flex-col lg:flex-row lg:flex-wrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
           
-          {/* GRID 1: View Mode - Titik transisi diubah ke lg */}
-          <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
+          {/* 1. View Mode (Type/Map) */}
+          <div className="w-full lg:w-auto flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-b lg:border-b-0 lg:border-r border-black justify-center lg:justify-start">
               <button onClick={() => setViewMode('type')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'type' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Keyboard size={14}/> Type</button>
               <button onClick={() => setViewMode('glyphs')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'glyphs' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Grid size={14}/> Map</button>
           </div>
 
-          {/* GRID 2: Style Dropdown */}
-          <div className="col-span-2 lg:col-span-1 lg:ml-auto flex items-center gap-6 px-4 lg:px-8 py-4 lg:py-8 border-b lg:border-b-0 lg:border-l border-black justify-between lg:justify-end lg:order-last">
-              <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
-                <span className="font-bold text-xs text-gray-400 uppercase">Style</span>
-                <div className="relative z-[100]">
-                   <button 
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[80px] justify-between relative z-10"
-                   >
-                      <span>
-                        {Array.isArray(config.font_files) && config.font_files.length > 0 
-                          ? `Style ${String(activeStyleIndex + 1).padStart(2, '0')}`
-                          : 'Style 01'}
-                      </span>
-                      <ChevronDown size={14} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                   </button>
-
-                   {isDropdownOpen && (
-                     <>
-                      <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-hidden shadow-none">
-                          {Array.isArray(config.font_files) && config.font_files.length > 0 ? (
-                            config.font_files.map((_, i) => (
-                              <button
-                                key={i}
-                                onClick={(e) => { 
-                                    e.stopPropagation();
-                                    setActiveStyleIndex(i); 
-                                    setIsDropdownOpen(false); 
-                                }}
-                                className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors block ${
-                                  activeStyleIndex === i 
-                                    ? 'bg-black text-white' 
-                                    : 'text-black hover:bg-black hover:text-white'
-                                }`}
-                              >
-                                Style {String(i + 1).padStart(2, '0')}
-                              </button>
-                            ))
-                          ) : (
-                             <button className="w-full text-left px-4 py-3 text-xs font-bold uppercase text-black cursor-default">
-                               Style 01
-                             </button>
-                          )}
-                      </div>
-                     </>
-                   )}
-                </div>
-              </div>
-          </div>
-
-          {/* GRID 3: Size (Type) / Map Grid (Map) - LEFT COLUMN ON MOBILE */}
-          <div className="flex items-center gap-2 px-4 md:px-8 py-4 md:py-8 border-r border-black justify-center md:justify-start">
+          {/* 2. Size (Type) / Map Grid Size */}
+          <div className="w-full lg:w-auto flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-b lg:border-b-0 lg:border-r border-black justify-center lg:justify-start">
              {viewMode === 'type' ? (
-                <>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs text-gray-400 uppercase">Size</span>
-                    <div className="relative z-[110]">
-                       <button 
-                          onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
-                          className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[70px] justify-between relative z-10"
-                       >
-                          <span>{fontSize} PX</span>
-                          <ChevronDown size={14} className={`transition-transform duration-200 ${isSizeDropdownOpen ? 'rotate-180' : ''}`} />
-                       </button>
-
-                       {isSizeDropdownOpen && (
-                         <>
-                          <div className="fixed inset-0 z-40" onClick={() => setIsSizeDropdownOpen(false)} />
-                          <div className="absolute left-0 top-full mt-2 w-32 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-y-auto max-h-[300px] shadow-none custom-scrollbar">
-                              {PRESET_SIZES.map((size) => (
-                                <button
-                                  key={size}
-                                  onClick={(e) => { 
-                                      e.stopPropagation();
-                                      setFontSize(size); 
-                                      setIsSizeDropdownOpen(false); 
-                                  }}
-                                  className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors block ${
-                                    fontSize === size 
-                                      ? 'bg-black text-white' 
-                                      : 'text-black hover:bg-black hover:text-white'
-                                  }`}
-                                >
-                                  {size} PX
-                                </button>
-                              ))}
-                          </div>
-                         </>
-                       )}
-                    </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-xs text-gray-400 uppercase">Size</span>
+                  <div className="relative z-[110]">
+                     <button onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)} className="flex items-center gap-2 font-bold text-xs uppercase outline-none py-1 bg-transparent hover:text-gray-600 transition-colors min-w-[70px] justify-between">
+                        <span>{fontSize} PX</span>
+                        <ChevronDown size={14} className={`transition-transform duration-200 ${isSizeDropdownOpen ? 'rotate-180' : ''}`} />
+                     </button>
+                     {isSizeDropdownOpen && (
+                       <div className="absolute left-0 top-full mt-2 w-32 bg-white/95 border border-black z-50 overflow-y-auto max-h-[300px]">
+                          {PRESET_SIZES.map((size) => (
+                            <button key={size} onClick={() => { setFontSize(size); setIsSizeDropdownOpen(false); }} className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors ${fontSize === size ? 'bg-black text-white' : 'hover:bg-gray-200'}`}>
+                              {size} PX
+                            </button>
+                          ))}
+                       </div>
+                     )}
                   </div>
-                </>
+                </div>
              ) : (
                [10, 20, 30].map(size => (
                   <button key={size} onClick={() => { setMapGridSize(size); setMapPage(0); }} className={`px-3 py-1 text-xs font-bold border border-black ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent hover:bg-gray-200 uppercase'}`}>{size}</button>
@@ -250,8 +179,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
              )}
           </div>
 
-          {/* GRID 4: Align (Type) / Pagination (Map) - RIGHT COLUMN ON MOBILE */}
-          <div className="flex items-center gap-2 px-4 md:px-8 py-4 md:py-8 justify-center md:border-r md:border-black md:justify-start">
+          {/* 3. Text Alignment (Type) / Pagination (Map) */}
+          <div className="w-full lg:w-auto flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-b lg:border-b-0 lg:border-r border-black justify-center lg:justify-start">
              {viewMode === 'type' ? (
                 <>
                   <button onClick={() => setAlign('left')} className={`p-2 ${align === 'left' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignLeft size={16}/></button>
@@ -266,6 +195,27 @@ const TypeTester: React.FC<TypeTesterProps> = ({
              )}
           </div>
 
+          {/* 4. Style Dropdown (Always Last in stacking) */}
+          <div className="w-full lg:flex-1 lg:ml-auto flex items-center gap-6 px-4 lg:px-8 py-4 lg:py-8 justify-center lg:justify-end">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-xs text-gray-400 uppercase">Style</span>
+                <div className="relative z-[100]">
+                   <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 font-bold text-xs uppercase outline-none py-1 bg-transparent hover:text-gray-600 transition-colors min-w-[80px] justify-between">
+                      <span>{Array.isArray(config.font_files) && config.font_files.length > 0 ? `Style ${String(activeStyleIndex + 1).padStart(2, '0')}` : 'Style 01'}</span>
+                      <ChevronDown size={14} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                   </button>
+                   {isDropdownOpen && (
+                     <div className="absolute right-0 top-full mt-2 w-48 bg-white/95 border border-black z-50">
+                          {Array.isArray(config.font_files) && config.font_files.map((_, i) => (
+                            <button key={i} onClick={() => { setActiveStyleIndex(i); setIsDropdownOpen(false); }} className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors ${activeStyleIndex === i ? 'bg-black text-white' : 'hover:bg-gray-200'}`}>
+                              Style {String(i + 1).padStart(2, '0')}
+                            </button>
+                          ))}
+                     </div>
+                   )}
+                </div>
+              </div>
+          </div>
         </div>
 
         <div className="min-h-[300px] mb-8 relative">

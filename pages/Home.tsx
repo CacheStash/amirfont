@@ -500,8 +500,8 @@ const Home: React.FC = () => {
                      </button>
                   </div>
 
-                  {/* 4. MOBILE SPACER (GRID KOSONG): Diperbarui dengan warna orange transparan */}
-                  <div className="md:hidden order-4 h-12 border-t border-black w-full bg-orange-500/10" />
+                  {/* 4. MOBILE/TABLET SPACER (GRID KOSONG): Titik transisi ke lg */}
+                  <div className="lg:hidden order-4 h-12 border-t border-black w-full bg-orange-500/10" />
 
                 </section>
               );
