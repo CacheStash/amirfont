@@ -33,6 +33,7 @@ const Orders = () => {
           tier,
           usages,
           user_id,
+          profiles ( email ),
           metadata,
           fonts ( name )
         `, { count: 'exact' });
@@ -90,6 +91,7 @@ const Orders = () => {
       <tr className="border-b-2 border-black bg-gray-50">
         <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Date</th>
         <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Order_ID</th>
+        <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Buyer_Email</th>
         <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Typeface</th>
         <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500 text-center">Type</th>
         <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Tier_&_Reach</th>
@@ -108,6 +110,9 @@ const Orders = () => {
           </td>
           <td className="p-4">
             <span className="bg-black text-white px-2 py-1 text-[10px] font-bold">{order.transaction_id}</span>
+          </td>
+          <td className="p-4 text-[10px] font-bold truncate max-w-[200px]">
+            {order.profiles?.email || 'N/A'}
           </td>
           <td className="p-4 font-black text-sm uppercase italic">
             {order.fonts?.name || 'UNKNOWN'}

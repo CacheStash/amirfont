@@ -110,10 +110,11 @@ const MyFontsHistory = () => {
                 {/* VIEW LICENSE BUTTON */}
               <Link 
                   to={`/user/receipt/${item.transaction_id}`}
-                  className="bg-white text-black p-3 border border-black hover:bg-yellow-400 transition-all"
+                  className="bg-white text-black py-2 px-4 border border-black hover:bg-yellow-400 transition-all flex items-center gap-2"
                   title="View Official License"
                 >
-                  <Info size={20} />
+                  <Info size={18} />
+                  <span className="text-[10px] font-black uppercase">License Details</span>
                 </Link>
               </div>
             </div>
