@@ -126,7 +126,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
           <div className="h-14 md:h-16 w-full border-b border-black bg-[#EDEBE6] flex-shrink-0"></div>
 
           <div className="flex-1 overflow-y-auto pt-0"> 
-              <div className="grid grid-cols-1 md:grid-cols-2 w-full h-full border-black">
+              <div className="grid grid-cols-1 md:grid-cols-2 w-full md:h-full border-black">
                   
                   {/* Column 1: Items 1-4 */}
                   <div className="flex flex-col border-r-0 md:border-r border-black">
