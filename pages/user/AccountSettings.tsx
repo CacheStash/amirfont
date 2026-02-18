@@ -6,23 +6,29 @@ const AccountSettings = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [initialPassword, setInitialPassword] = useState('LOADING...');
+  const [checkoutCodes, setCheckoutCodes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Ambil transaction_id pertama sebagai password awal user
-    const getInitialCreds = async () => {
+    // Ambil semua transaction_id sebagai daftar password/resetter user
+    const getAllCheckoutCodes = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      
       const { data } = await supabase
         .from('font_history')
         .select('transaction_id')
         .eq('user_id', user.id)
-        .order('download_date', { ascending: true })
-        .limit(1);
-      if (data && data[0]) setInitialPassword(data[0].transaction_id);
-      else setInitialPassword("NOT_FOUND");
+        .order('download_date', { ascending: false });
+
+      if (data) {
+        const codes = data.map(item => item.transaction_id);
+        setCheckoutCodes(codes);
+      } else {
+        setCheckoutCodes([]);
+      }
     };
-    getInitialCreds();
+    getAllCheckoutCodes();
   }, []);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
@@ -43,15 +49,30 @@ const AccountSettings = () => {
     <div className="max-w-md font-mono uppercase">
       <div className="mb-10 p-6 border-2 border-black bg-yellow-50 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
         <label className="block text-[10px] font-black tracking-widest mb-2 opacity-50 flex items-center gap-2">
-          <Key size={12} /> YOUR_INITIAL_PASSWORD & PASSWORD_RESETTER
+          <Key size={12} /> YOUR_CHECKOUT_CODES & RESETTER_KEYS
         </label>
-        <div className="text-xl font-black tracking-tighter bg-white border border-black p-3 select-all">
-          {initialPassword}
+        <div className="relative">
+          <select 
+            className="w-full text-lg font-black tracking-tighter bg-white border border-black p-3 outline-none appearance-none cursor-pointer focus:bg-white"
+            defaultValue=""
+          >
+            {checkoutCodes.length > 0 ? (
+              checkoutCodes.map((code: string, idx: number) => (
+                <option key={idx} value={code}>{code}</option>
+              ))
+            ) : (
+              <option disabled value="">NO_CODES_FOUND</option>
+            )}
+          </select>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none font-black text-xs">
+            ▼
+          </div>
         </div>
+
         <p className="text-[9px] mt-3 font-bold opacity-60 leading-tight">
-          * This code was generated during your first checkout. Use it to log in if you haven't changed your password yet. 
+          * ALL CODES LISTED ABOVE ARE VALID INITIAL PASSWORDS OR RESETTER KEYS.
           <br />
-          * This code can also be used to reset your password in case you forget your new one.
+          * IF YOU FORGET YOUR CUSTOM PASSWORD, USE ANY OF THESE TRANSACTION CODES TO REGAIN ACCESS VIA LOGIN PAGE.
         </p>
       </div>
 
