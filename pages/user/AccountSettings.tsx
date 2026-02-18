@@ -9,8 +9,9 @@ const AccountSettings = () => {
   const [checkoutCodes, setCheckoutCodes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const [selectedCode, setSelectedCode] = useState('');
+
   useEffect(() => {
-    // Ambil semua transaction_id sebagai daftar password/resetter user
     const getAllCheckoutCodes = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -21,15 +22,20 @@ const AccountSettings = () => {
         .eq('user_id', user.id)
         .order('download_date', { ascending: false });
 
-      if (data) {
-        const codes = data.map(item => item.transaction_id);
+      if (data && data.length > 0) {
+        const codes = data.map((item: any) => item.transaction_id);
         setCheckoutCodes(codes);
-      } else {
-        setCheckoutCodes([]);
+        setSelectedCode(codes[0]); // Default ke kode terbaru
       }
     };
     getAllCheckoutCodes();
   }, []);
+
+  const handleCopy = () => {
+    if (!selectedCode) return;
+    navigator.clipboard.writeText(selectedCode);
+    alert("COPIED TO CLIPBOARD: " + selectedCode);
+  };
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
