@@ -131,7 +131,7 @@ const [email, setEmail] = React.useState('');
       let targetUserId = user?.id;
       let isNewUser = false;
 
-      // 1. LOGIKA AUTH: Ambil ID secara paksa dari database jika user sudah ada
+      // 1. LOGIKA AUTH: Cek apakah user baru atau lama
       if (!targetUserId) {
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: email,
@@ -140,9 +140,9 @@ const [email, setEmail] = React.useState('');
 
         if (!authError && authData.user) {
           targetUserId = authData.user.id;
-          isNewUser = true;
+          isNewUser = true; // Tandai untuk login otomatis
         } else if (authError?.message === "User already registered") {
-          // Ambil ID dari tabel fontbuyer tanpa ubah password
+          // Ambil ID dari database tanpa mereset password
           const { data: buyerData } = await supabase.from('fontbuyer').select('id').eq('email', email).single();
           targetUserId = buyerData?.id;
           isNewUser = false;
@@ -159,8 +159,8 @@ const [email, setEmail] = React.useState('');
         font_id: item.id,
         download_type: 'trial',
         transaction_id: orderId,
-        tier: 'SOLO', // Trial dipaksa SOLO
-        usages: ['trial'], // Penanda untuk teks lisensi Worker
+        tier: 'SOLO', 
+        usages: ['trial'], 
         metadata: { mpv: "NONE" } 
       }));
 
