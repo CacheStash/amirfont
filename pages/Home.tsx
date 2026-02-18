@@ -392,7 +392,6 @@ const Home: React.FC = () => {
                         </div>
                       </div>
                       
-                      <p className="text-gray-600 text-sm leading-relaxed mt-4">{font.description}</p>
 
                       {/* MOBILE TAGS */}
                       <div className="flex flex-wrap gap-2 mt-6 lg:hidden">
