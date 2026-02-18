@@ -12,8 +12,12 @@ const Checkout: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+      if (user?.email) setEmail(user.email); // Otomatis isi email jika sudah login
+    });
   }, []);
+  
   const total = cart.reduce((acc, curr) => acc + curr.price, 0);
   const orderId = `SQ-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -26,16 +30,28 @@ const [subscribe, setSubscribe] = React.useState(true); // Opsi newsletter defau
   const handlePurchaseSuccess = async (finalOrderId: string) => {
     setLoading(true);
     try {
-      // 1. AUTO-REGISTER (Password = Order ID dari image_d6a53f.png)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email,
-        password: finalOrderId,
-      });
+      let targetUserId = user?.id;
 
-      if (authError && authError.message !== "User already registered") throw authError;
+      // 1. LOGIKA AUTH: Cek apakah user baru atau lama
+      if (!targetUserId) {
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: email,
+          password: finalOrderId,
+        });
 
-      // 2. INSERT FONT HISTORY (Full Version)
-      const targetUserId = authData.user?.id || (await supabase.auth.getUser()).data.user?.id;
+        if (authError && authError.message === "User already registered") {
+          // User sudah ada: Ambil ID dari tabel fontbuyer untuk relasi data
+          const { data: buyerData } = await supabase.from('fontbuyer').select('id').eq('email', email).single();
+          targetUserId = buyerData?.id;
+          alert("ACCOUNT RECOGNIZED. PLEASE LOGIN WITH YOUR EXISTING PASSWORD AFTER THIS.");
+        } else if (!authError) {
+          targetUserId = authData.user?.id;
+        } else {
+          throw authError;
+        }
+      }
+
+      if (!targetUserId) throw new Error("AUTH_ID_MISSING");
       
      const historyEntries = cart.map((item: any) => ({ // FIXED: Ditambah : any untuk bunuh TS error
         user_id: targetUserId,
@@ -96,16 +112,31 @@ if (subscribe) {
 
     setLoading(true);
     try {
-      // 2. Auto-Register menggunakan Order ID sebagai Password
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email,
-        password: orderId,
-      });
+      let targetUserId = user?.id;
+      let isNewUser = false;
 
-      if (authError && authError.message !== "User already registered") throw authError;
+      // 2. LOGIKA AUTH: Cek apakah user baru atau lama
+      if (!targetUserId) {
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: email,
+          password: orderId,
+        });
+
+        if (!authError && authData.user) {
+          targetUserId = authData.user.id;
+          isNewUser = true; // Tandai untuk login otomatis
+        } else if (authError?.message === "User already registered") {
+          const { data: buyerData } = await supabase.from('fontbuyer').select('id').eq('email', email).single();
+          targetUserId = buyerData?.id;
+          isNewUser = false;
+        } else {
+          throw authError;
+        }
+      }
+
+      if (!targetUserId) throw new Error("USER_NOT_FOUND");
 
       // 3. Catat history download (FIX UUID ERROR: Gunakan item.id)
-      const targetUserId = authData.user?.id || (await supabase.auth.getUser()).data.user?.id;
       const historyEntries = cart.map((item: any) => ({ // FIXED: Ditambah : any untuk bunuh TS error
         user_id: targetUserId,
         font_id: item.id, 
@@ -123,8 +154,12 @@ if (subscribe) {
         await supabase.from('fontsubscribers').upsert({ email, source: 'checkout_trial' });
       }
 
-      // 4. Redirect Opsi A: Ke login dengan data terisi otomatis via URL
-      window.location.href = `/user/auth?email=${encodeURIComponent(email)}&key=${encodeURIComponent(orderId)}`;
+      // 4. REDIRECT: 'key' (auto-login) hanya dikirim untuk New User
+      const authUrl = isNewUser 
+        ? `/user/auth?email=${encodeURIComponent(email)}&key=${encodeURIComponent(orderId)}`
+        : `/user/auth?email=${encodeURIComponent(email)}`; // User lama harus pakai password asli
+      
+      window.location.href = authUrl;
       
     } catch (err: any) {
       alert("ERROR: " + err.message);
