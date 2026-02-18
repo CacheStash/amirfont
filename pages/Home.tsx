@@ -289,69 +289,70 @@ const Home: React.FC = () => {
               // Tablet Portrait (md) disamakan dengan Mobile. Desktop Layout dimulai pada 'lg' (1024px).
              const gridLayoutClass = isEven 
                 ? "lg:grid-cols-[450px_60px_1fr_150px]" 
-                : "lg:grid-cols-[150px_1fr_60px_450px]";
-              
-              const isExpanded = expandedFontId === font.id;
-              const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
+                : "lg:grid-cols-[150px_1fr_60px_450px]";
+              
+              const isExpanded = expandedFontId === font.id;
+              const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
 
-              const displayFont = {
-                ...font,
-                family: `"${font.name}"`,
-                tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []),
-                styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
-                randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
-              };
+              const displayFont = {
+                ...font,
+                family: `"${font.name}"`,
+                tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []),
+                styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
+                randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
+              };
 
-              const promo = getActivePromo(font.id || '');
-              const basePrice = font.price || 25;
+              const promo = getActivePromo(font.id || '');
+              const basePrice = font.price || 25;
 
-              return (
-                <section key={font.id} className={`relative border-b border-black grid grid-cols-1 ${gridLayoutClass} overflow-hidden md:overflow-visible`}>
-                  {/* BACKGROUND ORB EFFECT - Posisi disesuaikan agar overlapping kolom Info & Tester */}
-                  <div className="absolute z-0 pointer-events-none overflow-visible hidden md:block" 
-                       style={{ 
-                         width: '1000px', 
-                         height: '600px',
-                         top: '50%',
-                         // Ganjil (isEven=true): Posisi kolom Info/Toggle/Tester dominan di kiri -> Orb di kiri
-                         // Genap (isEven=false): Kolom Tester/Toggle/Info berpindah ke arah kanan -> Orb di kanan
-                         left: isEven ? '22%' : '78%', 
-                         transform: 'translate(-50%, -50%)',
-                         opacity: 0.8
-                       }}>
-                       <div className="w-full h-full mix-blend-multiply blur-[60px]" 
-                     style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
-                  </div>
-                  
-                  {/* 1. INFO COLUMN */}
-                  {/* FIXED: Menggunakan 'lg' agar Tablet Portrait tetap satu kolom tanpa border bawah yang menumpuk */}
-                  <div className={`p-6 lg:p-8 flex flex-col justify-between order-1 ${isEven ? 'lg:order-1 lg:border-r border-black' : 'lg:order-4 lg:border-l border-black'}`}>
-                    <div>
-                      {/* Header: Title Only */}
-                      <div className="flex justify-between items-start gap-4 mb-2">
-                        <div className="flex-1">
-                          <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h2>
-                          <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase">
-                              {displayFont.styleCount} STYLES
-                          </span>
-                        </div>
-                      </div>
+              return (
+                <section key={font.id} className={`relative border-b border-black grid grid-cols-1 ${gridLayoutClass} overflow-hidden md:overflow-visible`}>
+                  {/* BACKGROUND ORB EFFECT - Posisi disesuaikan agar overlapping kolom Info & Tester */}
+                  <div className="absolute z-0 pointer-events-none overflow-visible hidden md:block" 
+                       style={{ 
+                         width: '1000px', 
+                         height: '600px',
+                         top: '50%',
+                         // Ganjil (isEven=true): Posisi kolom Info/Toggle/Tester dominan di kiri -> Orb di kiri
+                         // Genap (isEven=false): Kolom Tester/Toggle/Info berpindah ke arah kanan -> Orb di kanan
+                         left: isEven ? '22%' : '78%', 
+                         transform: 'translate(-50%, -50%)',
+                         opacity: 0.8
+                       }}>
+                       <div className="w-full h-full mix-blend-multiply blur-[60px]" 
+                     style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
+                  </div>
+                  
+                  {/* 1. INFO COLUMN */}
+                  {/* MOBILE: Always Order 1. DESKTOP: Zig-Zag (Order 1 or 3) */}
+                  {/* FIXED: border-b-0 pada mobile/tab agar tidak double dengan border toggle */}
+                  <div className={`p-6 lg:p-8 flex flex-col justify-between border-b-0 lg:border-b-0 order-1 ${isEven ? 'lg:order-1 lg:border-r border-black' : 'lg:order-4 lg:border-l border-black'}`}>
+                    <div>
+                      {/* Header: Title Only */}
+                      <div className="flex justify-between items-start gap-4 mb-2">
+                        <div className="flex-1">
+                          <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h2>
+                          <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase">
+                              {displayFont.styleCount} STYLES
+                          </span>
+                        </div>
+                      </div>
 
-                      <div className="hidden lg:block mb-8"><BrutalistGraphic /></div>
-                      
-                      {/* Desktop Tags (Hidden on Mobile/Tablet) */}
-                      <div className="hidden lg:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
-                        {displayFont.tags.map((tag: string) => (
-                          <button 
-                            key={tag} 
-                            onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} 
-                            className={`border px-3 py-1 rounded-full font-bold ${activeTag === tag.trim() ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'}`}
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                      <div className="hidden lg:block mb-8"><BrutalistGraphic /></div>
+                      
+                      {/* Desktop Tags (Hidden on Mobile/Tablet) */}
+                      <div className="hidden lg:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
+                        {displayFont.tags.map((tag: string) => (
+                          <button 
+                            key={tag} 
+                            onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} 
+                            className={`border px-3 py-1 rounded-full font-bold ${activeTag === tag.trim() ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'}`}
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     
                     <div className="mb-6">
                       {/* ... harga dan deskripsi tetap ... */}
@@ -360,52 +361,52 @@ const Home: React.FC = () => {
                       {/* MOBILE TAGS */}
                       <div className="flex flex-wrap gap-2 mt-6 lg:hidden">
                         {displayFont.tags.map((tag: string) => (
-                          <button 
-                            key={tag} 
-                            onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())}
-                            className="border border-black px-2 py-1 rounded-full font-bold text-[10px] uppercase whitespace-nowrap bg-transparent text-black"
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                          <button 
+                            key={tag} 
+                            onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())}
+                            className="border border-black px-2 py-1 rounded-full font-bold text-[10px] uppercase whitespace-nowrap bg-transparent text-black"
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-                    {/* MOBILE PREVIEW TOGGLE: Full Width, Border Atas & Bawah (border-y), Flush bottom */}
-                    <button 
-                      onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
-                      className="lg:hidden w-[calc(100%+3rem)] -mx-6 mb-[-1.5rem] mt-10 flex items-center justify-center gap-6 py-6 border-y border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
-                    >
-                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                      <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
-                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-                  </div>
+                    {/* MOBILE PREVIEW TOGGLE: Full Width, Menempel ke Grid Bawah (Flush), Menggunakan border-y */}
+                    <button 
+                      onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
+                      className="lg:hidden w-[calc(100%+3rem)] -mx-6 mb-[-1.5rem] mt-10 flex items-center justify-center gap-6 py-6 border-y border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
+                    >
+                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                      <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
+                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
 
-                 {/* 1.5 TOGGLE COLUMN (HIDDEN ON MOBILE) */}
-                  <div 
-                    onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
-                    className={`hidden md:flex items-center justify-center border-black cursor-pointer hover:bg-black/5 transition-colors z-40
-                      ${isEven ? 'md:order-2 border-r' : 'md:order-3 border-l'}`}
-                  >
-                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
-                      <MoveRight size={20} className={isEven ? "rotate-0" : "rotate-180"} />
-                    </div>
-                  </div>
+                 {/* 1.5 TOGGLE COLUMN (HIDDEN ON MOBILE & TABLET) */}
+                  <div 
+                    onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
+                    className={`hidden lg:flex items-center justify-center border-black cursor-pointer hover:bg-black/5 transition-colors z-40
+                      ${isEven ? 'lg:order-2 border-r' : 'lg:order-3 border-l'}`}
+                  >
+                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                      <MoveRight size={20} className={isEven ? "rotate-0" : "rotate-180"} />
+                    </div>
+                  </div>
 
                   {/* 2. TESTER & SLIDER COLUMN */}
-                  <div className={`relative min-h-[400px] border-b md:border-b-0 order-2 flex items-center overflow-hidden ${isEven ? 'md:order-3' : 'md:order-2'}`}>
-                      {/* SLIDE PREVIEW LAYER */}
-                      <div 
-                        className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out
-                          ${isExpanded ? 'translate-x-0 translate-y-0' : ''}
-                          ${!isExpanded ? (
-                             isEven 
-                               ? 'lg:-translate-x-full -translate-y-full lg:translate-y-0' 
-                               : 'lg:translate-x-full -translate-y-full lg:translate-y-0'
-                          ) : ''}
-                        `}
-                      >
+                  <div className={`relative min-h-[400px] border-b-0 lg:border-b-0 order-2 flex items-center overflow-hidden ${isEven ? 'lg:order-3' : 'lg:order-2'}`}>
+                      {/* SLIDE PREVIEW LAYER */}
+                      <div 
+                        className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out
+                          ${isExpanded ? 'translate-x-0 translate-y-0' : ''}
+                          ${!isExpanded ? (
+                             isEven 
+                               ? 'lg:-translate-x-full -translate-y-full lg:translate-y-0' 
+                               : 'lg:translate-x-full -translate-y-full lg:translate-y-0'
+                          ) : ''}
+                        `}
+                      >
                         <ScrollableImageStack 
                           images={fontPreviews} 
                           onImageClick={(index, allResolved) => {
@@ -434,37 +435,33 @@ const Home: React.FC = () => {
                   </div>
 
                   {/* 3. ACTION COLUMN (SPLIT INTO 2 ROWS) */}
-                  <div className={`flex flex-col order-3 border-t border-black md:border-t-0 ${isEven ? 'md:order-4 md:border-l' : 'md:order-1 md:border-r'} border-black overflow-hidden`}>
-                     {/* Row 1: Add to Cart */}
-                     <button 
-                     onClick={() => {
-                       // 1. Cari promo aktif untuk font ini
-                       const promo = getActivePromo(font.id);
-                       // 2. Ambil persentase diskonnya (jika tidak ada promo, beri 0)
-                       const discountPercent = promo ? promo.discount_percent : 0;
-                       
-                       // 3. MAPPING: Pastikan trial_file_url dipetakan ke trialFileUrl agar sinkron dengan Checkout
-                       openConfigurator({ 
-                         ...font, 
-                         trialFileUrl: font.trial_file_url, // Sinkronisasi nama properti
-                         activeDiscount: discountPercent 
-                       });
-                     }}
-                       className="flex-1 p-4 flex flex-row items-center justify-center gap-3 border-b border-black hover:bg-black hover:text-white transition-all group/cart"
-                       title="Add to Cart"
-                     >
-                        <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90 flex-shrink-0" />
-                        <span className="lg:hidden text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
-                     </button>
-                     
-                     {/* Row 2: View/Action */}
-                     <button 
-                       className="flex-1 p-4 flex flex-row items-center justify-center gap-3 hover:bg-black hover:text-white transition-all group/view"
-                       title="View Details"
-                     >
-                        <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
-                        <span className="lg:hidden text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
-                     </button>
+                  <div className={`flex flex-col order-3 border-t border-black lg:border-t-0 ${isEven ? 'lg:order-4 lg:border-l' : 'lg:order-1 lg:border-r'} border-black overflow-hidden`}>
+                     {/* Row 1: Add to Cart */}
+                     <button 
+                     onClick={() => {
+                       const promo = getActivePromo(font.id);
+                       const discountPercent = promo ? promo.discount_percent : 0;
+                       openConfigurator({ 
+                         ...font, 
+                         trialFileUrl: font.trial_file_url,
+                         activeDiscount: discountPercent 
+                       });
+                     }}
+                       className="flex-1 p-4 flex flex-row items-center justify-center gap-4 border-b border-black hover:bg-black hover:text-white transition-all group/cart text-black"
+                       title="Add to Cart"
+                     >
+                        <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90 flex-shrink-0" />
+                        <span className="lg:hidden text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
+                     </button>
+                     
+                     {/* Row 2: View/Action */}
+                     <button 
+                       className="flex-1 p-4 flex flex-row items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group/view text-black"
+                       title="View Details"
+                     >
+                        <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
+                        <span className="lg:hidden text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
+                     </button>
                   </div>
 
                   {/* 4. MOBILE SPACER (GRID KOSONG): Diperbarui dengan warna orange transparan */}
