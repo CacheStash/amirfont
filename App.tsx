@@ -61,14 +61,32 @@ const App: React.FC = () => {
   // STATE BARU: Untuk memantau apakah menu/search sedang terbuka
   const [isNavActive, setIsNavActive] = React.useState(false);
 
+  const [isAdmin, setIsAdmin] = React.useState(false);
+
   React.useEffect(() => {
+    const checkAdminStatus = async (user: any) => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+      // Cek ke tabel fontadmin (Sama dengan logika di Worker index.js)
+      const { data } = await supabase
+        .from('fontadmin')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+      setIsAdmin(!!data);
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      checkAdminStatus(session?.user);
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      checkAdminStatus(session?.user);
     });
 
     return () => subscription.unsubscribe();
@@ -112,14 +130,19 @@ const App: React.FC = () => {
             />
             <Route 
               path="/user/dashboard/*" 
-              element={session ? <UserDashboard /> : <Navigate to="/user/userauth" />} 
+              element={session && !isAdmin ? <UserDashboard /> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/user/auth" />)} 
             />
 
-<Route path="/user/receipt/:orderId" element={<LicenseReceipt />} />
-            <Route path="/login" element={!session ? <Login /> : <Navigate to="/admin" />} />
+            <Route path="/user/receipt/:orderId" element={<LicenseReceipt />} />
+            
+            <Route 
+              path="/login" 
+              element={!session ? <Login /> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/user/dashboard" />)} 
+            />
+            
             <Route 
               path="/admin/*" 
-              element={session ? <AdminDashboard /> : <Navigate to="/login" />} 
+              element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/login" />} 
             />
 
             <Route path="*" element={<Navigate to="/" />} />
