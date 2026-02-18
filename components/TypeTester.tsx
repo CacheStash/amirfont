@@ -142,18 +142,19 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     <div className="w-full relative group bg-transparent">
       {/* ORB LAMA DI SINI SUDAH DIHAPUS DAN DIPINDAHKAN KE HOME.TSX */}
       <div className="relative z-10">
-        {/* FIXED: Mengganti md:flex menjadi lg:flex agar Tablet Portrait tetap menggunakan Grid Mobile (2 kolom) */}
+        {/* FIXED: Menggunakan lg: agar Tablet Portrait tetap menggunakan layout grid mobile */}
         <div className="grid grid-cols-2 lg:flex lg:flex-wrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
           
-          {/* GRID 1: View Mode - HIDDEN ON MOBILE & TABLET PORTRAIT */}
+          {/* GRID 1: View Mode - Titik transisi diubah ke lg */}
           <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
               <button onClick={() => setViewMode('type')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'type' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Keyboard size={14}/> Type</button>
               <button onClick={() => setViewMode('glyphs')} className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors ${viewMode === 'glyphs' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><Grid size={14}/> Map</button>
           </div>
 
-          {/* GRID 2: Style Dropdown - FULL WIDTH ON MOBILE & TABLET PORTRAIT (col-span-2) */}
+          {/* GRID 2: Style Dropdown */}
           <div className="col-span-2 lg:col-span-1 lg:ml-auto flex items-center gap-6 px-4 lg:px-8 py-4 lg:py-8 border-b lg:border-b-0 lg:border-l border-black justify-between lg:justify-end lg:order-last">
-              <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
+              {/* FIXED: Menggunakan lg: agar pada Mobile & Tablet tetap w-full dan justify-between (Kiri-Kanan) */}
+              <div className="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-start">
                 <span className="font-bold text-xs text-gray-400 uppercase">Style</span>
                 <div className="relative z-[100]">
                    <button 
