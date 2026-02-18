@@ -317,7 +317,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           {(hasAxes || hasFeatures) && (
             <div className={`grid grid-cols-1 ${hasAxes && hasFeatures ? 'md:grid-cols-3' : 'md:grid-cols-1'}`}>
                 {hasAxes && (
-                  <div className={`${hasFeatures ? 'md:col-span-2 border-b md:border-b-0' : 'md:col-span-1'} space-y-4 px-4 md:px-8 py-6 md:py-8`}>
+                  <div className={`${hasFeatures ? 'md:col-span-2 border-b md:border-b-0' : 'md:col-span-1'} space-y-4 px-4 md:px-8 py-6 md:py-8 border-black`}>
                     <h4 className="font-bold text-xs uppercase text-gray-400 mb-4 tracking-widest">Variable Axes</h4>
                     {activeAxes.map((axis: any) => (
                       <div key={axis.tag} className="flex items-center gap-4">
@@ -330,7 +330,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 )}
                 
                 {hasFeatures && (
-                  <div className={`${hasAxes ? 'md:col-span-1 md:border-l' : 'md:col-span-1'} border-black px-4 md:px-8 py-6 md:py-8 border-t md:border-t-0`}>
+                  <div className={`${hasAxes ? 'md:col-span-1 md:border-l' : 'md:col-span-1'} border-black px-4 md:px-8 py-6 md:py-8`}>
                     <h4 className="font-bold text-xs uppercase text-gray-400 mb-4 tracking-widest">Features</h4>
                     <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar">
                       {dynamicFeatures.map((feat) => (
