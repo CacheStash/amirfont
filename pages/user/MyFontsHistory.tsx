@@ -101,14 +101,15 @@ const MyFontsHistory = () => {
                   onClick={() => handleSecureDownload(
                     item.download_type === 'trial' ? item.fonts.trial_file_url : item.fonts.font_files[0],
                     item.transaction_id,
-                    item.download_type // FIXED: Kirim jenis download (trial/commercial)
+                    item.download_type
                   )}
-                  className="bg-black text-white p-3 border border-white group-hover:bg-white group-hover:text-black transition-all"
+                  className="bg-black text-white py-2 px-4 border border-white group-hover:bg-white group-hover:text-black transition-all flex items-center gap-2"
                 >
-                  <Download size={20} />
+                  <Download size={18} />
+                  <span className="text-[10px] font-black uppercase">Download</span>
                 </button>
-                {/* VIEW LICENSE BUTTON */}
-              <Link 
+
+                <Link 
                   to={`/user/receipt/${item.transaction_id}`}
                   className="bg-white text-black py-2 px-4 border border-black hover:bg-yellow-400 transition-all flex items-center gap-2"
                   title="View Official License"

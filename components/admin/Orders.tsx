@@ -33,7 +33,7 @@ const Orders = () => {
           tier,
           usages,
           user_id,
-          profiles ( email ),
+          fontbuyer ( email ),
           metadata,
           fonts ( name )
         `, { count: 'exact' });
@@ -111,8 +111,8 @@ const Orders = () => {
           <td className="p-4">
             <span className="bg-black text-white px-2 py-1 text-[10px] font-bold">{order.transaction_id}</span>
           </td>
-          <td className="p-4 text-[10px] font-bold truncate max-w-[200px]">
-            {order.profiles?.email || 'N/A'}
+          <td className="p-4 text-[10px] font-bold">
+            {order.fontbuyer?.email || 'N/A'}
           </td>
           <td className="p-4 font-black text-sm uppercase italic">
             {order.fonts?.name || 'UNKNOWN'}
