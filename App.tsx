@@ -26,6 +26,7 @@ import CartPage from './pages/shop/CartPage';
 import Checkout from './pages/shop/Checkout'; // Ubah dari CartPage menjadi Checkout
 import CartCard from './components/CartCard';
 import LicenseReceipt from './pages/user/LicenseReceipt';
+import FontDetail from './pages/FontDetail';
 
 
 
@@ -122,6 +123,7 @@ const App: React.FC = () => {
 
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/font/:id" element={<FontDetail />} />
 
             {/* USER / BUYER ROUTES */}
             <Route 

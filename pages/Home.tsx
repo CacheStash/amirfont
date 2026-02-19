@@ -6,6 +6,7 @@ import { MousePointer2, MoveRight, Circle, Square, Triangle, X } from 'lucide-re
 import { ChevronLeft, ChevronRight , ChevronDown} from 'lucide-react';
 import { Plus, Eye } from 'lucide-react';
 import { useCart } from '../context/CartContext'; // Pastikan path benar
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -132,6 +133,7 @@ const Home: React.FC = () => {
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { openConfigurator } = useCart();
+  const navigate = useNavigate();
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [activePromoId, setActivePromoId] = useState<string | null>(null);
   const [expandedFontId, setExpandedFontId] = useState<string | null>(null);
@@ -488,7 +490,10 @@ const Home: React.FC = () => {
                         <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90 flex-shrink-0" />
                         <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
                      </button>
-                     <button className="flex items-center justify-center gap-4 py-8 hover:bg-black hover:text-white transition-all group/view text-black">
+                     <button 
+                       onClick={() => navigate(`/font/${font.id}`)} // FIXED: Navigasi ke halaman detail
+                       className="flex items-center justify-center gap-4 py-8 hover:bg-black hover:text-white transition-all group/view text-black"
+                     >
                         <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
                         <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
                      </button>

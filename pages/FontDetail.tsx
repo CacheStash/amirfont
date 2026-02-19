@@ -1,0 +1,157 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import TypeTester from '../components/TypeTester';
+import { ChevronLeft, ChevronDown } from 'lucide-react';
+
+const FontDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const [font, setFont] = useState<any>(null);
+  const [promos, setPromos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, [id]);
+
+  const fetchData = async () => {
+    const [fontRes, promosRes] = await Promise.all([
+      supabase.from('fonts').select('*').eq('id', id).single(),
+      supabase.from('promotions').select('*').eq('is_active', true)
+    ]);
+    
+    if (fontRes.data) setFont(fontRes.data);
+    if (promosRes.data) setPromos(promosRes.data);
+    setLoading(false);
+  };
+
+  const activePromo = useMemo(() => {
+    if (!font) return null;
+    const now = new Date();
+    return promos.find(p => {
+      const start = new Date(p.start_date);
+      const end = new Date(p.end_date);
+      const fontIds = typeof p.font_ids === 'string' ? JSON.parse(p.font_ids) : (p.font_ids || []);
+      return now >= start && now <= end && (p.type === 'global' || fontIds.includes(font.id));
+    });
+  }, [font, promos]);
+
+  const calculateDaysLeft = (endDate: string) => {
+    const diff = new Date(endDate).getTime() - new Date().getTime();
+    const days = Math.ceil(diff / (1000 * 3600 * 24));
+    return days <= 0 ? "Ends today" : `${days} day${days > 1 ? 's' : ''} left`;
+  };
+
+  if (loading) return <div className="p-20 text-center uppercase font-bold animate-pulse tracking-widest">Loading Font Details...</div>;
+  if (!font) return <div className="p-20 text-center uppercase font-bold">Font not found.</div>;
+
+  const basePrice = font.price || 25;
+  const styleCount = Array.isArray(font.font_files) ? font.font_files.length : 1;
+  const tags = Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []);
+
+  return (
+    <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent overflow-x-hidden">
+      {/* BACKGROUND ORBS - Selaras dengan Home */}
+      <div className="grain-orb-base orb-top-right" />
+      <div className="grain-orb-base orb-bottom-left" />
+
+      {/* 1. HEADER: CLEAN SECTION (No Images) */}
+      <header className="relative w-full border-b border-black bg-transparent">
+        <div className="p-6 md:p-12 flex flex-col md:flex-row justify-between items-end gap-6 bg-white/10 backdrop-blur-md">
+          <div>
+            <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-[0.3em] block mb-4">Specimen Details</span>
+            <h1 className="text-6xl md:text-9xl font-normal uppercase tracking-tighter leading-[0.8]">{font.name}</h1>
+          </div>
+          <Link to="/" className="border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center gap-3">
+            <ChevronLeft size={16} /> Back to Collection
+          </Link>
+        </div>
+      </header>
+
+      {/* 2. MAIN CONTENT GRID */}
+      <main className="w-full">
+        {/* FIXED: Selalu Info di Kiri, Toggle di Tengah, Tester di Kanan */}
+        <section className="relative border-b border-black grid grid-cols-1 lg:grid-cols-[320px_60px_1fr] min-h-[700px]">
+          
+          {/* COLUMN A: INFO (IDENTIK DENGAN HOME) */}
+          <div className="p-6 lg:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-black bg-transparent">
+            <div>
+              <div className="mb-10">
+                <h3 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h3>
+                <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">{styleCount} STYLES AVAILABLE</span>
+              </div>
+
+              <div className="mb-10">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="inline-block border border-black rounded-full px-3 py-1 font-regular italic text-[11px] md:text-[14px] lowercase leading-none">starting at</span>
+                  {activePromo && (
+                    <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-bold text-[11px] md:text-[14px] uppercase text-red-600 leading-none">
+                      {activePromo.discount_percent}% OFF
+                    </span>
+                  )}
+                </div>
+                
+                {activePromo ? (
+                  <div className="flex flex-col items-start gap-2">
+                    <span className="text-8xl md:text-9xl font-light tracking-tighter leading-[0.8]">
+                      ${(basePrice * (1 - (activePromo.discount_percent / 100))).toFixed(0)}
+                    </span>
+                    <div className="flex items-center gap-4 mt-2">
+                      <div className="relative w-fit text-center">
+                        <span className="text-3xl md:text-4xl font-bold text-red-600 leading-none">${basePrice}</span>
+                        <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
+                      </div>
+                      <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-bold text-[9px] md:text-[10px] uppercase text-red-600 whitespace-nowrap">
+                        {calculateDaysLeft(activePromo.end_date)}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-8xl md:text-9xl font-light tracking-tighter leading-[0.8]">${basePrice}</div>
+                )}
+              </div>
+            </div>
+
+            <div className="pb-10 lg:pb-0">
+               <div className="flex flex-wrap gap-2 text-[10px] uppercase mb-6">
+                {tags.map((tag: string) => (
+                  <span key={tag} className="border border-black px-3 py-1 rounded-full font-bold uppercase bg-transparent">
+                    {tag.trim()}
+                  </span>
+                ))}
+              </div>
+              <p className="text-gray-600 text-sm leading-relaxed normal-case italic">{font.description}</p>
+            </div>
+          </div>
+
+          {/* COLUMN B: VERTICAL LABEL (Matches Home Toggle Style) */}
+          <div className="hidden lg:flex flex-col items-center justify-between py-12 border-r border-black bg-transparent">
+             <ChevronDown size={20} className="text-black/20" />
+             <span className="uppercase text-[11px] font-black tracking-[0.4em] whitespace-nowrap -rotate-90 origin-center text-black">
+                CHARACTERISTICS
+             </span>
+             <ChevronDown size={20} className="text-black/20" />
+          </div>
+
+          {/* COLUMN C: FULL TYPE TESTER (IDENTIK DENGAN HOME) */}
+          <div className="relative flex items-stretch bg-transparent overflow-hidden">
+            <TypeTester 
+              config={{
+                ...font,
+                family: `"${font.name}"`,
+                styleCount: styleCount,
+                randomText: font.random_text || "One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin."
+              }} 
+              isEven={true} // isEven true untuk menjaga konsistensi Align Left
+            />
+          </div>
+        </section>
+
+        {/* 3. SPACER: Muncul di semua ukuran layar (Mobile, Tablet, & Desktop) */}
+        <div className="h-12 border-b border-black w-full bg-orange-500/10" />
+      </main>
+    </div>
+  );
+};
+
+export default FontDetail;
