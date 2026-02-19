@@ -26,6 +26,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [axesValues, setAxesValues] = useState<Record<string, number>>({});
   
   const [activeStyleIndex, setActiveStyleIndex] = useState(0);
+  const [detectedStyleNames, setDetectedStyleNames] = useState<Record<number, string>>({});
+
+  
 
   const [activeFeatures, setActiveFeatures] = useState<Record<string, boolean>>({});
   const [dynamicFeatures, setDynamicFeatures] = useState<{ tag: string; name: string }[]>([]);
@@ -76,6 +79,16 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     opentype.load(targetFile, (err, font) => {
       setIsLoadingGlyphs(false);
       if (err || !font) return;
+
+      const names = font.names as any;
+      const rawStyleName = names.preferredSubfamily?.en || names.fontSubfamily?.en;
+      
+      if (rawStyleName) {
+        setDetectedStyleNames(prev => ({
+          ...prev,
+          [activeStyleIndex]: rawStyleName
+        }));
+      }
 
       const glyphs = [];
       for (let i = 0; i < font.glyphs.length && i < 2000; i++) { 
@@ -179,10 +192,13 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                       className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[80px] justify-between relative z-10"
                    >
                       <span>
-                        {Array.isArray(config.font_files) && config.font_files.length > 0 
-                          ? `Style ${String(activeStyleIndex + 1).padStart(2, '0')}`
-                          : 'Style 01'}
-                      </span>
+                        {/* FIXED: Gunakan nama yang dideteksi, jika belum ada gunakan fallback angka */}
+                        {detectedStyleNames[activeStyleIndex] || (
+                          Array.isArray(config.font_files) && config.font_files.length > 0 
+                            ? `Style ${String(activeStyleIndex + 1).padStart(2, '0')}`
+                            : 'Style 01'
+                        )}
+                     </span>
                       <ChevronDown size={14} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                    </button>
 
@@ -205,7 +221,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                                     : 'text-black hover:bg-black hover:text-white'
                                 }`}
                               >
-                                Style {String(i + 1).padStart(2, '0')}
+                                {/* FIXED: Tampilkan nama style spesifik jika sudah pernah di-load sebelumnya */}
+                                {detectedStyleNames[i] || `Style ${String(i + 1).padStart(2, '0')}`}
                               </button>
                             ))
                           ) : (
