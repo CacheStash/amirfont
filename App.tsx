@@ -48,6 +48,8 @@ const CartConfiguratorModal = () => {
             fontName={selectedFont.name} 
             prices={selectedFont.license_prices} 
             discount={selectedFont.activeDiscount || 0}
+            // FIXED: Tambahkan baris di bawah ini agar CartCard menerima flag directCheckout
+            directCheckout={selectedFont.directCheckout} 
           />
         </div>
       </div>
