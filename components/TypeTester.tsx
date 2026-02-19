@@ -305,7 +305,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               <textarea 
                 value={text} 
                 onChange={(e) => setText(e.target.value)} 
-                className="w-full min-h-[300px] bg-transparent outline-none resize-none p-4 relative z-10" 
+                className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-10" 
                 style={{ 
                     ...commonFontStyle,
                     fontSize: `${fontSize}px`, 
