@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { MoveRight, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // --- PARTIAL FIX ---
 /** * 1. GUNAKAN PUBLIC DEVELOPMENT URL DARI SCREENSHOT R2 ANDA
@@ -94,6 +95,7 @@ const Fonts: React.FC = () => {
   const [fonts, setFonts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [promos, setPromos] = useState<any[]>([]);
+  const navigate = useNavigate();
   const [activePromoId, setActivePromoId] = useState<string | null>(null);
 
   // FIXED: Logika filter promo sebelum pagination
@@ -343,7 +345,10 @@ const Fonts: React.FC = () => {
 
                   {/* d. ACTION COLUMN */}
                   {/* FIXED: Mengubah hover dan ikon menjadi Eye agar selaras dengan Home */}
-                  <div className="p-4 flex items-center justify-center hover:bg-black hover:text-white transition-all duration-300 cursor-pointer group/view border-black">
+                  <div 
+                    onClick={() => navigate(`/font/${font.id}`)} // FIXED: Navigasi ke halaman detail
+                    className="p-4 flex items-center justify-center hover:bg-black hover:text-white transition-all duration-300 cursor-pointer group/view border-black"
+                  >
                     <Eye 
                       size={48} 
                       strokeWidth={1} 
