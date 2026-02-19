@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { MoveRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MoveRight, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 
 // --- PARTIAL FIX ---
 /** * 1. GUNAKAN PUBLIC DEVELOPMENT URL DARI SCREENSHOT R2 ANDA
@@ -199,7 +199,8 @@ const Fonts: React.FC = () => {
               const fontFamilyStyle = `"${font.name}-0"`;
 
               return (
-                <section key={font.id || idx} className="grid grid-cols-1 md:grid-cols-[380px_1fr_300px_100px] border-b border-black group transition-colors hover:bg-white/50">
+                // FIXED: Mengubah grid menjadi 3 kolom (Info, TypeView, Action) dan membuang kolom slider (300px)
+                <section key={font.id || idx} className="grid grid-cols-1 md:grid-cols-[380px_1fr_100px] border-b border-black group transition-colors hover:bg-white/50">
                   
                   {/* a. INFO COLUMN */}
                   <div className="p-6 md:p-8 border-b md:border-b-0 md:border-r border-black flex flex-col justify-between">
@@ -253,27 +254,25 @@ const Fonts: React.FC = () => {
                   {/* b. TYPE VIEW COLUMN */}
                   <div className="p-6 md:p-8 border-b md:border-b-0 md:border-r border-black flex items-center bg-transparent">
                     <span 
-                      className="text-4xl md:text-6xl break-words w-full block opacity-90 transition-opacity group-hover:opacity-100"
+                      // FIXED: Menambahkan 'normal-case' agar tidak otomatis uppercase
+                      className="text-4xl md:text-6xl break-words w-full block opacity-90 transition-opacity group-hover:opacity-100 normal-case"
                       style={{ fontFamily: fontFamilyStyle }}
                     >
                       {randomText}
                     </span>
                   </div>
 
-                  {/* c. PREVIEW IMAGES COLUMN (Dual Slider) */}
-                  {/* FIX: Resolve URL sebelum dikirim ke slider */}
-                  <PreviewSlider images={fontPreviews.map(resolvePreviewUrl).filter(Boolean) as string[]} />
-
                   {/* d. ACTION COLUMN */}
-                  <div className="p-4 flex items-center justify-center hover:bg-black hover:text-white transition-all duration-300 cursor-pointer group/arrow border-black">
-                    <MoveRight 
+                  {/* FIXED: Mengubah hover dan ikon menjadi Eye agar selaras dengan Home */}
+                  <div className="p-4 flex items-center justify-center hover:bg-black hover:text-white transition-all duration-300 cursor-pointer group/view border-black">
+                    <Eye 
                       size={48} 
                       strokeWidth={1} 
-                      className="text-black group-hover/arrow:text-white transition-transform duration-500 group-hover/arrow:scale-125" 
+                      className="text-black group-hover/view:text-white transition-transform duration-500 group-hover/view:scale-125" 
                     />
                   </div>
 
-                  {/* 4. MOBILE SPACER (GRID KOSONG): Diperbarui agar selaras dengan Home */}
+                  {/* 4. MOBILE SPACER */}
                   <div className="md:hidden h-12 border-t border-black w-full bg-orange-500/10" />
                 </section>
               );
