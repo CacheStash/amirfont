@@ -4,7 +4,11 @@ import { supabase } from '../lib/supabase';
 import TypeTester from '../components/TypeTester';
 import { useCart } from '../context/CartContext';
 import { ChevronLeft, ChevronDown } from 'lucide-react';
-
+const resolvePreviewUrl = (filename: string) => {
+  if (!filename) return null;
+  if (filename.startsWith('http')) return filename;
+  return `/api/images/${filename}`; 
+};
 
 
 const FontDetail: React.FC = () => {
@@ -53,6 +57,7 @@ const FontDetail: React.FC = () => {
   const basePrice = font.price || 25;
   const styleCount = Array.isArray(font.font_files) ? font.font_files.length : 1;
   const tags = Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []);
+  const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
 
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent overflow-x-hidden">
@@ -173,6 +178,24 @@ const FontDetail: React.FC = () => {
 
         {/* 3. SPACER: Muncul di semua ukuran layar (Mobile, Tablet, & Desktop) */}
         <div className="h-12 border-b border-black w-full bg-orange-500/10" />
+
+        {/* 4. PREVIEW IMAGES GALLERY */}
+        {/* FIXED: Grid full width tanpa padding. 1 kolom di < 1024px (lg), 2 kolom di >= 1024px */}
+        <section className="w-full grid grid-cols-1 lg:grid-cols-2 border-black border-t-0">
+          {fontPreviews.map((img: string, idx: number) => {
+            const imageUrl = resolvePreviewUrl(img);
+            if (!imageUrl) return null;
+            return (
+              <div key={idx} className="w-full border-b lg:even:border-l border-black overflow-hidden bg-white">
+                <img 
+                  src={imageUrl} 
+                  alt={`${font.name} Preview ${idx + 1}`} 
+                  className="w-full h-auto block object-cover"
+                />
+              </div>
+            );
+          })}
+        </section>
       </main>
     </div>
   );
