@@ -78,7 +78,7 @@ const FontDetail: React.FC = () => {
           </div>
           
           {/* FIXED: Tombol tetap di kanan (items-end) dengan padding md:p-8 */}
-          <div className="flex flex-col justify-end p-6 md:p-8 items-end bg-white/10 backdrop-blur-md gap-3">
+          <div className="flex flex-col justify-center md:justify-end p-6 md:p-8 items-end bg-white/10 backdrop-blur-md gap-3">
             {/* FIXED: Tombol BUY dengan padding lebih tinggi (py-6) dan lebar sama (w-64) */}
             <button 
               onClick={() => {
