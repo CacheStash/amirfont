@@ -59,14 +59,25 @@ const FontDetail: React.FC = () => {
       {/* 1. HEADER: CLEAN SECTION (No Images) */}
       <header className="relative w-full border-b border-black bg-transparent">
         <div className="p-6 md:p-12 flex flex-col md:flex-row justify-between items-end gap-6 bg-white/10 backdrop-blur-md">
-          <div>
+          {/* FIXED: Tombol navigasi dipindah ke kiri (urutan pertama dalam flex) */}
+          <button 
+            onClick={() => navigate(-1)} 
+            className="border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center gap-3 order-2 md:order-1"
+          >
+            <ChevronLeft size={16} /> Back to Collection
+          </button>
+
+          {/* FIXED: Informasi font dipindah ke kanan dengan text-right dan break-words untuk otomatis dua baris */}
+          <div className="text-right order-1 md:order-2 w-full md:w-auto">
             <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-[0.3em] block mb-4">Specimen Details</span>
-            <h1 className="text-6xl md:text-9xl font-normal uppercase tracking-tighter leading-[0.8]">{font.name}</h1>
-            {/* FIXED: Info style dipindahkan ke sini */}
+            <h1 className="text-6xl md:text-9xl font-normal uppercase tracking-tighter leading-[0.8] break-words max-w-full">
+              {font.name}
+            </h1>
             <span className="block text-sm md:text-base font-bold uppercase tracking-widest mt-4 text-black/50">
               {styleCount} STYLES AVAILABLE
-            {activePromo && ` | ${activePromo.name} - ${activePromo.discount_percent}% OFF`}
+              {activePromo && ` | ${activePromo.name} - ${activePromo.discount_percent}% OFF`}
             </span>
+          
           </div>
           <button 
             onClick={() => navigate(-1)} 
