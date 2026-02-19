@@ -296,7 +296,7 @@ const Home: React.FC = () => {
           return now >= new Date(p.start_date) && now <= new Date(p.end_date);
         }).length > 0 && (
           <div className="w-full border-b border-black bg-orange-500/5 backdrop-blur-md px-6 py-4 md:px-8 flex flex-wrap items-center gap-4 sticky top-0 z-[60]">
-            <span className="text-[10px] font-black uppercase tracking-widest text-black">Active Offers:</span>
+            <span className="text-[10px] font-normal uppercase tracking-widest text-black">Active Offers:</span>
             <div className="flex flex-wrap gap-2">
               {promos
                 .filter(p => {
