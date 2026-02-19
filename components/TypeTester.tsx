@@ -28,7 +28,33 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [activeStyleIndex, setActiveStyleIndex] = useState(0);
   const [detectedStyleNames, setDetectedStyleNames] = useState<Record<number, string>>({});
 
-  
+  useEffect(() => {
+    const files = Array.isArray(config.font_files) ? config.font_files : [];
+    if (files.length === 0) return;
+
+    const configAny = config as any;
+    const version = new Date(configAny.updated_at || configAny.created_at || Date.now()).getTime();
+
+    files.forEach((file, index) => {
+      // Lewati jika nama style sudah dideteksi agar tidak overload
+      if (detectedStyleNames[index]) return;
+
+      const url = file.startsWith('http') || file.startsWith('/') ? file : `/api/fonts/${file}?v=${version}`;
+
+      opentype.load(url, (err, font) => {
+        if (!err && font) {
+          const names = font.names as any;
+          const styleName = names.preferredSubfamily?.en || names.fontSubfamily?.en;
+          if (styleName) {
+            setDetectedStyleNames(prev => ({
+              ...prev,
+              [index]: styleName
+            }));
+          }
+        }
+      });
+    });
+  }, [config.font_files])
 
   const [activeFeatures, setActiveFeatures] = useState<Record<string, boolean>>({});
   const [dynamicFeatures, setDynamicFeatures] = useState<{ tag: string; name: string }[]>([]);
