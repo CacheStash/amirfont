@@ -66,7 +66,14 @@ const FontDetail: React.FC = () => {
       <div className="grain-orb-base orb-bottom-left" />
 
       {/* 1. HEADER: CLEAN SECTION (No Images) */}
-      <header className="relative w-full border-b border-black bg-transparent">
+      <header className="relative w-full border-b border-black bg-transparent overflow-hidden">
+        {/* HEADER ORB EFFECT (Atas Kanan) - Identik dengan Home */}
+        <div className="absolute -top-20 -right-20 w-[600px] h-[400px] pointer-events-none z-0">
+           <div 
+              className="w-full h-full mix-blend-multiply blur-[60px]"
+              style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }}
+           />
+        </div>
         {/* FIXED: Mengubah breakpoint dari 'md' ke 'lg' agar header bertumpuk pada tablet portrait, selaras dengan TypeTester */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] relative z-10">
           {/* FIXED: Border bawah aktif di resolusi < 1024px (lg:border-b-0) dan border kanan aktif di >= 1024px (lg:border-r) */}
@@ -114,8 +121,23 @@ const FontDetail: React.FC = () => {
         {/* FIXED: Mengubah grid menjadi 2 kolom (450px untuk info dan sisa untuk tester) */}
         <section className="relative border-b border-black grid grid-cols-1 lg:grid-cols-[450px_1fr]">
           
+          {/* CONTENT ORB EFFECT (Tengah Kiri) - Identik dengan posisi ganjil di Home */}
+          <div className="absolute z-0 pointer-events-none overflow-visible hidden md:block" 
+               style={{ 
+                 width: '1000px', 
+                 height: '600px',
+                 top: '50%',
+                 left: '22%', 
+                 transform: 'translate(-50%, -50%)',
+                 opacity: 0.8
+               }}>
+               <div className="w-full h-full mix-blend-multiply blur-[60px]" 
+                    style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
+          </div>
+
           {/* COLUMN A: INFO */}
-          <div className="p-6 lg:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-black bg-transparent">
+          {/* FIXED: Menambahkan 'relative z-10' agar konten berada di atas orb */}
+          <div className="relative z-10 p-6 lg:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-black bg-transparent">
             <div>
               {/* FIXED: Nama font dan Style info dihapus dari sini karena sudah ada di header */}
 
