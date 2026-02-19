@@ -419,9 +419,9 @@ const Home: React.FC = () => {
                      </button>
                   </div>
 
-                  {/* 3. SPACER: Muncul pada Mobile & Tablet Portrait (< 1024px) */}
-                  <div className="lg:hidden h-12 border-t border-black w-full bg-orange-500/10" />
-
+                  {/* 3. SPACER: Muncul di semua ukuran layar (Mobile, Tablet, & Desktop) */}
+                  <div className="h-12 border-t border-black w-full bg-orange-500/10" />
+                  
                 </section>
               );
             })
