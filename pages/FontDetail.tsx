@@ -62,12 +62,11 @@ const FontDetail: React.FC = () => {
 
       {/* 1. HEADER: CLEAN SECTION (No Images) */}
       <header className="relative w-full border-b border-black bg-transparent">
-        {/* FIXED: Menggunakan grid 2-kolom (1fr & 450px) seperti di Home agar layout konsisten */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_450px] relative z-10">
-          {/* FIXED: Padding p-6 md:p-8 agar sejajar hamburger menu. Ditambah border-b pada mobile (md:border-b-0) */}
-          <div className="p-6 md:p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-black bg-white/10 backdrop-blur-md text-left">
+        {/* FIXED: Mengubah breakpoint dari 'md' ke 'lg' agar header bertumpuk pada tablet portrait, selaras dengan TypeTester */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] relative z-10">
+          {/* FIXED: Border bawah aktif di resolusi < 1024px (lg:border-b-0) dan border kanan aktif di >= 1024px (lg:border-r) */}
+          <div className="p-6 md:p-8 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-black bg-white/10 backdrop-blur-md text-left">
             <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-[0.3em] block mb-4">Specimen Details</span>
-            {/* FIXED: break-words untuk otomatis 2 baris jika nama font panjang */}
             <h1 className="text-6xl md:text-9xl font-normal uppercase tracking-tighter leading-[0.8] break-words">
               {font.name}
             </h1>
@@ -77,9 +76,9 @@ const FontDetail: React.FC = () => {
             </span>
           </div>
           
-          {/* FIXED: Tombol tetap di kanan (items-end) dengan padding md:p-8 */}
-          <div className="flex flex-col justify-center md:justify-end p-6 md:p-8 items-end bg-white/10 backdrop-blur-md gap-3">
-            {/* FIXED: Tombol BUY dengan padding lebih tinggi (py-6) dan lebar sama (w-64) */}
+          {/* FIXED: Alignment tombol menyesuaikan breakpoint (lg:justify-end) */}
+          <div className="flex flex-col justify-center lg:justify-end p-6 md:p-8 items-end bg-white/10 backdrop-blur-md gap-3">
+            {/* FIXED: Efek hover diubah menjadi outline mode (bg-white & text-black saat hover) */}
             <button 
               onClick={() => {
                 const discountPercent = activePromo ? activePromo.discount_percent : 0;
@@ -87,10 +86,10 @@ const FontDetail: React.FC = () => {
                   ...font, 
                   trialFileUrl: font.trial_file_url,
                   activeDiscount: discountPercent,
-                  directCheckout: true // Flag untuk mode tanpa 'Add to Cart' di CartCard
+                  directCheckout: true 
                 });
               }}
-              className="w-full md:w-64 bg-black text-white px-8 py-6 text-xs font-black uppercase hover:bg-gray-800 transition-all flex items-center justify-center"
+              className="w-full md:w-64 bg-black text-white px-8 py-6 text-xs font-black uppercase border border-black hover:bg-white hover:text-black transition-all flex items-center justify-center"
             >
               BUY LICENSE
             </button>
