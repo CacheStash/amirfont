@@ -64,9 +64,10 @@ const FontDetail: React.FC = () => {
       <header className="relative w-full border-b border-black bg-transparent">
         {/* FIXED: Menggunakan grid 2-kolom (1fr & 450px) seperti di Home agar layout konsisten */}
         <div className="grid grid-cols-1 md:grid-cols-[1fr_450px] relative z-10">
+          {/* FIXED: Padding p-6 md:p-8 agar sejajar hamburger menu. Ditambah border-b pada mobile (md:border-b-0) */}
           <div className="p-6 md:p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-black bg-white/10 backdrop-blur-md text-left">
             <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-[0.3em] block mb-4">Specimen Details</span>
-            {/* FIXED: break-words tetap aktif untuk otomatis 2 baris, perataan teks ke kiri */}
+            {/* FIXED: break-words untuk otomatis 2 baris jika nama font panjang */}
             <h1 className="text-6xl md:text-9xl font-normal uppercase tracking-tighter leading-[0.8] break-words">
               {font.name}
             </h1>
