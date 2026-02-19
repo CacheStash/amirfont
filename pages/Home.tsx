@@ -268,6 +268,28 @@ const Home: React.FC = () => {
             </div>
           </div>
         </header>
+
+
+        {activeTag && (
+          <div className="w-full border-b border-black bg-white/10 backdrop-blur-md px-6 py-4 md:px-8 flex justify-between items-center sticky top-0 z-50 transition-all">
+            <div className="text-xs md:text-sm uppercase font-bold flex items-center gap-2">
+              FILTER ACTIVE: <span className="bg-black text-white px-2 py-1 rounded-full">{activeTag}</span>
+            </div>
+            <button onClick={() => setActiveTag(null)} className="flex items-center gap-1 text-xs font-bold uppercase hover:underline">
+              <X size={14} /> Clear Filter
+            </button>
+          </div>
+        )}
+
+
+
+        {/* 0. TITLE BAR COLUMN */}
+        <div className="w-full border-b border-black py-6 flex justify-center items-center bg-transparent">
+          <h2 className="text-[10px] md:text-[18px] font-regular uppercase tracking-[0.4em] text-black">
+            Recent Fonts
+          </h2>
+        </div>
+
 {/* FIXED: Menambahkan Toggle Promo yang muncul hanya jika ada promo aktif */}
         {promos.filter(p => {
           const now = new Date();
@@ -304,24 +326,6 @@ const Home: React.FC = () => {
             )}
           </div>
         )}
-
-        {activeTag && (
-          <div className="w-full border-b border-black bg-white/10 backdrop-blur-md px-6 py-4 md:px-8 flex justify-between items-center sticky top-0 z-50 transition-all">
-            <div className="text-xs md:text-sm uppercase font-bold flex items-center gap-2">
-              FILTER ACTIVE: <span className="bg-black text-white px-2 py-1 rounded-full">{activeTag}</span>
-            </div>
-            <button onClick={() => setActiveTag(null)} className="flex items-center gap-1 text-xs font-bold uppercase hover:underline">
-              <X size={14} /> Clear Filter
-            </button>
-          </div>
-        )}
-
-        {/* 0. TITLE BAR COLUMN */}
-        <div className="w-full border-b border-black py-6 flex justify-center items-center bg-transparent">
-          <h2 className="text-[10px] md:text-[18px] font-regular uppercase tracking-[0.4em] text-black">
-            Recent Fonts
-          </h2>
-        </div>
 
        <main id="collection-start" className="w-full px-0">
           {loading ? (
