@@ -362,7 +362,7 @@ const Home: React.FC = () => {
                              )}
                           </div>
                         </div>
-                        <p className="text-gray-600 text-sm leading-relaxed mt-4">{font.description}</p>
+                        
                         <div className="flex flex-wrap gap-2 mt-6 lg:hidden">
                           {displayFont.tags.map((tag: string) => (
                             <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className="border border-black px-2 py-1 rounded-full font-bold text-[10px] uppercase whitespace-nowrap bg-transparent text-black">{tag}</button>
@@ -396,12 +396,17 @@ const Home: React.FC = () => {
                   </div> {/* GRID UTAMA SELESAI */}
 
                   {/* 2. NEW ACTION ROW (HORIZONTAL BOTTOM) */}
-                  <div className="grid grid-cols-2 w-full border-t border-black bg-white relative z-50">
+                  {/* FIXED: bg-white diubah menjadi bg-transparent */}
+                  <div className="grid grid-cols-2 w-full border-t border-black bg-transparent relative z-50">
                      <button 
                        onClick={() => {
                          const promo = getActivePromo(font.id);
                          const discountPercent = promo ? promo.discount_percent : 0;
-                         openConfigurator({ ...font, trialFileUrl: font.trial_file_url, activeDiscount: discountPercent });
+                         openConfigurator({ 
+                           ...font, 
+                           trialFileUrl: font.trial_file_url,
+                           activeDiscount: discountPercent 
+                         });
                        }}
                        className="flex items-center justify-center gap-4 py-8 border-r border-black hover:bg-black hover:text-white transition-all group/cart text-black"
                      >
@@ -414,7 +419,7 @@ const Home: React.FC = () => {
                      </button>
                   </div>
 
-                  {/* 3. SPACER */}
+                  {/* 3. SPACER: Muncul pada Mobile & Tablet Portrait (< 1024px) */}
                   <div className="lg:hidden h-12 border-t border-black w-full bg-orange-500/10" />
 
                 </section>
