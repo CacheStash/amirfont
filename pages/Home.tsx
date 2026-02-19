@@ -133,6 +133,7 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { openConfigurator } = useCart();
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [activePromoId, setActivePromoId] = useState<string | null>(null);
   const [expandedFontId, setExpandedFontId] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null); // Tetap simpan URL untuk trigger modal
   const [activeGallery, setActiveGallery] = useState<string[]>([]);
@@ -217,6 +218,15 @@ const Home: React.FC = () => {
       })
     : fonts;
 
+    const displayedFonts = filteredFonts.filter(font => {
+    if (!activePromoId) return true;
+    const promo = promos.find(p => p.id === activePromoId);
+    if (!promo) return true;
+    if (promo.type === 'global') return true;
+    const fontIds = typeof promo.font_ids === 'string' ? JSON.parse(promo.font_ids) : (promo.font_ids || []);
+    return fontIds.includes(font.id);
+  });
+
   return (
     <>
       <div className="grain-orb-base orb-top-right" />
@@ -258,6 +268,42 @@ const Home: React.FC = () => {
             </div>
           </div>
         </header>
+{/* FIXED: Menambahkan Toggle Promo yang muncul hanya jika ada promo aktif */}
+        {promos.filter(p => {
+          const now = new Date();
+          return now >= new Date(p.start_date) && now <= new Date(p.end_date);
+        }).length > 0 && (
+          <div className="w-full border-b border-black bg-orange-500/5 backdrop-blur-md px-6 py-4 md:px-8 flex flex-wrap items-center gap-4 sticky top-0 z-[60]">
+            <span className="text-[10px] font-black uppercase tracking-widest text-orange-600">Active Offers:</span>
+            <div className="flex flex-wrap gap-2">
+              {promos
+                .filter(p => {
+                  const now = new Date();
+                  return now >= new Date(p.start_date) && now <= new Date(p.end_date);
+                })
+                .map(promo => (
+                  <button
+                    key={promo.id}
+                    onClick={() => setActivePromoId(activePromoId === promo.id ? null : promo.id)}
+                    className={`px-3 py-1 border border-black text-[10px] font-bold uppercase transition-all flex items-center gap-2 ${
+                      activePromoId === promo.id ? 'bg-orange-600 text-white border-orange-600' : 'bg-transparent text-black hover:bg-black/5'
+                    }`}
+                  >
+                    <span>{promo.name}</span>
+                    <span className={`opacity-60 ${activePromoId === promo.id ? 'text-white' : 'text-orange-600'}`}>-{promo.discount_percent}%</span>
+                  </button>
+                ))}
+            </div>
+            {activePromoId && (
+              <button 
+                onClick={() => setActivePromoId(null)}
+                className="ml-auto text-[10px] font-black underline hover:text-orange-600 transition-colors"
+              >
+                SHOW ALL FONTS
+              </button>
+            )}
+          </div>
+        )}
 
         {activeTag && (
           <div className="w-full border-b border-black bg-white/10 backdrop-blur-md px-6 py-4 md:px-8 flex justify-between items-center sticky top-0 z-50 transition-all">
@@ -277,14 +323,14 @@ const Home: React.FC = () => {
           </h2>
         </div>
 
-        <main id="collection-start" className="w-full px-0">
+       <main id="collection-start" className="w-full px-0">
           {loading ? (
             <div className="p-20 text-center font-mono uppercase text-gray-400 animate-pulse">
               Loading collection...
             </div>
-          ) : filteredFonts.length > 0 ? (
-            filteredFonts.map((font, index) => {
-              const isEven = index % 2 === 0; 
+          ) : displayedFonts.length > 0 ? (
+            displayedFonts.map((font, index) => {
+              const isEven = index % 2 === 0;
               // DESKTOP: Zig Zag logic
               // Tablet Portrait (md) disamakan dengan Mobile. Desktop Layout dimulai pada 'lg' (1024px).
              const gridLayoutClass = isEven 
