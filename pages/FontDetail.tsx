@@ -58,22 +58,28 @@ const FontDetail: React.FC = () => {
 
       {/* 1. HEADER: CLEAN SECTION (No Images) */}
       <header className="relative w-full border-b border-black bg-transparent">
-        <div className="p-6 md:p-12 flex flex-col md:flex-row justify-between items-end gap-6 bg-white/10 backdrop-blur-md">
-          <div>
+        {/* FIXED: Menggunakan grid 2-kolom (1fr & 450px) seperti di Home agar layout konsisten */}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_450px] relative z-10">
+          <div className="p-6 md:p-12 flex flex-col justify-center border-b md:border-b-0 md:border-r border-black bg-white/10 backdrop-blur-md text-right">
             <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-[0.3em] block mb-4">Specimen Details</span>
-            <h1 className="text-6xl md:text-9xl font-normal uppercase tracking-tighter leading-[0.8]">{font.name}</h1>
-            {/* FIXED: Info style dipindahkan ke sini */}
+            {/* FIXED: Menambahkan break-words agar nama font otomatis jadi 2 baris jika panjang */}
+            <h1 className="text-6xl md:text-9xl font-normal uppercase tracking-tighter leading-[0.8] break-words">
+              {font.name}
+            </h1>
             <span className="block text-sm md:text-base font-bold uppercase tracking-widest mt-4 text-black/50">
               {styleCount} STYLES AVAILABLE
-            {activePromo && ` | ${activePromo.name} - ${activePromo.discount_percent}% OFF`}
+              {activePromo && ` | ${activePromo.name} - ${activePromo.discount_percent}% OFF`}
             </span>
           </div>
-          <button 
-            onClick={() => navigate(-1)} 
-            className="border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center gap-3"
-          >
-            <ChevronLeft size={16} /> Back to Collection
-          </button>
+          
+          <div className="flex flex-col justify-end p-6 md:p-12 items-end bg-white/10 backdrop-blur-md">
+            <button 
+              onClick={() => navigate(-1)} 
+              className="border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center gap-3"
+            >
+              <ChevronLeft size={16} /> Back to Collection
+            </button>
+          </div>
         </div>
       </header>
 

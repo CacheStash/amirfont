@@ -383,7 +383,9 @@ const Home: React.FC = () => {
                       {/* Header: Title Only */}
                       <div className="flex justify-between items-start gap-4 mb-2">
                         <div className="flex-1">
-                          <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h2>
+                          <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1 break-words">
+                            {font.name}
+                          </h2>
                           <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase">{displayFont.styleCount} STYLES</span>
                         </div>
                       </div>
