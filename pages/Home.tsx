@@ -323,58 +323,68 @@ const Home: React.FC = () => {
                        style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
                     </div>
                     
-                    {/* COLUMN: INFO */}
-                    <div className={`p-6 lg:p-8 flex flex-col justify-between border-b-0 lg:border-b-0 order-1 ${isEven ? 'lg:order-1 lg:border-r border-black' : 'lg:order-3 lg:border-l border-black'}`}>
-                      <div>
-                        <div className="flex justify-between items-start gap-4 mb-2">
-                          <div className="flex-1">
-                            <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h2>
-                            <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase">{displayFont.styleCount} STYLES</span>
-                          </div>
-                        </div>
-                        <div className="hidden lg:block mb-8"><BrutalistGraphic /></div>
-                        <div className="hidden lg:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
-                          {displayFont.tags.map((tag: string) => (
-                            <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className={`border px-3 py-1 rounded-full font-bold ${activeTag === tag.trim() ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'}`}>{tag}</button>
-                          ))}
+                    {/* FIXED: Menghapus pb-6 pada mobile (pb-0) agar button menempel sempurna ke bawah */}
+                  <div className={`p-6 lg:p-8 pb-0 lg:pb-8 flex flex-col justify-between border-b-0 lg:border-b-0 order-1 ${isEven ? 'lg:order-1 lg:border-r border-black' : 'lg:order-3 lg:border-l border-black'}`}>
+                    <div>
+                      {/* Header: Title Only */}
+                      <div className="flex justify-between items-start gap-4 mb-2">
+                        <div className="flex-1">
+                          <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h2>
+                          <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase">{displayFont.styleCount} STYLES</span>
                         </div>
                       </div>
-                      <div className="mb-6">
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2 mb-4">
-                             <span className="inline-block border border-black rounded-full px-3 py-1 font-regular italic text-[11px] md:text-[14px] lowercase text-black bg-transparent leading-none">starting at</span>
-                             {promo && <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-bold text-[11px] md:text-[14px] uppercase text-red-600 bg-transparent leading-none">{promo.discount_percent}% OFF</span>}
-                          </div>
-                          <div className="flex flex-col">
-                             {promo ? (
-                              <div className="flex flex-col items-start gap-2">
-                                 <span className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}</span>
-                                 <div className="flex items-center gap-4 mt-2">
-                                   <div className="relative w-fit text-center">
-                                    <span className="text-3xl md:text-4xl font-bold text-red-600 leading-none">${basePrice}</span>
-                                    <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
-                                   </div>
-                                   <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap">{calculateDaysLeft(promo.end_date)}</span>
-                                 </div>
-                               </div>
-                             ) : (
-                               <div className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">${basePrice}</div>
-                             )}
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-2 mt-6 lg:hidden">
-                          {displayFont.tags.map((tag: string) => (
-                            <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className="border border-black px-2 py-1 rounded-full font-bold text-[10px] uppercase whitespace-nowrap bg-transparent text-black">{tag}</button>
-                          ))}
-                        </div>
-                        <button onClick={() => setExpandedFontId(isExpanded ? null : font.id)} className="lg:hidden w-[calc(100%+3rem)] -mx-6 mb-[-1.5rem] mt-10 flex items-center justify-center gap-6 py-6 border-y border-black bg-white transition-colors relative z-20">
-                          <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                          <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
-                          <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                        </button>
+
+                      <div className="hidden lg:block mb-8"><BrutalistGraphic /></div>
+                      
+                      <div className="hidden lg:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
+                        {displayFont.tags.map((tag: string) => (
+                          <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className={`border px-3 py-1 rounded-full font-bold ${activeTag === tag.trim() ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'}`}>{tag}</button>
+                        ))}
                       </div>
                     </div>
+                    
+                    {/* FIXED: Mengeluarkan button dari div mb-6 agar margin bottom tidak menciptakan gap */}
+                    <div className="mb-0">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-4">
+                           <span className="inline-block border border-black rounded-full px-3 py-1 font-regular italic text-[11px] md:text-[14px] lowercase text-black bg-transparent leading-none">starting at</span>
+                           {promo && <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-bold text-[11px] md:text-[14px] uppercase text-red-600 bg-transparent leading-none">{promo.discount_percent}% OFF</span>}
+                        </div>
+                        <div className="flex flex-col">
+                           {promo ? (
+                            <div className="flex flex-col items-start gap-2">
+                               <span className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}</span>
+                               <div className="flex items-center gap-4 mt-2">
+                                 <div className="relative w-fit text-center">
+                                  <span className="text-3xl md:text-4xl font-bold text-red-600 leading-none">${basePrice}</span>
+                                  <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
+                                 </div>
+                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap">{calculateDaysLeft(promo.end_date)}</span>
+                               </div>
+                             </div>
+                           ) : (
+                             <div className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">${basePrice}</div>
+                           )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 mt-6 lg:hidden">
+                        {displayFont.tags.map((tag: string) => (
+                          <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className="border border-black px-2 py-1 rounded-full font-bold text-[10px] uppercase whitespace-nowrap bg-transparent text-black">{tag}</button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* MOBILE PREVIEW TOGGLE: Sekarang nempel ke grid bawah karena pb-0 di parent dan mb-[-1.5rem] dihapus */}
+                    <button 
+                      onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
+                      className="lg:hidden w-[calc(100%+3rem)] -mx-6 mt-10 flex items-center justify-center gap-6 py-6 border-y border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
+                    >
+                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                      <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
+                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
 
                     {/* COLUMN: TOGGLE (DESKTOP) */}
                     <div onClick={() => setExpandedFontId(isExpanded ? null : font.id)} className={`hidden lg:flex items-center justify-center border-black cursor-pointer hover:bg-black/5 transition-colors z-40 order-2 ${isEven ? 'lg:order-2 border-r' : 'lg:order-2 border-l'}`}>
@@ -421,7 +431,7 @@ const Home: React.FC = () => {
 
                   {/* 3. SPACER: Muncul di semua ukuran layar (Mobile, Tablet, & Desktop) */}
                   <div className="h-12 border-t border-black w-full bg-orange-500/10" />
-                  
+
                 </section>
               );
             })
