@@ -94,6 +94,17 @@ const Fonts: React.FC = () => {
   const [fonts, setFonts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [promos, setPromos] = useState<any[]>([]);
+  const [activePromoId, setActivePromoId] = useState<string | null>(null);
+
+  // FIXED: Logika filter promo sebelum pagination
+  const filteredFonts = fonts.filter(font => {
+    if (!activePromoId) return true;
+    const promo = promos.find(p => p.id === activePromoId);
+    if (!promo) return true;
+    if (promo.type === 'global') return true;
+    const fontIds = typeof promo.font_ids === 'string' ? JSON.parse(promo.font_ids) : (promo.font_ids || []);
+    return fontIds.includes(font.id);
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const fontsPerPage = 10;
 
@@ -155,9 +166,9 @@ const Fonts: React.FC = () => {
     return `${days} day${days > 1 ? 's' : ''} left`;
   };
 
-  // Logic Pagination
-  const totalPages = Math.ceil(fonts.length / fontsPerPage);
-  const currentFonts = fonts.slice((currentPage - 1) * fontsPerPage, currentPage * fontsPerPage);
+// Logic Pagination menggunakan data yang sudah difilter promo
+  const totalPages = Math.ceil(filteredFonts.length / fontsPerPage);
+  const currentFonts = filteredFonts.slice((currentPage - 1) * fontsPerPage, currentPage * fontsPerPage);
 
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent overflow-x-hidden">
@@ -175,6 +186,45 @@ const Fonts: React.FC = () => {
             Retail & Custom Typefaces
           </p>
         </header>
+
+        {/* FIXED: Menambahkan Toggle Promo di bawah header */}
+        {promos.filter(p => {
+          const now = new Date();
+          return now >= new Date(p.start_date) && now <= new Date(p.end_date);
+        }).length > 0 && (
+          <div className="w-full border-b border-black bg-orange-500/5 backdrop-blur-md px-6 py-4 md:px-8 flex flex-wrap items-center gap-4 sticky top-0 z-[60]">
+            <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-black">Active Offers:</span>
+            <div className="flex flex-wrap gap-2">
+              {promos
+                .filter(p => {
+                  const now = new Date();
+                  return now >= new Date(p.start_date) && now <= new Date(p.end_date);
+                })
+                .map(promo => (
+                  <button
+                    key={promo.id}
+                    onClick={() => { setActivePromoId(activePromoId === promo.id ? null : promo.id); setCurrentPage(1); }}
+                    className={`px-3 md:px-4 py-1 border border-black text-[10px] md:text-xs font-bold uppercase transition-all flex items-center gap-2 ${
+                      activePromoId === promo.id ? 'bg-orange-600 text-white border-orange-600' : 'bg-transparent text-black hover:bg-black/5'
+                    }`}
+                  >
+                    <span>{promo.name}</span>
+                    <span className={`${activePromoId === promo.id ? 'text-white' : 'text-red-600 font-black'}`}>
+                      -{promo.discount_percent}%
+                    </span>
+                  </button>
+                ))}
+            </div>
+            {activePromoId && (
+              <button 
+                onClick={() => { setActivePromoId(null); setCurrentPage(1); }}
+                className="ml-auto text-[10px] md:text-xs font-black underline hover:text-orange-600 transition-colors"
+              >
+                SHOW ALL FONTS
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Fonts List Container */}
         <main className="w-full">
