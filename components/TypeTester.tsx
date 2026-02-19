@@ -116,9 +116,22 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     });
   }, [config, activeStyleIndex]);
 
-  useEffect(() => {
+ useEffect(() => {
     setFilteredGlyphs(detectedGlyphs); 
   }, [activeFeatures, detectedGlyphs]);
+
+  // FIXED: Otomatis pindah ke 'type' view jika layar dikecilkan ke mobile/tablet portrait
+  useEffect(() => {
+    const handleResize = () => {
+      // 1024px adalah standar breakpoint 'lg' Tailwind
+      if (window.innerWidth < 1024 && viewMode === 'glyphs') {
+        setViewMode('type');
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [viewMode]);
 
   const toggleFeature = (tag: string) => {
     setActiveFeatures(prev => ({ ...prev, [tag]: !prev[tag] }));
