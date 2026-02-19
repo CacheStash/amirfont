@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom'; // FIXED: Tambah useNavigate
 import { supabase } from '../lib/supabase';
 import TypeTester from '../components/TypeTester';
 import { ChevronLeft, ChevronDown } from 'lucide-react';
@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronDown } from 'lucide-react';
 const FontDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [font, setFont] = useState<any>(null);
+  const navigate = useNavigate(); // FIXED: Inisialisasi navigasi
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,9 +67,12 @@ const FontDetail: React.FC = () => {
               {styleCount} STYLES AVAILABLE
             </span>
           </div>
-          <Link to="/" className="border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center gap-3">
+          <button 
+            onClick={() => navigate(-1)} 
+            className="border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center gap-3"
+          >
             <ChevronLeft size={16} /> Back to Collection
-          </Link>
+          </button>
         </div>
       </header>
 
