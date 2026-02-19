@@ -322,7 +322,7 @@ const Home: React.FC = () => {
             {activePromoId && (
               <button 
                 onClick={() => setActivePromoId(null)}
-                className="ml-auto text-[10px] font-black underline hover:text-orange-600 transition-colors"
+                className="ml-auto text-[10px] font-normal  hover:text-orange-600 transition-colors"
               >
                 SHOW ALL FONTS
               </button>
