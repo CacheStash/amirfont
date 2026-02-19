@@ -32,11 +32,12 @@ interface CartCardProps {
   fontName: string;
   prices: LicensePrices;
   discount?: number;
+directCheckout?: boolean; // FIXED: Properti baru untuk menyembunyikan 'Add to Cart'
 }
 
 import { useNavigate } from 'react-router-dom'; // FIXED: Wajib tambah ini
 
-const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount = 0 }) => {
+const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount = 0, directCheckout = false }) => {
   const { addToCart, closeConfigurator } = useCart();
   const navigate = useNavigate(); // FIXED: Inisialisasi navigasi
   const [selectedTier, setSelectedTier] = useState<'solo' | 'team' | 'studio' | 'enterprise'>('solo');
@@ -310,12 +311,21 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
             
             {!isAdded ? (
               <div className="flex gap-2 w-full md:w-auto">
-                {/* TOMBOL ADD TO CART */}
-                <button onClick={() => handleAdd(false)} className="flex-1 md:w-[180px] bg-white text-black border border-black py-5 px-4 flex items-center justify-center gap-3 hover:bg-black hover:text-white transition-all group font-black text-[10px] tracking-widest uppercase">
-                  ADD TO CART
-                </button>
-                {/* TOMBOL DIRECT CHECKOUT */}
-                <button onClick={() => handleAdd(true)} className="flex-1 md:w-[180px] bg-black text-white py-5 px-4 flex items-center justify-center gap-3 hover:bg-gray-800 transition-all group font-black text-[10px] tracking-widest uppercase">
+                {/* FIXED: Tombol ADD TO CART hanya muncul jika directCheckout bernilai false */}
+                {!directCheckout && (
+                  <button 
+                    onClick={() => handleAdd(false)} 
+                    className="flex-1 md:w-[180px] bg-white text-black border border-black py-5 px-4 flex items-center justify-center gap-3 hover:bg-black hover:text-white transition-all group font-black text-[10px] tracking-widest uppercase"
+                  >
+                    ADD TO CART
+                  </button>
+                )}
+                
+                {/* TOMBOL DIRECT CHECKOUT - Selalu muncul */}
+                <button 
+                  onClick={() => handleAdd(true)} 
+                  className={`flex-1 ${directCheckout ? 'md:w-[280px]' : 'md:w-[180px]'} bg-black text-white py-5 px-4 flex items-center justify-center gap-3 hover:bg-gray-800 transition-all group font-black text-[10px] tracking-widest uppercase`}
+                >
                   CHECKOUT
                   <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </button>

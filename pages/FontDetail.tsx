@@ -2,12 +2,16 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom'; // FIXED: Tambah useNavigate
 import { supabase } from '../lib/supabase';
 import TypeTester from '../components/TypeTester';
+import { useCart } from '../context/CartContext';
 import { ChevronLeft, ChevronDown } from 'lucide-react';
+
+
 
 const FontDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [font, setFont] = useState<any>(null);
-  const navigate = useNavigate(); // FIXED: Inisialisasi navigasi
+  const navigate = useNavigate();
+  const { openConfigurator } = useCart(); 
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -73,10 +77,26 @@ const FontDetail: React.FC = () => {
           </div>
           
           {/* FIXED: Tombol tetap di kanan (items-end) dengan padding md:p-8 */}
-          <div className="flex flex-col justify-end p-6 md:p-8 items-end bg-white/10 backdrop-blur-md">
+          <div className="flex flex-col justify-end p-6 md:p-8 items-end bg-white/10 backdrop-blur-md gap-3">
+            {/* FIXED: Tombol BUY dengan padding lebih tinggi (py-6) dan lebar sama (w-64) */}
+            <button 
+              onClick={() => {
+                const discountPercent = activePromo ? activePromo.discount_percent : 0;
+                openConfigurator({ 
+                  ...font, 
+                  trialFileUrl: font.trial_file_url,
+                  activeDiscount: discountPercent,
+                  directCheckout: true // Flag untuk mode tanpa 'Add to Cart' di CartCard
+                });
+              }}
+              className="w-full md:w-64 bg-black text-white px-8 py-6 text-xs font-black uppercase hover:bg-gray-800 transition-all flex items-center justify-center"
+            >
+              BUY LICENSE
+            </button>
+
             <button 
               onClick={() => navigate(-1)} 
-              className="border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center gap-3"
+              className="w-full md:w-64 border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center justify-center gap-3"
             >
               <ChevronLeft size={16} /> Back to Collection
             </button>
