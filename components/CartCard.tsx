@@ -146,10 +146,19 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   };
 
   const handleCorporateToggle = () => {
-    setIsCorporate(!isCorporate);
+    const becomingCorporate = !isCorporate;
+    setIsCorporate(becomingCorporate);
     setIsTrial(false);
-    if (!isCorporate) setSelectedUsages(['desktop', 'logo_branding', 'social_web', 'app', 'broadcast', 'server']);
-    else setSelectedUsages(['desktop']);
+    
+    if (becomingCorporate) {
+      // FIXED: Pilih semua penggunaan dan otomatis pindah ke tier Enterprise
+      setSelectedUsages(['desktop', 'logo_branding', 'social_web', 'app', 'broadcast', 'server']);
+      setSelectedTier('enterprise'); 
+    } else {
+      setSelectedUsages(['desktop']);
+      // Opsional: Kembali ke solo saat mode corporate dimatikan
+      setSelectedTier('solo');
+    }
   };
 
   const handleTrialToggle = () => {
