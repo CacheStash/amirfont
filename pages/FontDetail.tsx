@@ -61,6 +61,10 @@ const FontDetail: React.FC = () => {
           <div>
             <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-[0.3em] block mb-4">Specimen Details</span>
             <h1 className="text-6xl md:text-9xl font-normal uppercase tracking-tighter leading-[0.8]">{font.name}</h1>
+            {/* FIXED: Info style dipindahkan ke sini */}
+            <span className="block text-sm md:text-base font-bold uppercase tracking-widest mt-4 text-black/50">
+              {styleCount} STYLES AVAILABLE
+            </span>
           </div>
           <Link to="/" className="border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center gap-3">
             <ChevronLeft size={16} /> Back to Collection
@@ -70,16 +74,13 @@ const FontDetail: React.FC = () => {
 
       {/* 2. MAIN CONTENT GRID */}
       <main className="w-full">
-        {/* FIXED: Selalu Info di Kiri, Toggle di Tengah, Tester di Kanan */}
-        <section className="relative border-b border-black grid grid-cols-1 lg:grid-cols-[320px_60px_1fr] min-h-[700px]">
+        {/* FIXED: Mengubah grid menjadi 2 kolom (450px untuk info dan sisa untuk tester) */}
+        <section className="relative border-b border-black grid grid-cols-1 lg:grid-cols-[450px_1fr] min-h-[700px]">
           
-          {/* COLUMN A: INFO (IDENTIK DENGAN HOME) */}
+          {/* COLUMN A: INFO */}
           <div className="p-6 lg:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-black bg-transparent">
             <div>
-              <div className="mb-10">
-                <h3 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1">{font.name}</h3>
-                <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">{styleCount} STYLES AVAILABLE</span>
-              </div>
+              {/* FIXED: Nama font dan Style info dihapus dari sini karena sudah ada di header */}
 
               <div className="mb-10">
                 <div className="flex items-center gap-2 mb-4">
@@ -124,17 +125,8 @@ const FontDetail: React.FC = () => {
             </div>
           </div>
 
-          {/* COLUMN B: VERTICAL LABEL (Matches Home Toggle Style) */}
-          <div className="hidden lg:flex flex-col items-center justify-between py-12 border-r border-black bg-transparent">
-             <ChevronDown size={20} className="text-black/20" />
-             <span className="uppercase text-[11px] font-black tracking-[0.4em] whitespace-nowrap -rotate-90 origin-center text-black">
-                CHARACTERISTICS
-             </span>
-             <ChevronDown size={20} className="text-black/20" />
-          </div>
-
-          {/* COLUMN C: FULL TYPE TESTER (IDENTIK DENGAN HOME) */}
-          <div className="relative flex items-stretch bg-transparent overflow-hidden">
+                {/* COLUMN C: FULL TYPE TESTER */}
+         <div className="relative flex items-stretch bg-transparent overflow-hidden">
             <TypeTester 
               config={{
                 ...font,
