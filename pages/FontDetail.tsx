@@ -75,7 +75,7 @@ const FontDetail: React.FC = () => {
       {/* 2. MAIN CONTENT GRID */}
       <main className="w-full">
         {/* FIXED: Mengubah grid menjadi 2 kolom (450px untuk info dan sisa untuk tester) */}
-        <section className="relative border-b border-black grid grid-cols-1 lg:grid-cols-[450px_1fr] min-h-[700px]">
+        <section className="relative border-b border-black grid grid-cols-1 lg:grid-cols-[450px_1fr]">
           
           {/* COLUMN A: INFO */}
           <div className="p-6 lg:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-black bg-transparent">
