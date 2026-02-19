@@ -175,6 +175,24 @@ const Fonts: React.FC = () => {
       {/* Background Orbs agar selaras dengan Home */}
       <div className="grain-orb-base orb-top-right" />
       <div className="grain-orb-base orb-bottom-left" />
+
+      {/* 1. HEADER ORB (Atas Kanan) */}
+      <div className="absolute top-[-100px] right-[-100px] w-[800px] h-[600px] pointer-events-none z-0 hidden md:block opacity-50">
+          <div className="w-full h-full mix-blend-multiply blur-[80px]" 
+               style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.4) 0%, rgba(253, 186, 116, 0.2) 50%, rgba(253, 186, 116, 0) 100%)' }} />
+      </div>
+
+      {/* 2. MIDDLE ORB (Tengah Kiri) */}
+      <div className="absolute top-[40%] left-[-200px] w-[800px] h-[800px] pointer-events-none z-0 hidden md:block opacity-30">
+          <div className="w-full h-full mix-blend-multiply blur-[100px]" 
+               style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.3) 0%, rgba(253, 186, 116, 0.1) 50%, rgba(253, 186, 116, 0) 100%)' }} />
+      </div>
+
+      {/* 3. BOTTOM ORB (Bawah Kanan) */}
+      <div className="absolute bottom-[10%] right-[-200px] w-[800px] h-[800px] pointer-events-none z-0 hidden md:block opacity-40">
+          <div className="w-full h-full mix-blend-multiply blur-[100px]" 
+               style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.4) 0%, rgba(253, 186, 116, 0.2) 50%, rgba(253, 186, 116, 0) 100%)' }} />
+      </div>
       
       <div className="max-w-full mx-auto">
         {/* Header Section */}
@@ -218,7 +236,7 @@ const Fonts: React.FC = () => {
             {activePromoId && (
               <button 
                 onClick={() => { setActivePromoId(null); setCurrentPage(1); }}
-                className="ml-auto text-[10px] md:text-xs font-black underline hover:text-orange-600 transition-colors"
+                className="ml-auto text-[10px] md:text-xs font-black hover:text-orange-600 transition-colors"
               >
                 SHOW ALL FONTS
               </button>
@@ -240,17 +258,28 @@ const Fonts: React.FC = () => {
 // --- END FIX ---
 
 
+              const isEven = idx % 2 === 0;
               const promo = getActivePromo(font.id);
               const basePrice = font.price || 25;
-
-              // Pilih teks random berdasarkan index
               const randomText = DUMMY_LIBRARY[idx % DUMMY_LIBRARY.length];
-              // Gunakan index 0 sebagai default view
               const fontFamilyStyle = `"${font.name}-0"`;
 
               return (
-                // FIXED: Mengubah grid menjadi 3 kolom (Info, TypeView, Action) dan membuang kolom slider (300px)
-                <section key={font.id || idx} className="grid grid-cols-1 md:grid-cols-[380px_1fr_100px] border-b border-black group transition-colors hover:bg-white/50">
+                <section key={font.id || idx} className="relative grid grid-cols-1 md:grid-cols-[380px_1fr_100px] border-b border-black group transition-colors hover:bg-white/50 overflow-hidden">
+                  
+                  {/* DYNAMIC ROW ORB EFFECT */}
+                  <div className="absolute z-0 pointer-events-none overflow-visible hidden md:block" 
+                       style={{ 
+                         width: '1000px', 
+                         height: '600px',
+                         top: '50%',
+                         left: isEven ? '22%' : '78%', 
+                         transform: 'translate(-50%, -50%)',
+                         opacity: 0.6
+                       }}>
+                       <div className="w-full h-full mix-blend-multiply blur-[60px]" 
+                            style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.6) 0%, rgba(253, 186, 116, 0.3) 50%, rgba(253, 186, 116, 0) 100%)' }} />
+                  </div>
                   
                   {/* a. INFO COLUMN */}
                   <div className="p-6 md:p-8 border-b md:border-b-0 md:border-r border-black flex flex-col justify-between">
