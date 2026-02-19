@@ -338,7 +338,7 @@ const Home: React.FC = () => {
                       
                       <div className="hidden lg:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
                         {displayFont.tags.map((tag: string) => (
-                          <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className={`border px-3 py-1 rounded-full font-bold ${activeTag === tag.trim() ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'}`}>{tag}</button>
+                          <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className={`border px-3 py-1 rounded-full font-bold uppercase ${activeTag === tag.trim() ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'}`}>{tag}</button>
                         ))}
                       </div>
                     </div>
@@ -387,11 +387,19 @@ const Home: React.FC = () => {
                   </div>
 
                     {/* COLUMN: TOGGLE (DESKTOP) */}
-                    <div onClick={() => setExpandedFontId(isExpanded ? null : font.id)} className={`hidden lg:flex items-center justify-center border-black cursor-pointer hover:bg-black/5 transition-colors z-40 order-2 ${isEven ? 'lg:order-2 border-r' : 'lg:order-2 border-l'}`}>
-                      <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
-                        <MoveRight size={20} className={isEven ? "rotate-0" : "rotate-180"} />
-                      </div>
-                    </div>
+                    <div 
+                    onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
+                    className={`hidden lg:flex flex-col items-center justify-between py-12 border-black cursor-pointer hover:bg-black/5 transition-colors z-40 bg-transparent
+                      ${isEven ? 'lg:order-2 border-r' : 'lg:order-2 border-l'}`}
+                  >
+                    <ChevronDown size={20} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} />
+                    
+                    <span className="uppercase text-[11px] font-normal tracking-[0.4em] whitespace-nowrap -rotate-90 origin-center">
+                      PREVIEW IMAGES
+                    </span>
+                    
+                    <ChevronDown size={20} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} />
+                  </div>
 
                     {/* COLUMN: TESTER */}
                     <div className={`relative min-h-[400px] border-b-0 lg:border-b-0 order-2 flex items-stretch overflow-hidden ${isEven ? 'lg:order-3' : 'lg:order-1'}`}>
