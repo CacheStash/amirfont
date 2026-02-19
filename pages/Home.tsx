@@ -387,18 +387,23 @@ const Home: React.FC = () => {
                   </div>
 
                     {/* COLUMN: TOGGLE (DESKTOP) */}
-                    <div 
+                    {/* FIXED: Menggunakan ChevronRight untuk ganjil (isEven=true) dan ChevronLeft untuk genap (isEven=false) */}
+                  <div 
                     onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
                     className={`hidden lg:flex flex-col items-center justify-between py-12 border-black cursor-pointer hover:bg-black/5 transition-colors z-40 bg-transparent
                       ${isEven ? 'lg:order-2 border-r' : 'lg:order-2 border-l'}`}
                   >
-                    <ChevronDown size={20} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} />
+                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                      {isEven ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                    </div>
                     
                     <span className="uppercase text-[11px] font-normal tracking-[0.4em] whitespace-nowrap -rotate-90 origin-center">
                       PREVIEW IMAGES
                     </span>
                     
-                    <ChevronDown size={20} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} />
+                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                      {isEven ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                    </div>
                   </div>
 
                     {/* COLUMN: TESTER */}
