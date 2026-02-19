@@ -65,7 +65,7 @@ const FontDetail: React.FC = () => {
             {/* FIXED: Info style dipindahkan ke sini */}
             <span className="block text-sm md:text-base font-bold uppercase tracking-widest mt-4 text-black/50">
               {styleCount} STYLES AVAILABLE
-            {activePromo && ` - ${activePromo.name} - ${activePromo.discount_percent}% OFF`}
+            {activePromo && ` | ${activePromo.name} - ${activePromo.discount_percent}% OFF`}
             </span>
           </div>
           <button 
