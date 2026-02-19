@@ -296,7 +296,7 @@ const Home: React.FC = () => {
           return now >= new Date(p.start_date) && now <= new Date(p.end_date);
         }).length > 0 && (
           <div className="w-full border-b border-black bg-orange-500/5 backdrop-blur-md px-6 py-4 md:px-8 flex flex-wrap items-center gap-4 sticky top-0 z-[60]">
-            <span className="text-[10px] font-normal uppercase tracking-widest text-black">Active Offers:</span>
+            <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-black">Active Offers:</span>
             <div className="flex flex-wrap gap-2">
               {promos
                 .filter(p => {
@@ -307,12 +307,11 @@ const Home: React.FC = () => {
                   <button
                     key={promo.id}
                     onClick={() => setActivePromoId(activePromoId === promo.id ? null : promo.id)}
-                    className={`px-3 py-1 border border-black text-[10px] font-bold uppercase transition-all flex items-center gap-2 ${
+                    className={`px-3 md:px-4 py-1 border border-black text-[10px] md:text-xs font-bold uppercase transition-all flex items-center gap-2 ${
                       activePromoId === promo.id ? 'bg-orange-600 text-white border-orange-600' : 'bg-transparent text-black hover:bg-black/5'
                     }`}
                   >
                     <span>{promo.name}</span>
-                    {/* FIXED: Persentase diubah ke text-red-600 saat tidak aktif */}
                     <span className={`${activePromoId === promo.id ? 'text-white' : 'text-red-600 font-black'}`}>
                       -{promo.discount_percent}%
                     </span>
@@ -322,7 +321,7 @@ const Home: React.FC = () => {
             {activePromoId && (
               <button 
                 onClick={() => setActivePromoId(null)}
-                className="ml-auto text-[10px] font-normal  hover:text-orange-600 transition-colors"
+                className="ml-auto text-[10px] md:text-xs font-black underline hover:text-orange-600 transition-colors"
               >
                 SHOW ALL FONTS
               </button>
