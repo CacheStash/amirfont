@@ -296,7 +296,7 @@ const Home: React.FC = () => {
           return now >= new Date(p.start_date) && now <= new Date(p.end_date);
         }).length > 0 && (
           <div className="w-full border-b border-black bg-orange-500/5 backdrop-blur-md px-6 py-4 md:px-8 flex flex-wrap items-center gap-4 sticky top-0 z-[60]">
-            <span className="text-[10px] font-black uppercase tracking-widest text-orange-600">Active Offers:</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-black">Active Offers:</span>
             <div className="flex flex-wrap gap-2">
               {promos
                 .filter(p => {
@@ -312,7 +312,10 @@ const Home: React.FC = () => {
                     }`}
                   >
                     <span>{promo.name}</span>
-                    <span className={`opacity-60 ${activePromoId === promo.id ? 'text-white' : 'text-orange-600'}`}>-{promo.discount_percent}%</span>
+                    {/* FIXED: Persentase diubah ke text-red-600 saat tidak aktif */}
+                    <span className={`${activePromoId === promo.id ? 'text-white' : 'text-red-600 font-black'}`}>
+                      -{promo.discount_percent}%
+                    </span>
                   </button>
                 ))}
             </div>
