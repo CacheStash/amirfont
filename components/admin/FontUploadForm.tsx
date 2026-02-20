@@ -20,13 +20,13 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   // Matriks Harga sesuai EULA 2026 (User Seats, Traffic Tiers, & Corporate)
   const [licensePrices, setLicensePrices] = useState(initialData?.license_prices || {
     desktop: { solo: 0, team: 0, studio: 0, enterprise: 0 },
-    logo_branding: { solo: 0, team: 0, studio: 0, enterprise: 0 },
+    logo_branding: { personal: 0, solo: 0, team: 0, studio: 0, enterprise: 0 },
     social_web: { small_50k: 0, medium_500k: 0, large_5m: 0, enterprise_unlimited: 0 },
     app: { solo: 0, team: 0, studio: 0, enterprise: 0 },
     broadcast: { solo: 0, team: 0, studio: 0, enterprise: 0 },
     server: { solo: 0, team: 0, studio: 0, enterprise: 0 },
     corporate_full_suite: 0
-  });
+  })
 
   const [price, setPrice] = useState(initialData?.price?.toString() || ''); 
   // Preview sederhana (Tetap dipertahankan sesuai backup)
@@ -69,6 +69,8 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       setExistingTrialFile(initialData.trial_file_url || '');
     }
   }, [initialData]);
+
+  const removeExistingTrial = () => setExistingTrialFile('');
 
   const removeExistingFont = (index: number) => {
     setExistingFontFiles(prev => prev.filter((_, i) => i !== index));
@@ -219,35 +221,27 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
               const val = e.target.value;
               setPrice(val);
               const base = parseFloat(val) || 0;
-              const calc = (m: number) => m > 1 ? Math.floor(base * m) - 1 : base;
+              // Fungsi pembulatan bawah untuk harga psikologis
+              const calc = (m: number) => m > 0 ? (m === 1 ? base : Math.floor(base * m)) : 0;
               
-              // FIXED: Skala Seat Tiers baru (Team: 2x, Studio: 4x, Enterprise: 8x)
-              const tiers = (m: number) => ({
-                solo: calc(m),
-                team: calc(m * 2),
-                studio: calc(m * 4), 
-                enterprise: calc(m * 8)
-              });
-
               setLicensePrices({
-                desktop: tiers(1.0), // 1.0 * 20 = 20
-                // FIXED: Multiplier Social/Web 1.75 (1.75 * 20 = 35) 
-                // Skala traffic: 35 (Solo), 70 (Team), 140 (Studio), 280 (Enterprise)
-                social_web: {
-                  small_50k: calc(1.75),
-                  medium_500k: calc(1.75 * 2),
-                  large_5m: calc(1.75 * 4), 
-                  enterprise_unlimited: calc(1.75 * 8)
-                },
-                // FIXED: Multiplier kategori sesuai target hirarki Anda
-                logo_branding: tiers(15.0),  // 15 * 20 = 300
-                app: tiers(30.0),            // 30 * 20 = 600
-                server: tiers(45.0),         // 45 * 20 = 900
-                broadcast: tiers(50.0),      // 50 * 20 = 1000
-                // FIXED: Multiplier Corporate 60x (60 * 20 = 1200)
-                corporate_full_suite: calc(60.0)
+                // Desktop: 1x, 3x, 7x, 15x
+                desktop: { solo: calc(1), team: calc(3), studio: calc(7), enterprise: calc(15) },
+                // Social / Web: 1x, 3x, 7x, 15x
+                social_web: { small_50k: calc(1), medium_500k: calc(3), large_5m: calc(7), enterprise_unlimited: calc(15) },
+                // Logo & Branding: 2.5x, 5x, 10x, 20x, 30x
+                logo_branding: { personal: calc(2.5), solo: calc(5), team: calc(10), studio: calc(20), enterprise: calc(30) },
+                // App / Game: 5x, 12x, 25x, 55x
+                app: { solo: calc(5), team: calc(12), studio: calc(25), enterprise: calc(55) },
+                // Server: 5x, 25x, 50x (Mapping: Single, 50, Unlimited)
+                server: { solo: calc(5), team: 0, studio: calc(25), enterprise: calc(50) },
+                // Broadcast: 5x, 25x, 50x (Mapping: Regional, National, Worldwide)
+                broadcast: { solo: calc(5), team: 0, studio: calc(25), enterprise: calc(50) },
+                // Corporate: All-In-One (150x)
+                corporate_full_suite: calc(150.0)
               });
             }}
+            
             className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
             placeholder="25" 
           />
@@ -380,9 +374,21 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
             className="w-full text-[10px] font-mono cursor-pointer"
           />
           {(existingTrialFile || trialFile) && (
-            <p className="text-[9px] mt-2 font-bold uppercase text-black">
-              STATUS: {trialFile ? `NEW: ${trialFile.name}` : `EXISTING: ${existingTrialFile}`}
-            </p>
+            <div className="flex justify-between items-center mt-2">
+              <p className="text-[9px] font-bold uppercase text-black">
+                STATUS: {trialFile ? `NEW: ${trialFile.name}` : `EXISTING: ${existingTrialFile}`}
+              </p>
+              {/* FIXED: Tombol hapus trial file yang sudah ada di database */}
+              {existingTrialFile && !trialFile && (
+                <button 
+                  type="button" 
+                  onClick={() => setExistingTrialFile('')}
+                  className="text-red-500 font-bold text-[10px] hover:underline"
+                >
+                  REMOVE EXISTING ×
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>

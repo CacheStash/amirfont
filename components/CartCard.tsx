@@ -43,85 +43,59 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   const [selectedTier, setSelectedTier] = useState<'solo' | 'team' | 'studio' | 'enterprise'>('solo');
   const [selectedUsages, setSelectedUsages] = useState<string[]>(['desktop']);
 
-  // FIXED: Definisi Hirarki Lisensi (Urutan dari terendah ke tertinggi)
-  const usageHierarchy = ['desktop', 'social_web', 'logo_branding', 'app', 'server', 'broadcast'];
+ // FIXED: Menghapus selectedTier global. Sekarang menggunakan selectedTiers granular per kategori.
+  const [selectedTiers, setSelectedTiers] = useState<Record<string, string>>({
+    desktop: 'solo', social_web: 'small_50k', logo_branding: 'personal', app: 'solo', server: 'solo', broadcast: 'solo'
+  });
 
-  const toggleUsage = (id: string) => {
-    if (isCorporate || isTrial) return;
-    
-    setSelectedUsages(prev => {
-      const isAdding = !prev.includes(id);
-      const index = usageHierarchy.indexOf(id);
-
-      if (isAdding) {
-        // Jika pilih lisensi tinggi, otomatis ambil semua yang ada di bawahnya
-        const toAdd = usageHierarchy.slice(0, index + 1);
-        return Array.from(new Set([...prev, ...toAdd]));
-      } else {
-        // Jika hapus lisensi rendah, otomatis batalkan semua yang ada di atasnya
-        const toRemove = usageHierarchy.slice(index);
-        return prev.filter(u => !toRemove.includes(u));
-      }
-    });
-  };
-
-  // DEFINISI LISENSI TINGGI: Pilihan ini otomatis sudah include hak Desktop
-  const higherTierUsages = ['logo_branding', 'app', 'broadcast', 'server'];
-  const hasHigherTier = useMemo(() => selectedUsages.some(u => higherTierUsages.includes(u)), [selectedUsages]);
-  const [webTier, setWebTier] = useState<'small' | 'medium' | 'large' | 'enterprise'>('small');
   const [isCorporate, setIsCorporate] = useState(false);
   const [isTrial, setIsTrial] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
 
-  // AUTO-SWITCH LOGIC: Jika Enterprise + 6 Usages dipilih, otomatis pindah ke Corporate
-  useEffect(() => {
-    if (!isCorporate && selectedTier === 'enterprise' && selectedUsages.length === 6) {
-      handleCorporateToggle();
-    }
-  }, [selectedTier, selectedUsages]);
+  // FIXED: Definisi Hirarki & Higher Tier untuk memperbaiki error "Cannot find name"
+  const usageHierarchy = ['desktop', 'social_web', 'logo_branding', 'app', 'server', 'broadcast'];
+  const higherTierUsages = ['logo_branding', 'app', 'broadcast', 'server'];
+  const hasHigherTier = useMemo(() => selectedUsages.some(u => higherTierUsages.includes(u)), [selectedUsages]);
 
-  const seatDetails = {
-    solo: '1 SEAT',
-    team: 'UP TO 25 SEATS',
-    studio: 'UP TO 100 SEATS',
-    enterprise: 'UNLIMITED SEATS'
+  const tierMap: Record<string, { key: string; label: string }[]> = {
+    desktop: [{key:'solo',label:'1 USER'}, {key:'team',label:'UP TO 30'}, {key:'studio',label:'UP TO 100'}, {key:'enterprise',label:'UNLIMITED'}],
+    social_web: [{key:'small_50k',label:'50K VIEWS'}, {key:'medium_500k',label:'500K VIEWS'}, {key:'large_5m',label:'2M VIEWS'}, {key:'enterprise_unlimited',label:'UNLIMITED'}],
+    logo_branding: [{key:'personal',label:'PERSONAL'}, {key:'solo',label:'1-10 EMP'}, {key:'team',label:'11-50 EMP'}, {key:'studio',label:'51-250 EMP'}, {key:'enterprise',label:'251+ EMP'}],
+    app: [{key:'solo',label:'1 TITLE'}, {key:'team',label:'UP TO 10'}, {key:'studio',label:'UP TO 50'}, {key:'enterprise',label:'UNLIMITED'}],
+    server: [{key:'solo',label:'SINGLE'}, {key:'studio',label:'50 SERVERS'}, {key:'enterprise',label:'UNLIMITED'}],
+    broadcast: [{key:'solo',label:'REGIONAL'}, {key:'studio',label:'NATIONAL'}, {key:'enterprise',label:'WORLDWIDE'}]
   };
 
-  const webTierDetails = {
-    small: 'UP TO 50K VIEWS',
-    medium: 'UP TO 500K VIEWS',
-    large: 'UP TO 5M VIEWS',
-    enterprise: 'UNLIMITED VIEWS'
+  const webTierDetails: Record<string, string> = {
+    small_50k: 'UP TO 50K VIEWS',
+    medium_500k: 'UP TO 500K VIEWS',
+    large_5m: 'UP TO 2M VIEWS',
+    enterprise_unlimited: 'UNLIMITED VIEWS'
   };
 
- const totalPrice = useMemo(() => {
-    if (!prices) return 0;
-    if (isTrial) return 0;
+  // FIXED: Logika Additive Total Price + Bundle Discount
+  const totalPrice = useMemo(() => {
+    if (!prices || isTrial) return 0;
+    if (isCorporate) return prices.corporate_full_suite || 0;
     
-    // FIXED: Gunakan harga paket Corporate sebagai harga dasar jika aktif
-    let baseTotal = 0;
-    if (isCorporate) {
-      baseTotal = prices.corporate_full_suite || 0;
-    } else {
-      // FIXED: Lisensi bersifat hirarki (bukan aditif). Hitung harga item tertinggi yang dipilih dalam hirarki.
-      const highestUsage = [...selectedUsages].sort((a, b) => 
-        usageHierarchy.indexOf(b) - usageHierarchy.indexOf(a)
-      )[0] || 'desktop';
-
-      if (highestUsage === 'social_web') {
-        const webKey = webTier === 'small' ? 'small_50k' : 
-                       webTier === 'medium' ? 'medium_500k' : 
-                       webTier === 'large' ? 'large_5m' : 'enterprise_unlimited';
-        baseTotal = prices.social_web?.[webKey as keyof WebTierPrices] || 0;
-      } else {
-        const categoryData = prices[highestUsage as keyof Omit<LicensePrices, 'corporate_full_suite' | 'social_web'>];
-        if (categoryData) baseTotal = categoryData[selectedTier] || 0;
+    let total = 0;
+    selectedUsages.forEach(usage => {
+      const tierKey = selectedTiers[usage];
+      const categoryData = prices[usage as keyof LicensePrices];
+      if (categoryData && typeof categoryData === 'object') {
+        total += (categoryData as any)[tierKey] || 0;
       }
-    }
+    });
 
-    const discountedPrice = discount > 0 ? Math.round(baseTotal * (1 - discount / 100)) : baseTotal;
-    return discountedPrice;
-  }, [selectedTier, selectedUsages, webTier, isCorporate, isTrial, prices, discount]);
+    // BUNDLE SAVINGS: 3=15%, 4=20%, 5=25%
+    let bundleDiscount = 0;
+    if (selectedUsages.length === 3) bundleDiscount = 0.15;
+    else if (selectedUsages.length === 4) bundleDiscount = 0.20;
+    else if (selectedUsages.length === 5) bundleDiscount = 0.25;
+
+    const totalAfterBundle = total * (1 - bundleDiscount);
+    return discount > 0 ? Math.round(totalAfterBundle * (1 - discount / 100)) : Math.round(totalAfterBundle);
+  }, [selectedUsages, selectedTiers, isCorporate, isTrial, prices, discount]);
 
   const handleAdd = (redirect: boolean = false) => {
     const finalUsages = [...selectedUsages];
@@ -129,10 +103,11 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
       finalUsages.push('desktop');
     }
 
-    // NEW: Siapkan metadata MPV Reach untuk Social/Web
+    // FIXED: Menggunakan selectedTiers['social_web'] untuk mengganti webTier yang hilang
+    const currentWebTier = selectedTiers['social_web'];
     const metadata = {
       mpv: selectedUsages.includes('social_web') && !isCorporate && !isTrial 
-           ? webTierDetails[webTier as keyof typeof webTierDetails] 
+           ? webTierDetails[currentWebTier] 
            : undefined
     };
 
@@ -142,11 +117,11 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
       fontId: fontName, 
       name: fontName,
       price: totalPrice,
-      // FIXED: Kirim tier murni (SOLO/TEAM/STUDIO) agar sinkron dengan index.js
-      tier: isTrial ? 'DEMO' : (isCorporate ? 'CORPORATE' : selectedTier.toUpperCase()),
+      // FIXED: Mengambil tier dari kategori tertinggi yang dipilih untuk label di Cart
+      tier: isTrial ? 'DEMO' : (isCorporate ? 'CORPORATE' : selectedTiers[selectedUsages[selectedUsages.length - 1] || 'desktop'].toUpperCase()),
       usages: isTrial ? ['PERSONAL USE'] : (isCorporate ? ['ALL-IN-ONE'] : finalUsages),
-      webTierLabel: selectedUsages.includes('social_web') && !isCorporate && !isTrial ? webTier : undefined,
-      metadata: metadata // Kirim metadata ke Cart
+      webTierLabel: selectedUsages.includes('social_web') && !isCorporate && !isTrial ? currentWebTier : undefined,
+      metadata: metadata 
     });
 
     if (redirect) {
@@ -157,8 +132,16 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     }
   };
 
+ // FIXED: Menghapus duplikasi fungsi toggleUsage (Redeclaration Fix)
+  // Menghapus hirarki otomatis sesuai instruksi "No license cover other terms"
+  const toggleUsage = (id: string) => {
+    if (isCorporate || isTrial) return;
+    setSelectedUsages(prev => 
+      prev.includes(id) ? prev.filter(u => u !== id) : [...prev, id]
+    );
+  };
+
   const handleCorporateToggle = () => {
-    // FIXED: Menyederhanakan toggle Corporate tanpa memaksa pemilihan tier/usage secara otomatis.
     setIsCorporate(!isCorporate);
     setIsTrial(false);
   };
@@ -197,47 +180,44 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
-          {/* 01. SEATS LEVELS */}
-          <div className={`md:col-span-5 border-r-0 md:border-r border-black md:pr-10 transition-opacity duration-300 ${isTrial ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
-            <label className="text-[10px] font-bold tracking-[0.2em] mb-6 block text-black/40">01. SEATS LEVELS</label>
-            <div className="flex flex-col gap-2">
-              {Object.entries(seatDetails).map(([tier, seats]) => (
-                <button key={tier} onClick={() => setSelectedTier(tier as any)}
-                  className={`py-4 px-5 border border-black text-[11px] font-black tracking-widest text-left transition-all flex justify-between items-center group ${selectedTier === tier ? 'bg-black text-white' : 'hover:bg-black/5'}`}>
-                  <span>{tier.toUpperCase()}</span>
-                  <span className={`text-[9px] ${selectedTier === tier ? 'text-white/60' : 'text-black/40'}`}>{seats}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 02. USAGE TERMS */}
-          <div className="md:col-span-7">
-            <label className="text-[10px] font-bold tracking-[0.2em] mb-6 block text-black/40">02. USAGE TERMS (CAN SELECT MULTIPLE)</label>
-            <div className="grid grid-cols-2 gap-2 mb-3">
+          {/* 02. LICENSE CATEGORIES & SPECIFIC TIERS */}
+          <div className="md:col-span-12">
+            <label className="text-[10px] font-bold tracking-[0.2em] mb-6 block text-black/40 uppercase">LICENSE CATEGORIES & SPECIFIC TIERS (ADDITIVE)</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-3">
               {[
-                { id: 'desktop', label: 'DESKTOP' },
-                { id: 'social_web', label: 'SOCIAL/WEB' },
-                { id: 'logo_branding', label: 'LOGO' },
-                { id: 'app', label: 'APP/SAAS' },
-                { id: 'broadcast', label: 'BROADCAST' },
+                { id: 'desktop', label: 'DESKTOP / PRINT' },
+                { id: 'social_web', label: 'DIGITAL MEDIA' },
+                { id: 'logo_branding', label: 'LOGO & BRANDING' },
+                { id: 'app', label: 'APP / GAME / EBOOK' },
                 { id: 'server', label: 'SERVER' },
+                { id: 'broadcast', label: 'BROADCAST' },
               ].map((u) => {
-                const index = usageHierarchy.indexOf(u.id);
-                // Cek apakah ada lisensi di atasnya yang sedang aktif
-                const isCoveredByHigher = selectedUsages.some(sel => usageHierarchy.indexOf(sel) > index);
-                
+                const isActive = selectedUsages.includes(u.id);
                 return (
-                  <button key={u.id} onClick={() => toggleUsage(u.id)} 
-                    disabled={isTrial || isCoveredByHigher} 
-                    className={`flex items-center justify-between p-4 border border-black transition-all ${
-                      isTrial ? 'opacity-20 cursor-not-allowed' : 
-                      isCoveredByHigher ? 'bg-black/80 text-white/50 cursor-default' :
-                      selectedUsages.includes(u.id) ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'
-                    }`}>
-                    <span className="text-[10px] font-black tracking-widest">{u.label}</span>
-                    <Plus size={14} className={`transition-transform duration-300 ${selectedUsages.includes(u.id) ? 'rotate-45' : ''}`} />
-                  </button>
+                  <div key={u.id} className="space-y-2">
+                    <button onClick={() => toggleUsage(u.id)} 
+                      disabled={isTrial || isCorporate} 
+                      className={`w-full flex items-center justify-between p-4 border border-black transition-all ${
+                        isActive ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'
+                      }`}>
+                      <span className="text-[10px] font-black tracking-widest">{u.label}</span>
+                      <Plus size={14} className={`transition-transform duration-300 ${isActive ? 'rotate-45' : ''}`} />
+                    </button>
+                    
+                    {/* ADD-ON SPECIFIC TIERS: Muncul jika kategori aktif */}
+                    {isActive && !isCorporate && (
+                      <div className="grid grid-cols-1 gap-1 pl-4 border-l border-black/10 animate-in fade-in slide-in-from-top-1">
+                        {tierMap[u.id].map((t) => (
+                          <button key={t.key} onClick={() => setSelectedTiers(prev => ({...prev, [u.id]: t.key}))}
+                            className={`py-2 px-3 border border-black text-[9px] font-bold text-left transition-all ${
+                              selectedTiers[u.id] === t.key ? 'bg-orange-600 text-white' : 'bg-white hover:bg-black/5'
+                            }`}>
+                            {t.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
               
@@ -277,43 +257,16 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
           </div>
         )}
 
-{/* INFO BOX: Muncul jika memilih lisensi yang otomatis include Desktop */}
-        {hasHigherTier && !isCorporate && !isTrial && (
-          <div className="mt-6 p-4 bg-[#EDEBE6] border border-black border-dashed animate-in fade-in slide-in-from-top-2">
-            <span className="text-[10px] font-black block mb-1 tracking-widest">LICENSE INCLUSION:</span>
-            <p className="text-[9px] normal-case leading-relaxed font-bold italic text-gray-600 uppercase">
-              SELECTING LOGO, APP, BROADCAST, OR SERVER LICENSE AUTOMATICALLY INCLUDES ALL TERMS AND PERMISSIONS OF THE STANDARD DESKTOP LICENSE.
-            </p>
-          </div>
-        )}
-
-        {selectedUsages.includes('social_web') && !isCorporate && !isTrial && (
-          <div className="mt-6 p-5 bg-[#EDEBE6] border border-black border-dashed animate-in fade-in slide-in-from-top-2">
-            <label className="text-[10px] font-bold tracking-[0.2em] mb-4 block">MONTHLY IMPRESSIONS REACH</label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {Object.entries(webTierDetails).map(([key, label]) => (
-                <button key={key} onClick={() => setWebTier(key as any)}
-                  className={`px-2 py-3 text-[10px] font-black tracking-widest border border-black transition-all flex flex-col items-center gap-1 ${webTier === key ? 'bg-black text-white' : 'bg-white hover:bg-black/5'}`}>
-                  <span>{key.toUpperCase()}</span>
-                  <span className={`text-[7px] ${webTier === key ? 'text-white/50' : 'text-black/40'}`}>{label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-{/* FIXED: Notifikasi cerdas jika total harga lisensi eceran melebihi harga paket Corporate */}
-        {!isCorporate && !isTrial && prices && totalPrice >= (discount > 0 ? Math.round(prices.corporate_full_suite * (1 - discount / 100)) : prices.corporate_full_suite) && (
+{/* FIXED: Notifikasi Bundle Saving untuk mendorong buyer menambah lisensi */}
+        {!isCorporate && !isTrial && selectedUsages.length > 0 && selectedUsages.length < 6 && (
           <div className="mt-6 p-4 bg-orange-600 text-white border border-black animate-in fade-in slide-in-from-top-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <div className="flex items-center gap-3">
-              <Plus className="rotate-45" size={20} />
-              <div className="flex-1">
-                <p className="text-[10px] font-black uppercase tracking-widest leading-tight">Better Deal Detected!</p>
-                <p className="text-[9px] font-bold opacity-90 leading-tight">
-                  Your current selection exceeds the All-In-One price. Switch to <span className="underline cursor-pointer" onClick={handleCorporateToggle}>CORPORATE</span> for full coverage and better value.
-                </p>
-              </div>
-            </div>
+             <p className="text-[10px] font-black uppercase tracking-widest">
+              {selectedUsages.length === 1 && "Add 2 more licenses to unlock 15% BUNDLE DISCOUNT"}
+              {selectedUsages.length === 2 && "Add 1 more license to unlock 15% BUNDLE DISCOUNT"}
+              {selectedUsages.length === 3 && "Savings applied! Add 1 more for 20% DISCOUNT"}
+              {selectedUsages.length === 4 && "Great Deal! Add 1 more for 25% DISCOUNT"}
+              {selectedUsages.length === 5 && "Just 1 more to unlock the CORPORATE ALL-IN-ONE LICENSE (Best Value)"}
+            </p>
           </div>
         )}
 
