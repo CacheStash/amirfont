@@ -60,7 +60,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   const tierMap: Record<string, { key: string; label: string }[]> = {
     desktop: [{key:'solo',label:'1 USER'}, {key:'team',label:'UP TO 30'}, {key:'studio',label:'UP TO 100'}, {key:'enterprise',label:'UNLIMITED'}],
     social_web: [{key:'small_50k',label:'50K VIEWS'}, {key:'medium_500k',label:'500K VIEWS'}, {key:'large_5m',label:'2M VIEWS'}, {key:'enterprise_unlimited',label:'UNLIMITED'}],
-    logo_branding: [{key:'personal',label:'PERSONAL'}, {key:'solo',label:'1-10 EMP'}, {key:'team',label:'11-50 EMP'}, {key:'studio',label:'51-250 EMP'}, {key:'enterprise',label:'251+ EMP'}],
+    logo_branding: [{key:'personal',label:'PERSONAL'}, {key:'solo',label:'1-10 EMPLOYEES'}, {key:'team',label:'11-50 EMPLOYEES'}, {key:'studio',label:'51-250 EMPLOYEES'}, {key:'enterprise',label:'251+ EMPLOYEES'}],
     app: [{key:'solo',label:'1 TITLE'}, {key:'team',label:'UP TO 10'}, {key:'studio',label:'UP TO 50'}, {key:'enterprise',label:'UNLIMITED'}],
     server: [{key:'solo',label:'SINGLE'}, {key:'studio',label:'50 SERVERS'}, {key:'enterprise',label:'UNLIMITED'}],
     broadcast: [{key:'solo',label:'REGIONAL'}, {key:'studio',label:'NATIONAL'}, {key:'enterprise',label:'WORLDWIDE'}]
@@ -73,7 +73,30 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     enterprise_unlimited: 'UNLIMITED VIEWS'
   };
 
-  // FIXED: Logika Additive Total Price + Bundle Discount
+  // FIXED: Logika Auto-Switch ke Corporate jika 6 kategori dipilih ATAU harga eceran >= harga corporate
+  useEffect(() => {
+    if (isTrial || isCorporate || !prices) return;
+
+    let currentSum = 0;
+    selectedUsages.forEach(u => {
+      const categoryData = (prices as any)[u];
+      if (categoryData) currentSum += categoryData[selectedTiers[u]] || 0;
+    });
+
+    let bundleDiscount = 0;
+    if (selectedUsages.length === 3) bundleDiscount = 0.15;
+    else if (selectedUsages.length === 4) bundleDiscount = 0.20;
+    else if (selectedUsages.length >= 5) bundleDiscount = 0.25;
+
+    const afterBundle = currentSum * (1 - bundleDiscount);
+
+    if (selectedUsages.length === 6 || (prices.corporate_full_suite > 0 && afterBundle >= prices.corporate_full_suite)) {
+      setIsCorporate(true);
+      setIsTrial(false);
+    }
+  }, [selectedUsages, selectedTiers, prices]);
+
+  // FIXED: Logika Perhitungan Harga dengan Akumulasi + Diskon Bundle
   const totalPrice = useMemo(() => {
     if (!prices || isTrial) return 0;
     if (isCorporate) return prices.corporate_full_suite || 0;
@@ -81,20 +104,19 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     let total = 0;
     selectedUsages.forEach(usage => {
       const tierKey = selectedTiers[usage];
-      const categoryData = prices[usage as keyof LicensePrices];
+      const categoryData = (prices as any)[usage];
       if (categoryData && typeof categoryData === 'object') {
-        total += (categoryData as any)[tierKey] || 0;
+        total += categoryData[tierKey] || 0;
       }
     });
 
-    // BUNDLE SAVINGS: 3=15%, 4=20%, 5=25%
     let bundleDiscount = 0;
     if (selectedUsages.length === 3) bundleDiscount = 0.15;
     else if (selectedUsages.length === 4) bundleDiscount = 0.20;
-    else if (selectedUsages.length === 5) bundleDiscount = 0.25;
+    else if (selectedUsages.length >= 5) bundleDiscount = 0.25;
 
-    const totalAfterBundle = total * (1 - bundleDiscount);
-    return discount > 0 ? Math.round(totalAfterBundle * (1 - discount / 100)) : Math.round(totalAfterBundle);
+    const baseAfterBundle = total * (1 - bundleDiscount);
+    return discount > 0 ? Math.round(baseAfterBundle * (1 - discount / 100)) : Math.round(baseAfterBundle);
   }, [selectedUsages, selectedTiers, isCorporate, isTrial, prices, discount]);
 
   const handleAdd = (redirect: boolean = false) => {
@@ -182,11 +204,18 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
           {/* 02. LICENSE CATEGORIES & SPECIFIC TIERS */}
           <div className="md:col-span-12">
-            <label className="text-[10px] font-bold tracking-[0.2em] mb-6 block text-black/40 uppercase">LICENSE CATEGORIES & SPECIFIC TIERS (ADDITIVE)</label>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-3">
+            <label className="text-[10px] font-bold tracking-[0.2em] mb-6 block text-black/40 uppercase">LICENSE CATEGORIES & SPECIFIC TIERS (ADDITIVE PRICING)</label>
+            <div className="flex flex-col gap-4 mb-3">
+              {/* FIXED: Tombol TRY IT FIRST dipindahkan ke posisi paling atas */}
+              <button onClick={handleTrialToggle} disabled={isCorporate}
+                className={`flex items-center justify-between p-5 border border-black transition-all ${isCorporate ? 'opacity-20' : isTrial ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}>
+                <span className="text-[11px] font-black tracking-widest">TRY IT FIRST (FREE DEMO VERSION)</span>
+                {isTrial ? <Check size={16} /> : <Plus size={16} />}
+              </button>
+
               {[
                 { id: 'desktop', label: 'DESKTOP / PRINT' },
-                { id: 'social_web', label: 'DIGITAL MEDIA' },
+                { id: 'social_web', label: 'SOCIAL MEDIA & WEB' },
                 { id: 'logo_branding', label: 'LOGO & BRANDING' },
                 { id: 'app', label: 'APP / GAME / EBOOK' },
                 { id: 'server', label: 'SERVER' },
@@ -195,22 +224,23 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
                 const isActive = selectedUsages.includes(u.id);
                 return (
                   <div key={u.id} className="space-y-2">
+                    {/* UI: 1-Column License Button */}
                     <button onClick={() => toggleUsage(u.id)} 
                       disabled={isTrial || isCorporate} 
-                      className={`w-full flex items-center justify-between p-4 border border-black transition-all ${
+                      className={`w-full flex items-center justify-between p-5 border border-black transition-all ${
                         isActive ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'
                       }`}>
-                      <span className="text-[10px] font-black tracking-widest">{u.label}</span>
-                      <Plus size={14} className={`transition-transform duration-300 ${isActive ? 'rotate-45' : ''}`} />
+                      <span className="text-[11px] font-black tracking-widest">{u.label}</span>
+                      <Plus size={16} className={`transition-transform duration-300 ${isActive ? 'rotate-45' : ''}`} />
                     </button>
                     
-                    {/* ADD-ON SPECIFIC TIERS: Muncul jika kategori aktif */}
+                    {/* UI: Horizontal Level options on desktop, vertical on mobile */}
                     {isActive && !isCorporate && (
-                      <div className="grid grid-cols-1 gap-1 pl-4 border-l border-black/10 animate-in fade-in slide-in-from-top-1">
+                      <div className="flex flex-wrap md:flex-nowrap gap-1 pl-4 border-l-2 border-black/10 animate-in fade-in slide-in-from-top-1">
                         {tierMap[u.id].map((t) => (
                           <button key={t.key} onClick={() => setSelectedTiers(prev => ({...prev, [u.id]: t.key}))}
-                            className={`py-2 px-3 border border-black text-[9px] font-bold text-left transition-all ${
-                              selectedTiers[u.id] === t.key ? 'bg-orange-600 text-white' : 'bg-white hover:bg-black/5'
+                            className={`flex-1 min-w-[120px] md:min-w-0 py-3 px-2 border border-black text-[9px] font-black text-center transition-all ${
+                              selectedTiers[u.id] === t.key ? 'bg-orange-600 text-white border-orange-600' : 'bg-white hover:bg-gray-50'
                             }`}>
                             {t.label}
                           </button>
@@ -221,18 +251,11 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
                 );
               })}
               
-              {/* CORPORATE BUTTON (Grid Row 4) */}
+              {/* CORPORATE BUTTON */}
               <button onClick={handleCorporateToggle} disabled={isTrial}
-                className={`flex items-center justify-between p-4 border border-black transition-all ${isTrial ? 'opacity-20' : isCorporate ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}>
-                <span className="text-[10px] font-black tracking-widest">CORPORATE</span>
-                {isCorporate ? <Check size={14} /> : <Plus size={14} />}
-              </button>
-
-              {/* TRY IT FIRST BUTTON (Grid Row 4) */}
-              <button onClick={handleTrialToggle} disabled={isCorporate}
-                className={`flex items-center justify-between p-4 border border-black transition-all ${isCorporate ? 'opacity-20' : isTrial ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}>
-                <span className="text-[10px] font-black tracking-widest">TRY IT FIRST</span>
-                {isTrial ? <Check size={14} /> : <Plus size={14} />}
+                className={`flex items-center justify-between p-5 border border-black transition-all mt-4 ${isTrial ? 'opacity-20' : isCorporate ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}>
+                <span className="text-[11px] font-black tracking-widest text-orange-600">CORPORATE (ALL-IN-ONE PACKAGE)</span>
+                {isCorporate ? <Check size={16} /> : <Plus size={16} />}
               </button>
             </div>
           </div>
