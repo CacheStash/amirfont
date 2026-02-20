@@ -20,6 +20,15 @@ else
 fi
 
 # 2. Build & Deploy
+# FIXED: Cek keberadaan file .env dan load variabel ke shell session
+if [ -f .env ]; then
+    echo "✅ File .env ditemukan. Memuat variabel..."
+    export $(grep -v '^#' .env | xargs)
+else
+    echo "❌ ERROR: File .env tidak ditemukan! Build dibatalkan."
+    exit 1
+fi
+
 echo "🔨 Memulai Build..."
 npm run build
 
