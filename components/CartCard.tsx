@@ -294,6 +294,21 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
           </div>
         )}
 
+{/* FIXED: Notifikasi cerdas jika total harga lisensi eceran melebihi harga paket Corporate */}
+        {!isCorporate && !isTrial && prices && totalPrice >= (discount > 0 ? Math.round(prices.corporate_full_suite * (1 - discount / 100)) : prices.corporate_full_suite) && (
+          <div className="mt-6 p-4 bg-orange-600 text-white border border-black animate-in fade-in slide-in-from-top-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="flex items-center gap-3">
+              <Plus className="rotate-45" size={20} />
+              <div className="flex-1">
+                <p className="text-[10px] font-black uppercase tracking-widest leading-tight">Better Deal Detected!</p>
+                <p className="text-[9px] font-bold opacity-90 leading-tight">
+                  Your current selection exceeds the All-In-One price. Switch to <span className="underline cursor-pointer" onClick={handleCorporateToggle}>CORPORATE</span> for full coverage and better value.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* FOOTER SECTION */}
         <div className="border-t-2 border-black border-dashed mt-10 pt-8 flex flex-col md:flex-row justify-between items-center md:items-end gap-8">
           <div className="flex flex-col text-center md:text-left">

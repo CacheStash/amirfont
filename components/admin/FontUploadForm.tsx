@@ -219,31 +219,31 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
               const val = e.target.value;
               setPrice(val);
               const base = parseFloat(val) || 0;
-              // FIXED: Logika kalkulasi dengan -1 untuk harga psikologis (misal $9.999)
               const calc = (m: number) => m > 1 ? Math.floor(base * m) - 1 : base;
               
-              // SEAT TIERS MULTIPLIER (Tetap dipertahankan skalanya)
+              // FIXED: Skala Seat Tiers diperkecil (Studio: 8x, Enterprise: 16x)
               const tiers = (m: number) => ({
                 solo: calc(m),
-                team: calc(m * 4),      // 4x Base
-                studio: calc(m * 10),    // 10x Base
-                enterprise: calc(m * 40) // 40x Base
+                team: calc(m * 4),
+                studio: calc(m * 8), 
+                enterprise: calc(m * 16)
               });
 
               setLicensePrices({
                 desktop: tiers(1.0),
-                // Skala baru agar Enterprise Server ($20 * 10 * 40 = $8.000) < Corporate ($10.000)
+                // FIXED: Multiplier Social/Web ditingkatkan menjadi 2.45 (2.45 * 20 = 49)
                 social_web: {
-                  small_50k: calc(2.0),
-                  medium_500k: calc(2.0 * 4),
-                  large_5m: calc(2.0 * 10),
-                  enterprise_unlimited: calc(2.0 * 40)
+                  small_50k: calc(2.45),
+                  medium_500k: calc(2.45 * 4),
+                  large_5m: calc(2.45 * 8), 
+                  enterprise_unlimited: calc(2.45 * 16)
                 },
-                logo_branding: tiers(4.0),
-                app: tiers(6.0),
-                broadcast: tiers(8.0),
-                server: tiers(10.0),
-                // FIXED: Multiplier 500x untuk mencapai target $10.000 dari base $20
+                // FIXED: Multiplier ditingkatkan untuk mengejar target harga Solo Base baru
+                logo_branding: tiers(9.45),  // 9.45 * 20 = 189
+                broadcast: tiers(22.95),      // 22.95 * 20 = 459
+                app: tiers(27.95),            // 27.95 * 20 = 559
+                server: tiers(38.95),         // 38.95 * 20 = 779
+                // Multiplier Corporate tetap 500x untuk target $10.000 ($9.999)
                 corporate_full_suite: calc(500.0)
               });
             }}
