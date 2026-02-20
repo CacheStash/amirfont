@@ -94,28 +94,31 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     enterprise: 'UNLIMITED VIEWS'
   };
 
-  const totalPrice = useMemo(() => {
+ const totalPrice = useMemo(() => {
     if (!prices) return 0;
     if (isTrial) return 0;
     
+    // FIXED: Gunakan harga paket Corporate sebagai harga dasar jika aktif
     let baseTotal = 0;
     if (isCorporate) {
       baseTotal = prices.corporate_full_suite || 0;
     } else {
-      selectedUsages.forEach(usage => {
-        if (usage === 'social_web') {
-          const webKey = webTier === 'small' ? 'small_50k' : 
-                         webTier === 'medium' ? 'medium_500k' : 
-                         webTier === 'large' ? 'large_5m' : 'enterprise_unlimited';
-          baseTotal += prices.social_web?.[webKey as keyof WebTierPrices] || 0;
-        } else {
-          const categoryData = prices[usage as keyof Omit<LicensePrices, 'corporate_full_suite' | 'social_web'>];
-          if (categoryData) baseTotal += categoryData[selectedTier] || 0;
-        }
-      });
+      // FIXED: Lisensi bersifat hirarki (bukan aditif). Hitung harga item tertinggi yang dipilih dalam hirarki.
+      const highestUsage = [...selectedUsages].sort((a, b) => 
+        usageHierarchy.indexOf(b) - usageHierarchy.indexOf(a)
+      )[0] || 'desktop';
+
+      if (highestUsage === 'social_web') {
+        const webKey = webTier === 'small' ? 'small_50k' : 
+                       webTier === 'medium' ? 'medium_500k' : 
+                       webTier === 'large' ? 'large_5m' : 'enterprise_unlimited';
+        baseTotal = prices.social_web?.[webKey as keyof WebTierPrices] || 0;
+      } else {
+        const categoryData = prices[highestUsage as keyof Omit<LicensePrices, 'corporate_full_suite' | 'social_web'>];
+        if (categoryData) baseTotal = categoryData[selectedTier] || 0;
+      }
     }
 
-  // APLIKASI DISKON: Gunakan Math.round agar sinkron dengan .toFixed(0) di Homepage
     const discountedPrice = discount > 0 ? Math.round(baseTotal * (1 - discount / 100)) : baseTotal;
     return discountedPrice;
   }, [selectedTier, selectedUsages, webTier, isCorporate, isTrial, prices, discount]);
@@ -155,8 +158,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   };
 
   const handleCorporateToggle = () => {
-    // FIXED: Menyederhanakan toggle Corporate sesuai permintaan (tanpa auto-pilih tier/usage). 
-    // Corporate kini bertindak sebagai status mandiri yang meng-cover harga paket hemat.
+    // FIXED: Menyederhanakan toggle Corporate tanpa memaksa pemilihan tier/usage secara otomatis.
     setIsCorporate(!isCorporate);
     setIsTrial(false);
   };
@@ -196,7 +198,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
           {/* 01. SEATS LEVELS */}
-          <div className={`md:col-span-5 border-r-0 md:border-r border-black md:pr-10 transition-opacity duration-300 ${isCorporate || isTrial ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
+          <div className={`md:col-span-5 border-r-0 md:border-r border-black md:pr-10 transition-opacity duration-300 ${isTrial ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
             <label className="text-[10px] font-bold tracking-[0.2em] mb-6 block text-black/40">01. SEATS LEVELS</label>
             <div className="flex flex-col gap-2">
               {Object.entries(seatDetails).map(([tier, seats]) => (
