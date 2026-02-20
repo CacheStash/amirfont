@@ -168,10 +168,10 @@ const License: React.FC = () => {
                 {[
                   { title: "A. Desktop License", desc: "Grants the right to install the font software on a local machine to create static visual content (PNG, JPG, PDF) for digital and print media, including commercial projects." },
                   { title: "B. Social Media & Web License (Reach Based)", desc: "Specifically for digital platforms, including website embedding and social media content (Instagram, TikTok, YouTube, etc.). Tiered by monthly impressions: Small (50k), Medium (500k), Large (5m), Enterprise (Unlimited)." },
-                  { title: "C. Logo & Branding License", desc: "Grants the right to utilize the font as a core element of a visual identity system, including logos and wordmarks. This license includes all permissions associated with a standard Desktop License." },
-                  { title: "D. App / SaaS License", desc: "Grants the right to embed the font software into mobile applications, software, or SaaS platforms. This license includes all permissions associated with a standard Desktop License." },
-                  { title: "E. Broadcast License", desc: "Grants the right to utilize the font software in motion graphics, television, cinema, streaming services, and video advertisements. This license includes all permissions associated with a standard Desktop License." },
-                  { title: "F. Server License", desc: "Grants the right to install the font software on a server to facilitate end-user product customization (Web-to-Print). This license includes all permissions associated with a standard Desktop License." },
+                  { title: "C. Logo & Branding License", desc: "Grants the right to utilize the font as a core element of a visual identity system, including logos and wordmarks." },
+                  { title: "D. App / SaaS License", desc: "Grants the right to embed the font software into mobile applications, software, or SaaS platforms." },
+                  { title: "E. Broadcast License", desc: "Grants the right to utilize the font software in motion graphics, television, cinema, streaming services, and video advertisements." },
+                  { title: "F. Server License", desc: "Grants the right to install the font software on a server to facilitate end-user product customization (Web-to-Print)." },
                 ].map((item) => (
                    <div key={item.title} className="flex gap-4 items-start">
                      <PlusBullet />
