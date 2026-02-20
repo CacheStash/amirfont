@@ -43,6 +43,28 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   const [selectedTier, setSelectedTier] = useState<'solo' | 'team' | 'studio' | 'enterprise'>('solo');
   const [selectedUsages, setSelectedUsages] = useState<string[]>(['desktop']);
 
+  // FIXED: Definisi Hirarki Lisensi (Urutan dari terendah ke tertinggi)
+  const usageHierarchy = ['desktop', 'social_web', 'logo_branding', 'app', 'server', 'broadcast'];
+
+  const toggleUsage = (id: string) => {
+    if (isCorporate || isTrial) return;
+    
+    setSelectedUsages(prev => {
+      const isAdding = !prev.includes(id);
+      const index = usageHierarchy.indexOf(id);
+
+      if (isAdding) {
+        // Jika pilih lisensi tinggi, otomatis ambil semua yang ada di bawahnya
+        const toAdd = usageHierarchy.slice(0, index + 1);
+        return Array.from(new Set([...prev, ...toAdd]));
+      } else {
+        // Jika hapus lisensi rendah, otomatis batalkan semua yang ada di atasnya
+        const toRemove = usageHierarchy.slice(index);
+        return prev.filter(u => !toRemove.includes(u));
+      }
+    });
+  };
+
   // DEFINISI LISENSI TINGGI: Pilihan ini otomatis sudah include hak Desktop
   const higherTierUsages = ['logo_branding', 'app', 'broadcast', 'server'];
   const hasHigherTier = useMemo(() => selectedUsages.some(u => higherTierUsages.includes(u)), [selectedUsages]);
@@ -132,34 +154,11 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     }
   };
 
-  const toggleUsage = (id: string) => {
-    if (isCorporate || isTrial) return;
-    setSelectedUsages(prev => {
-      const isSelected = prev.includes(id);
-      let next = isSelected ? prev.filter(u => u !== id) : [...prev, id];
-      
-      // LOGIKA AUTO-DESELECT: Jika pilih Logo/App/dsb, otomatis lepas Desktop manual
-      if (!isSelected && higherTierUsages.includes(id)) {
-        next = next.filter(u => u !== 'desktop');
-      }
-      return next;
-    });
-  };
-
   const handleCorporateToggle = () => {
-    const becomingCorporate = !isCorporate;
-    setIsCorporate(becomingCorporate);
+    // FIXED: Menyederhanakan toggle Corporate sesuai permintaan (tanpa auto-pilih tier/usage). 
+    // Corporate kini bertindak sebagai status mandiri yang meng-cover harga paket hemat.
+    setIsCorporate(!isCorporate);
     setIsTrial(false);
-    
-    if (becomingCorporate) {
-      // FIXED: Pilih semua penggunaan dan otomatis pindah ke tier Enterprise
-      setSelectedUsages(['desktop', 'logo_branding', 'social_web', 'app', 'broadcast', 'server']);
-      setSelectedTier('enterprise'); 
-    } else {
-      setSelectedUsages(['desktop']);
-      // Opsional: Kembali ke solo saat mode corporate dimatikan
-      setSelectedTier('solo');
-    }
   };
 
   const handleTrialToggle = () => {
@@ -216,22 +215,29 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
             <div className="grid grid-cols-2 gap-2 mb-3">
               {[
                 { id: 'desktop', label: 'DESKTOP' },
-                { id: 'logo_branding', label: 'LOGO' },
                 { id: 'social_web', label: 'SOCIAL/WEB' },
+                { id: 'logo_branding', label: 'LOGO' },
                 { id: 'app', label: 'APP/SAAS' },
                 { id: 'broadcast', label: 'BROADCAST' },
                 { id: 'server', label: 'SERVER' },
-              ].map((u) => (
-                <button key={u.id} onClick={() => toggleUsage(u.id)} 
-                  disabled={isCorporate || isTrial || (u.id === 'desktop' && hasHigherTier)} // FIXED: Disable desktop jika ada lisensi tinggi
-                  className={`flex items-center justify-between p-4 border border-black transition-all ${
-                    (isCorporate || isTrial || (u.id === 'desktop' && hasHigherTier)) ? 'opacity-20 cursor-not-allowed' : 
-                    selectedUsages.includes(u.id) ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'
-                  }`}>
-                  <span className="text-[10px] font-black tracking-widest">{u.label}</span>
-                  <Plus size={14} className={`transition-transform duration-300 ${selectedUsages.includes(u.id) ? 'rotate-45' : ''}`} />
-                </button>
-              ))}
+              ].map((u) => {
+                const index = usageHierarchy.indexOf(u.id);
+                // Cek apakah ada lisensi di atasnya yang sedang aktif
+                const isCoveredByHigher = selectedUsages.some(sel => usageHierarchy.indexOf(sel) > index);
+                
+                return (
+                  <button key={u.id} onClick={() => toggleUsage(u.id)} 
+                    disabled={isTrial || isCoveredByHigher} 
+                    className={`flex items-center justify-between p-4 border border-black transition-all ${
+                      isTrial ? 'opacity-20 cursor-not-allowed' : 
+                      isCoveredByHigher ? 'bg-black/80 text-white/50 cursor-default' :
+                      selectedUsages.includes(u.id) ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'
+                    }`}>
+                    <span className="text-[10px] font-black tracking-widest">{u.label}</span>
+                    <Plus size={14} className={`transition-transform duration-300 ${selectedUsages.includes(u.id) ? 'rotate-45' : ''}`} />
+                  </button>
+                );
+              })}
               
               {/* CORPORATE BUTTON (Grid Row 4) */}
               <button onClick={handleCorporateToggle} disabled={isTrial}

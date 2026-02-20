@@ -221,30 +221,31 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
               const base = parseFloat(val) || 0;
               const calc = (m: number) => m > 1 ? Math.floor(base * m) - 1 : base;
               
-              // FIXED: Skala Seat Tiers diperkecil (Studio: 8x, Enterprise: 16x)
+              // FIXED: Skala Seat Tiers baru (Team: 2x, Studio: 4x, Enterprise: 8x)
               const tiers = (m: number) => ({
                 solo: calc(m),
-                team: calc(m * 4),
-                studio: calc(m * 8), 
-                enterprise: calc(m * 16)
+                team: calc(m * 2),
+                studio: calc(m * 4), 
+                enterprise: calc(m * 8)
               });
 
               setLicensePrices({
-                desktop: tiers(1.0),
-                // FIXED: Multiplier Social/Web ditingkatkan menjadi 2.45 (2.45 * 20 = 49)
+                desktop: tiers(1.0), // 1.0 * 20 = 20
+                // FIXED: Multiplier Social/Web 1.75 (1.75 * 20 = 35) 
+                // Skala traffic: 35 (Solo), 70 (Team), 140 (Studio), 280 (Enterprise)
                 social_web: {
-                  small_50k: calc(2.45),
-                  medium_500k: calc(2.45 * 4),
-                  large_5m: calc(2.45 * 8), 
-                  enterprise_unlimited: calc(2.45 * 16)
+                  small_50k: calc(1.75),
+                  medium_500k: calc(1.75 * 2),
+                  large_5m: calc(1.75 * 4), 
+                  enterprise_unlimited: calc(1.75 * 8)
                 },
-                // FIXED: Multiplier ditingkatkan untuk mengejar target harga Solo Base baru
-                logo_branding: tiers(9.45),  // 9.45 * 20 = 189
-                broadcast: tiers(22.95),      // 22.95 * 20 = 459
-                app: tiers(27.95),            // 27.95 * 20 = 559
-                server: tiers(38.95),         // 38.95 * 20 = 779
-                // Multiplier Corporate tetap 500x untuk target $10.000 ($9.999)
-                corporate_full_suite: calc(500.0)
+                // FIXED: Multiplier kategori sesuai target hirarki Anda
+                logo_branding: tiers(15.0),  // 15 * 20 = 300
+                app: tiers(30.0),            // 30 * 20 = 600
+                server: tiers(45.0),         // 45 * 20 = 900
+                broadcast: tiers(50.0),      // 50 * 20 = 1000
+                // FIXED: Multiplier Corporate 60x (60 * 20 = 1200)
+                corporate_full_suite: calc(60.0)
               });
             }}
             className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
