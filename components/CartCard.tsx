@@ -73,7 +73,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     enterprise_unlimited: 'UNLIMITED VIEWS'
   };
 
-  // FIXED: Logika Auto-Switch ke Corporate jika 6 kategori dipilih ATAU harga eceran >= harga corporate
+  // FIXED: Logic Auto-Switch berdasarkan nominal harga (Eceran + Bundle >= Corporate)
   useEffect(() => {
     if (isTrial || isCorporate || !prices) return;
 
@@ -90,13 +90,13 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
 
     const afterBundle = currentSum * (1 - bundleDiscount);
 
-    if (selectedUsages.length === 6 || (prices.corporate_full_suite > 0 && afterBundle >= prices.corporate_full_suite)) {
+    // Trigger otomatis ke Corporate hanya jika harga sudah menyentuh plafon Corporate
+    if (prices.corporate_full_suite > 0 && afterBundle >= prices.corporate_full_suite) {
       setIsCorporate(true);
       setIsTrial(false);
     }
   }, [selectedUsages, selectedTiers, prices]);
 
-  // FIXED: Logika Perhitungan Harga dengan Akumulasi + Diskon Bundle
   const totalPrice = useMemo(() => {
     if (!prices || isTrial) return 0;
     if (isCorporate) return prices.corporate_full_suite || 0;
@@ -154,10 +154,10 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     }
   };
 
- // FIXED: Menghapus duplikasi fungsi toggleUsage (Redeclaration Fix)
-  // Menghapus hirarki otomatis sesuai instruksi "No license cover other terms"
-  const toggleUsage = (id: string) => {
-    if (isCorporate || isTrial) return;
+ const toggleUsage = (id: string) => {
+    if (isCorporate) return;
+    // FIXED: Memilih paid license otomatis mematikan mode Trial
+    setIsTrial(false); 
     setSelectedUsages(prev => 
       prev.includes(id) ? prev.filter(u => u !== id) : [...prev, id]
     );
@@ -169,14 +169,10 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   };
 
   const handleTrialToggle = () => {
+    // FIXED: Try It First hanya bisa diaktifkan jika tidak ada paid license yang dipilih
+    if (selectedUsages.length > 0) return;
     setIsTrial(!isTrial);
     setIsCorporate(false);
-    if (!isTrial) {
-      setSelectedTier('solo');
-      setSelectedUsages([]);
-    } else {
-      setSelectedUsages(['desktop']);
-    }
   };
 
   const TicketEdges = () => (
