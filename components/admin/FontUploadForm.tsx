@@ -219,27 +219,32 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
               const val = e.target.value;
               setPrice(val);
               const base = parseFloat(val) || 0;
+              // FIXED: Logika kalkulasi dengan -1 untuk harga psikologis (misal $9.999)
               const calc = (m: number) => m > 1 ? Math.floor(base * m) - 1 : base;
+              
+              // SEAT TIERS MULTIPLIER (Tetap dipertahankan skalanya)
               const tiers = (m: number) => ({
                 solo: calc(m),
-                team: calc(m * 4),
-                studio: calc(m * 10),
-                enterprise: calc(m * 40)
+                team: calc(m * 4),      // 4x Base
+                studio: calc(m * 10),    // 10x Base
+                enterprise: calc(m * 40) // 40x Base
               });
 
               setLicensePrices({
                 desktop: tiers(1.0),
+                // Skala baru agar Enterprise Server ($20 * 10 * 40 = $8.000) < Corporate ($10.000)
                 social_web: {
-                  small_50k: calc(2.4),
-                  medium_500k: calc(2.4 * 4),
-                  large_5m: calc(2.4 * 10),
-                  enterprise_unlimited: calc(2.4 * 40)
+                  small_50k: calc(2.0),
+                  medium_500k: calc(2.0 * 4),
+                  large_5m: calc(2.0 * 10),
+                  enterprise_unlimited: calc(2.0 * 40)
                 },
-                logo_branding: tiers(8.0),
-                app: tiers(12.0),
-                broadcast: tiers(14.0),
-                server: tiers(18.0),
-                corporate_full_suite: calc(46.0)
+                logo_branding: tiers(4.0),
+                app: tiers(6.0),
+                broadcast: tiers(8.0),
+                server: tiers(10.0),
+                // FIXED: Multiplier 500x untuk mencapai target $10.000 dari base $20
+                corporate_full_suite: calc(500.0)
               });
             }}
             className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
