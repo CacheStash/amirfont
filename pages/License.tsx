@@ -6,61 +6,60 @@ const PlusBullet = () => (
   <Plus size={14} className="shrink-0 mt-[0.4em] text-black" strokeWidth={3} />
 );
 
-// Shared Box Style - Untuk elemen di dalam kartu (misal: Industry Metrics)
+// Shared Box Style - Untuk elemen di dalam kartu
 const BrutalBox: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = "" }) => (
-  <div className={`p-8 bg-transparent ${className}`}>
+  <div className={`p-8 bg-[#fcfcfc] border border-black/5 ${className}`}>
     {children}
   </div>
 );
 
 const License: React.FC = () => {
 
-  // --- KOMPONEN LUBANG PERFORASI (Tanpa Outline) ---
-  const TicketPunches = ({ orientation, side }: { orientation: 'h' | 'v', side: 't' | 'b' | 'l' | 'r' }) => {
-    const isH = orientation === 'h';
-    // Menggunakan jarak yang lebih renggang agar tidak menumpuk
-    const count = isH ? 25 : 15;
-    
-    return (
-      <div className={`absolute flex pointer-events-none select-none z-20 ${
-        isH ? `left-0 w-full justify-around ${side === 't' ? 'top-0 -mt-4' : 'bottom-0 -mb-4'}`
-           : `top-0 h-full flex-col justify-around ${side === 'l' ? 'left-0 -ml-4' : 'right-0 -mr-4'}`
-      }`}>
-        {[...Array(count)].map((_, i) => (
-          <div 
-            key={i} 
-            className="w-8 h-8 bg-[#EDEBE6] rounded-full shrink-0" 
-          />
-        ))}
-      </div>
-    );
-  };
-
-  // --- KOMPONEN KARTU KARCIS TOTAL (Tanpa Outline & Shadow) ---
+  // --- KOMPONEN KARTU TERMCARD (Model Karcis Transparan) ---
   const TermCard: React.FC<{ number: string, title: string, children: React.ReactNode }> = ({ number, title, children }) => (
-    <div className="relative mb-24 w-full">
-      {/* Container Utama Putih - Tanpa Border & Tanpa Shadow */}
-      <div className="relative bg-white flex flex-col md:flex-row overflow-hidden">
+    <div className="relative mb-20 w-full group">
+      {/* 1. BACKGROUND LAYER (True Transparency Masking) */}
+      <div 
+        className="absolute inset-0 bg-white pointer-events-none"
+        style={{
+          // MASK LOGIC:
+          // Layer 1 (Solid Center): Menutup bagian tengah agar TIDAK bolong.
+          // Layer 2-5 (Radial Gradients): Membuat lubang di 4 sisi (Atas, Bawah, Kiri, Kanan).
+          // Menggunakan 'transparent' agar lubang 100% tembus pandang ke orbs di belakang.
+          WebkitMaskImage: `
+            linear-gradient(black, black),
+            radial-gradient(circle at 25px 0px, transparent 12px, black 13px),
+            radial-gradient(circle at 25px 100%, transparent 12px, black 13px),
+            radial-gradient(circle at 0px 25px, transparent 12px, black 13px),
+            radial-gradient(circle at 100% 25px, transparent 12px, black 13px)
+          `,
+          // Ukuran area tengah dibuat sedikit lebih kecil dari total kartu untuk menyisakan ruang lubang di tepi.
+          // Menggunakan 'round' agar jumlah lubang menyesuaikan tinggi kartu secara otomatis (tidak numpuk).
+          WebkitMaskSize: `
+            calc(100% - 50px) calc(100% - 50px),
+            50px 100%,
+            50px 100%,
+            100% 50px,
+            100% 50px
+          `,
+          WebkitMaskPosition: 'center center, 0 0, 0 0, 0 0, 0 0',
+          WebkitMaskRepeat: 'no-repeat, repeat-x, repeat-x, repeat-y, repeat-y',
+          WebkitMaskComposite: 'source-over, destination-in, destination-in, destination-in, destination-in',
+          maskComposite: 'exclude'
+        }}
+      />
+
+      {/* 2. CONTENT LAYER */}
+      <div className="relative z-10 flex flex-col md:flex-row min-h-[300px]">
         
-        {/* Efek Bolong Tepi (Atas, Bawah, Kiri, Kanan) */}
-        <TicketPunches orientation="h" side="t" />
-        <TicketPunches orientation="h" side="b" />
-        <TicketPunches orientation="v" side="l" />
-        <TicketPunches orientation="v" side="r" />
-
-        {/* Lubang Pemisah Besar (Gap Notch) antara konten dan nomor */}
-        <div className="absolute top-0 right-[25%] -mt-6 -mr-6 w-12 h-12 bg-[#EDEBE6] rounded-full z-30 hidden md:block" />
-        <div className="absolute bottom-0 right-[25%] -mb-6 -mr-6 w-12 h-12 bg-[#EDEBE6] rounded-full z-30 hidden md:block" />
-
-        {/* --- BAGIAN 1: BODY KIRI (Headline + Content) --- */}
-        <div className="flex-grow p-10 md:p-20 flex flex-col relative z-10 border-r-2 border-[#EDEBE6] border-dashed">
-          {/* Headline di Kiri Atas */}
+        {/* SISI KIRI: Headline & Konten */}
+        <div className="flex-grow p-10 md:p-20 flex flex-col border-r-2 border-dashed border-[#EDEBE6]">
+          {/* Headline Atas */}
           <h3 className="text-3xl md:text-7xl font-normal tracking-tighter uppercase mb-8 leading-none">
             {title}
           </h3>
           
-          {/* Garis Pemisah Tipis */}
-          <div className="w-full border-b border-black/5 mb-12" />
+          <div className="w-full border-b border-black/5 mb-10" />
 
           {/* Konten Utama */}
           <div className="space-y-10 normal-case text-gray-700 leading-relaxed text-base md:text-xl">
@@ -68,10 +67,9 @@ const License: React.FC = () => {
           </div>
         </div>
 
-        {/* --- BAGIAN 2: STUB KANAN (Nomor Term) --- */}
-        <div className="w-full md:w-64 bg-white flex items-center justify-center p-8 md:p-0 relative z-10">
-          {/* Nomor Seri Besar - Font sama dengan Judul */}
-          <span className="text-8xl md:text-[10rem] font-normal tracking-tighter uppercase opacity-10 leading-none select-none">
+        {/* SISI KANAN (STUB): Nomor Term */}
+        <div className="w-full md:w-64 flex items-center justify-center p-8 md:p-0">
+          <span className="text-8xl md:text-[12rem] font-normal tracking-tighter uppercase opacity-10 leading-none select-none">
             {number}
           </span>
         </div>
@@ -79,16 +77,17 @@ const License: React.FC = () => {
     </div>
   );
 
+
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-[#EDEBE6] overflow-x-hidden uppercase">
-      {/* Background Orbs */}
-      <div className="grain-orb-base orb-top-right opacity-30" />
-      <div className="grain-orb-base orb-bottom-left opacity-30" />
+      {/* BACKGROUND ORBS - Terlihat menembus lubang kartu */}
+      <div className="grain-orb-base orb-top-right opacity-40" />
+      <div className="grain-orb-base orb-bottom-left opacity-40" />
 
       <div className="w-full relative z-10">
         {/* HEADER SECTION - Ukuran disesuaikan dengan Faq/FontDetail */}
-        <header className="px-6 py-16 md:px-8 border-b border-black/10 mb-20">
-          <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-6">
+        <header className="px-6 py-16 md:px-8 border-b border-black/10 mb-20 bg-transparent">
+          <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-8">
             License Agreement
           </h2>
           <p className="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-[0.3em]">
@@ -96,7 +95,7 @@ const License: React.FC = () => {
           </p>
         </header>
 
-        {/* CONTENT MAIN */}
+        {/* CONTENT MAIN - Padding sinkron dengan Navbar */}
         <main className="px-3 md:px-8 max-w-full mx-auto">
           
           {/* 01. PERSONAL USE */}
@@ -131,10 +130,10 @@ const License: React.FC = () => {
                 { title: 'Server', metric: 'Based on Number of Active Servers (Single, 50, or Unlimited).' },
                 { title: 'Broadcast', metric: 'Based on Geographical Distribution Reach (Regional, National, or Worldwide).' }
               ].map((item) => (
-                <div key={item.title} className="p-10 border border-black/5 bg-[#fcfcfc]">
+                <BrutalBox key={item.title}>
                    <span className="font-black text-sm tracking-widest block mb-2 uppercase">{item.title}</span>
                    <span className="text-xs normal-case text-gray-500 block leading-tight italic">{item.metric}</span>
-                </div>
+                </BrutalBox>
               ))}
             </div>
           </TermCard>
@@ -150,7 +149,7 @@ const License: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex gap-8 items-start bg-orange-50 p-12 rounded-lg">
+              <div className="flex gap-8 items-start bg-orange-50/50 p-12 rounded-lg">
                 <PlusBullet />
                 <div className="space-y-6">
                   <h4 className="font-black text-lg tracking-widest uppercase text-orange-600">Bundle Discount Rules:</h4>
@@ -210,7 +209,7 @@ const License: React.FC = () => {
                 "You may not sell, rent, sublicense, or redistribute font files to any third party.",
                 "You may not modify, adapt, or decompile the font software binaries.",
                 "The font software and its intellectual property remain the sole property of Subqi Studio.",
-                "Backup copies are permitted for internal archival purposes only on secure servers."
+                "Backup copies are permitted for archival purposes only on secure servers."
               ].map((rule, i) => (
                 <li key={i} className="flex items-start gap-10">
                   <PlusBullet /> 
@@ -232,7 +231,6 @@ const License: React.FC = () => {
 
         </main>
 
-        {/* Footer Spacer */}
         <div className="h-40 md:h-60 bg-transparent" />
       </div>
     </div>
