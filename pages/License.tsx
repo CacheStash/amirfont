@@ -1,75 +1,70 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 
-// Shared Bullet Style - Icon Plus Hitam
+// Shared Bullet Style
 const PlusBullet = () => (
   <Plus size={14} className="shrink-0 mt-[0.4em] text-black" strokeWidth={3} />
 );
 
-// Shared Box Style - Untuk elemen di dalam kartu
+// Shared Box Style - Digunakan di dalam kartu
 const BrutalBox: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = "" }) => (
-  <div className={`p-8 bg-[#fcfcfc] border border-black/5 ${className}`}>
+  <div className={`p-10 bg-[#fcfcfc] border border-black/5 ${className}`}>
     {children}
   </div>
 );
 
 const License: React.FC = () => {
-
-  // --- KOMPONEN KARTU TERMCARD (Model Karcis Transparan) ---
+  // Komponen Kartu Term (Model Karcis Fisik: Body Kiri + Stub Kanan)
   const TermCard: React.FC<{ number: string, title: string, children: React.ReactNode }> = ({ number, title, children }) => (
-    <div className="relative mb-20 w-full group">
-      {/* 1. BACKGROUND LAYER (True Transparency Masking) */}
+    <div 
+      className="relative mb-24 w-full group"
+      style={{
+        // FIXED: Filter drop-shadow mendeteksi transparansi lubang masker.
+        // Ini menciptakan outline hitam yang meliuk mengikuti tekstur bolong.
+        filter: 'drop-shadow(1px 0 0 black) drop-shadow(-1px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)'
+      }}
+    >
+      {/* 1. MASKED BACKGROUND LAYER (White Ticket Surface) */}
       <div 
         className="absolute inset-0 bg-white pointer-events-none"
         style={{
-          // MASK LOGIC:
-          // Layer 1 (Solid Center): Menutup bagian tengah agar TIDAK bolong.
-          // Layer 2-5 (Radial Gradients): Membuat lubang di 4 sisi (Atas, Bawah, Kiri, Kanan).
-          // Menggunakan 'transparent' agar lubang 100% tembus pandang ke orbs di belakang.
+          // FIXED MASK LOGIC: 
+          // Layer 1 (linear): Kotak solid di tengah (Menutup interior agar TIDAK bolong).
+          // Layer 2 (radial): Pola lubang transparan di seluruh area (Ukuran 48px agar tidak rapat).
           WebkitMaskImage: `
             linear-gradient(black, black),
-            radial-gradient(circle at 25px 0px, transparent 12px, black 13px),
-            radial-gradient(circle at 25px 100%, transparent 12px, black 13px),
-            radial-gradient(circle at 0px 25px, transparent 12px, black 13px),
-            radial-gradient(circle at 100% 25px, transparent 12px, black 13px)
+            radial-gradient(circle at 24px 24px, transparent 13px, black 14px)
           `,
-          // Ukuran area tengah dibuat sedikit lebih kecil dari total kartu untuk menyisakan ruang lubang di tepi.
-          // Menggunakan 'round' agar jumlah lubang menyesuaikan tinggi kartu secara otomatis (tidak numpuk).
-          WebkitMaskSize: `
-            calc(100% - 50px) calc(100% - 50px),
-            50px 100%,
-            50px 100%,
-            100% 50px,
-            100% 50px
-          `,
-          WebkitMaskPosition: 'center center, 0 0, 0 0, 0 0, 0 0',
-          WebkitMaskRepeat: 'no-repeat, repeat-x, repeat-x, repeat-y, repeat-y',
-          WebkitMaskComposite: 'source-over, destination-in, destination-in, destination-in, destination-in',
-          maskComposite: 'exclude'
+          WebkitMaskSize: 'calc(100% - 48px) calc(100% - 48px), 48px 48px',
+          WebkitMaskPosition: 'center center, -24px -24px',
+          WebkitMaskRepeat: 'no-repeat, repeat',
+          WebkitMaskComposite: 'source-over',
+          maskComposite: 'add'
         }}
       />
 
-      {/* 2. CONTENT LAYER */}
-      <div className="relative z-10 flex flex-col md:flex-row min-h-[300px]">
+      {/* 2. CONTENT LAYER (Model Karcis) */}
+      <div className="relative z-10 flex flex-col md:flex-row">
         
-        {/* SISI KIRI: Headline & Konten */}
-        <div className="flex-grow p-10 md:p-20 flex flex-col border-r-2 border-dashed border-[#EDEBE6]">
-          {/* Headline Atas */}
-          <h3 className="text-3xl md:text-7xl font-normal tracking-tighter uppercase mb-8 leading-none">
+        {/* --- KIRI: BODY (Headline Kiri Atas + Konten Bawah) --- */}
+        <div className="flex-grow p-10 md:p-24 flex flex-col border-b md:border-b-0 md:border-r border-black border-dashed">
+          {/* Headline Kiri Atas */}
+          <h3 className="text-3xl md:text-7xl font-normal tracking-tighter uppercase mb-10 leading-none">
             {title}
           </h3>
           
-          <div className="w-full border-b border-black/5 mb-10" />
+          <div className="w-full border-b border-black/10 mb-14" />
 
           {/* Konten Utama */}
-          <div className="space-y-10 normal-case text-gray-700 leading-relaxed text-base md:text-xl">
+          <div className="space-y-12 normal-case text-gray-700 leading-relaxed text-base md:text-xl">
             {children}
           </div>
         </div>
 
-        {/* SISI KANAN (STUB): Nomor Term */}
-        <div className="w-full md:w-64 flex items-center justify-center p-8 md:p-0">
-          <span className="text-8xl md:text-[12rem] font-normal tracking-tighter uppercase opacity-10 leading-none select-none">
+        {/* --- KANAN: STUB (Nomor Term Saja) --- */}
+        <div className="w-full md:w-72 flex items-center justify-center p-12 md:p-0 bg-[#fcfcfc]/50">
+           {/* Nomor Besar - Font sama dengan Judul Term */}
+           <span className="text-8xl md:text-[14rem] font-normal tracking-tighter uppercase opacity-10 leading-none select-none">
             {number}
           </span>
         </div>
@@ -77,15 +72,14 @@ const License: React.FC = () => {
     </div>
   );
 
-
   return (
-    <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-[#EDEBE6] overflow-x-hidden uppercase">
-      {/* BACKGROUND ORBS - Terlihat menembus lubang kartu */}
-      <div className="grain-orb-base orb-top-right opacity-40" />
-      <div className="grain-orb-base orb-bottom-left opacity-40" />
+    <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-[#EDEBE6] overflow-x-hidden uppercase text-left">
+      {/* BACKGROUND ORBS - Terlihat menembus lubang transparant */}
+      <div className="grain-orb-base orb-top-right opacity-30" />
+      <div className="grain-orb-base orb-bottom-left opacity-30" />
 
       <div className="w-full relative z-10">
-        {/* HEADER SECTION - Ukuran disesuaikan dengan Faq/FontDetail */}
+        {/* HEADER SECTION - Ukuran matched dengan FAQ/Detail */}
         <header className="px-6 py-16 md:px-8 border-b border-black/10 mb-20 bg-transparent">
           <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-8">
             License Agreement
@@ -101,7 +95,7 @@ const License: React.FC = () => {
           {/* 01. PERSONAL USE */}
           <TermCard number="01" title="Personal Use (Demo)">
             <p className="italic">This license applies specifically to the "Demo" versions of our font software.</p>
-            <div className="space-y-8">
+            <div className="space-y-10">
               {[
                 { label: "Usage Grant:", val: "Permitted only for personal, non-commercial projects (e.g., student assignments or portfolio pieces)." },
                 { label: "Character Set:", val: "The Demo version is a 'Trial' file and contains a limited glyph set." },
@@ -109,9 +103,9 @@ const License: React.FC = () => {
               ].map((item) => (
                 <div key={item.label} className="flex gap-6 items-start">
                   <PlusBullet />
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-2">
                     <span className="font-black text-[11px] tracking-widest text-black uppercase">{item.label}</span>
-                    <span className="opacity-70">{item.val}</span>
+                    <span className="opacity-70 italic">{item.val}</span>
                   </div>
                 </div>
               ))}
@@ -120,18 +114,18 @@ const License: React.FC = () => {
 
           {/* 02. INDUSTRY METRICS */}
           <TermCard number="02" title="Industry Metrics">
-            <p className="italic mb-6 opacity-80">Our licensing is tailored to your industry scale, ensuring fair value based on specific usage metrics.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <p className="italic mb-8 opacity-80">Our licensing is tailored to your industry scale, ensuring fair value based on specific usage metrics.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 { title: 'Desktop / Print', metric: 'Based on Number of Users (1, 30, 100, or Unlimited).' },
                 { title: 'Digital Media (Social/Web)', metric: 'Based on Monthly Impressions/Views (50K, 500K, 2M, or Unlimited).' },
-                { title: 'Logo & Branding', metric: 'Based on Total Organization Employees (Personal, 10, 50, 250, or 251+).' },
+                { title: 'Logo & Branding', metric: 'Based on Total Company Employees (Personal, 10, 50, 250, or 251+).' },
                 { title: 'App / Game / Ebook', metric: 'Based on Number of Titles (1, 10, 50, or Unlimited).' },
                 { title: 'Server', metric: 'Based on Number of Active Servers (Single, 50, or Unlimited).' },
                 { title: 'Broadcast', metric: 'Based on Geographical Distribution Reach (Regional, National, or Worldwide).' }
               ].map((item) => (
                 <BrutalBox key={item.title}>
-                   <span className="font-black text-sm tracking-widest block mb-2 uppercase">{item.title}</span>
+                   <span className="font-black text-sm tracking-widest block mb-4 uppercase">{item.title}</span>
                    <span className="text-xs normal-case text-gray-500 block leading-tight italic">{item.metric}</span>
                 </BrutalBox>
               ))}
@@ -140,23 +134,23 @@ const License: React.FC = () => {
 
           {/* 03. PRICING LOGIC */}
           <TermCard number="03" title="Pricing & Bundle Logic">
-            <div className="space-y-12">
+            <div className="space-y-14">
               <div className="flex gap-8 items-start">
                 <PlusBullet />
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <h4 className="font-black text-lg tracking-widest uppercase">Additive Selection</h4>
-                  <p className="opacity-70">Licenses are sold individually. Selecting one category does not cover others. You only pay for the specific usages you need for your project.</p>
+                  <p className="opacity-70">Licenses are sold individually. Selecting one category does not cover others. You only pay for the specific usages you need.</p>
                 </div>
               </div>
 
-              <div className="flex gap-8 items-start bg-orange-50/50 p-12 rounded-lg">
+              <div className="flex gap-8 items-start bg-orange-50 p-12 rounded-lg">
                 <PlusBullet />
-                <div className="space-y-6">
+                <div className="space-y-8">
                   <h4 className="font-black text-lg tracking-widest uppercase text-orange-600">Bundle Discount Rules:</h4>
-                  <div className="flex flex-wrap gap-8 text-xs font-black uppercase">
-                    <span className="bg-white px-5 py-2">3 LICENSES: 15% OFF</span>
-                    <span className="bg-white px-5 py-2">4 LICENSES: 20% OFF</span>
-                    <span className="bg-white px-5 py-2">5+ LICENSES: 25% OFF</span>
+                  <div className="flex flex-wrap gap-10 text-sm font-black uppercase">
+                    <span className="bg-white px-6 py-3 border border-orange-200">3 LICENSES: 15% OFF</span>
+                    <span className="bg-white px-6 py-3 border border-orange-200">4 LICENSES: 20% OFF</span>
+                    <span className="bg-white px-6 py-3 border border-orange-200">5+ LICENSES: 25% OFF</span>
                   </div>
                   <p className="text-xs font-bold normal-case text-orange-800 italic leading-relaxed">
                     *IMPORTANT: Bundle discounts automatically apply only to license categories with a tier value of $250 or higher.
@@ -166,9 +160,9 @@ const License: React.FC = () => {
 
               <div className="flex gap-8 items-start">
                 <PlusBullet />
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <h4 className="font-black text-lg tracking-widest uppercase">Automatic Corporate Switch</h4>
-                  <p className="opacity-70">If the cumulative price of your selection meets or exceeds the Corporate price, the system automatically upgrades you to the All-In-One Corporate License.</p>
+                  <p className="opacity-70">If your selection meets or exceeds the Corporate package value, the system automatically upgrades you to the Corporate License.</p>
                 </div>
               </div>
             </div>
@@ -179,22 +173,22 @@ const License: React.FC = () => {
             <div className="grid grid-cols-1 gap-y-12">
               {[
                 { title: "A. Desktop / Print", desc: "For workstations to create static content (PNG, JPG, PDF) for digital and print media." },
-                { title: "B. Digital Media (Social/Web)", desc: "Specifically for digital platforms, including website embedding and social media advertising." },
+                { title: "B. Digital Media (Social/Web)", desc: "Specifically for digital platforms, website embedding and social media content." },
                 { title: "C. Logo & Branding", desc: "Utilize the font as a core element of a visual identity system (Logos, Wordmarks)." },
-                { title: "D. App / Game / Ebook", desc: "Embed font software into mobile applications, games, or electronic publications." },
+                { title: "D. App / Game / Ebook", desc: "Embed font software into mobile applications, software, games, or electronic publications." },
                 { title: "E. Broadcast", desc: "For motion graphics, television, cinema, streaming, and video advertisements." },
                 { title: "F. Server", desc: "Install on a server to facilitate automated end-user customization (Web-to-Print)." },
               ].map((item) => (
                  <div key={item.title} className="flex gap-8 items-start">
                    <PlusBullet />
-                   <div className="space-y-2">
+                   <div className="space-y-4">
                       <h4 className="font-black text-lg tracking-widest uppercase">{item.title}</h4>
-                      <p className="opacity-70">{item.desc}</p>
+                      <p className="opacity-70 leading-relaxed">{item.desc}</p>
                    </div>
                  </div>
               ))}
-              <div className="mt-8 bg-black text-white p-14 rounded-3xl">
-                <h4 className="font-bold text-3xl md:text-5xl mb-6 tracking-tight uppercase italic underline decoration-orange-600 underline-offset-8">G. Corporate All-In-One</h4>
+              <div className="mt-10 bg-black text-white p-14 rounded-3xl">
+                <h4 className="font-bold text-3xl md:text-5xl mb-8 tracking-tight uppercase italic underline decoration-orange-600 underline-offset-8">G. Corporate All-In-One</h4>
                 <p className="text-xl md:text-2xl normal-case leading-relaxed text-gray-400 italic font-normal">
                   The ultimate comprehensive package. Covers all six categories (Desktop, Web, Logo, App, Broadcast, and Server) with unlimited scale for the entire global corporation.
                 </p>
@@ -209,7 +203,7 @@ const License: React.FC = () => {
                 "You may not sell, rent, sublicense, or redistribute font files to any third party.",
                 "You may not modify, adapt, or decompile the font software binaries.",
                 "The font software and its intellectual property remain the sole property of Subqi Studio.",
-                "Backup copies are permitted for archival purposes only on secure servers."
+                "Backup copies are permitted for internal archival purposes only on secure servers."
               ].map((rule, i) => (
                 <li key={i} className="flex items-start gap-10">
                   <PlusBullet /> 
@@ -221,10 +215,10 @@ const License: React.FC = () => {
 
           {/* 06. LEGAL BREACH */}
           <TermCard number="06" title="Legal Breach">
-            <div className="bg-[#fffafa] p-16 rounded-3xl">
+            <div className="bg-[#fffafa] border-2 border-red-100 p-16 rounded-3xl">
               <p className="text-xl md:text-4xl font-normal normal-case leading-relaxed text-black">
                 <span className="font-black uppercase tracking-widest mr-6 italic text-red-600 underline decoration-8 underline-offset-[12px]">Violation:</span>
-                Subqi Studio reserves the right to terminate the license immediately if terms are not met.
+                Subqi Studio reserves the right to terminate the license immediately if terms are not met, including tier mismatch.
               </p>
             </div>
           </TermCard>
