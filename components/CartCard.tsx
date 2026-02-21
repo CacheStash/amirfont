@@ -107,18 +107,24 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     if (isCorporate) return prices.corporate_full_suite || 0;
     
     let total = 0;
+    // FIXED: Hitung total harga sekaligus hitung berapa banyak lisensi yang memenuhi syarat diskon (>= 250)
+    let qualifyingCount = 0;
     selectedUsages.forEach(usage => {
       const tierKey = selectedTiers[usage];
       const categoryData = (prices as any)[usage];
       if (categoryData && typeof categoryData === 'object') {
-        total += categoryData[tierKey] || 0;
+        const itemPrice = categoryData[tierKey] || 0;
+        total += itemPrice;
+        // Hanya lisensi seharga $250 ke atas yang dihitung masuk ke kuota bundling
+        if (itemPrice >= 250) qualifyingCount++;
       }
     });
 
+    // BUNDLE SAVINGS: Diterapkan berdasarkan jumlah 'qualifyingCount' (lisensi >= 250)
     let bundleDiscount = 0;
-    if (selectedUsages.length === 3) bundleDiscount = 0.15;
-    else if (selectedUsages.length === 4) bundleDiscount = 0.20;
-    else if (selectedUsages.length >= 5) bundleDiscount = 0.25;
+    if (qualifyingCount === 3) bundleDiscount = 0.15;
+    else if (qualifyingCount === 4) bundleDiscount = 0.20;
+    else if (qualifyingCount >= 5) bundleDiscount = 0.25;
 
     const baseAfterBundle = total * (1 - bundleDiscount);
     return discount > 0 ? Math.round(baseAfterBundle * (1 - discount / 100)) : Math.round(baseAfterBundle);
@@ -292,15 +298,11 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
           </div>
         )}
 
-{/* FIXED: Notifikasi Bundle Saving untuk mendorong buyer menambah lisensi */}
-        {!isCorporate && !isTrial && selectedUsages.length > 0 && selectedUsages.length < 6 && (
+{/* FIXED: Notifikasi Bundle Saving dengan syarat minimal harga $250 */}
+        {!isCorporate && !isTrial && selectedUsages.length > 0 && (
           <div className="mt-6 p-4 bg-orange-600 text-white border border-black animate-in fade-in slide-in-from-top-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-             <p className="text-[10px] font-black uppercase tracking-widest">
-              {selectedUsages.length === 1 && "Add 2 more licenses to unlock 15% BUNDLE DISCOUNT"}
-              {selectedUsages.length === 2 && "Add 1 more license to unlock 15% BUNDLE DISCOUNT"}
-              {selectedUsages.length === 3 && "Savings applied! Add 1 more for 20% DISCOUNT"}
-              {selectedUsages.length === 4 && "Great Deal! Add 1 more for 25% DISCOUNT"}
-              {selectedUsages.length === 5 && "Just 1 more to unlock the CORPORATE ALL-IN-ONE LICENSE (Best Value)"}
+             <p className="text-[10px] font-black uppercase tracking-widest leading-tight">
+              PROMO: ADD 3+ LICENSES (MIN $250 EACH) TO UNLOCK UP TO 25% BUNDLE DISCOUNT!
             </p>
           </div>
         )}
