@@ -44,7 +44,13 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       opentype.load(url, (err, font) => {
         if (!err && font) {
           const names = font.names as any;
-          const styleName = names.preferredSubfamily?.en || names.fontSubfamily?.en;
+          // Check if font has variation axes (Variable Font)
+          const isVariable = font.tables.fvar?.axes?.length > 0;
+          const detectedName = names.preferredSubfamily?.en || names.fontSubfamily?.en;
+          
+          // Force "Variable" label if axes are detected
+          const styleName = isVariable ? "Variable" : detectedName;
+
           if (styleName) {
             setDetectedStyleNames(prev => ({
               ...prev,
@@ -107,7 +113,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       if (err || !font) return;
 
       const names = font.names as any;
-      const rawStyleName = names.preferredSubfamily?.en || names.fontSubfamily?.en;
+      // Check if the active font is a Variable Font
+      const isVariable = font.tables.fvar?.axes?.length > 0;
+      const detectedName = names.preferredSubfamily?.en || names.fontSubfamily?.en;
+
+      // Force "Variable" label for the active style display
+      const rawStyleName = isVariable ? "Variable" : detectedName;
       
       if (rawStyleName) {
         setDetectedStyleNames(prev => ({
