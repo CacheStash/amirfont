@@ -51,8 +51,8 @@ const License: React.FC = () => {
             <p className="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-[0.3em]">
               Clear Additive Terms for Creative Freedom
             </p>
-            <p className="text-[10px] md:text-xs font-black text-black/40 uppercase tracking-widest">
-              — LAST UPDATED: FEBRUARY 21, 2026
+            <p className="text-[10px] md:text-xs font-normal text-black/40 uppercase tracking-widest">
+            LAST UPDATED: FEBRUARY 21, 2026
             </p>
           </div>
         </header>
