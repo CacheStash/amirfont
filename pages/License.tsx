@@ -90,29 +90,31 @@ const License: React.FC = () => {
           </section>
 
 
-          {/* 2. STANDARD LICENSE TIERS */}
+          {/* 2. INDUSTRY METRICS & TIERS */}
           <section className="grid grid-cols-1 md:grid-cols-[600px_1fr_250px] border-b border-black items-stretch">
             <div className="p-6 md:p-10 border-b md:border-b-0 md:border-r border-black flex items-start gap-8">
                <span className="text-8xl md:text-[120px] font-normal tracking-tighter leading-none -mt-2">02</span>
                <h3 className="text-3xl md:text-5xl font-normal tracking-tight leading-[1.1] mt-1">
-                 Standard <br/> Tiers
+                 Industry <br/> Metrics
                </h3>
             </div>
             
-            <div className="p-6 md:p-10 md:border-r border-black space-y-8">
+            <div className="p-6 md:p-10 md:border-r border-black space-y-12">
               <p className="text-lg md:text-xl font-normal normal-case leading-relaxed text-gray-800">
-                Our licenses are granted based on the number of users (seats) who have the font software installed.
+                Our licensing is tailored to your industry scale, ensuring fair value based on specific usage metrics.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {[
-                  { l: 'Solo', v: 'Authorized for 1 User/Seat.' },
-                  { l: 'Team', v: 'Authorized for up to 25 Users/Seats.' },
-                  { l: 'Studio', v: 'Authorized for up to 100 Users/Seats.' },
-                  { l: 'Enterprise', v: 'Unlimited Users/Seats within a single organization.' }
-                ].map((tier) => (
-                  <BrutalBox key={tier.l} className="bg-transparent">
-                     <span className="font-bold text-sm tracking-widest block mb-2">{tier.l}</span>
-                     <span className="text-xs normal-case text-gray-600 block leading-tight">{tier.v}</span>
+                  { title: 'Desktop / Print', metric: 'Based on Number of Users (1, 30, 100, or Unlimited).' },
+                  { title: 'Digital Media', metric: 'Based on Monthly Views (50K, 500K, 2M, or Unlimited).' },
+                  { title: 'Logo & Branding', metric: 'Based on Total Company Employees (Personal, 10, 50, 250, or 251+).' },
+                  { title: 'App / Game / Ebook', metric: 'Based on Number of Titles (1, 10, 50, or Unlimited).' },
+                  { title: 'Server', metric: 'Based on Number of Servers (Single, 50, or Unlimited).' },
+                  { title: 'Broadcast', metric: 'Based on Distribution Reach (Regional, National, or Worldwide).' }
+                ].map((item) => (
+                  <BrutalBox key={item.title} className="bg-transparent border-black/20">
+                     <span className="font-bold text-sm tracking-widest block mb-2 uppercase">{item.title}</span>
+                     <span className="text-xs normal-case text-gray-600 block leading-tight italic">{item.metric}</span>
                   </BrutalBox>
                 ))}
               </div>
@@ -121,40 +123,53 @@ const License: React.FC = () => {
           </section>
 
 
-          {/* 3. UNDERSTANDING SEAT BASED */}
+          {/* 3. ADDITIVE PRICING & BUNDLE SAVINGS */}
           <section className="grid grid-cols-1 md:grid-cols-[600px_1fr_250px] border-b border-black items-stretch">
             <div className="p-6 md:p-10 border-b md:border-b-0 md:border-r border-black flex items-start gap-8">
                <span className="text-8xl md:text-[120px] font-normal tracking-tighter leading-none -mt-2">03</span>
                <h3 className="text-3xl md:text-5xl font-normal tracking-tight leading-[1.1] mt-1">
-                 Installation <br/> Logic
+                 Pricing <br/> Logic
                </h3>
             </div>
 
             <div className="p-6 md:p-10 md:border-r border-black space-y-10">
-              <p className="text-lg md:text-xl font-normal normal-case leading-relaxed text-gray-800">
-                A "Seat" or "User" refers to a single installation on a single computer.
-              </p>
-              <ul className="space-y-8">
-                {[
-                  { t: "Single Installation", d: "If a studio purchases a Solo License, the font may only be installed on one (1) workstation at any given time." },
-                  { t: "Shared Environments", d: "Multiple people may use the font if they share the same physical computer. If moved, it must be uninstalled from the previous machine first." },
-                  { t: "Simultaneous Use", d: "To have the font installed on multiple computers at the same time, you must upgrade to the Team or Studio tier according to the number of active workstations." }
-                ].map((item, i) => (
-                  <li key={i} className="flex gap-4 items-start">
-                    <PlusBullet />
-                    <div className="space-y-1">
-                      <h4 className="font-bold text-sm tracking-widest uppercase">{item.t}</h4>
-                      <p className="text-base normal-case text-gray-600 leading-relaxed">{item.d}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <div className="space-y-8">
+                <div className="flex gap-4 items-start">
+                  <PlusBullet />
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-sm tracking-widest uppercase">Additive Selection:</h4>
+                    <p className="text-base normal-case text-gray-600 leading-relaxed">Licenses are sold individually. Selecting one license category (e.g., Logo) does not automatically cover others (e.g., Web). You only pay for exactly what you need.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-start bg-orange-50/50 p-4 border border-orange-200">
+                  <PlusBullet />
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-sm tracking-widest uppercase text-orange-600">Bundle Discount Rules:</h4>
+                    <p className="text-base normal-case text-gray-600 leading-relaxed italic">Get automated savings when purchasing multiple categories:</p>
+                    <ul className="text-xs font-bold space-y-1 mt-2 uppercase tracking-tighter">
+                      <li>• 3 Licenses: 15% OFF</li>
+                      <li>• 4 Licenses: 20% OFF</li>
+                      <li>• 5 Licenses: 25% OFF</li>
+                    </ul>
+                    <p className="text-[10px] normal-case text-gray-400 mt-2">*Note: Discounts only apply to license tiers with a minimum value of $250 each.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-start">
+                  <PlusBullet />
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-sm tracking-widest uppercase">Automatic Corporate Switch:</h4>
+                    <p className="text-base normal-case text-gray-600 leading-relaxed">If the cumulative price of your selection (after bundle discounts) meets or exceeds the Corporate All-In-One price, the system will automatically upgrade your license to the Corporate tier.</p>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="hidden md:block bg-transparent" />
           </section>
 
 
-          {/* 4. LICENSE CATEGORIES */}
+          {/* 4. LICENSE DEFINITIONS */}
           <section className="grid grid-cols-1 md:grid-cols-[600px_1fr_250px] border-b border-black items-stretch">
             <div className="p-6 md:p-10 border-b md:border-b-0 md:border-r border-black flex items-start gap-8">
                <span className="text-8xl md:text-[120px] font-normal tracking-tighter leading-none -mt-2">04</span>
@@ -166,12 +181,12 @@ const License: React.FC = () => {
             <div className="p-6 md:p-10 md:border-r border-black space-y-12">
               <div className="grid grid-cols-1 gap-y-10">
                 {[
-                  { title: "A. Desktop License", desc: "Grants the right to install the font software on a local machine to create static visual content (PNG, JPG, PDF) for digital and print media, including commercial projects." },
-                  { title: "B. Social Media & Web License (Reach Based)", desc: "Specifically for digital platforms, including website embedding and social media content (Instagram, TikTok, YouTube, etc.). Tiered by monthly impressions: Small (50k), Medium (500k), Large (5m), Enterprise (Unlimited)." },
-                  { title: "C. Logo & Branding License", desc: "Grants the right to utilize the font as a core element of a visual identity system, including logos and wordmarks." },
-                  { title: "D. App / SaaS License", desc: "Grants the right to embed the font software into mobile applications, software, or SaaS platforms." },
-                  { title: "E. Broadcast License", desc: "Grants the right to utilize the font software in motion graphics, television, cinema, streaming services, and video advertisements." },
-                  { title: "F. Server License", desc: "Grants the right to install the font software on a server to facilitate end-user product customization (Web-to-Print)." },
+                  { title: "A. Desktop / Print", desc: "Install on workstations to create static content (PNG, JPG, PDF) for digital and print media. Tiered by number of users." },
+                  { title: "B. Digital Media (Social/Web)", desc: "Specifically for digital platforms, including website embedding and social media content. Tiered by monthly impressions/views." },
+                  { title: "C. Logo & Branding", desc: "Utilize the font as a core element of a visual identity system. Tiered by the total number of employees in the organization." },
+                  { title: "D. App / Game / Ebook", desc: "Embed the font software into mobile applications, software, games, or electronic publications. Tiered by number of titles/projects." },
+                  { title: "E. Broadcast", desc: "Utilize the font in motion graphics, television, cinema, streaming services, and video advertisements. Tiered by geographical reach." },
+                  { title: "F. Server", desc: "Install on a server to facilitate end-user product customization (Web-to-Print services). Tiered by number of active servers." },
                 ].map((item) => (
                    <div key={item.title} className="flex gap-4 items-start">
                      <PlusBullet />
@@ -181,10 +196,10 @@ const License: React.FC = () => {
                      </div>
                    </div>
                 ))}
-                <div className="mt-4 bg-black text-white p-8 border border-black">
-                  <h4 className="font-bold text-xl md:text-2xl mb-4 tracking-tight uppercase">G. Corporate Full Suite</h4>
-                  <p className="text-base md:text-lg normal-case leading-relaxed text-gray-400">
-                    A comprehensive "All-in-One" license covering all usages (Desktop, Web, Logo, App, Broadcast, and Server) for an entire corporation with no limits on seats or impressions.
+                <div className="mt-4 bg-black text-white p-8 border border-black shadow-[8px_8px_0px_0px_rgba(234,88,12,1)]">
+                  <h4 className="font-bold text-xl md:text-2xl mb-4 tracking-tight uppercase">G. Corporate All-In-One</h4>
+                  <p className="text-base md:text-lg normal-case leading-relaxed text-gray-400 italic">
+                    The ultimate comprehensive license. Covers all six categories (Desktop, Web, Logo, App, Broadcast, and Server) with unlimited scale for the entire corporation.
                   </p>
                 </div>
               </div>
@@ -193,7 +208,7 @@ const License: React.FC = () => {
           </section>
 
 
-          {/* 5. GENERAL RESTRICTIONS */}
+          {/* 5. INTELLECTUAL PROPERTY */}
           <section className="grid grid-cols-1 md:grid-cols-[600px_1fr_250px] border-b border-black items-stretch">
             <div className="p-6 md:p-10 border-b md:border-b-0 md:border-r border-black flex items-start gap-8">
                <span className="text-8xl md:text-[120px] font-normal tracking-tighter leading-none -mt-2">05</span>
@@ -206,8 +221,9 @@ const License: React.FC = () => {
               <ul className="space-y-6">
                 {[
                   "You may not sell, rent, sublicense, or redistribute the font files to any third party.",
-                  "You may not modify, adapt, or decompile the font software.",
-                  "The font software and its intellectual property remain the sole property of Subqi Studio."
+                  "You may not modify, adapt, or decompile the font software binaries.",
+                  "The font software and its intellectual property remain the sole property of Subqi Studio.",
+                  "Backup copies are permitted for archival purposes only on the Licensee's secure server."
                 ].map((rule, i) => (
                   <li key={i} className="flex items-start gap-6">
                     <PlusBullet /> 
@@ -232,8 +248,8 @@ const License: React.FC = () => {
             <div className="p-6 md:p-10 md:border-r border-black">
               <BrutalBox className="bg-transparent border-black">
                 <p className="text-base md:text-xl font-normal normal-case leading-relaxed text-black">
-                  <span className="font-bold uppercase tracking-wider mr-2 italic">Warning:</span>
-                  Subqi Studio reserves the right to terminate the license immediately if the Licensee fails to comply with any of the terms stated above, including exceeding the authorized seat count.
+                  <span className="font-bold uppercase tracking-wider mr-2 italic text-red-600">Violation:</span>
+                  Subqi Studio reserves the right to terminate the license immediately if the Licensee fails to comply with any terms, including using tiers lower than their actual industry scale.
                 </p>
               </BrutalBox>
             </div>
