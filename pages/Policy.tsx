@@ -52,11 +52,11 @@ const License: React.FC = () => {
             License Agreement
           </h2>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <p className="text-xs md:text-sm font-normal text-gray-600 uppercase tracking-widest">
+            <p className="text-xs md:text-sm font-semibold text-gray-600 uppercase tracking-widest">
               Clear Additive Terms for Creative Freedom
             </p>
             {/* Info Terakhir Update */}
-            <p className="text-[10px] md:text-xs font-normal text-black/40 uppercase tracking-widest">
+            <p className="text-[10px] md:text-xs font-semibold text-black/40 uppercase tracking-widest">
              LAST UPDATED: FEBRUARY 21, 2026
             </p>
           </div>
