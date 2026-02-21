@@ -130,12 +130,46 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     return discount > 0 ? Math.round(baseAfterBundle * (1 - discount / 100)) : Math.round(baseAfterBundle);
   }, [selectedUsages, selectedTiers, isCorporate, isTrial, prices, discount]);
 
-  const handleAdd = (redirect: boolean = false) => {
+  
+
+    // FIXED: Logika hitung penghematan (Original Price vs Total Price)
+  const savingsInfo = useMemo(() => {
+    if (!prices || isTrial) return null;
+    let originalPrice = 0;
+
+    if (isCorporate) {
+      // Bandingkan Corporate dengan total harga MAKSIMAL dari ke-6 kategori lisensi
+      usageHierarchy.forEach(u => {
+        const tiers = (prices as any)[u];
+        if (tiers) {
+          const values = Object.values(tiers) as number[];
+          originalPrice += Math.max(...values);
+        }
+      });
+    } else {
+      if (selectedUsages.length === 0) return null;
+      // Bandingkan total eceran terpilih SEBELUM diskon bundling & promo
+      selectedUsages.forEach(u => {
+        originalPrice += (prices as any)[u]?.[selectedTiers[u]] || 0;
+      });
+    }
+
+    const savedAmount = originalPrice - totalPrice;
+    const savedPercent = originalPrice > 0 ? Math.round((savedAmount / originalPrice) * 100) : 0;
+
+    return savedAmount > 0 ? { amount: savedAmount, percent: savedPercent } : null;
+  }, [prices, isCorporate, isTrial, selectedUsages, selectedTiers, totalPrice, usageHierarchy]);
+
     const finalUsages = [...selectedUsages];
     if (hasHigherTier && !finalUsages.includes('desktop')) {
       finalUsages.push('desktop');
     }
-
+    
+const handleAdd = (redirect: boolean = false) => {
+    const finalUsages = [...selectedUsages];
+    if (hasHigherTier && !finalUsages.includes('desktop')) {
+      finalUsages.push('desktop');
+    }
     // FIXED: Menggunakan selectedTiers['social_web'] untuk mengganti webTier yang hilang
     const currentWebTier = selectedTiers['social_web'];
     const metadata = {
@@ -219,7 +253,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
           {/* 02. LICENSE CATEGORIES & SPECIFIC TIERS */}
           <div className="md:col-span-12">
-            <label className="text-[10px] font-bold tracking-[0.2em] mb-6 block text-black/40 uppercase">LICENSE CATEGORIES & SPECIFIC TIERS (ADDITIVE PRICING)</label>
+            <label className="text-[10px] font-bold tracking-[0.2em] mb-6 block text-black/40 uppercase">LICENSE CATEGORIES (CAN SELECT MULTIPLE)</label>
             <div className="flex flex-col gap-4 mb-3">
               {/* FIXED: Tombol TRY IT FIRST di posisi paling atas & otomatis disabled jika ada paid license */}
               <button onClick={handleTrialToggle} 
@@ -315,6 +349,14 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
               <span className="text-2xl font-bold mt-2 mr-1 tracking-tighter">$</span>
               <span className="text-8xl font-normal tracking-tighter leading-[0.7]">{totalPrice}</span>
             </div>
+            {/* FIXED: Menampilkan info penghematan di bawah Investment Total */}
+            {savingsInfo && (
+              <div className="mt-2 animate-in fade-in slide-in-from-left-2">
+                <span className="text-[10px] font-black text-orange-600 tracking-widest uppercase">
+                  You save ${savingsInfo.amount} ({savingsInfo.percent}% OFF)
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col items-center md:items-end gap-4 w-full md:w-auto">
