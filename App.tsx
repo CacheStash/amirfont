@@ -47,6 +47,8 @@ const CartConfiguratorModal = () => {
             fontId={selectedFont.id} // FIXED: Mengirimkan UUID asli dari database
             fontName={selectedFont.name} 
             prices={selectedFont.license_prices} 
+            
+            font_files={selectedFont.font_files}
             discount={selectedFont.activeDiscount || 0}
             // FIXED: Tambahkan baris di bawah ini agar CartCard menerima flag directCheckout
             directCheckout={selectedFont.directCheckout} 
