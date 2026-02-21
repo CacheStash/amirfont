@@ -174,15 +174,18 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   const handleCorporateToggle = () => {
     const becomingCorporate = !isCorporate;
     setIsCorporate(becomingCorporate);
-    setIsTrial(false);
-    // FIXED: Memilih Corporate otomatis membersihkan pilihan eceran
-    if (becomingCorporate) setSelectedUsages([]); 
+    setIsTrial(false); // FIXED: Memilih Corporate otomatis mematikan mode Trial
+    if (becomingCorporate) setSelectedUsages([]); // Bersihkan pilihan eceran
   };
 
   const handleTrialToggle = () => {
-    // FIXED: Opsi Trial otomatis disabled jika ada paid license yang terpilih (Eceran atau Corporate)
-    if (selectedUsages.length > 0 || isCorporate) return;
-    setIsTrial(!isTrial);
+    const becomingTrial = !isTrial;
+    setIsTrial(becomingTrial);
+    // FIXED: Memilih Trial otomatis mematikan semua opsi berbayar agar bisa pindah antar opsi dengan lancar
+    if (becomingTrial) {
+      setIsCorporate(false);
+      setSelectedUsages([]);
+    }
   };
 
   const TicketEdges = () => (
@@ -214,10 +217,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
             <div className="flex flex-col gap-4 mb-3">
               {/* FIXED: Tombol TRY IT FIRST di posisi paling atas & otomatis disabled jika ada paid license */}
               <button onClick={handleTrialToggle} 
-                disabled={selectedUsages.length > 0 || isCorporate}
-                className={`flex items-center justify-between p-5 border border-black transition-all ${
-                  (selectedUsages.length > 0 || isCorporate) ? 'opacity-20 cursor-not-allowed' : isTrial ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'
-                }`}>
+                className={`flex items-center justify-between p-5 border border-black transition-all ${isTrial ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}>
                 <span className="text-[11px] font-black tracking-widest">TRY IT FIRST (FREE DEMO VERSION)</span>
                 {isTrial ? <Check size={16} /> : <Plus size={16} />}
               </button>
@@ -264,8 +264,8 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
               })}
               
               {/* CORPORATE BUTTON: Mematikan opsi eceran jika dipilih */}
-              <button onClick={handleCorporateToggle} disabled={isTrial}
-                className={`flex items-center justify-between p-5 border border-black transition-all mt-4 ${isTrial ? 'opacity-20' : isCorporate ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}>
+              <button onClick={handleCorporateToggle} 
+                className={`flex items-center justify-between p-5 border border-black transition-all mt-4 ${isCorporate ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}>
                 <span className="text-[11px] font-black tracking-widest text-orange-600">CORPORATE (ALL-IN-ONE PACKAGE)</span>
                 {isCorporate ? <Check size={16} /> : <Plus size={16} />}
               </button>
