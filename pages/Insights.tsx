@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, ArrowRight, BookOpen } from 'lucide-react';
+import { Plus, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // Shared Bullet Style
@@ -7,114 +7,125 @@ const PlusBullet = () => (
   <Plus size={14} className="shrink-0 mt-[0.4em] text-black" strokeWidth={3} />
 );
 
-// Shared Box Style
+// Shared Box Style - Brutalist Standard
 const BrutalBox: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = "" }) => (
-  <div className={`border border-black p-8 ${className}`}>
+  <div className={`border border-black p-8 md:p-10 bg-white ${className}`}>
     {children}
   </div>
 );
 
 const Insights: React.FC = () => {
+  // Komponen InsightCard - Mengikuti Style TermCard License.tsx
+  const InsightCard: React.FC<{ 
+    number: string, 
+    title: string, 
+    category: string, 
+    children: React.ReactNode,
+    linkText: string 
+  }> = ({ number, title, category, children, linkText }) => (
+    <div className="mb-12 w-full border border-black bg-white relative z-10">
+      {/* Title Section: Nomor di sisi kiri title dengan text yang sama */}
+      <div className="border-b border-black p-6 md:p-10 bg-white">
+        <span className="text-[10px] font-black tracking-[0.3em] text-orange-600 block mb-4 uppercase">
+          {category}
+        </span>
+        <h3 className="text-3xl md:text-6xl font-normal tracking-tighter uppercase leading-none">
+          <span className="opacity-20 mr-4 md:mr-8">{number}</span>
+          {title}
+        </h3>
+      </div>
+
+      {/* Content Section */}
+      <div className="p-6 md:p-14 space-y-10 normal-case text-gray-800 leading-relaxed text-base md:text-xl">
+        <div className="flex gap-6 items-start">
+          <PlusBullet />
+          <div className="space-y-10 w-full">
+            {children}
+            
+            {/* Brutalist Action Link */}
+            <Link to="#" className="inline-flex items-center gap-6 group/link pt-4">
+              <span className="text-2xl md:text-4xl font-normal tracking-tighter uppercase border-b-4 border-black group-hover/link:border-orange-600 transition-colors">
+                {linkText}
+              </span>
+              <ArrowRight size={32} strokeWidth={1.5} className="group-hover/link:translate-x-4 transition-transform duration-300" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent overflow-x-hidden uppercase">
-      {/* BACKGROUND ORBS */}
+      
+      {/* VIBRANT BACKGROUND ORBS - Posisi Sinkron dengan License.tsx */}
       <div className="grain-orb-base orb-top-right" />
-      <div className="grain-orb-base orb-bottom-left" />
+      <div className="grain-orb-base orb-bottom-left !top-[40%] !-left-[15%] !opacity-40" />
+      <div className="grain-orb-base orb-top-right !top-auto !bottom-0 !-right-[10%] !bg-red-600/20" />
 
-      <div className="max-w-full mx-auto relative z-10">
-        {/* HEADER SECTION */}
-        <header className="px-6 py-12 md:px-8 border-b border-black bg-transparent">
+      <div className="w-full relative z-10">
+        {/* HEADER SECTION - Konsisten dengan License/Policy/FAQ */}
+        <header className="px-6 py-16 md:px-8 border-b border-black mb-12 bg-transparent text-left">
           <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-6">
             The Type Lab
           </h2>
-          <p className="text-xs md:text-sm font-normal text-gray-600 tracking-widest normal-case">
-            Tips, Tricks, and Typography Trends.
-          </p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <p className="text-xs md:text-sm font-semibold text-gray-600 uppercase tracking-widest">
+              Tips, Tricks, and Typography Trends.
+            </p>
+            <p className="text-[10px] md:text-xs font-semibold text-black/40 uppercase tracking-widest">
+              — LAST UPDATED: FEBRUARY 21, 2026
+            </p>
+          </div>
         </header>
 
         {/* CONTENT MAIN */}
-        <main className="w-full">
+        <main className="px-3 md:px-8 max-w-full mx-auto text-left">
           
-          {/* ========================== 
-              STRUCTURE: [600px] | [1fr] | [250px]
-          ========================== */}
+          {/* ARTICLE 01 */}
+          <InsightCard 
+            number="01" 
+            category="Philosophy / Story" 
+            title="The Art of the Slow Curve"
+            linkText="Read the Story"
+          >
+            <p className="text-lg md:text-2xl">
+              In my studio in Sleman, time moves differently. This insight explores why hand-sketching remains a vital ritual before digital execution, ensuring every curve retains a human heartbeat.
+            </p>
+            <BrutalBox className="bg-[#f9f9f9] border-black/10">
+               <p className="text-sm md:text-lg italic opacity-70">
+                 "Slowing down is not a delay; it is the process of embedding intent into every anchor point."
+               </p>
+            </BrutalBox>
+          </InsightCard>
 
-          
+          {/* ARTICLE 02 */}
+          <InsightCard 
+            number="02" 
+            category="Technical / Licensing" 
+            title="Choosing the Right Seat"
+            linkText="Read the Guide"
+          >
+            <p className="text-lg md:text-2xl">
+              Licensing shouldn't be a barrier to creativity. We break down our Solo, Team, and Studio tiers in plain language, helping you navigate legal compliance with confidence.
+            </p>
+          </InsightCard>
 
-          {/* ARTICLE 1: The Art of the Slow Curve */}
-          <article className="grid grid-cols-1 md:grid-cols-[600px_1fr_250px] border-b border-black items-stretch group cursor-pointer hover:bg-black/5 transition-colors">
-            <div className="p-6 md:p-10 border-b md:border-b-0 md:border-r border-black flex flex-col justify-between">
-               <span className="text-[10px] font-bold tracking-[0.3em] text-gray-400 mb-8 uppercase">Philosophy / Story</span>
-               <h3 className="text-3xl md:text-5xl font-normal tracking-tight leading-[1.1] group-hover:translate-x-2 transition-transform duration-500">
-                 The Art of the <br/> Slow Curve
-               </h3>
-            </div>
-            <div className="p-6 md:p-10 md:border-r border-black space-y-8">
-              <div className="flex gap-4 items-start">
-                <PlusBullet />
-                <p className="text-base md:text-lg normal-case text-gray-700 leading-relaxed">
-                  In my studio in Sleman, time moves differently. In this post, I talk about why I still prefer to sketch by hand before touching the computer, and how "slowing down" actually makes your designs feel more human.
-                </p>
-              </div>
-              <Link to="#" className="inline-flex items-center gap-4 group/link">
-                <span className="text-xl md:text-2xl font-bold tracking-tighter uppercase border-b-2 border-black group-hover/link:border-red-600 transition-colors">Read the Story</span>
-                <ArrowRight size={24} className="group-hover/link:translate-x-2 transition-transform" />
-              </Link>
-            </div>
-            <div className="hidden md:block bg-transparent" />
-          </article>
-
-          {/* ARTICLE 2: Choosing the Right Seat */}
-          <article className="grid grid-cols-1 md:grid-cols-[600px_1fr_250px] border-b border-black items-stretch group cursor-pointer hover:bg-black/5 transition-colors">
-            <div className="p-6 md:p-10 border-b md:border-b-0 md:border-r border-black flex flex-col justify-between">
-               <span className="text-[10px] font-bold tracking-[0.3em] text-gray-400 mb-8 uppercase">Technical / Licensing</span>
-               <h3 className="text-3xl md:text-5xl font-normal tracking-tight leading-[1.1] group-hover:translate-x-2 transition-transform duration-500">
-                 Choosing the <br/> Right "Seat"
-               </h3>
-            </div>
-            <div className="p-6 md:p-10 md:border-r border-black space-y-8">
-              <div className="flex gap-4 items-start">
-                <PlusBullet />
-                <p className="text-base md:text-lg normal-case text-gray-700 leading-relaxed">
-                  Licensing can feel like a headache. Let’s break down our Solo, Team, and Studio tiers in plain English so you can focus on creating, knowing your legal bases are covered.
-                </p>
-              </div>
-              <Link to="#" className="inline-flex items-center gap-4 group/link">
-                <span className="text-xl md:text-2xl font-bold tracking-tighter uppercase border-b-2 border-black group-hover/link:border-red-600 transition-colors">Read the Guide</span>
-                <ArrowRight size={24} className="group-hover/link:translate-x-2 transition-transform" />
-              </Link>
-            </div>
-            <div className="hidden md:block bg-transparent" />
-          </article>
-
-          {/* ARTICLE 3: Finding Peace */}
-          <article className="grid grid-cols-1 md:grid-cols-[600px_1fr_250px] border-b border-black items-stretch group cursor-pointer hover:bg-black/5 transition-colors">
-            <div className="p-6 md:p-10 border-b md:border-b-0 md:border-r border-black flex flex-col justify-between">
-               <span className="text-[10px] font-bold tracking-[0.3em] text-gray-400 mb-8 uppercase">Life / Routine</span>
-               <h3 className="text-3xl md:text-5xl font-normal tracking-tight leading-[1.1] group-hover:translate-x-2 transition-transform duration-500">
-                 Finding Peace <br/> in the Noise
-               </h3>
-            </div>
-            <div className="p-6 md:p-10 md:border-r border-black space-y-8">
-              <div className="flex gap-4 items-start">
-                <PlusBullet />
-                <p className="text-base md:text-lg normal-case text-gray-700 leading-relaxed">
-                  How do we stay creative when the world feels loud? I share my routine for staying focused in a one-man studio and how the peace of my surroundings helps shape the fonts you use.
-                </p>
-              </div>
-              <Link to="#" className="inline-flex items-center gap-4 group/link">
-                <span className="text-xl md:text-2xl font-bold tracking-tighter uppercase border-b-2 border-black group-hover/link:border-red-600 transition-colors">Read More</span>
-                <ArrowRight size={24} className="group-hover/link:translate-x-2 transition-transform" />
-              </Link>
-            </div>
-            <div className="hidden md:block bg-transparent" />
-          </article>
-
-          
+          {/* ARTICLE 03 */}
+          <InsightCard 
+            number="03" 
+            category="Life / Routine" 
+            title="Finding Peace in the Noise"
+            linkText="Read More"
+          >
+            <p className="text-lg md:text-2xl">
+              How do we maintain creative focus in an era of constant digital noise? Insights into a one-man studio routine and how tranquil surroundings influence the architecture of type.
+            </p>
+          </InsightCard>
 
         </main>
 
-        {/* FOOTER SPACER */}
+        {/* Footer Spacer */}
         <div className="h-40 md:h-60 bg-transparent" />
       </div>
     </div>
