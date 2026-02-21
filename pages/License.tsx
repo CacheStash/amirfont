@@ -14,53 +14,59 @@ const BrutalBox: React.FC<{ children: React.ReactNode, className?: string }> = (
 );
 
 const License: React.FC = () => {
-  // Komponen Kartu Term dengan Efek Perforasi 4 Sisi (Transparan Murni + Outline Mengikuti Lekukan)
+  // Komponen Kartu Term dengan Efek Perforasi 4 Sisi & Outline Mengikuti Lekukan
   const TermCard: React.FC<{ number: string, title: string, children: React.ReactNode }> = ({ number, title, children }) => (
-    <div 
-      className="relative mb-24 w-full group"
-      style={{
-        // FIXED: Drop-shadow ditaruh di sini agar mendeteksi transparansi lubang masker di dalamnya.
-        // Ini menciptakan "contour border" hitam 1px yang melengkung mengikuti lubang.
-        filter: `
-          drop-shadow(1px 0 0 black) 
-          drop-shadow(-1px 0 0 black) 
-          drop-shadow(0 1px 0 black) 
-          drop-shadow(0 -1px 0 black)
-        `
-      }}
-    >
-      {/* 1. MASKED BACKGROUND LAYER */}
+    <div className="relative mb-24 w-full group">
+      {/* OUTLINE LOGIC: Menggunakan filter drop-shadow pada pembungkus luar.
+        Filter ini mendeteksi transparansi lubang masker di dalamnya dan menggambar 
+        garis hitam yang melengkung mengikuti tekstur bolong.
+      */}
       <div 
-        className="absolute inset-0 bg-white pointer-events-none"
+        className="relative"
         style={{
-          // MASK LOGIC: 
-          // Layer 1 (Solid): Menambal bagian tengah (calc 100% - margin lubang) agar TIDAK bolong.
-          // Layer 2 (Pattern): Membuat pola lubang di seluruh permukaan.
-          // Menggunakan WebkitMaskComposite 'source-over' untuk menggabungkan keduanya.
-          WebkitMaskImage: `
-            linear-gradient(black, black),
-            radial-gradient(circle at 32px 32px, transparent 15px, black 16px)
-          `,
-          WebkitMaskSize: 'calc(100% - 64px) calc(100% - 64px), 64px 64px',
-          WebkitMaskPosition: 'center center, -32px -32px',
-          WebkitMaskRepeat: 'no-repeat, repeat',
+          filter: `
+            drop-shadow(1px 0 0 black) 
+            drop-shadow(-1px 0 0 black) 
+            drop-shadow(0 1px 0 black) 
+            drop-shadow(0 -1px 0 black)
+          `
         }}
-      />
+      >
+        {/* 1. MASKED BACKGROUND LAYER (White Ticket Surface) */}
+        <div 
+          className="bg-white pointer-events-none"
+          style={{
+            // MASK LOGIC: 
+            // Layer 1 (radial): Membuat pola lubang.
+            // Layer 2 (linear): Kotak solid di tengah agar interior TIDAK bolong.
+            WebkitMaskImage: `
+              radial-gradient(circle at 25px 25px, transparent 14px, black 15px),
+              linear-gradient(black, black)
+            `,
+            // FIXED: 'round' memastikan lubang tidak pernah menumpuk/overlapping
+            WebkitMaskSize: '50px 50px, calc(100% - 50px) calc(100% - 50px)',
+            WebkitMaskPosition: '-25px -25px, center center',
+            WebkitMaskRepeat: 'round, no-repeat',
+            WebkitMaskComposite: 'destination-out',
+            maskComposite: 'exclude'
+          }}
+        >
+          {/* 2. CONTENT CONTAINER */}
+          <div className="p-10 md:p-24 relative z-10">
+            {/* Title in one line - Font nomor disamakan dengan judul */}
+            <div className="flex items-baseline gap-4 mb-6">
+              <span className="text-3xl md:text-7xl font-normal tracking-tighter uppercase opacity-20 leading-none">{number}</span>
+              <h3 className="text-3xl md:text-7xl font-normal tracking-tighter uppercase leading-none">{title}</h3>
+            </div>
 
-      {/* 2. CONTENT LAYER (Isi Konten) */}
-      <div className="relative z-10 p-12 md:p-24">
-        {/* Title in one line - Nomor disamakan fontnya dengan judul */}
-        <div className="flex items-baseline gap-6 mb-8">
-          <span className="text-3xl md:text-7xl font-normal tracking-tighter uppercase opacity-20 leading-none">{number}</span>
-          <h3 className="text-3xl md:text-7xl font-normal tracking-tighter uppercase leading-none">{title}</h3>
-        </div>
+            {/* Separator line --------------------------- */}
+            <div className="w-full border-b-2 border-black/10 mb-12" />
 
-        {/* Separator line --------------------------- */}
-        <div className="w-full border-b-2 border-black/10 mb-14" />
-
-        {/* Konten */}
-        <div className="space-y-12">
-          {children}
+            {/* Konten */}
+            <div className="space-y-12 normal-case text-black">
+              {children}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -117,10 +123,10 @@ const License: React.FC = () => {
               {[
                 { title: 'Desktop / Print', metric: 'Based on Number of Users (1, 30, 100, or Unlimited).' },
                 { title: 'Digital Media (Social/Web)', metric: 'Based on Monthly Impressions/Views (50K, 500K, 2M, or Unlimited).' },
-                { title: 'Logo & Branding', metric: 'Based on Total Company Employees (Personal, 10, 50, 250, or 251+).' },
+                { title: 'Logo & Branding', metric: 'Based on Total Organization Employees (Personal, 10, 50, 250, or 251+).' },
                 { title: 'App / Game / Ebook', metric: 'Based on Number of Titles (1, 10, 50, or Unlimited).' },
                 { title: 'Server', metric: 'Based on Number of Active Servers (Single, 50, or Unlimited).' },
-                { title: 'Broadcast', metric: 'Based on Distribution Reach (Regional, National, or Worldwide).' }
+                { title: 'Broadcast', metric: 'Based on Geographical Distribution Reach (Regional, National, or Worldwide).' }
               ].map((item) => (
                 <BrutalBox key={item.title} className="bg-transparent border-black/20 p-12">
                    <span className="font-black text-sm tracking-widest block mb-4 uppercase">{item.title}</span>
@@ -160,7 +166,7 @@ const License: React.FC = () => {
                 <PlusBullet />
                 <div className="space-y-4">
                   <h4 className="font-black text-lg tracking-widest uppercase">Automatic Corporate Switch</h4>
-                  <p className="text-lg md:text-xl normal-case text-gray-600 leading-relaxed">If the cumulative price of your selection meets or exceeds the Corporate package value, the system automatically upgrades you to the All-In-One Corporate License.</p>
+                  <p className="text-lg md:text-xl normal-case text-gray-600 leading-relaxed">If the cumulative price of your selection meets or exceeds the Corporate price, the system automatically upgrades you to the All-In-One Corporate License.</p>
                 </div>
               </div>
             </div>
@@ -174,7 +180,7 @@ const License: React.FC = () => {
                 { title: "B. Digital Media (Social/Web)", desc: "Specifically for digital platforms, including website embedding and social media advertising." },
                 { title: "C. Logo & Branding", desc: "Utilize the font as a core element of a visual identity system (Logos, Wordmarks)." },
                 { title: "D. App / Game / Ebook", desc: "Embed font software into mobile applications, games, or electronic publications." },
-                { title: "E. Broadcast", desc: "For motion graphics, television, cinema, streaming services, and video advertisements." },
+                { title: "E. Broadcast", desc: "For motion graphics, television, cinema, streaming, and video advertisements." },
                 { title: "F. Server", desc: "Install on a server to facilitate automated end-user customization (Web-to-Print)." },
               ].map((item) => (
                  <div key={item.title} className="flex gap-8 items-start">
