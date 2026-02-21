@@ -21,8 +21,11 @@ interface CartContextType {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
   removeFromCart: (cartId: string) => void;
+  clearCart: () => void;
   cartCount: number;
+  
   // Modal Control
+  
   isModalOpen: boolean;
   selectedFont: any | null;
   openConfigurator: (font: any) => void;
@@ -55,11 +58,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCart((prev) => prev.filter(item => item.cartId !== cartId));
   };
 
+  const clearCart = () => {
+    setCart([]);
+  };
+
   return (
     <CartContext.Provider value={{ 
-      cart, addToCart, removeFromCart, cartCount: cart.length, 
+      cart, addToCart, removeFromCart, clearCart, cartCount: cart.length, 
       isModalOpen, selectedFont, openConfigurator, closeConfigurator 
     }}>
+    
       {children}
     </CartContext.Provider>
   );

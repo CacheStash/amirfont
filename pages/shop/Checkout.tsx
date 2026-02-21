@@ -7,12 +7,14 @@ import { supabase } from '../../lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 const Checkout: React.FC = () => {
-  const { cart } = useCart();
+  const { cart, clearCart } = useCart();
   const [user, setUser] = React.useState<User | null>(null);
+  const orderId = React.useMemo(() => `SQ-${Math.floor(100000 + Math.random() * 900000)}`, []);
   const [loading, setLoading] = React.useState(false);
 const [email, setEmail] = React.useState(''); 
   const [isPaid, setIsPaid] = React.useState(false);
   const [subscribe, setSubscribe] = React.useState(true);
+  const [purchasedItems, setPurchasedItems] = React.useState<any[]>([]);
 
   // AUTH & PRE-FILL: Menggunakan getSession agar lebih instan dibanding getUser
   React.useEffect(() => {
@@ -34,7 +36,7 @@ const [email, setEmail] = React.useState('');
   }, []);
   
   const total = cart.reduce((acc, curr) => acc + curr.price, 0);
-  const orderId = `SQ-${Math.floor(100000 + Math.random() * 900000)}`;
+ 
 
 
 
@@ -81,9 +83,14 @@ const [email, setEmail] = React.useState('');
         await supabase.from('fontsubscribers').upsert({ email, source: 'checkout_purchase' });
       }
 
+      // FIXED: Alur baru - Jangan redirect, tapi tampilkan unduhan di tempat
+      
       setIsPaid(true);
+      setPurchasedItems([...cart]);
+      clearCart();
+      
     } catch (err: any) {
-      alert("PROCESS_ERROR: " + err.message);
+      alert("ERROR: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -176,7 +183,9 @@ if (subscribe) {
         ? `/user/auth?email=${encodeURIComponent(email)}&key=${encodeURIComponent(orderId)}`
         : `/user/auth?email=${encodeURIComponent(email)}`; // User lama harus pakai password asli
       
-      window.location.href = authUrl;
+      setPurchasedItems([...cart]);
+      setIsPaid(true);
+      clearCart();
       
     } catch (err: any) {
       alert("ERROR: " + err.message);
@@ -288,6 +297,20 @@ if (subscribe) {
                   placeholder="NAME@DOMAIN.COM"
                   required
                 />
+
+                {/* FIXED: Tombol Claim muncul di bawah input email jika total 0 dan email valid */}
+                {total === 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
+                  <button 
+                    onClick={handleFreeTrial}
+                    disabled={loading}
+                    className="w-full mt-6 bg-orange-600 text-white py-5 text-sm font-black tracking-[0.2em] hover:invert transition-all disabled:opacity-50 animate-in slide-in-from-top-2"
+                  >
+                    {loading ? "PROCESSING..." : "CLAIM FREE DEMO ACCESS"}
+                  </button>
+                )}
+
+                
+
                 {/* SUBSCRIBE OPTION */}
                 <label className="flex items-center gap-3 cursor-pointer group mt-4">
                   <div className="relative flex items-center">
@@ -313,29 +336,36 @@ if (subscribe) {
             {isPaid && (
               <div className="mb-12 p-8 border-4 border-double border-green-600 bg-green-50 text-center animate-in zoom-in-95">
                 <h4 className="text-2xl font-black text-green-600 mb-2 italic">PAYMENT_SUCCESSFUL</h4>
-                <p className="text-[10px] font-bold mb-6 text-black/60">
-                  LOGIN CREATED. PASSWORD: <span className="bg-yellow-300 px-2 text-black">{orderId}</span>
+                <p className="text-[10px] font-bold mb-6 text-black/60 uppercase tracking-widest">
+                  ACCESS GRANTED. {purchasedItems.length} FONT(S) ADDED TO YOUR LIBRARY.
                 </p>
                 <div className="flex flex-col gap-3">
-                  {cart.map((item) => (
+                  {/* FIXED: Gunakan purchasedItems (karena cart sudah kosong) */}
+                  {purchasedItems.map((item) => (
                     <button 
                       key={item.cartId}
                       onClick={() => handleSecureDownload(
-                        // FIXED: Gunakan trialFileUrl jika GRATIS, gunakan font_files jika BERBAYAR.
-                        total === 0 
+                        item.price === 0 
                           ? (item.trialFileUrl || 'null') 
                           : (item.font_files?.[0] || 'null'), 
-                        total === 0 ? 'trial' : 'full'
+                        item.price === 0 ? 'trial' : 'full'
                       )}
                       className="bg-black text-white px-8 py-5 font-black tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-4"
                     >
                       DOWNLOAD_{item.name.replace(/\s+/g, '_')}_ZIP
                     </button>
                   ))}
+
+                  {/* FIXED: Pindah button "Go To My Library" ke sini */}
+                  <Link 
+                    to="/user/dashboard"
+                    className="w-full mt-4 bg-transparent border-2 border-black text-black py-5 text-center text-sm font-black tracking-[0.2em] hover:bg-black hover:text-white transition-all flex items-center justify-center gap-4 group"
+                  >
+                    MANAGE ALL FONTS IN LIBRARY <Plus size={18} className="group-hover:rotate-90 transition-transform"/>
+                  </Link>
                 </div>
               </div>
             )}
-
             
 
             {/* Dual Payment Gateway Section */}
@@ -351,14 +381,8 @@ if (subscribe) {
                     {total === 0 ? "NO PAYMENT REQUIRED" : "QRIS / VIRTUAL ACCOUNT / GOPAY"}
                   </span>
                   
-                  {isPaid ? (
-                    <Link 
-                      to="/user/dashboard"
-                      className="w-full bg-green-600 text-white py-5 text-center text-sm font-black tracking-[0.2em] hover:invert transition-all"
-                    >
-                      GO TO MY LIBRARY
-                    </Link>
-                  ) : (
+                  {/* FIXED: Hilangkan tombol Library dari sini agar tidak double */}
+                  {!isPaid && (
                     <button 
                       onClick={total === 0 ? handleFreeTrial : () => alert("Midtrans Coming Soon...")}
                       disabled={loading}
