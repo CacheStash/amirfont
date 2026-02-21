@@ -14,60 +14,54 @@ const BrutalBox: React.FC<{ children: React.ReactNode, className?: string }> = (
 );
 
 const License: React.FC = () => {
-  // Komponen Kartu Term dengan Efek Perforasi yang Benar (Bolong Tepi Saja + Outline Mengikuti)
-  const TermCard: React.FC<{ number: string, title: string, children: React.ReactNode }> = ({ number, title, children }) => {
-    // Helper untuk membuat barisan lubang
-    const RenderPunches = (side: 'top' | 'bottom' | 'left' | 'right') => {
-      const isVertical = side === 'left' || side === 'right';
-      // FIXED: Kerapatan sisi samping dibuat lebih renggang (15 lubang) dibanding atas/bawah (30 lubang)
-      const count = isVertical ? 15 : 30;
-      
-      return (
-        <div className={`absolute flex z-20 pointer-events-none ${
-          side === 'top' ? 'top-0 left-0 w-full -translate-y-1/2 justify-around' : 
-          side === 'bottom' ? 'bottom-0 left-0 w-full translate-y-1/2 justify-around' :
-          side === 'left' ? 'top-0 left-0 h-full -translate-x-1/2 flex-col justify-around' :
-          'top-0 right-0 h-full translate-x-1/2 flex-col justify-around'
-        }`}>
-          {[...Array(count)].map((_, i) => (
-            <div 
-              key={i} 
-              className="w-5 h-5 rounded-full border border-black bg-[#EDEBE6]" 
-              style={{ boxShadow: 'inset 0 0 10px rgba(0,0,0,0.05)' }}
-            />
-          ))}
+  // Komponen Kartu Term dengan Efek Perforasi Tiket Asli (Bolong Transparan + Outline Mengikuti)
+  const TermCard: React.FC<{ number: string, title: string, children: React.ReactNode }> = ({ number, title, children }) => (
+    <div className="relative mb-20 w-full group">
+      {/* 1. BACKGROUND LAYER (Card Shape with True Transparency & Outline) */}
+      <div 
+        className="absolute inset-0 bg-white pointer-events-none"
+        style={{
+          // MASK LOGIC: 
+          // Layer 1 (Solid Center): Mengunci bagian tengah agar tidak bolong.
+          // Layer 2 (Repeating Circles): Membuat pola lubang di seluruh permukaan.
+          // Karena Layer 1 ada di atas (first in list), ia menutupi lubang di tengah.
+          WebkitMaskImage: `
+            linear-gradient(black, black),
+            radial-gradient(circle at 18px 18px, transparent 11px, black 11.5px)
+          `,
+          WebkitMaskSize: 'calc(100% - 36px) calc(100% - 36px), 36px 36px',
+          WebkitMaskPosition: 'center center, -18px -18px',
+          WebkitMaskRepeat: 'no-repeat, repeat',
+          
+          // OUTLINE LOGIC:
+          // Menggunakan 4 drop-shadow tajam untuk mensimulasikan border 1px yang mengikuti lekukan mask.
+          filter: `
+            drop-shadow(1px 0 0 black) 
+            drop-shadow(-1px 0 0 black) 
+            drop-shadow(0 1px 0 black) 
+            drop-shadow(0 -1px 0 black)
+            drop-shadow(20px 20px 0px rgba(0,0,0,0.05))
+          `
+        }}
+      />
+
+      {/* 2. CONTENT LAYER (Isi Konten) */}
+      <div className="relative z-10 p-10 md:p-20">
+        {/* Title in one line */}
+        <div className="flex items-baseline gap-4 mb-6">
+          <span className="text-xl md:text-3xl font-black opacity-20">{number}</span>
+          <h3 className="text-2xl md:text-6xl font-normal tracking-tighter uppercase">{title}</h3>
         </div>
-      );
-    };
 
-    return (
-      <div className="relative mb-20 w-full group">
-        {/* Lubang di 4 Sisi - Menggunakan bg-[#EDEBE6] untuk simulasi bolong transparan yang menyatu dengan page bg */}
-        {RenderPunches('top')}
-        {RenderPunches('bottom')}
-        {RenderPunches('left')}
-        {RenderPunches('right')}
+        {/* Separator line --------------------------- */}
+        <div className="w-full border-b-2 border-black/10 mb-12" />
 
-        {/* BACKGROUND LAYER (Putih Polos dengan Border Hitam) */}
-        <div className="relative bg-white border border-black z-10 shadow-[20px_20px_0px_0px_rgba(0,0,0,0.05)]">
-          <div className="p-8 md:p-20">
-            {/* Title in one line --------------------------- */}
-            <div className="flex items-baseline gap-4 mb-6">
-              <span className="text-xl md:text-3xl font-black opacity-20">{number}</span>
-              <h3 className="text-2xl md:text-6xl font-normal tracking-tighter uppercase">{title}</h3>
-            </div>
-
-            <div className="w-full border-b-2 border-black/10 mb-12" />
-
-            {/* Konten Utama */}
-            <div className="space-y-12">
-              {children}
-            </div>
-          </div>
+        <div className="space-y-12">
+          {children}
         </div>
       </div>
-    );
-  };
+    </div>
+  );
 
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-[#EDEBE6] overflow-x-hidden uppercase">
@@ -77,7 +71,7 @@ const License: React.FC = () => {
 
       <div className="w-full relative z-10">
         <header className="px-3 md:px-8 py-16 md:py-32 border-b border-black mb-20">
-          <h2 className="text-6xl md:text-[12rem] font-normal uppercase tracking-tighter leading-[0.8] mb-8">
+          <h2 className="text-6xl md:text-[11rem] font-normal uppercase tracking-tighter leading-[0.8] mb-8">
             License Agreement
           </h2>
           <p className="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-[0.4em]">
@@ -94,9 +88,9 @@ const License: React.FC = () => {
             </p>
             <div className="space-y-8">
               {[
-                { label: "Usage Grant:", val: "Permitted only for personal, non-commercial projects (e.g., student assignments, portfolio pieces, or non-profit testing)." },
-                { label: "Character Set:", val: "The Demo version is a 'Trial' file and contains a limited glyph set with no advanced OpenType features." },
-                { label: "Restrictions:", val: "You may not use the Demo version for any business, promotional, social media advertising, or revenue-generating activities." }
+                { label: "Usage Grant:", val: "Permitted only for personal, non-commercial projects (e.g., student assignments or portfolio pieces)." },
+                { label: "Character Set:", val: "The Demo version is a 'Trial' file and contains a limited glyph set." },
+                { label: "Restrictions:", val: "You may not use the Demo version for any business, promotional, or revenue-generating activities." }
               ].map((item) => (
                 <div key={item.label} className="flex gap-6 items-start">
                   <PlusBullet />
@@ -111,17 +105,17 @@ const License: React.FC = () => {
 
           {/* 02. INDUSTRY METRICS */}
           <TermCard number="02" title="Industry Metrics">
-            <p className="text-lg md:text-2xl font-normal normal-case leading-relaxed text-gray-800 italic mb-4">
+            <p className="text-lg md:text-2xl font-normal normal-case leading-relaxed text-gray-800 italic mb-6">
               Our licensing is tailored to your industry scale, ensuring fair value based on specific usage metrics.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 { title: 'Desktop / Print', metric: 'Based on Number of Users (1, 30, 100, or Unlimited).' },
                 { title: 'Digital Media (Social/Web)', metric: 'Based on Monthly Impressions/Views (50K, 500K, 2M, or Unlimited).' },
                 { title: 'Logo & Branding', metric: 'Based on Total Company Employees (Personal, 10, 50, 250, or 251+).' },
                 { title: 'App / Game / Ebook', metric: 'Based on Number of Titles (1, 10, 50, or Unlimited).' },
-                { title: 'Server', metric: 'Based on Number of Servers (Single, 50, or Unlimited).' },
-                { title: 'Broadcast', metric: 'Based on Distribution Reach (Regional, National, or Worldwide).' }
+                { title: 'Server', metric: 'Based on Number of Active Servers (Single, 50, or Unlimited).' },
+                { title: 'Broadcast', metric: 'Based on Geographical Distribution Reach (Regional, National, or Worldwide).' }
               ].map((item) => (
                 <BrutalBox key={item.title} className="bg-[#fcfcfc] border-black/10 p-10">
                    <span className="font-black text-xs tracking-widest block mb-2 uppercase">{item.title}</span>
@@ -147,9 +141,9 @@ const License: React.FC = () => {
                 <div className="space-y-6">
                   <h4 className="font-black text-sm tracking-widest uppercase text-orange-600">Bundle Discount Rules:</h4>
                   <div className="flex flex-wrap gap-8 text-xs font-black uppercase">
-                    <span className="bg-white px-5 py-2 border border-orange-200">3 LICENSES: 15% OFF</span>
-                    <span className="bg-white px-5 py-2 border border-orange-200">4 LICENSES: 20% OFF</span>
-                    <span className="bg-white px-5 py-2 border border-orange-200">5+ LICENSES: 25% OFF</span>
+                    <span className="bg-white px-5 py-2 border border-orange-200 shadow-sm">3 LICENSES: 15% OFF</span>
+                    <span className="bg-white px-5 py-2 border border-orange-200 shadow-sm">4 LICENSES: 20% OFF</span>
+                    <span className="bg-white px-5 py-2 border border-orange-200 shadow-sm">5+ LICENSES: 25% OFF</span>
                   </div>
                   <p className="text-[11px] font-bold normal-case text-orange-800 italic leading-relaxed">
                     *IMPORTANT: Bundle discounts automatically apply only to license categories with a tier value of $250 or higher.
@@ -171,12 +165,12 @@ const License: React.FC = () => {
           <TermCard number="04" title="Usage Terms">
             <div className="grid grid-cols-1 gap-y-12">
               {[
-                { title: "A. Desktop / Print", desc: "For workstations to create static content (PNG, JPG, PDF) for digital and print media. Tiered by user count." },
-                { title: "B. Digital Media (Social/Web)", desc: "Specifically for digital platforms, including website embedding and social media advertising. Tiered by views." },
-                { title: "C. Logo & Branding", desc: "Utilize the font as a core element of a visual identity system. Tiered by organization employee count." },
+                { title: "A. Desktop / Print", desc: "For workstations to create static content (PNG, JPG, PDF) for digital and print media." },
+                { title: "B. Digital Media (Social/Web)", desc: "Specifically for digital platforms, including website embedding and social media advertising." },
+                { title: "C. Logo & Branding", desc: "Utilize the font as a core element of a visual identity system (Logos, Wordmarks)." },
                 { title: "D. App / Game / Ebook", desc: "Embed font software into mobile applications, software, games, or electronic publications." },
-                { title: "E. Broadcast", desc: "For motion graphics, television, cinema, streaming services, and video advertisements." },
-                { title: "F. Server", desc: "Install on a server to facilitate end-user product customization (Web-to-Print)." },
+                { title: "E. Broadcast", desc: "For motion graphics, television, cinema, streaming, and video advertisements." },
+                { title: "F. Server", desc: "Install on a server to facilitate automated end-user customization (Web-to-Print)." },
               ].map((item) => (
                  <div key={item.title} className="flex gap-6 items-start">
                    <PlusBullet />
@@ -189,7 +183,7 @@ const License: React.FC = () => {
               <div className="mt-8 bg-black text-white p-12 border border-black shadow-[15px_15px_0px_0px_rgba(234,88,12,1)]">
                 <h4 className="font-bold text-2xl md:text-4xl mb-6 tracking-tight uppercase">G. Corporate All-In-One</h4>
                 <p className="text-base md:text-xl normal-case leading-relaxed text-gray-400 italic">
-                  The ultimate comprehensive package. Covers all six categories (Desktop, Web, Logo, App, Broadcast, and Server) with unlimited scale for the entire corporation.
+                  The ultimate comprehensive package. Covers all six categories (Desktop, Web, Logo, App, Broadcast, and Server) with unlimited scale for the entire global corporation.
                 </p>
               </div>
             </div>
