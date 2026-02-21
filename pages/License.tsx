@@ -16,7 +16,7 @@ const BrutalBox: React.FC<{ children: React.ReactNode, className?: string }> = (
 const License: React.FC = () => {
   // Komponen Kartu Term - Kotak Biasa Brutalist Style
   const TermCard: React.FC<{ number: string, title: string, children: React.ReactNode }> = ({ number, title, children }) => (
-    <div className="mb-12 w-full border border-black bg-white">
+    <div className="mb-12 w-full border border-black bg-white relative z-10">
       {/* Title Section: Nomor di sisi kiri title dengan text yang sama */}
       <div className="border-b border-black p-6 md:p-10 bg-white">
         <h3 className="text-3xl md:text-6xl font-normal tracking-tighter uppercase leading-none">
@@ -34,22 +34,30 @@ const License: React.FC = () => {
 
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-[#F5F5F0] overflow-x-hidden uppercase">
-      {/* Background Orbs tetap dipertahankan untuk kedalaman visual */}
-      <div className="grain-orb-base orb-top-right opacity-20" />
-      <div className="grain-orb-base orb-bottom-left opacity-20" />
+      
+      {/* 1. BACKGROUND ORBS - Posisi sesuai request (Top Right, Middle Left, Bottom Right) */}
+      <div className="grain-orb-base orb-top-right opacity-30" />
+      <div className="fixed left-0 top-1/2 -translate-y-1/2 w-[60vw] h-[60vw] bg-orange-600/10 blur-[120px] rounded-full -ml-[30vw] pointer-events-none z-[-1]" />
+      <div className="fixed right-0 bottom-0 w-[60vw] h-[60vw] bg-red-600/10 blur-[120px] rounded-full -mr-[30vw] -mb-[30vw] pointer-events-none z-[-1]" />
 
       <div className="w-full relative z-10">
-        {/* HEADER SECTION - Konsisten dengan FAQ/FontDetail */}
+        {/* HEADER SECTION */}
         <header className="px-6 py-16 md:px-8 border-b border-black mb-12 bg-transparent text-left">
           <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-6">
             License Agreement
           </h2>
-          <p className="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-[0.3em]">
-            Clear Additive Terms for Creative Freedom
-          </p>
+          {/* 2. SUB-HEADER INFO - Tambah info Update Terakhir */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <p className="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-[0.3em]">
+              Clear Additive Terms for Creative Freedom
+            </p>
+            <p className="text-[10px] md:text-xs font-black text-black/40 uppercase tracking-widest">
+              — LAST UPDATED: FEBRUARY 21, 2026
+            </p>
+          </div>
         </header>
 
-        {/* CONTENT MAIN - Padding sinkron dengan Navbar */}
+        {/* CONTENT MAIN */}
         <main className="px-3 md:px-8 max-w-full mx-auto text-left">
           
           {/* 01. PERSONAL USE */}
@@ -81,7 +89,7 @@ const License: React.FC = () => {
                 { title: 'Digital Media (Social/Web)', metric: 'Based on Monthly Impressions/Views (50K, 500K, 2M, or Unlimited).' },
                 { title: 'Logo & Branding', metric: 'Based on Total Organization Employees (Personal, 10, 50, 250, or 251+).' },
                 { title: 'App / Game / Ebook', metric: 'Based on Number of Titles (1, 10, 50, or Unlimited).' },
-                { title: 'Server', metric: 'Based on Number of Active Servers (Single, 50, or Unlimited).' },
+                { title: 'Server', metric: 'Based on Number of Servers (Single, 50, or Unlimited).' },
                 { title: 'Broadcast', metric: 'Based on Geographical Distribution Reach (Regional, National, or Worldwide).' }
               ].map((item) => (
                 <BrutalBox key={item.title} className="p-8 border-black/10 bg-[#f9f9f9]">
@@ -160,7 +168,7 @@ const License: React.FC = () => {
           <TermCard number="05" title="General Rules">
             <ul className="space-y-10">
               {[
-                "You may not sell, rent, sublicense, or redistribute font files to third parties.",
+                "You may not sell, rent, sublicense, or redistribute font files to any third party.",
                 "You may not modify, adapt, or decompile the font software binaries.",
                 "The font software and its intellectual property remain the sole property of Subqi Studio.",
                 "Backup copies are permitted for internal archival purposes only on secure servers."
@@ -185,7 +193,6 @@ const License: React.FC = () => {
 
         </main>
 
-        {/* Footer Spacer */}
         <div className="h-40 md:h-60 bg-transparent" />
       </div>
     </div>
