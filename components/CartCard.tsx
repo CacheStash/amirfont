@@ -41,9 +41,10 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   const { addToCart, closeConfigurator } = useCart();
   const navigate = useNavigate(); // FIXED: Inisialisasi navigasi
   const [selectedTier, setSelectedTier] = useState<'solo' | 'team' | 'studio' | 'enterprise'>('solo');
-  const [selectedUsages, setSelectedUsages] = useState<string[]>(['desktop']);
+  // FIXED: Memulai tanpa pilihan otomatis (Empty State)
+  const [selectedUsages, setSelectedUsages] = useState<string[]>([]);
 
- // FIXED: Menghapus selectedTier global. Sekarang menggunakan selectedTiers granular per kategori.
+  // State granular tiers per kategori lisensi
   const [selectedTiers, setSelectedTiers] = useState<Record<string, string>>({
     desktop: 'solo', social_web: 'small_50k', logo_branding: 'personal', app: 'solo', server: 'solo', broadcast: 'solo'
   });
@@ -52,7 +53,6 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   const [isTrial, setIsTrial] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
 
-  // FIXED: Definisi Hirarki & Higher Tier untuk memperbaiki error "Cannot find name"
   const usageHierarchy = ['desktop', 'social_web', 'logo_branding', 'app', 'server', 'broadcast'];
   const higherTierUsages = ['logo_branding', 'app', 'broadcast', 'server'];
   const hasHigherTier = useMemo(() => selectedUsages.some(u => higherTierUsages.includes(u)), [selectedUsages]);
@@ -73,7 +73,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     enterprise_unlimited: 'UNLIMITED VIEWS'
   };
 
-  // FIXED: Logic Auto-Switch berdasarkan nominal harga (Eceran + Bundle >= Corporate)
+  // FIXED: Logika Auto-Switch HANYA berdasarkan nominal harga (Eceran + Bundle >= Corporate)
   useEffect(() => {
     if (isTrial || isCorporate || !prices) return;
 
@@ -90,10 +90,11 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
 
     const afterBundle = currentSum * (1 - bundleDiscount);
 
-    // Trigger otomatis ke Corporate hanya jika harga sudah menyentuh plafon Corporate
+    // Otomatis pindah ke Corporate jika harga eceran melampaui harga plafon Corporate
     if (prices.corporate_full_suite > 0 && afterBundle >= prices.corporate_full_suite) {
       setIsCorporate(true);
       setIsTrial(false);
+      setSelectedUsages([]); 
     }
   }, [selectedUsages, selectedTiers, prices]);
 
@@ -164,15 +165,16 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   };
 
   const handleCorporateToggle = () => {
-    setIsCorporate(!isCorporate);
+    const becomingCorporate = !isCorporate;
+    setIsCorporate(becomingCorporate);
     setIsTrial(false);
+    if (becomingCorporate) setSelectedUsages([]); 
   };
 
   const handleTrialToggle = () => {
-    // FIXED: Try It First hanya bisa diaktifkan jika tidak ada paid license yang dipilih
-    if (selectedUsages.length > 0) return;
+    // FIXED: Tombol Trial hanya bisa diklik jika belum ada paid license yang terpilih
+    if (selectedUsages.length > 0 || isCorporate) return;
     setIsTrial(!isTrial);
-    setIsCorporate(false);
   };
 
   const TicketEdges = () => (
