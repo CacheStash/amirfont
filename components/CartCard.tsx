@@ -102,6 +102,13 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     }
   }, [selectedUsages, selectedTiers, prices]);
 
+
+
+  const isValidSelection = useMemo(() => {
+    return isTrial || isCorporate || selectedUsages.length > 0;
+  }, [isTrial, isCorporate, selectedUsages]);
+
+
   const totalPrice = useMemo(() => {
     if (!prices || isTrial) return 0;
     if (isCorporate) return prices.corporate_full_suite || 0;
@@ -164,12 +171,13 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     if (hasHigherTier && !finalUsages.includes('desktop')) {
       finalUsages.push('desktop');
     }
-    
+
 const handleAdd = (redirect: boolean = false) => {
     const finalUsages = [...selectedUsages];
     if (hasHigherTier && !finalUsages.includes('desktop')) {
       finalUsages.push('desktop');
     }
+
     // FIXED: Menggunakan selectedTiers['social_web'] untuk mengganti webTier yang hilang
     const currentWebTier = selectedTiers['social_web'];
     const metadata = {
@@ -364,22 +372,24 @@ const handleAdd = (redirect: boolean = false) => {
               <Info size={14} /> LICENSE INFORMATION
             </Link>
             
-            {!isAdded ? (
+           {!isAdded ? (
               <div className="flex gap-2 w-full md:w-auto">
                 {/* FIXED: Tombol ADD TO CART hanya muncul jika directCheckout bernilai false */}
                 {!directCheckout && (
                   <button 
                     onClick={() => handleAdd(false)} 
-                    className="flex-1 md:w-[180px] bg-white text-black border border-black py-5 px-4 flex items-center justify-center gap-3 hover:bg-black hover:text-white transition-all group font-black text-[10px] tracking-widest uppercase"
+                    disabled={!isValidSelection}
+                    className="flex-1 md:w-[180px] bg-white text-black border border-black py-5 px-4 flex items-center justify-center gap-3 hover:bg-black hover:text-white transition-all group font-black text-[10px] tracking-widest uppercase disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-black"
                   >
                     ADD TO CART
                   </button>
                 )}
                 
-                {/* TOMBOL DIRECT CHECKOUT - Selalu muncul */}
+                {/* TOMBOL DIRECT CHECKOUT - Selalu muncul namun disabled jika tidak ada pilihan */}
                 <button 
                   onClick={() => handleAdd(true)} 
-                  className={`flex-1 ${directCheckout ? 'md:w-[280px]' : 'md:w-[180px]'} bg-black text-white py-5 px-4 flex items-center justify-center gap-3 hover:bg-gray-800 transition-all group font-black text-[10px] tracking-widest uppercase`}
+                  disabled={!isValidSelection}
+                  className={`flex-1 ${directCheckout ? 'md:w-[280px]' : 'md:w-[180px]'} bg-black text-white py-5 px-4 flex items-center justify-center gap-3 hover:bg-gray-800 transition-all group font-black text-[10px] tracking-widest uppercase disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-black`}
                 >
                   CHECKOUT
                   <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
