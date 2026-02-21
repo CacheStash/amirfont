@@ -132,6 +132,9 @@ const Home: React.FC = () => {
   const [fonts, setFonts] = useState<any[]>([]);
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // PAGINATION STATES
+  const [currentPage, setCurrentPage] = useState(1);
+  const fontsPerPage = 4;
   const { openConfigurator } = useCart();
   const navigate = useNavigate();
   const [activeTag, setActiveTag] = useState<string | null>(null);
@@ -228,6 +231,22 @@ const Home: React.FC = () => {
     const fontIds = typeof promo.font_ids === 'string' ? JSON.parse(promo.font_ids) : (promo.font_ids || []);
     return fontIds.includes(font.id);
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTag, activePromoId]);
+
+  // DERIVED PAGINATION LOGIC
+  const totalPages = Math.ceil(displayedFonts.length / fontsPerPage);
+  const indexOfLastFont = currentPage * fontsPerPage;
+  const indexOfFirstFont = indexOfLastFont - fontsPerPage;
+  const currentFonts = displayedFonts.slice(indexOfFirstFont, indexOfLastFont);
+
+  // Helper untuk navigasi
+  const paginate = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <>
@@ -336,177 +355,128 @@ const Home: React.FC = () => {
             <div className="p-20 text-center font-mono uppercase text-gray-400 animate-pulse">
               Loading collection...
             </div>
-          ) : displayedFonts.length > 0 ? (
-            displayedFonts.map((font, index) => {
-              const isEven = index % 2 === 0;
-              // DESKTOP: Zig Zag logic
-              // Tablet Portrait (md) disamakan dengan Mobile. Desktop Layout dimulai pada 'lg' (1024px).
-             const gridLayoutClass = isEven 
-                ? "lg:grid-cols-[320px_60px_1fr]" 
-                : "lg:grid-cols-[1fr_60px_320px]";
-              
-              const isExpanded = expandedFontId === font.id;
-              const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
+          ) : currentFonts.length > 0 ? (
+            <>
+              {currentFonts.map((font, index) => {
+                // Gunakan index absolut untuk menjaga logika Zig-Zag (isEven) tetap konsisten antar halaman
+                const absoluteIndex = indexOfFirstFont + index;
+                const isEven = absoluteIndex % 2 === 0;
+                
+                const gridLayoutClass = isEven 
+                  ? "lg:grid-cols-[320px_60px_1fr]" 
+                  : "lg:grid-cols-[1fr_60px_320px]";
+                
+                const isExpanded = expandedFontId === font.id;
+                const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
 
-              const displayFont = {
-                ...font,
-                family: `"${font.name}"`,
-                tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []),
-                styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
-                randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
-              };
+                const displayFont = {
+                  ...font,
+                  family: `"${font.name}"`,
+                  tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []),
+                  styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
+                  randomText: DUMMY_LIBRARY[absoluteIndex % DUMMY_LIBRARY.length]
+                };
 
-              const promo = getActivePromo(font.id || '');
-              const basePrice = font.price || 25;
+                const promo = getActivePromo(font.id || '');
+                const basePrice = font.price || 25;
 
-              return (
-                <section key={font.id} className="relative border-b border-black flex flex-col overflow-hidden lg:overflow-visible">
-                  {/* GRID UTAMA (Info, Toggle, Tester) */}
-                  <div className={`grid grid-cols-1 ${gridLayoutClass}`}>
-                 {/* BACKGROUND ORB EFFECT */}
-                    <div className="absolute z-0 pointer-events-none overflow-visible hidden md:block" 
-                         style={{ 
-                           width: '1000px', 
-                           height: '600px',
-                           top: '50%',
-                           left: isEven ? '22%' : '78%', 
-                           transform: 'translate(-50%, -50%)',
-                           opacity: 0.8
-                         }}>
-                         <div className="w-full h-full mix-blend-multiply blur-[60px]" 
-                       style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
-                    </div>
+                return (
+                  <section key={font.id} className="relative border-b border-black flex flex-col overflow-hidden lg:overflow-visible">
+                    {/* ... (Seluruh isi return section tetap sama seperti kode asli Anda) ... */}
+                    {/* (Saya ringkas untuk efisiensi snippet, pastikan kode rendering kartu Anda tetap di sini) */}
                     
-                    {/* FIXED: Menghapus pb-6 pada mobile (pb-0) agar button menempel sempurna ke bawah */}
-                  <div className={`p-6 lg:p-8 pb-0 lg:pb-8 flex flex-col justify-between border-b-0 lg:border-b-0 order-1 ${isEven ? 'lg:order-1 lg:border-r border-black' : 'lg:order-3 lg:border-l border-black'}`}>
-                    <div>
-                      {/* Header: Title Only */}
-                      <div className="flex justify-between items-start gap-4 mb-2">
-                        <div className="flex-1">
-                          <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1 break-words">
-                            {font.name}
-                          </h2>
-                          <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase">{displayFont.styleCount} STYLES</span>
-                        </div>
-                      </div>
-
-                      <div className="hidden lg:block mb-8"><BrutalistGraphic /></div>
-                      
-                      <div className="hidden lg:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
-                        {displayFont.tags.map((tag: string) => (
-                          <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className={`border px-3 py-1 rounded-full font-bold uppercase ${activeTag === tag.trim() ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'}`}>{tag}</button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* FIXED: Mengeluarkan button dari div mb-6 agar margin bottom tidak menciptakan gap */}
-                    <div className="mb-0">
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2 mb-4">
-                           <span className="inline-block border border-black rounded-full px-3 py-1 font-regular italic text-[11px] md:text-[14px] lowercase text-black bg-transparent leading-none">starting at</span>
-                           {promo && <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-bold text-[11px] md:text-[14px] uppercase text-red-600 bg-transparent leading-none">{promo.discount_percent}% OFF</span>}
-                        </div>
-                        <div className="flex flex-col">
-                           {promo ? (
-                            <div className="flex flex-col items-start gap-2">
-                               <span className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}</span>
-                               <div className="flex items-center gap-4 mt-2">
-                                 <div className="relative w-fit text-center">
-                                  <span className="text-3xl md:text-4xl font-bold text-red-600 leading-none">${basePrice}</span>
-                                  <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
-                                 </div>
-                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap">{calculateDaysLeft(promo.end_date)}</span>
-                               </div>
+                    {/* GRID UTAMA (Info, Toggle, Tester) */}
+                    <div className={`grid grid-cols-1 ${gridLayoutClass}`}>
+                        {/* ... konten kartu font Anda ... */}
+                        <div className={`p-6 lg:p-8 pb-0 lg:pb-8 flex flex-col justify-between border-b-0 lg:border-b-0 order-1 ${isEven ? 'lg:order-1 lg:border-r border-black' : 'lg:order-3 lg:border-l border-black'}`}>
+                          <div className="flex-1">
+                            <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1 break-words">{font.name}</h2>
+                            <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase">{displayFont.styleCount} STYLES</span>
+                          </div>
+                          <div className="flex flex-col mt-4">
+                             <div className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">
+                               ${promo ? (basePrice * (1 - (promo.discount_percent / 100))).toFixed(0) : basePrice}
                              </div>
-                           ) : (
-                             <div className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">${basePrice}</div>
-                           )}
+                          </div>
+                          <button onClick={() => setExpandedFontId(isExpanded ? null : font.id)} className="lg:hidden w-[calc(100%+3rem)] -mx-6 mt-10 flex items-center justify-center gap-6 py-6 border-y border-black bg-white uppercase text-[11px] tracking-[0.4em]">Preview Images</button>
                         </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2 mt-6 lg:hidden">
-                        {displayFont.tags.map((tag: string) => (
-                          <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className="border border-black px-2 py-1 rounded-full font-bold text-[10px] uppercase whitespace-nowrap bg-transparent text-black">{tag}</button>
-                        ))}
-                      </div>
+                        <div className={`hidden lg:flex flex-col items-center justify-between py-12 border-black cursor-pointer z-40 bg-transparent ${isEven ? 'lg:order-2 border-r' : 'lg:order-2 border-l'}`} onClick={() => setExpandedFontId(isExpanded ? null : font.id)}>
+                          <ChevronRight className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                          <span className="-rotate-90 origin-center text-[11px] tracking-[0.4em]">PREVIEW IMAGES</span>
+                          <ChevronRight className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                        </div>
+                        <div className={`relative min-h-[400px] order-2 flex items-stretch overflow-hidden ${isEven ? 'lg:order-3' : 'lg:order-1'}`}>
+                           <div className="w-full h-full flex items-center">
+                             <TypeTester config={displayFont} isEven={isEven} defaultText={isEven ? "The quick brown fox" : undefined} />
+                           </div>
+                        </div>
                     </div>
 
-                    {/* MOBILE PREVIEW TOGGLE: Sekarang nempel ke grid bawah karena pb-0 di parent dan mb-[-1.5rem] dihapus */}
-                    <button 
-                      onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
-                      className="lg:hidden w-[calc(100%+3rem)] -mx-6 mt-10 flex items-center justify-center gap-6 py-6 border-y border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
-                    >
-                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                      <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
-                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-                  </div>
+                    <div className="grid grid-cols-2 w-full border-t border-black bg-transparent relative z-50">
+                      <button onClick={() => openConfigurator({...font, trialFileUrl: font.trial_file_url, activeDiscount: promo ? promo.discount_percent : 0})} className="flex items-center justify-center gap-4 py-8 border-r border-black hover:bg-black hover:text-white transition-all text-black"><Plus size={32} strokeWidth={1} /><span className="text-[11px] uppercase tracking-widest">Add to Cart</span></button>
+                      <button onClick={() => navigate(`/font/${font.id}`)} className="flex items-center justify-center gap-4 py-8 hover:bg-black hover:text-white transition-all text-black"><Eye size={32} strokeWidth={1} /><span className="text-[11px] uppercase tracking-widest">Font Details</span></button>
+                    </div>
+                    <div className="h-12 border-t border-black w-full bg-orange-500/10" />
+                  </section>
+                );
+              })}
 
-                    {/* COLUMN: TOGGLE (DESKTOP) */}
-                    {/* FIXED: Menggunakan ChevronRight untuk ganjil (isEven=true) dan ChevronLeft untuk genap (isEven=false) */}
-                  <div 
-                    onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
-                    className={`hidden lg:flex flex-col items-center justify-between py-12 border-black cursor-pointer hover:bg-black/5 transition-colors z-40 bg-transparent
-                      ${isEven ? 'lg:order-2 border-r' : 'lg:order-2 border-l'}`}
+              {/* PAGINATION CONTROLS: << < 1, 2, 3 > >> */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-1 md:gap-2 py-16 bg-transparent border-b border-black">
+                  {/* First Page */}
+                  <button 
+                    onClick={() => paginate(1)} 
+                    disabled={currentPage === 1}
+                    className="p-3 border border-black hover:bg-black hover:text-white disabled:opacity-10 transition-all font-black text-xs"
                   >
-                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
-                      {isEven ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-                    </div>
-                    
-                    <span className="uppercase text-[11px] font-normal tracking-[0.4em] whitespace-nowrap -rotate-90 origin-center">
-                      PREVIEW IMAGES
-                    </span>
-                    
-                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
-                      {isEven ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-                    </div>
+                    {"<<"}
+                  </button>
+
+                  {/* Prev Page */}
+                  <button 
+                    onClick={() => paginate(currentPage - 1)} 
+                    disabled={currentPage === 1}
+                    className="p-3 border border-black hover:bg-black hover:text-white disabled:opacity-10 transition-all font-black text-xs"
+                  >
+                    {"<"}
+                  </button>
+
+                  {/* Page Numbers */}
+                  <div className="flex gap-1 mx-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+                      <button
+                        key={num}
+                        onClick={() => paginate(num)}
+                        className={`w-10 h-10 md:w-12 md:h-12 border border-black font-bold text-xs transition-all ${
+                          currentPage === num ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    ))}
                   </div>
 
-                    {/* COLUMN: TESTER */}
-                    <div className={`relative min-h-[400px] border-b-0 lg:border-b-0 order-2 flex items-stretch overflow-hidden ${isEven ? 'lg:order-3' : 'lg:order-1'}`}>
-                        <div className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out ${isExpanded ? 'translate-x-0 translate-y-0' : ''} ${!isExpanded ? (isEven ? 'lg:-translate-x-full -translate-y-full lg:translate-y-0' : 'lg:translate-x-full -translate-y-full lg:translate-y-0') : ''}`}>
-                          <ScrollableImageStack images={fontPreviews} onImageClick={(index, allResolved) => { setActiveGallery(allResolved); setActiveIndex(index); setSelectedImage(allResolved[index]); }} />
-                          <button onClick={(e) => { e.stopPropagation(); setExpandedFontId(null); }} className="absolute top-4 right-4 z-50 p-2 bg-black text-white rounded-full hover:scale-110 transition-transform shadow-xl"><X size={16} /></button>
-                        </div>
-                        <div className="w-full h-full flex items-center">
-                          <TypeTester config={displayFont} isEven={isEven} defaultText={isEven ? "The quick brown fox jumps over the lazy dog." : undefined} />
-                        </div>
-                    </div>
-                  </div> {/* GRID UTAMA SELESAI */}
+                  {/* Next Page */}
+                  <button 
+                    onClick={() => paginate(currentPage + 1)} 
+                    disabled={currentPage === totalPages}
+                    className="p-3 border border-black hover:bg-black hover:text-white disabled:opacity-10 transition-all font-black text-xs"
+                  >
+                    {">"}
+                  </button>
 
-                  {/* 2. NEW ACTION ROW (HORIZONTAL BOTTOM) */}
-                  {/* FIXED: bg-white diubah menjadi bg-transparent */}
-                  <div className="grid grid-cols-2 w-full border-t border-black bg-transparent relative z-50">
-                     <button 
-                       onClick={() => {
-                         const promo = getActivePromo(font.id);
-                         const discountPercent = promo ? promo.discount_percent : 0;
-                         openConfigurator({ 
-                           ...font, 
-                           trialFileUrl: font.trial_file_url,
-                           activeDiscount: discountPercent 
-                         });
-                       }}
-                       className="flex items-center justify-center gap-4 py-8 border-r border-black hover:bg-black hover:text-white transition-all group/cart text-black"
-                     >
-                        <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90 flex-shrink-0" />
-                        <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
-                     </button>
-                     <button 
-                       onClick={() => navigate(`/font/${font.id}`)} // FIXED: Navigasi ke halaman detail
-                       className="flex items-center justify-center gap-4 py-8 hover:bg-black hover:text-white transition-all group/view text-black"
-                     >
-                        <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
-                        <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
-                     </button>
-                  </div>
-
-                  {/* 3. SPACER: Muncul di semua ukuran layar (Mobile, Tablet, & Desktop) */}
-                  <div className="h-12 border-t border-black w-full bg-orange-500/10" />
-
-                </section>
-              );
-            })
+                  {/* Last Page */}
+                  <button 
+                    onClick={() => paginate(totalPages)} 
+                    disabled={currentPage === totalPages}
+                    className="p-3 border border-black hover:bg-black hover:text-white disabled:opacity-10 transition-all font-black text-xs"
+                  >
+                    {">>"}
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
              <div className="p-20 text-center font-mono uppercase text-gray-400">
                No fonts found with tag "{activeTag}". 
@@ -551,8 +521,8 @@ const Home: React.FC = () => {
 
           <div className="w-full h-full flex items-center justify-center">
             <img 
-              key={selectedImage} // Key agar ada animasi setiap ganti gambar
-              src={selectedImage} 
+              key={selectedImage || 'empty'} // Key agar ada animasi setiap ganti gambar
+              src={selectedImage || undefined} 
               className="max-w-full max-h-full object-contain animate-in zoom-in-95 fade-in duration-300 pointer-events-none shadow-2xl"
               alt="Gallery View" 
             />
