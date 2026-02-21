@@ -198,7 +198,7 @@ if (subscribe) {
 
   return (
     /* FIX 1: Gunakan clientId (camelCase) */
-    <PayPalScriptProvider options={{ clientId: "AXw6xL6HBIWZRoBSnsigTHBPaYB70tTFMJHv3o4tA_AP9BEsH81uyOLGYWnWonxP9kn59OjE9Tyo5ABW", currency: "USD", intent: "capture","disable-funding": "card",locale: "en_US" }}>
+    <PayPalScriptProvider options={{ clientId: "AXw6xL6HBIWZRoBSnsigTHBPaYB70tTFMJHv3o4tA_AP9BEsH81uyOLGYWnWonxP9kn59OjE9Tyo5ABW", currency: "USD", intent: "capture",locale: "en_US" }}>
       <div className="min-h-screen bg-[#EDEBE6] py-12 px-3 md:px-8 flex flex-col items-center uppercase font-mono print:p-0 print:bg-white text-black text-left">
         
         {/* HEADER TOOLS */}
@@ -321,8 +321,10 @@ if (subscribe) {
                     <button 
                       key={item.cartId}
                       onClick={() => handleSecureDownload(
-                        // FIXED: Menghapus trial_file_url karena tidak ada di interface CartItem
-                        (item.trialFileUrl || 'null'), 
+                        // FIXED: Gunakan trialFileUrl jika GRATIS, gunakan font_files jika BERBAYAR.
+                        total === 0 
+                          ? (item.trialFileUrl || 'null') 
+                          : (item.font_files?.[0] || 'null'), 
                         total === 0 ? 'trial' : 'full'
                       )}
                       className="bg-black text-white px-8 py-5 font-black tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-4"

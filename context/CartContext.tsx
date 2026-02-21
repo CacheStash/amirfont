@@ -8,6 +8,7 @@ export interface CartItem {
   price: number;
   tier: string;
   usages: string[];
+  font_files: string[];
   webTierLabel?: string;
   metadata?: {
     mpv?: string;
