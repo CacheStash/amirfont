@@ -53,6 +53,11 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   const [isTrial, setIsTrial] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
 
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, []);
+
   const usageHierarchy = ['desktop', 'social_web', 'logo_branding', 'app', 'server', 'broadcast'];
   const higherTierUsages = ['logo_branding', 'app', 'broadcast', 'server'];
   const hasHigherTier = useMemo(() => selectedUsages.some(u => higherTierUsages.includes(u)), [selectedUsages]);
@@ -73,7 +78,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     enterprise_unlimited: 'UNLIMITED VIEWS'
   };
 
-  // FIXED: Logika Auto-Switch HANYA berdasarkan nominal harga (Eceran + Bundle >= Corporate)
+  // FIXED: Logic Auto-Switch HANYA jika nominal harga (Eceran + Bundle) >= Corporate
   useEffect(() => {
     if (isTrial || isCorporate || !prices) return;
 
@@ -90,7 +95,6 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
 
     const afterBundle = currentSum * (1 - bundleDiscount);
 
-    // Otomatis pindah ke Corporate jika harga eceran melampaui harga plafon Corporate
     if (prices.corporate_full_suite > 0 && afterBundle >= prices.corporate_full_suite) {
       setIsCorporate(true);
       setIsTrial(false);
@@ -156,9 +160,12 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
   };
 
  const toggleUsage = (id: string) => {
+    // FIXED: Nonaktifkan pemilihan kategori jika mode Corporate aktif
     if (isCorporate) return;
+    
     // FIXED: Memilih paid license otomatis mematikan mode Trial
     setIsTrial(false); 
+    
     setSelectedUsages(prev => 
       prev.includes(id) ? prev.filter(u => u !== id) : [...prev, id]
     );
@@ -168,11 +175,12 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
     const becomingCorporate = !isCorporate;
     setIsCorporate(becomingCorporate);
     setIsTrial(false);
+    // FIXED: Memilih Corporate otomatis membersihkan pilihan eceran
     if (becomingCorporate) setSelectedUsages([]); 
   };
 
   const handleTrialToggle = () => {
-    // FIXED: Tombol Trial hanya bisa diklik jika belum ada paid license yang terpilih
+    // FIXED: Opsi Trial otomatis disabled jika ada paid license yang terpilih (Eceran atau Corporate)
     if (selectedUsages.length > 0 || isCorporate) return;
     setIsTrial(!isTrial);
   };
@@ -204,9 +212,12 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
           <div className="md:col-span-12">
             <label className="text-[10px] font-bold tracking-[0.2em] mb-6 block text-black/40 uppercase">LICENSE CATEGORIES & SPECIFIC TIERS (ADDITIVE PRICING)</label>
             <div className="flex flex-col gap-4 mb-3">
-              {/* FIXED: Tombol TRY IT FIRST dipindahkan ke posisi paling atas */}
-              <button onClick={handleTrialToggle} disabled={isCorporate}
-                className={`flex items-center justify-between p-5 border border-black transition-all ${isCorporate ? 'opacity-20' : isTrial ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}>
+              {/* FIXED: Tombol TRY IT FIRST di posisi paling atas & otomatis disabled jika ada paid license */}
+              <button onClick={handleTrialToggle} 
+                disabled={selectedUsages.length > 0 || isCorporate}
+                className={`flex items-center justify-between p-5 border border-black transition-all ${
+                  (selectedUsages.length > 0 || isCorporate) ? 'opacity-20 cursor-not-allowed' : isTrial ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'
+                }`}>
                 <span className="text-[11px] font-black tracking-widest">TRY IT FIRST (FREE DEMO VERSION)</span>
                 {isTrial ? <Check size={16} /> : <Plus size={16} />}
               </button>
@@ -220,22 +231,25 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
                 { id: 'broadcast', label: 'BROADCAST' },
               ].map((u) => {
                 const isActive = selectedUsages.includes(u.id);
+                // FIXED: Opsi eceran mati jika Corporate dipilih
+                const isDisabled = isCorporate;
+
                 return (
                   <div key={u.id} className="space-y-2">
-                    {/* UI: 1-Column License Button */}
+                    {/* UI: 1-Column Layout License Button */}
                     <button onClick={() => toggleUsage(u.id)} 
-                      disabled={isTrial || isCorporate} 
+                      disabled={isDisabled} 
                       className={`w-full flex items-center justify-between p-5 border border-black transition-all ${
-                        isActive ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'
+                        isDisabled ? 'opacity-20 cursor-not-allowed' : isActive ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'
                       }`}>
                       <span className="text-[11px] font-black tracking-widest">{u.label}</span>
                       <Plus size={16} className={`transition-transform duration-300 ${isActive ? 'rotate-45' : ''}`} />
                     </button>
                     
-                    {/* UI: Horizontal Level options on desktop, vertical on mobile */}
+                    {/* UI: Sub-Tier berjejer horizontal di desktop, stacking di mobile */}
                     {isActive && !isCorporate && (
                       <div className="flex flex-wrap md:flex-nowrap gap-1 pl-4 border-l-2 border-black/10 animate-in fade-in slide-in-from-top-1">
-                        {tierMap[u.id].map((t) => (
+                        {tierMap[u.id].map((t: {key: string, label: string}) => (
                           <button key={t.key} onClick={() => setSelectedTiers(prev => ({...prev, [u.id]: t.key}))}
                             className={`flex-1 min-w-[120px] md:min-w-0 py-3 px-2 border border-black text-[9px] font-black text-center transition-all ${
                               selectedTiers[u.id] === t.key ? 'bg-orange-600 text-white border-orange-600' : 'bg-white hover:bg-gray-50'
@@ -249,7 +263,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, discount 
                 );
               })}
               
-              {/* CORPORATE BUTTON */}
+              {/* CORPORATE BUTTON: Mematikan opsi eceran jika dipilih */}
               <button onClick={handleCorporateToggle} disabled={isTrial}
                 className={`flex items-center justify-between p-5 border border-black transition-all mt-4 ${isTrial ? 'opacity-20' : isCorporate ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}>
                 <span className="text-[11px] font-black tracking-widest text-orange-600">CORPORATE (ALL-IN-ONE PACKAGE)</span>
