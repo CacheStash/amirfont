@@ -48,7 +48,7 @@ const License: React.FC = () => {
           </h2>
           {/* 2. SUB-HEADER INFO - Tambah info Update Terakhir */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <p className="text-xs md:text-sm font-normal text-gray-500 uppercase tracking-[0.3em]">
+            <p className="text-xs md:text-sm font-normal text-black uppercase tracking-[0.3em]">
               Clear Additive Terms for Creative Freedom
             </p>
             <p className="text-xs md:text-sm font-normal text-black uppercase tracking-widest">
