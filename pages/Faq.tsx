@@ -92,16 +92,40 @@ const FAQ: React.FC = () => {
             <p>No. The Free/Demo version is strictly for non-commercial testing, student projects, or personal use. It contains a limited glyph set and no OpenType features. For any revenue-generating activity or promotional content, a commercial license is required.</p>
           </TermCard>
 
-          {/* Q2: Dashboard & Password Logic */}
-          <TermCard number="Q2" title="Where do I get my files and license info?">
-            <p>Subqi Studio does not send download links via email to ensure security and prevent expired links.</p>
-            <BrutalBox className="bg-black text-white space-y-4">
-              <p className="italic">Upon successful checkout, you will receive a ZIP file containing the font and a **license.txt** file. This file includes your purchased license info, registered email, and the unique **Order ID**.</p>
-              <div className="flex gap-4 items-start border-t border-white/20 pt-4">
-                <PlusBullet />
-                <p className="text-sm">Your Order ID serves as your **initial password** or **access resetter**. If you checkout multiple times with the same email, *any* of those checkout codes remain valid as password resetters for your account.</p>
+          {/* Q2: Access & Credentials Flow */}
+          <TermCard number="Q2" title="How do I access my files and license credentials?">
+            <div className="space-y-8">
+              <p>To ensure maximum security and prevent link expiration, **Subqi Studio does not distribute download links via email**.</p>
+              
+              <div className="space-y-4">
+                <p className="font-bold uppercase tracking-tight">Delivery & Account Flow:</p>
+                <ul className="space-y-6">
+                  <li className="flex gap-4 items-start border-l-2 border-black/10 pl-6 py-2">
+                    <PlusBullet />
+                    <span>**Instant Redirection:** Upon successful payment, new buyers are automatically redirected to the **User Dashboard (Font History)** to initiate the .zip download.</span>
+                  </li>
+                  <li className="flex gap-4 items-start border-l-2 border-black/10 pl-6 py-2">
+                    <PlusBullet />
+                    <span>**Initial Credentials:** For first-time buyers, your **Checkout Code (Order ID)** serves as your initial account password. You are encouraged to update your password within the dashboard settings at your convenience.</span>
+                  </li>
+                </ul>
               </div>
-            </BrutalBox>
+
+              <BrutalBox className="bg-black text-white space-y-6">
+                <div className="space-y-2">
+                  <h4 className="font-black text-xs tracking-[0.2em] text-orange-500 uppercase">Vital Record: LICENSE.TXT</h4>
+                  <p className="text-sm normal-case italic opacity-80 leading-relaxed">
+                    Your downloaded .zip package includes a **license.txt** file. This document contains your specific license details, registered email, and the Checkout Code required for account access. **Please retain this file permanently.**
+                  </p>
+                </div>
+                
+                <div className="pt-4 border-t border-white/10">
+                  <p className="text-sm normal-case leading-relaxed">
+                    **Lost Access?** Your Checkout Code functions as a perpetual **Password Resetter**. If you perform multiple transactions using the same email, each subsequent Checkout Code is added to your account as a valid resetter; it does not overwrite your existing password.
+                  </p>
+                </div>
+              </BrutalBox>
+            </div>
           </TermCard>
 
           {/* Q3: Picking Levels */}

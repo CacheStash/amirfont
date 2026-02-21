@@ -52,7 +52,7 @@ const License: React.FC = () => {
               Clear Additive Terms for Creative Freedom
             </p>
             <p className="text-xs md:text-sm font-normal text-black uppercase tracking-widest">
-            LAST UPDATED: FEBRUARY 21, 2026
+            — LAST UPDATED: FEBRUARY 21, 2026
             </p>
           </div>
         </header>
