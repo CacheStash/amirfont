@@ -48,10 +48,10 @@ const License: React.FC = () => {
           </h2>
           {/* 2. SUB-HEADER INFO - Tambah info Update Terakhir */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <p className="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-[0.3em]">
+            <p className="text-xs md:text-sm font-normal text-gray-500 uppercase tracking-[0.3em]">
               Clear Additive Terms for Creative Freedom
             </p>
-            <p className="text-[10px] md:text-xs font-normal text-black/40 uppercase tracking-widest">
+            <p className="text-xs md:text-sm font-normal text-black uppercase tracking-widest">
             LAST UPDATED: FEBRUARY 21, 2026
             </p>
           </div>
@@ -185,7 +185,7 @@ const License: React.FC = () => {
           <TermCard number="06" title="Legal Breach">
             <BrutalBox className="bg-[#fffafa] border-red-200">
               <p className="text-base md:text-3xl font-normal normal-case leading-relaxed text-black">
-                <span className="font-black uppercase tracking-widest mr-4 italic text-red-600 underline underline-offset-8">Violation Notice:</span>
+                <span className="font-black uppercase tracking-widest mr-4 italic text-red-600">Violation Notice:</span>
                 Subqi Studio reserves the right to terminate the license immediately if the Licensee fails to comply with any terms, including using tiers that do not match the actual organization scale.
               </p>
             </BrutalBox>
