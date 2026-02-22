@@ -492,22 +492,36 @@ export default {
           });
         }
 
-        // CEK 2: Verifikasi kecocokan ID transaksi di database
+        // 1. Cari User ID berdasarkan Email (Case-Insensitive menggunakan ilike)
+        const buyerRes = await fetch(
+          `${supabaseUrl}/rest/v1/fontbuyer?email=ilike.${encodeURIComponent(email)}&select=id`,
+          { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
+        );
+        const buyerData = await buyerRes.json();
+        const foundUserId = buyerData?.[0]?.id;
+
+        if (!foundUserId) {
+          return new Response(JSON.stringify({ error: "INVALID_ORDER_OR_EMAIL" }), { 
+            status: 403,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
+        // 2. Verifikasi apakah Transaction ID yang diinput ada di sejarah transaksi User tersebut
         const checkRes = await fetch(
-          `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&fontbuyer!inner.email=ilike.${encodeURIComponent(email)}&select=user_id`,
+          `${supabaseUrl}/rest/v1/font_history?user_id=eq.${foundUserId}&transaction_id=eq.${encodeURIComponent(transactionId)}&select=user_id`,
           { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
         );
         const checkData = await checkRes.json();
 
         if (!checkData || checkData.length === 0) {
-          // FIXED: Kirim error code yang sesuai dengan pengecekan di UserAuth.tsx
           return new Response(JSON.stringify({ error: "TRANSACTION_ID_NOT_FOUND" }), { 
             status: 403,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
           });
         }
 
-        const userId = checkData[0].user_id;
+        const userId = foundUserId;
 
         // CEK 3: Update Password via Admin API
         const resetRes = await fetch(`${supabaseUrl}/auth/v1/admin/users/${userId}`, {
