@@ -46,16 +46,16 @@ const [email, setEmail] = React.useState('');
     try {
       // 1. Kirim data ke Worker API (Worker akan handle bypass RLS & Resetter Password)
       // Karena cart bisa berisi banyak item, kita kirimkan sebagai metadata atau loop
-      const response = await fetch('/api/claim-trial', {
+      const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
           fontName: cart.map(i => i.name).join(', '),
-          type: 'trial',
+          type: 'full', // FIXED: Gunakan 'full' untuk pembelian sukses
           metadata: { 
-            order_id: orderId,
-            cart_items: cart // WAJIB: Agar Worker bisa ambil UUID font_id dan granular tier (e.g. DEMO/SOLO)
+            order_id: finalOrderId, // FIXED: Gunakan finalOrderId (ID PayPal) agar sinkron dengan tombol download
+            cart_items: cart 
           }
         })
       });
