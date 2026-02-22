@@ -117,7 +117,8 @@ const [email, setEmail] = React.useState('');
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `SUBQI_STUDIO_${fileName.split('.')[0]}.zip`; // Force format ZIP
+      const cleanName = fileName.replace(/^\d+-/, '').split('.')[0];
+      a.download = `SUBQI_STUDIO_${cleanName}.zip`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (e: any) {
