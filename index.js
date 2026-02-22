@@ -205,15 +205,42 @@ export default {
       try {
         const authHeader = request.headers.get('Authorization');
         
-        // 1. Validasi Identitas User (RLS Bypass via authHeader)
+        // FIXED: Ambil email dari parameter untuk verifikasi guest/existing user yang tidak login
+        const email = url.searchParams.get('email');
+        let isAuthorized = false;
+        let buyerEmail = '';
+
         const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
         const supabaseKey = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
+        const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
-        const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
-          headers: { 'Authorization': authHeader, 'apikey': supabaseKey }
-        });
-        const user = userRes.ok ? await userRes.json() : null;
-        if (!user) return new Response("UNAUTHORIZED", { status: 401 });
+        // 1a. VERIFIKASI VIA TOKEN (Untuk User yang sedang Login)
+        if (authHeader) {
+          const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+            headers: { 'Authorization': authHeader, 'apikey': supabaseKey }
+          });
+          const userData = userRes.ok ? await userRes.json() : null;
+          if (userData) {
+            isAuthorized = true;
+            buyerEmail = userData.email;
+          }
+        }
+
+        // 1b. FALLBACK: VERIFIKASI VIA EMAIL + ORDER ID (Untuk pembeli lama yang tidak login)
+        if (!isAuthorized && email && transactionId && serviceRoleKey) {
+          // Query ke history menggunakan service_role untuk memastikan transaksi valid (Bypass RLS)
+          const checkRes = await fetch(
+            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${transactionId}&fontbuyer!inner.email=eq.${email}&select=id`,
+            { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
+          );
+          const checkData = await checkRes.json();
+          if (checkData && checkData.length > 0) {
+            isAuthorized = true;
+            buyerEmail = email;
+          }
+        }
+
+        if (!isAuthorized) return new Response("UNAUTHORIZED_ACCESS", { status: 401 });
 
         // 2. Ekstrak dan Bersihkan Nama File (AGAR TIDAK REFERENCE ERROR)
         const fontFile = decodeURIComponent(rawFile).split('/').pop();
@@ -279,7 +306,7 @@ export default {
         let licenseBody = `SUBQI STUDIO — OFFICIAL LICENSE CERTIFICATE\n`;
         licenseBody += `========================================================================\n`;
         licenseBody += `ORDER ID       : ${transactionId || 'N/A'} (USE AS INITIAL PASSWORD / RESETTER)\n`;
-        licenseBody += `LICENSE HOLDER : ${user.email} (USE AS LOGIN USERNAME)\n`;
+        licenseBody += `LICENSE HOLDER : ${buyerEmail} (USE AS LOGIN USERNAME)\n`;
         licenseBody += `ISSUE DATE     : ${issueDate}\n`;
         licenseBody += `ASSET NAME     : ${cleanFontName}\n`;
         licenseBody += `SEAT TIER      : ${displayTier}\n`;
@@ -327,7 +354,7 @@ export default {
         // EXPOSE HEADERS: Agar frontend bisa membaca nama file asli
         headers.set('Access-Control-Expose-Headers', 'Content-Disposition');
         headers.set('Access-Control-Allow-Origin', '*');
-        headers.set('X-License-Owner', user.email);
+        headers.set('X-License-Owner', buyerEmail);
         headers.set('X-Order-ID', transactionId || 'N/A');
         headers.set('X-License-Status', 'VALID_COMMERCIAL');
         headers.set('Access-Control-Allow-Headers', 'Authorization, apikey, X-Order-ID');

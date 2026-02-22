@@ -106,17 +106,21 @@ const [email, setEmail] = React.useState('');
     }
 
     try {
-      // Menambahkan parameter type ke URL agar sinkron dengan Worker
-      const res = await fetch(`/api/download-zip?file=${fileName}&order=${orderId}&type=${type}`, {
-        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      // FIXED: Tambahkan &email ke URL agar Worker bisa memvalidasi pembeli lama yang tidak login
+      const url = `/api/download-zip?file=${encodeURIComponent(fileName)}&order=${orderId}&type=${type}&email=${encodeURIComponent(email)}`;
+      
+      const res = await fetch(url, {
+        headers: { 'Authorization': session ? `Bearer ${session.access_token}` : '' }
       });
       
       if (!res.ok) throw new Error("UNAUTHORIZED_OR_FILE_NOT_FOUND");
 
       const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
+      const urlBlob = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = urlBlob;
+      
+      // FIXED: Bersihkan nama file dari timestamp agar sama dengan format Dashboard
       const cleanName = fileName.replace(/^\d+-/, '').split('.')[0];
       a.download = `SUBQI_STUDIO_${cleanName}.zip`;
       a.click();
@@ -179,11 +183,7 @@ if (subscribe) {
         await supabase.from('fontsubscribers').upsert({ email, source: 'checkout_trial' });
       }
 
-      // 4. REDIRECT: 'key' (auto-login) hanya dikirim untuk New User
-      const authUrl = isNewUser 
-        ? `/user/auth?email=${encodeURIComponent(email)}&key=${encodeURIComponent(orderId)}`
-        : `/user/auth?email=${encodeURIComponent(email)}`; // User lama harus pakai password asli
-      
+    
       setPurchasedItems([...cart]);
       setIsPaid(true);
       clearCart();
@@ -345,7 +345,7 @@ if (subscribe) {
                   {purchasedItems.map((item) => (
                     <button 
                       key={item.cartId}
-                      onClick={() => handleSecureDownload(
+                     onClick={() => handleSecureDownload(
                         item.price === 0 
                           ? (item.trialFileUrl || 'null') 
                           : (item.font_files?.[0] || 'null'), 
@@ -359,10 +359,10 @@ if (subscribe) {
 
                   {/* FIXED: Pindah button "Go To My Library" ke sini */}
                   <Link 
-                    to="/user/dashboard"
+                    to="/user/auth"
                     className="w-full mt-4 bg-transparent border-2 border-black text-black py-5 text-center text-sm font-black tracking-[0.2em] hover:bg-black hover:text-white transition-all flex items-center justify-center gap-4 group"
                   >
-                    MANAGE ALL FONTS IN LIBRARY <Plus size={18} className="group-hover:rotate-90 transition-transform"/>
+                    LOGIN TO ACCESS FULL LIBRARY <Plus size={18} className="group-hover:rotate-90 transition-transform"/>
                   </Link>
                 </div>
               </div>
