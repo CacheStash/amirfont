@@ -62,11 +62,8 @@ const [email, setEmail] = React.useState('');
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error || "API_CHECKOUT_FAILED");
 
-      // 2. AUTO-LOGIN (Resetter Logic): Gunakan Transaction ID sebagai password
-      await supabase.auth.signInWithPassword({
-        email: email,
-        password: finalOrderId,
-      });
+
+    
 
       if (subscribe) {
         await supabase.from('fontsubscribers').upsert({ email, source: 'checkout_purchase' });
@@ -87,7 +84,7 @@ const [email, setEmail] = React.useState('');
 
    const handleSecureDownload = async (fileName: string, type: 'trial' | 'full' = 'full') => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return alert("SESSION_EXPIRED. PLEASE LOGIN.");
+    
 
     // Validasi: Jangan jalankan fetch jika fileName tidak ada (mencegah file=null)
     if (!fileName || fileName === 'null' || fileName === 'undefined') {
@@ -147,11 +144,7 @@ const [email, setEmail] = React.useState('');
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error || "API_TRIAL_FAILED");
 
-      // 2. AUTO-LOGIN: Agar session terbentuk dan download diperbolehkan
-      await supabase.auth.signInWithPassword({
-        email: email,
-        password: orderId,
-      });
+      
 
 if (subscribe) {
         await supabase.from('fontsubscribers').upsert({ email, source: 'checkout_trial' });
