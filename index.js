@@ -197,7 +197,9 @@ export default {
     // --- 6. API Checkout & Trial (The Resetter Logic) ---
     if ((url.pathname.startsWith('/api/checkout') || url.pathname.startsWith('/api/claim-trial')) && request.method === 'POST') {
       try {
-        const { email, metadata, type } = await request.json();
+        const body = await request.json();
+        // FIXED: Ekstrak tier, usages, amount, dan fontName agar tersedia di seluruh blok try
+        const { email, metadata, type, tier, usages, amount, fontName } = body;
         const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
         const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -354,7 +356,7 @@ export default {
         // 3. Ambil data biner font asli
         const fontData = await object.arrayBuffer();
 
-        // 3. MASTER TIER MAPPING (Februari 2026 - Granular Logic)
+       // 3. MASTER TIER MAPPING (Sinkronisasi Frontend CartCard.tsx)
         const MASTER_TIER_LABELS = {
           desktop: { solo: '1 USER', team: 'UP TO 30', studio: 'UP TO 100', enterprise: 'UNLIMITED' },
           social_web: { small_50k: '50K VIEWS', medium_500k: '500K VIEWS', large_5m: '2M VIEWS', enterprise_unlimited: 'UNLIMITED' },
@@ -364,7 +366,7 @@ export default {
           broadcast: { solo: 'REGIONAL', studio: 'NATIONAL', enterprise: 'WORLDWIDE' }
         };
 
-       const rawTier = (txData.tier || 'solo').toLowerCase();
+        const rawTier = (txData.tier || 'solo').toLowerCase();
         const primaryUsage = isTrial ? 'trial' : (txData.usages?.[0] || 'desktop');
         
         let displayTier = '';
@@ -383,19 +385,19 @@ export default {
         const TEXT_DB = {
           trial: {
             title: "01. PERSONAL USE ONLY (DEMO)",
-            grant: "Permitted exclusively for personal, non-commercial projects (e.g., student assignments, portfolio pieces, or non-profit testing).",
-            charSet: "The Demo version is a 'Trial' file and contains a limited glyph set.",
-            restrictions: "Commercial utilization, business promotion, social media advertising, or revenue-generating activities are strictly prohibited."
+            grant: "Permitted exclusively for personal, non-commercial use (e.g. educational assignments, portfolio pieces, or non-profit testing).",
+            charSet: "The Demo version is a trial asset and contains a limited glyph set.",
+            restrictions: "Commercial utilization, business promotion, or revenue-generating activities are strictly prohibited."
           },
-          desktop: "A. DESKTOP / PRINT: Install on workstations to create static content (PNG, JPG, PDF) for digital and print media.",
-          social_web: "B. DIGITAL MEDIA: Specifically for digital platforms, website embedding, and social media advertising.",
+          desktop: "A. DESKTOP / PRINT: Install on workstations to create static visual content (PNG, JPG, PDF) for digital and print media.",
+          social_web: "B. DIGITAL MEDIA (SOCIAL/WEB): Specifically for digital platforms, including website embedding and social media advertising.",
           logo_branding: "C. LOGO & BRANDING: Utilize the font as a core element of a visual identity system (Logos, Wordmarks).",
           app: "D. APP / GAME / EBOOK: Embed font software into mobile applications, software, games, or electronic publications.",
           broadcast: "E. BROADCAST: For motion graphics, television, cinema, streaming, and video advertisements.",
           server: "F. SERVER: Install on a server to facilitate automated end-user customization (Web-to-Print).",
-          corporate: "G. CORPORATE ALL-IN-ONE: Comprehensive license covering all categories with unlimited scale for the entire global corporation."
+          corporate: "G. CORPORATE ALL-IN-ONE: A comprehensive license covering all categories for an entire organization with no limits on seats or impressions."
         };
-        
+
         // 4. Susun isi LICENSE.txt
         const issueDate = new Date().toLocaleDateString();
         let licenseBody = `SUBQI STUDIO — OFFICIAL LICENSE CERTIFICATE\n`;
