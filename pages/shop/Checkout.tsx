@@ -15,6 +15,7 @@ const [email, setEmail] = React.useState('');
   const [isPaid, setIsPaid] = React.useState(false);
   const [subscribe, setSubscribe] = React.useState(true);
   const [purchasedItems, setPurchasedItems] = React.useState<any[]>([]);
+  const [successfulOrderId, setSuccessfulOrderId] = React.useState<string | null>(null);
 
   // AUTH & PRE-FILL: Menggunakan getSession agar lebih instan dibanding getUser
   React.useEffect(() => {
@@ -74,6 +75,7 @@ const [email, setEmail] = React.useState('');
       setIsPaid(true);
       setPurchasedItems([...cart]);
       clearCart();
+      setSuccessfulOrderId(finalOrderId);
       
     } catch (err: any) {
       alert("ERROR: " + err.message);
@@ -86,14 +88,15 @@ const [email, setEmail] = React.useState('');
     const { data: { session } } = await supabase.auth.getSession();
     
 
-    // Validasi: Jangan jalankan fetch jika fileName tidak ada (mencegah file=null)
+    const targetOrder = successfulOrderId || orderId;
+
     if (!fileName || fileName === 'null' || fileName === 'undefined') {
       return alert("DOWNLOAD_ERROR: FILE_PATH_NOT_CONFIGURED. CHECK FONT DATABASE.");
     }
 
     try {
-      // FIXED: Tambahkan &email ke URL agar Worker bisa memvalidasi pembeli lama yang tidak login
-      const url = `/api/download-zip?file=${encodeURIComponent(fileName)}&order=${orderId}&type=${type}&email=${encodeURIComponent(email)}`;
+      // FIXED: Masukkan targetOrder ke URL agar Worker bisa memverifikasi Guest via DB
+      const url = `/api/download-zip?file=${encodeURIComponent(fileName)}&order=${encodeURIComponent(targetOrder)}&type=${type}&email=${encodeURIComponent(email)}`;
       
       const res = await fetch(url, {
         headers: { 'Authorization': session ? `Bearer ${session.access_token}` : '' }
@@ -154,6 +157,7 @@ if (subscribe) {
       setPurchasedItems([...cart]);
       setIsPaid(true);
       clearCart();
+      setSuccessfulOrderId(orderId);
       
     } catch (err: any) {
       alert("ERROR: " + err.message);
