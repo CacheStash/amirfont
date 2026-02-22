@@ -58,7 +58,7 @@ const MyFontsHistory = () => {
       const a = document.createElement('a');
       a.href = url;
       const cleanName = fileName.replace(/^\d+-/, '').split('.')[0];
-      a.download = `SUBQI_STUDIO_${cleanName}.zip`;
+      a.download = `SQ_${cleanName}.zip`;
     
       document.body.appendChild(a);
       a.click();

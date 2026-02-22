@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCart } from '../../context/CartContext';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, Check } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { supabase } from '../../lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -122,7 +122,7 @@ const [email, setEmail] = React.useState('');
       
       // FIXED: Bersihkan nama file dari timestamp agar sama dengan format Dashboard
       const cleanName = fileName.replace(/^\d+-/, '').split('.')[0];
-      a.download = `SUBQI_STUDIO_${cleanName}.zip`;
+      a.download = `SQ_${cleanName}.zip`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (e: any) {
@@ -321,8 +321,8 @@ if (subscribe) {
                       onChange={() => setSubscribe(!subscribe)}
                       className="sr-only peer"
                     />
-                    <div className="w-5 h-5 border-2 border-white bg-transparent peer-checked:bg-white transition-all flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]">
-                      {subscribe && <div className="w-2.5 h-2.5 bg-black" />}
+                    <div className={`w-5 h-5 border-2 border-white transition-all shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] ${subscribe ? 'bg-orange-600 border-orange-600' : 'bg-transparent'}`}>
+                      {subscribe && <Check size={12} className="text-white" />}
                     </div>
                   </div>
                   <span className="text-[10px] font-bold tracking-widest group-hover:underline text-white">

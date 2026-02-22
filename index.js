@@ -244,8 +244,10 @@ export default {
 
         // 2. Ekstrak dan Bersihkan Nama File (AGAR TIDAK REFERENCE ERROR)
         const fontFile = decodeURIComponent(rawFile).split('/').pop();
-        const cleanFontName = fontFile.replace(/^\d+-/, ''); // INI VARIABEL YANG ILANG TADI
-        const zipName = `SUBQI_STUDIO_${cleanFontName.split('.')[0]}.zip`;
+        const cleanFontName = fontFile.replace(/^\d+-/, ''); 
+        // FIXED: Tambahkan akhiran -Trial hanya untuk versi demo
+        const baseName = cleanFontName.split('.')[0];
+        const zipName = `SQ_${baseName}${isTrial ? '-Trial' : ''}.zip`;
 
         const object = await env.R2_BUCKET.get(fontFile);
         if (!object) return new Response(`File Not Found: ${fontFile}`, { status: 404 });
