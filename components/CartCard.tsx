@@ -32,13 +32,14 @@ interface CartCardProps {
   fontName: string;
   prices: LicensePrices;
   font_files: string[];
+  trialFileUrl?: string;
   discount?: number;
 directCheckout?: boolean; // FIXED: Properti baru untuk menyembunyikan 'Add to Cart'
 }
 
 import { useNavigate } from 'react-router-dom'; // FIXED: Wajib tambah ini
 
-const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices,font_files, discount = 0, directCheckout = false }) => {
+const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices,font_files, trialFileUrl, discount = 0, directCheckout = false }) => {
   const { addToCart, closeConfigurator } = useCart();
   const navigate = useNavigate(); // FIXED: Inisialisasi navigasi
   const [selectedTier, setSelectedTier] = useState<'solo' | 'team' | 'studio' | 'enterprise'>('solo');
@@ -194,6 +195,7 @@ const handleAdd = (redirect: boolean = false) => {
       name: fontName,
       price: totalPrice,
       font_files: font_files,
+      trialFileUrl: trialFileUrl,
       // FIXED: Mengambil tier dari kategori tertinggi yang dipilih untuk label di Cart
       tier: isTrial ? 'DEMO' : (isCorporate ? 'CORPORATE' : selectedTiers[selectedUsages[selectedUsages.length - 1] || 'desktop'].toUpperCase()),
       usages: isTrial ? ['PERSONAL USE'] : (isCorporate ? ['ALL-IN-ONE'] : finalUsages),
