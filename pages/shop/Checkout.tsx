@@ -136,9 +136,11 @@ const [email, setEmail] = React.useState('');
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          fontName: cart[0]?.name || 'Demo Font',
           type: 'trial',
-          metadata: { order_id: orderId }
+          metadata: { 
+            order_id: orderId,
+            cart_items: cart // WAJIB: Agar Worker bisa mengambil font_id (UUID) asli dari keranjang
+          }
         })
       });
 

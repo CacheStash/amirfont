@@ -198,8 +198,8 @@ export default {
     if ((url.pathname.startsWith('/api/checkout') || url.pathname.startsWith('/api/claim-trial')) && request.method === 'POST') {
       try {
         const body = await request.json();
-        // FIXED: Ekstrak tier, usages, amount, dan fontName agar tersedia di seluruh blok try
-        const { email, metadata, type, tier, usages, amount, fontName } = body;
+        // FIXED: Masukkan tier, usages, amount, fontName, dan fontId agar tidak undefined saat digunakan di mapping
+        const { email, metadata, type, tier, usages, amount, fontName, fontId } = body;
         const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
         const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -252,14 +252,21 @@ export default {
             metadata: { ...item.metadata, price_at_purchase: item.price } 
           }));
         } else {
+          // FIXED: Ambil font_id dari body, metadata, atau item pertama di cart agar tidak default ke zeros (penyebab FK Violation)
+          const finalFontId = fontId || metadata?.font_id || metadata?.cart_items?.[0]?.id;
+          
+          if (!finalFontId) {
+             throw new Error("REQUIRED_FONT_ID_MISSING");
+          }
+
           historyEntries = [{
             user_id: targetUserId,
-            font_id: metadata?.font_id || '00000000-0000-0000-0000-000000000000',
+            font_id: finalFontId,
             download_type: type === 'trial' ? 'trial' : 'full',
             transaction_id: transactionId,
             tier: (tier || 'SOLO').toUpperCase(),
             usages: usages || (type === 'trial' ? ['trial'] : ['desktop']),
-            metadata: { ...metadata, price_at_purchase: amount }
+            metadata: { ...metadata, price_at_purchase: amount || 0 }
           }];
         }
 
