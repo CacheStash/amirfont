@@ -321,9 +321,7 @@ if (subscribe) {
                       onChange={() => setSubscribe(!subscribe)}
                       className="sr-only peer"
                     />
-                    <div className={`w-5 h-5 border-2 border-white transition-all shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] ${subscribe ? 'bg-orange-600 border-orange-600' : 'bg-transparent'}`}>
-                      {subscribe && <Check size={12} className="text-white" />}
-                    </div>
+                    <div className={`w-5 h-5 border-2 transition-all shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] ${subscribe ? 'bg-orange-600 border-orange-600' : 'bg-transparent border-white'}`} />
                   </div>
                   <span className="text-[10px] font-bold tracking-widest group-hover:underline text-white">
                     SUBSCRIBE TO NEWSLETTER & NEW RELEASES
