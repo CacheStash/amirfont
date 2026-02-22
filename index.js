@@ -197,83 +197,91 @@ export default {
     // --- 6. API Checkout & Trial (The Resetter Logic) ---
     if ((url.pathname.startsWith('/api/checkout') || url.pathname.startsWith('/api/claim-trial')) && request.method === 'POST') {
       try {
-        const { email, fontName, tier, usages, amount, metadata, type } = await request.json();
+        const { email, metadata, type } = await request.json();
         const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
         const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
         if (!serviceRoleKey) throw new Error("SERVICE_KEY_MISSING");
 
-        // 1. Tentukan Transaction ID (Kunci untuk Resetter Password)
         const transactionId = metadata?.order_id || `TX-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-        // 2. Kelola User (Create or Update Password)
+        // 1. Cari User di fontbuyer atau Auth
         const userCheckRes = await fetch(`${supabaseUrl}/rest/v1/fontbuyer?email=eq.${email}&select=user_id`, {
           headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` }
         });
         const userCheckData = await userCheckRes.json();
-        let targetUserId;
+        let targetUserId = userCheckData?.[0]?.user_id;
 
         if (userCheckData && userCheckData.length > 0) {
-          targetUserId = userCheckData[0].user_id;
-          // Update Password: ID Transaksi terbaru jadi password baru (Resetter)
+          targetUserId = userCheckData[0].id; // Menggunakan 'id' sesuai schema fontbuyer
+          
+          // UPDATE PASSWORD (Resetter Logic)
           await fetch(`${supabaseUrl}/auth/v1/admin/users/${targetUserId}`, {
             method: 'PUT',
             headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: transactionId })
           });
         } else {
-          // Buat User Baru
+          // USER TIDAK ADA DI FONTBUYER: Coba buat di Auth
           const createRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
             method: 'POST',
             headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password: transactionId, email_confirm: true })
           });
           const createData = await createRes.json();
-          if (!createRes.ok) throw new Error(createData.msg || "FAILED_CREATE_USER");
-          targetUserId = createData.id;
 
-          // Mapping ke tabel fontbuyer
+          if (createRes.ok) {
+            targetUserId = createData.id;
+          } else {
+            // Jika error "Already Registered", kita harus ambil ID-nya dari Auth (List)
+            const listRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+              headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` }
+            });
+            const listData = await listRes.json();
+            const existingUser = listData.users?.find(u => u.email === email);
+            if (!existingUser) throw new Error("USER_EXISTS_IN_AUTH_BUT_NOT_FOUND");
+            targetUserId = existingUser.id;
+          }
+
+          // INSERT KE FONTBUYER (Mapping Email)
+          // Ini kunci agar constraint fk_font_history_user tidak error
           await fetch(`${supabaseUrl}/rest/v1/fontbuyer`, {
             method: 'POST',
             headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: targetUserId, email: email })
+            body: JSON.stringify({ id: targetUserId, email: email })
           });
         }
 
-        // 3. Masukkan ke font_history (Bulk Insert jika ada cart_items)
+        // 3. Masukkan ke font_history (FIX: Masukkan 'amount' ke metadata karena kolom tidak ada di schema)
         let historyEntries = [];
-        if (metadata?.cart_items && Array.isArray(metadata.cart_items)) {
-          historyEntries = metadata.cart_items.map(item => ({
+        const items = metadata?.cart_items || [];
+        
+        if (items.length > 0) {
+          historyEntries = items.map(item => ({
             user_id: targetUserId,
-            font_name: item.name,
+            font_id: item.id, 
+            download_type: type === 'trial' ? 'trial' : 'full',
+            transaction_id: transactionId,
             tier: item.tier || 'SOLO',
             usages: item.usages || (type === 'trial' ? ['trial'] : ['desktop']),
-            amount: item.price || 0,
-            transaction_id: transactionId,
-            download_type: type || 'commercial',
-            metadata: item.metadata || {}
+            metadata: { ...item.metadata, price_at_purchase: item.price } 
           }));
         } else {
-          // Fallback untuk single item (Trial Claim)
+          // Single item fallback
           historyEntries = [{
             user_id: targetUserId,
-            font_name: fontName,
+            font_id: metadata?.font_id || '00000000-0000-0000-0000-000000000000', // Pastikan kirim UUID
+            download_type: type === 'trial' ? 'trial' : 'full',
+            transaction_id: transactionId,
             tier: tier || 'SOLO',
             usages: usages || (type === 'trial' ? ['trial'] : ['desktop']),
-            amount: amount || 0,
-            transaction_id: transactionId,
-            download_type: type || 'commercial',
-            metadata: metadata || {}
+            metadata: { ...metadata, price_at_purchase: amount }
           }];
         }
 
         const historyRes = await fetch(`${supabaseUrl}/rest/v1/font_history`, {
           method: 'POST',
-          headers: { 
-            'apikey': serviceRoleKey, 
-            'Authorization': `Bearer ${serviceRoleKey}`, 
-            'Content-Type': 'application/json'
-          },
+          headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(historyEntries)
         });
 
@@ -284,12 +292,10 @@ export default {
         });
       } catch (e) {
         return new Response(JSON.stringify({ error: e.message }), { 
-          status: 500, 
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       }
     }
-    
 
     // --- 7. API Secure ZIP Download (For Buyers) ---
     if (url.pathname.startsWith('/api/download-zip')) {
