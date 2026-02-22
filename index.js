@@ -322,15 +322,22 @@ export default {
         if (!isAuthorized && email && transactionId && serviceRoleKey) {
           // Query ke history menggunakan service_role untuk memastikan transaksi valid (Bypass RLS)
           const checkRes = await fetch(
-            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${transactionId}&fontbuyer!inner.email=eq.${email}&select=id`,
-            { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
+           // --- PARTIAL FIX ---
+            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&select=id,fontbuyer!inner(email)`,
+            { headers: { 
+              'apikey': serviceRoleKey, 
+              'Authorization': `Bearer ${serviceRoleKey}` 
+            } }
           );
           const checkData = await checkRes.json();
-          if (checkData && checkData.length > 0) {
+          // Verifikasi apakah record ditemukan dan email pembeli cocok (Case Insensitive)
+          const record = checkData?.[0];
+          if (record && record.fontbuyer?.email?.toLowerCase() === email.toLowerCase()) {
             isAuthorized = true;
             buyerEmail = email;
           }
         }
+// --- END FIX ---
 
         if (!isAuthorized) return new Response("UNAUTHORIZED_ACCESS", { status: 401 });
 
@@ -342,8 +349,11 @@ export default {
         try {
           // Gunakan serviceRoleKey agar verifikasi guest/pembeli lama tetap jalan tanpa token user
           const txRes = await fetch(
-            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${transactionId}&select=tier,usages,download_type,metadata`,
-            { headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
+            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&select=tier,usages,download_type,metadata`,
+            { headers: { 
+              'apikey': serviceRoleKey, 
+              'Authorization': `Bearer ${serviceRoleKey}` 
+            } }
           );
           const txRows = txRes.ok ? await txRes.json() : [];
           txData = txRows[0] || {};
