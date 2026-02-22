@@ -372,39 +372,46 @@ export default {
         // 3. Ambil data biner font asli
         const fontData = await object.arrayBuffer();
 
-        
-        
-        // LOGIKA DETAIL SEAT TIERS
-        const tierMap = {
-          'SOLO': 'Authorized for 1 User/Seat',
-          'TEAM': 'Authorized for up to 25 Users/Seats',
-          'STUDIO': 'Authorized for up to 100 Users/Seats',
-          'ENTERPRISE': 'Unlimited Users/Seats',
-          'CORPORATE': 'Unlimited Users/Seats (Full Organization)'
+        // 3. MASTER TIER MAPPING (Februari 2026 - Granular Logic)
+        const MASTER_TIER_LABELS = {
+          desktop: { solo: '1 USER', team: 'UP TO 30', studio: 'UP TO 100', enterprise: 'UNLIMITED' },
+          social_web: { small_50k: '50K VIEWS', medium_500k: '500K VIEWS', large_5m: '2M VIEWS', enterprise_unlimited: 'UNLIMITED' },
+          logo_branding: { personal: 'PERSONAL', solo: '1-10 EMPLOYEES', team: '11-50 EMPLOYEES', studio: '51-250 EMPLOYEES', enterprise: '251+ EMPLOYEES' },
+          app: { solo: '1 TITLE', team: 'UP TO 10', studio: 'UP TO 50', enterprise: 'UNLIMITED' },
+          server: { solo: 'SINGLE', studio: '50 SERVERS', enterprise: 'UNLIMITED' },
+          broadcast: { solo: 'REGIONAL', studio: 'NATIONAL', enterprise: 'WORLDWIDE' }
         };
 
-        const rawTier = (isTrial ? 'SOLO' : txData.tier || 'SOLO').toUpperCase();
-        const tierDescription = tierMap[rawTier] || tierMap['SOLO'];
-        const displayTier = `${rawTier} - ${tierDescription}`; // Hasil: SOLO - Authorized for 1 User/Seat
+       const rawTier = (txData.tier || 'solo').toLowerCase();
+        const primaryUsage = isTrial ? 'trial' : (txData.usages?.[0] || 'desktop');
+        
+        let displayTier = '';
+        if (isTrial) {
+          displayTier = 'DEMO - PERSONAL USE ONLY';
+        } else if (txData.tier === 'CORPORATE') {
+          displayTier = 'CORPORATE - UNLIMITED ALL-IN-ONE';
+        } else {
+          // Ambil label berdasarkan kategori lisensi utama yang dibeli
+          const label = MASTER_TIER_LABELS[primaryUsage]?.[rawTier] || rawTier.toUpperCase();
+          displayTier = `${rawTier.toUpperCase()} (${label})`;
+        }
 
         const usages = isTrial ? ['trial'] : (txData.usages && txData.usages.length > 0 ? txData.usages : ['desktop']);
 
-
-        // 5. DATABASE TEKS LISENSI (100% Sync dengan visual LicenseReceipt.tsx)
         const TEXT_DB = {
           trial: {
-            title: "PERSONAL USE ONLY (DEMO)",
-            grant: "Permitted exclusively for personal, non-commercial use, such as educational assignments, portfolio pieces, or preliminary testing.",
-            charSet: "The Demo version is a trial asset and contains a limited glyph set.",
+            title: "01. PERSONAL USE ONLY (DEMO)",
+            grant: "Permitted exclusively for personal, non-commercial projects (e.g., student assignments, portfolio pieces, or non-profit testing).",
+            charSet: "The Demo version is a 'Trial' file and contains a limited glyph set.",
             restrictions: "Commercial utilization, business promotion, social media advertising, or revenue-generating activities are strictly prohibited."
           },
-          desktop: "Grants the right to install the font software on a local machine to create static visual content (PNG, JPG, PDF) for digital and print media, including commercial projects.",
-          logo_branding: "Grants the right to utilize the font as a core element of a visual identity system, including logos and wordmarks. This license includes all permissions associated with a standard Desktop License.",
-          social_web: "Specifically for digital platforms, including website embedding and social media content. Tiered by monthly impressions: Small (50k), Medium (500k), Large (5m), Enterprise (Unlimited).",
-          app: "Grants the right to embed the font software into mobile applications or software. This license includes all permissions associated with a standard Desktop License.",
-          broadcast: "Grants the right to utilize the font software in television, cinema, or streaming. This license includes all permissions associated with a standard Desktop License.",
-          server: "Grants the right to install the font software on a server for product customization. This license includes all permissions associated with a standard Desktop License.",
-          corporate: "A comprehensive license covering all categories for an entire organization with no limits on seats or impressions."
+          desktop: "A. DESKTOP / PRINT: Install on workstations to create static content (PNG, JPG, PDF) for digital and print media.",
+          social_web: "B. DIGITAL MEDIA: Specifically for digital platforms, including website embedding and social media advertising.",
+          logo_branding: "C. LOGO & BRANDING: Utilize the font as a core element of a visual identity system (Logos, Wordmarks).",
+          app: "D. APP / GAME / EBOOK: Embed font software into mobile applications, software, games, or electronic publications.",
+          broadcast: "E. BROADCAST: For motion graphics, television, cinema, streaming, and video advertisements.",
+          server: "F. SERVER: Install on a server to facilitate automated end-user customization (Web-to-Print).",
+          corporate: "G. CORPORATE ALL-IN-ONE: Comprehensive license covering all categories with unlimited scale for the entire global corporation."
         };
 
         // 4. Susun isi LICENSE.txt
