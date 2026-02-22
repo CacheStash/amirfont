@@ -201,58 +201,41 @@ export default {
         const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
         const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
-        if (!serviceRoleKey) throw new Error("SERVICE_KEY_MISSING");
+       const transactionId = metadata?.order_id || `TX-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-        const transactionId = metadata?.order_id || `TX-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-
-        // 1. Cari User di fontbuyer atau Auth
-        const userCheckRes = await fetch(`${supabaseUrl}/rest/v1/fontbuyer?email=eq.${email}&select=user_id`, {
-          headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` }
+        // 1. Cari/Update User (Logic Resetter)
+        const userCheckRes = await fetch(`${supabaseUrl}/rest/v1/fontbuyer?email=eq.${email}&select=id`, {
+          headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}` }
         });
         const userCheckData = await userCheckRes.json();
-        let targetUserId = userCheckData?.[0]?.user_id;
+        let targetUserId;
 
         if (userCheckData && userCheckData.length > 0) {
-          targetUserId = userCheckData[0].id; // Menggunakan 'id' sesuai schema fontbuyer
-          
-          // UPDATE PASSWORD (Resetter Logic)
+          targetUserId = userCheckData[0].id;
           await fetch(`${supabaseUrl}/auth/v1/admin/users/${targetUserId}`, {
             method: 'PUT',
-            headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
+            headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: transactionId })
           });
         } else {
-          // USER TIDAK ADA DI FONTBUYER: Coba buat di Auth
           const createRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
             method: 'POST',
-            headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
+            headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password: transactionId, email_confirm: true })
           });
           const createData = await createRes.json();
+          targetUserId = createData.id;
 
-          if (createRes.ok) {
-            targetUserId = createData.id;
-          } else {
-            // Jika error "Already Registered", kita harus ambil ID-nya dari Auth (List)
-            const listRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
-              headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` }
+          if (targetUserId) {
+            await fetch(`${supabaseUrl}/rest/v1/fontbuyer`, {
+              method: 'POST',
+              headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: targetUserId, email: email })
             });
-            const listData = await listRes.json();
-            const existingUser = listData.users?.find(u => u.email === email);
-            if (!existingUser) throw new Error("USER_EXISTS_IN_AUTH_BUT_NOT_FOUND");
-            targetUserId = existingUser.id;
           }
-
-          // INSERT KE FONTBUYER (Mapping Email)
-          // Ini kunci agar constraint fk_font_history_user tidak error
-          await fetch(`${supabaseUrl}/rest/v1/fontbuyer`, {
-            method: 'POST',
-            headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: targetUserId, email: email })
-          });
         }
 
-        // 3. Masukkan ke font_history (FIX: Masukkan 'amount' ke metadata karena kolom tidak ada di schema)
+        // 2. Masukkan ke font_history (Sinkronisasi Granular Tier)
         let historyEntries = [];
         const items = metadata?.cart_items || [];
         
@@ -260,20 +243,19 @@ export default {
           historyEntries = items.map(item => ({
             user_id: targetUserId,
             font_id: item.id, 
-            download_type: type === 'trial' ? 'trial' : 'full',
+            download_type: item.price === 0 ? 'trial' : 'full',
             transaction_id: transactionId,
-            tier: item.tier || 'SOLO',
-            usages: item.usages || (type === 'trial' ? ['trial'] : ['desktop']),
+            tier: (item.tier || 'SOLO').toUpperCase(), // Menyimpan key: SOLO, SMALL_50K, PERSONAL, dsb.
+            usages: item.usages || ['desktop'],
             metadata: { ...item.metadata, price_at_purchase: item.price } 
           }));
         } else {
-          // Single item fallback
           historyEntries = [{
             user_id: targetUserId,
-            font_id: metadata?.font_id || '00000000-0000-0000-0000-000000000000', // Pastikan kirim UUID
+            font_id: metadata?.font_id || '00000000-0000-0000-0000-000000000000',
             download_type: type === 'trial' ? 'trial' : 'full',
             transaction_id: transactionId,
-            tier: tier || 'SOLO',
+            tier: (tier || 'SOLO').toUpperCase(),
             usages: usages || (type === 'trial' ? ['trial'] : ['desktop']),
             metadata: { ...metadata, price_at_purchase: amount }
           }];
@@ -391,7 +373,7 @@ export default {
         } else if (txData.tier === 'CORPORATE') {
           displayTier = 'CORPORATE - UNLIMITED ALL-IN-ONE';
         } else {
-          // Ambil label berdasarkan kategori lisensi utama yang dibeli
+          // Ambil label spesifik dari kamus berdasarkan kategori lisensi utama
           const label = MASTER_TIER_LABELS[primaryUsage]?.[rawTier] || rawTier.toUpperCase();
           displayTier = `${rawTier.toUpperCase()} (${label})`;
         }
@@ -406,14 +388,14 @@ export default {
             restrictions: "Commercial utilization, business promotion, social media advertising, or revenue-generating activities are strictly prohibited."
           },
           desktop: "A. DESKTOP / PRINT: Install on workstations to create static content (PNG, JPG, PDF) for digital and print media.",
-          social_web: "B. DIGITAL MEDIA: Specifically for digital platforms, including website embedding and social media advertising.",
+          social_web: "B. DIGITAL MEDIA: Specifically for digital platforms, website embedding, and social media advertising.",
           logo_branding: "C. LOGO & BRANDING: Utilize the font as a core element of a visual identity system (Logos, Wordmarks).",
           app: "D. APP / GAME / EBOOK: Embed font software into mobile applications, software, games, or electronic publications.",
           broadcast: "E. BROADCAST: For motion graphics, television, cinema, streaming, and video advertisements.",
           server: "F. SERVER: Install on a server to facilitate automated end-user customization (Web-to-Print).",
           corporate: "G. CORPORATE ALL-IN-ONE: Comprehensive license covering all categories with unlimited scale for the entire global corporation."
         };
-
+        
         // 4. Susun isi LICENSE.txt
         const issueDate = new Date().toLocaleDateString();
         let licenseBody = `SUBQI STUDIO — OFFICIAL LICENSE CERTIFICATE\n`;
