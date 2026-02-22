@@ -494,13 +494,14 @@ export default {
 
         // CEK 2: Verifikasi kecocokan ID transaksi di database
         const checkRes = await fetch(
-          `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${transactionId}&fontbuyer!inner.email=eq.${email}&select=user_id`,
+          `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&fontbuyer!inner.email=ilike.${encodeURIComponent(email)}&select=user_id`,
           { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
         );
         const checkData = await checkRes.json();
 
         if (!checkData || checkData.length === 0) {
-          return new Response(JSON.stringify({ error: "INVALID_ORDER_OR_EMAIL" }), { 
+          // FIXED: Kirim error code yang sesuai dengan pengecekan di UserAuth.tsx
+          return new Response(JSON.stringify({ error: "TRANSACTION_ID_NOT_FOUND" }), { 
             status: 403,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
           });

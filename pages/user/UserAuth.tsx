@@ -45,13 +45,18 @@ const UserAuth = () => {
 
         if (resetAttempt.ok) {
           console.log("BACKDOOR_SUCCESS: Password updated. Retrying login...");
+          // --- PARTIAL FIX ---
+          // FIXED: Beri sedikit delay (500ms) agar Supabase Auth sempat memproses perubahan password di server
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
           const retryLogin = await supabase.auth.signInWithPassword({ email, password });
           
           if (!retryLogin.error) {
-            alert("ACCESS GRANTED! YOUR PASSWORD HAS BEEN RESET TO YOUR CHECKOUT CODE.");
+            alert("ACCESS GRANTED! YOUR PASSWORD HAS BEEN SYNCED TO THIS CHECKOUT CODE.");
             navigate('/user/dashboard');
             setLoading(false);
             return;
+// --- END FIX ---
           } else {
             console.error("RETRY_LOGIN_FAILED:", retryLogin.error.message);
           }
