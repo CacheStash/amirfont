@@ -43,41 +43,31 @@ const [email, setEmail] = React.useState('');
   const handlePurchaseSuccess = async (finalOrderId: string) => {
     setLoading(true);
     try {
-      let targetUserId = user?.id;
+      // 1. Kirim data ke Worker API (Worker akan handle bypass RLS & Resetter Password)
+      // Karena cart bisa berisi banyak item, kita kirimkan sebagai metadata atau loop
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          fontName: cart.map(i => i.name).join(', '), // Deskripsi singkat
+          amount: total,
+          type: 'commercial',
+          metadata: { 
+            order_id: finalOrderId,
+            cart_items: cart // Kirim full detail untuk diproses worker
+          }
+        })
+      });
 
-      // 1. LOGIKA AUTH: Ambil ID user yang sudah ada jika signUp gagal
-      if (!targetUserId) {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: email,
-          password: finalOrderId,
-        });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || "API_CHECKOUT_FAILED");
 
-        if (authError && authError.message === "User already registered") {
-          // Cari ID manual dari fontbuyer agar password user lama tidak berubah
-          const { data: buyerData } = await supabase.from('fontbuyer').select('id').eq('email', email).single();
-          targetUserId = buyerData?.id;
-          alert("ACCOUNT RECOGNIZED. PLEASE LOGIN WITH YOUR EXISTING PASSWORD AFTER THIS.");
-        } else if (!authError) {
-          targetUserId = authData.user?.id;
-        } else {
-          throw authError;
-        }
-      }
-
-      if (!targetUserId) throw new Error("AUTH_ID_MISSING");
-      
-      const historyEntries = cart.map((item: any) => ({
-        user_id: targetUserId,
-        font_id: item.id, 
-        download_type: 'full',
-        transaction_id: finalOrderId,
-        tier: item.tier || 'SOLO', 
-        usages: item.usages || ['desktop'], 
-        metadata: item.metadata || {} 
-      }));
-
-      const { error: histError } = await supabase.from('font_history').insert(historyEntries);
-      if (histError) throw histError;
+      // 2. AUTO-LOGIN (Resetter Logic): Gunakan Transaction ID sebagai password
+      await supabase.auth.signInWithPassword({
+        email: email,
+        password: finalOrderId,
+      });
 
       if (subscribe) {
         await supabase.from('fontsubscribers').upsert({ email, source: 'checkout_purchase' });
@@ -140,44 +130,27 @@ const [email, setEmail] = React.useState('');
 
     setLoading(true);
     try {
-      let targetUserId = user?.id;
-      let isNewUser = false;
+      // 1. Kirim data ke Worker API (Worker bypasses RLS)
+      // Kita gunakan orderId sebagai password resetter
+      const response = await fetch('/api/claim-trial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          fontName: cart[0]?.name || 'Demo Font',
+          type: 'trial',
+          metadata: { order_id: orderId }
+        })
+      });
 
-      // 1. LOGIKA AUTH: Cek apakah user baru atau lama
-      if (!targetUserId) {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: email,
-          password: orderId,
-        });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || "API_TRIAL_FAILED");
 
-        if (!authError && authData.user) {
-          targetUserId = authData.user.id;
-          isNewUser = true; // Tandai untuk login otomatis
-        } else if (authError?.message === "User already registered") {
-          // Ambil ID dari database tanpa mereset password
-          const { data: buyerData } = await supabase.from('fontbuyer').select('id').eq('email', email).single();
-          targetUserId = buyerData?.id;
-          isNewUser = false;
-        } else {
-          throw authError;
-        }
-      }
-
-      if (!targetUserId) throw new Error("USER_NOT_FOUND_FOR_THIS_EMAIL");
-
-      // 2. Catat history (Gunakan targetUserId yang sudah pasti ada)
-      const historyEntries = cart.map((item: any) => ({
-        user_id: targetUserId,
-        font_id: item.id,
-        download_type: 'trial',
-        transaction_id: orderId,
-        tier: 'SOLO', 
-        usages: ['trial'], 
-        metadata: { mpv: "NONE" } 
-      }));
-
-      const { error: histError } = await supabase.from('font_history').insert(historyEntries);
-      if (histError) throw histError;
+      // 2. AUTO-LOGIN: Agar session terbentuk dan download diperbolehkan
+      await supabase.auth.signInWithPassword({
+        email: email,
+        password: orderId,
+      });
 
 if (subscribe) {
         await supabase.from('fontsubscribers').upsert({ email, source: 'checkout_trial' });
