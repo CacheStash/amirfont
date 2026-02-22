@@ -245,7 +245,23 @@ export default {
         // 2. Ekstrak dan Bersihkan Nama File (AGAR TIDAK REFERENCE ERROR)
         const fontFile = decodeURIComponent(rawFile).split('/').pop();
         const cleanFontName = fontFile.replace(/^\d+-/, ''); 
-        // FIXED: Tambahkan akhiran -Trial hanya untuk versi demo
+        // FIXED 1: Pindahkan pengambilan data DB ke sini agar isTrial tidak Reference Error
+        let txData = {};
+        try {
+          // Gunakan serviceRoleKey agar verifikasi guest/pembeli lama tetap jalan tanpa token user
+          const txRes = await fetch(
+            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${transactionId}&select=tier,usages,download_type,metadata`,
+            { headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
+          );
+          const txRows = txRes.ok ? await txRes.json() : [];
+          txData = txRows[0] || {};
+        } catch (e) { console.log("DB_SILENT_ERROR"); }
+
+        // FIXED 2: Tentukan status trial sebelum membuat zipName
+        const typeStr = (injectedType || txData.download_type || '').toLowerCase();
+        const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
+
+        // FIXED 3: Gunakan branding SQ_ dan tambahkan -Trial jika isTrial bernilai true
         const baseName = cleanFontName.split('.')[0];
         const zipName = `SQ_${baseName}${isTrial ? '-Trial' : ''}.zip`;
 
@@ -255,20 +271,7 @@ export default {
         // 3. Ambil data biner font asli
         const fontData = await object.arrayBuffer();
 
-        // 4. Fetch database (Sertakan metadata untuk MPV)
-        let txData = {};
-        try {
-          const txRes = await fetch(
-            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${transactionId}&select=tier,usages,download_type,metadata`,
-            { headers: { 'apikey': supabaseKey, 'Authorization': authHeader } }
-          );
-          const txRows = txRes.ok ? await txRes.json() : [];
-          txData = txRows[0] || {};
-        } catch (e) { console.log("DB_SILENT_ERROR"); }
-
-        // FIXED: Deteksi Trial super kuat (Direct Injection + DB Fallback)
-        const typeStr = (injectedType || txData.download_type || '').toLowerCase();
-        const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
+        
         
         // LOGIKA DETAIL SEAT TIERS
         const tierMap = {
