@@ -97,10 +97,13 @@ async function isUserAdmin(userId, env) {
       { 
         headers: { 
           'apikey': env.VITE_SUPABASE_ANON_KEY, 
-          'Authorization': `Bearer ${env.VITE_SUPABASE_ANON_KEY}` 
+          'Authorization': `Bearer ${env.VITE_SUPABASE_ANON_KEY}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         } 
       }
     );
+    if (!res.ok) return false;
     const data = await res.json();
     return data && data.length > 0; // Jika ID ada di tabel fontadmin, return true
   } catch (e) { return false; }

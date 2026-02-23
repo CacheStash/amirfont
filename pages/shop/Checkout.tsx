@@ -71,11 +71,19 @@ const [name, setName] = React.useState('');
     
 
      if (subscribe) {
-        await supabase.from('fontsubscribers').upsert({ 
-          email: email.toLowerCase(), 
-          source: 'checkout_purchase',
-          status: 'active' 
-        }, { onConflict: 'email' });
+        const { error: subError } = await supabase
+          .from('fontsubscribers')
+          .upsert(
+            { 
+              email: email.toLowerCase().trim(), 
+              source: 'checkout_purchase',
+              status: 'active' 
+            }, 
+            { onConflict: 'email' }
+          )
+          .select(); // Tambahkan select() untuk memaksa verifikasi status insert
+        
+        if (subError) console.error("SUBSCRIBE_DB_ERROR:", subError);
       }
 
       // FIXED: Alur baru - Jangan redirect, tapi tampilkan unduhan di tempat
@@ -164,11 +172,19 @@ const [name, setName] = React.useState('');
       
 
 if (subscribe) {
-        await supabase.from('fontsubscribers').upsert({ 
-          email: email.toLowerCase(), 
-          source: 'checkout_trial',
-          status: 'active' 
-        }, { onConflict: 'email' });
+        const { error: subError } = await supabase
+          .from('fontsubscribers')
+          .upsert(
+            { 
+              email: email.toLowerCase().trim(), 
+              source: 'checkout_trial',
+              status: 'active' 
+            }, 
+            { onConflict: 'email' }
+          )
+          .select();
+        
+        if (subError) console.error("SUBSCRIBE_TRIAL_DB_ERROR:", subError.message);
       }
 
     
