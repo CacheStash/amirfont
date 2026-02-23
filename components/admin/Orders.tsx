@@ -28,7 +28,7 @@ const Orders = () => {
     const to = from + itemsPerPage - 1;
 
     try {
-      // PENTING: Menggunakan !inner agar filter .or() bisa menjangkau kolom di tabel relasi
+      // 1. Inisialisasi Query Dasar (Tanpa !inner agar data tidak hilang jika buyer null)
       let query = supabase
         .from('font_history')
         .select(`
@@ -39,15 +39,27 @@ const Orders = () => {
           tier,
           usages,
           metadata,
-          fontbuyer!inner ( email ),
-          fonts!inner ( name )
+          fontbuyer ( email ),
+          fonts ( name )
         `, { count: 'exact' });
 
+      // 2. Logic Branching Search (Pencarian Pintar)
       if (searchTerm) {
-        // PostgREST Syntax: Menggunakan nama_tabel.nama_kolom.ilike
-        // Filter ini mencari di Order ID, Tier, Email Pembeli, dan Nama Font
-        const filterStr = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fontbuyer.email.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`;
-        query = query.or(filterStr);
+        const isEmail = searchTerm.includes('@');
+        const isOrderId = searchTerm.toUpperCase().startsWith('SQ-');
+
+        if (isEmail) {
+          // Jika input ada @, fokus cari di tabel fontbuyer
+          query = query.filter('fontbuyer.email', 'ilike', `%${searchTerm}%`);
+        } else if (isOrderId) {
+          // Jika input SQ-, fokus cari di transaction_id
+          query = query.ilike('transaction_id', `%${searchTerm}%`);
+        } else {
+          // Jika umum, gunakan .or() hanya pada kolom tabel utama untuk kestabilan
+          // Cari di ID Transaksi, Tier, atau Nama Font (via join)
+          // Catatan: PostgREST membutuhkan relasi eksplisit untuk .or() antar tabel
+          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`);
+        }
       }
 
       const { data, error, count } = await query
