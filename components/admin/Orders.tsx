@@ -6,14 +6,20 @@ const Orders = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const itemsPerPage = 20;
+  const [searchInput, setSearchInput] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const itemsPerPage = 20;
 
-  useEffect(() => {
-    fetchOrders();
-  }, [currentPage, searchTerm]);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchTerm(searchInput.trim());
+    setCurrentPage(1);
+  };
 
+  useEffect(() => {
+    fetchOrders();
+  }, [currentPage, searchTerm]);
   const fetchOrders = async () => {
     setLoading(true);
     const from = (currentPage - 1) * itemsPerPage;
@@ -72,16 +78,18 @@ const Orders = () => {
         </div>
         
         {/* SEARCH BAR */}
-        <div className="relative group">
-          <input 
-            type="text" 
-            placeholder="SEARCH_BY_ORDER_OR_USER..." 
-            value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            className="bg-white border-2 border-black px-10 py-3 text-xs font-bold outline-none focus:bg-yellow-50 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] w-64 uppercase"
-          />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-        </div>
+        <form onSubmit={handleSearch} className="relative group">
+          <input 
+            type="text" 
+            placeholder="SEARCH_BY_ORDER_EMAIL_OR_FONT..." 
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="bg-white border-2 border-black px-10 py-3 text-xs font-bold outline-none focus:bg-yellow-50 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] w-72 uppercase"
+          />
+          <button type="submit" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors">
+            <Search size={16} />
+          </button>
+        </form>
       </div>
 
       {/* ORDERS TABLE - Tanpa menghapus kolom, ditambah Email & MPV */}
