@@ -247,7 +247,12 @@ export default {
           if (targetUserId) {
             await fetch(`${supabaseUrl}/rest/v1/fontbuyer`, {
               method: 'POST',
-              headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+              headers: { 
+                'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 
+                'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 
+                'Content-Type': 'application/json',
+                'Prefer': 'resolution=merge-duplicates'
+              },
               body: JSON.stringify({ 
                 id: targetUserId, 
                 email: email, 
@@ -344,7 +349,7 @@ export default {
           // Query ke history menggunakan service_role untuk memastikan transaksi valid (Bypass RLS)
           const checkRes = await fetch(
            // --- PARTIAL FIX ---
-            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&select=id,fontbuyer!inner(email)`,
+            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&select=id,fontbuyer!inner(email,full_name,address)`,
             { headers: { 
               'apikey': serviceRoleKey, 
               'Authorization': `Bearer ${serviceRoleKey}` 
@@ -356,6 +361,9 @@ export default {
           if (record && record.fontbuyer?.email?.toLowerCase() === email.toLowerCase()) {
             isAuthorized = true;
             buyerEmail = email;
+            // Simpan info tambahan untuk LICENSE.txt
+            buyerName = record.fontbuyer?.full_name || 'N/A';
+            buyerAddress = record.fontbuyer?.address || 'N/A';
           }
         }
 // --- END FIX ---
@@ -441,7 +449,9 @@ export default {
         let licenseBody = `SUBQI STUDIO — OFFICIAL LICENSE CERTIFICATE\n`;
         licenseBody += `========================================================================\n`;
         licenseBody += `ORDER ID       : ${transactionId || 'N/A'} (USE AS PASSWORD RESETTER)\n`;
-        licenseBody += `LICENSE HOLDER : ${buyerEmail} (USE AS LOGIN USERNAME)\n`;
+        licenseBody += `LICENSE HOLDER : ${buyerEmail} (USERNAME)\n`;
+        licenseBody += `LICENSEE NAME  : ${buyerName}\n`;
+        licenseBody += `ADDRESS        : ${buyerAddress}\n`;
         licenseBody += `ISSUE DATE     : ${issueDate}\n`;
         licenseBody += `ASSET NAME     : ${cleanFontName}\n`;
         licenseBody += `------------------------------------------------------------------------\n\n`;
