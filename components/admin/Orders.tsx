@@ -53,7 +53,7 @@ const fetchOrders = async () => {
 
       if (searchTerm) {
         const usageKeywords = ['personal', 'desktop', 'logo', 'branding', 'app', 'server', 'broadcast', 'social', 'web'];
-        const isUsageSearch = usageKeywords.some(k => lowerTerm.includes(k));
+        const isUsageSearch = usageKeywords.some(k => lowerTerm === k);
 
         if (isEmail) {
           query = query.ilike('fontbuyer.email', `%${lowerTerm}%`);
@@ -62,14 +62,14 @@ const fetchOrders = async () => {
         } else if (isTrialSearch || isFullSearch) {
           query = query.eq('download_type', lowerTerm);
         } else if (isUsageSearch) {
+          // Hanya masuk sini jika user mengetik "desktop", "web", dll secara spesifik
           const searchTag = searchTerm.replace(' ', '_').toUpperCase();
           query = query.overlaps('usages', [searchTerm.toUpperCase(), searchTag, searchTerm.toLowerCase()]);
         } else {
-          // SOLUSI ABSOLUT: Satu string bersih tanpa spasi/newline untuk .or()
-          // fonts.name akan tertangkap secara partial (depan/tengah/belakang) 
-          // karena join fonts!inner di atas memaksa pencarian di tabel relasi.
-          const globalFilter = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`;
-          query = query.or(globalFilter);
+          // SOLUSI TOTAL: Kita gabungkan pencarian Tier, Order ID, dan Nama Font
+          // Pastikan tidak ada spasi di dalam string template ini.
+          const filterStr = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`;
+          query = query.or(filterStr);
         }
       }
 
