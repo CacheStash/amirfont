@@ -8,6 +8,7 @@ const LicenseReceipt = () => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 const [userEmail, setUserEmail] = useState('');
+const [buyerInfo, setBuyerInfo] = useState<{name: string, address: string}>({ name: 'N/A', address: 'N/A' });
 
   useEffect(() => {
     const fetchReceipt = async () => {
@@ -15,13 +16,27 @@ const [userEmail, setUserEmail] = useState('');
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.email) setUserEmail(user.email);
 
-      // 2. Ambil detail transaksi
+      // 2. Ambil detail transaksi + Data Pembeli (Join fontbuyer)
       const { data, error } = await supabase
         .from('font_history')
-        .select(`*, fonts(name)`)
+        .select(`
+          *, 
+          fonts(name),
+          fontbuyer(full_name, address)
+        `)
         .eq('transaction_id', orderId);
       
-      if (!error) setData(data);
+      if (!error && data && data.length > 0) {
+        setData(data);
+        // Ambil info pembeli dari baris pertama (fontbuyer adalah relasi object)
+        const buyer = data[0].fontbuyer;
+        if (buyer) {
+          setBuyerInfo({
+            name: buyer.full_name || 'N/A',
+            address: buyer.address || 'N/A'
+          });
+        }
+      }
       setLoading(false);
     };
     fetchReceipt();
@@ -92,6 +107,9 @@ const [userEmail, setUserEmail] = useState('');
         <div className="space-y-4 mb-10 text-xs">
           <div className="flex justify-between"><span>ORDER_ID</span> <span>{orderId}</span></div>
           <div className="flex justify-between"><span>LICENSE_HOLDER</span> <span>{userEmail || 'N/A'}</span></div>
+          <div className="flex justify-between"><span>LICENSEE_NAME</span> <span className="font-black underline">{buyerInfo.name}</span></div>
+          <div className="flex justify-between gap-8"><span className="shrink-0">LICENSEE_ADDRESS</span> <span className="text-right italic">{buyerInfo.address}</span></div>
+          <div className="flex justify-between"><span>ISSUE_DATE</span> <span>{new Date(data[0]?.download_date).toLocaleDateString()}</span></div>
           <div className="flex justify-between"><span>ISSUE_DATE</span> <span>{new Date(data[0]?.download_date).toLocaleDateString()}</span></div>
         </div>
 
