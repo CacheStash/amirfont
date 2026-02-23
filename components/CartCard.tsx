@@ -60,7 +60,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices,font_files
     return () => { document.body.style.overflow = 'unset'; };
   }, []);
 
-  const usageHierarchy = ['desktop', 'social_web', 'logo_branding', 'app', 'server', 'broadcast'];
+ 
   const higherTierUsages = ['logo_branding', 'app', 'broadcast', 'server'];
   const hasHigherTier = useMemo(() => selectedUsages.some(u => higherTierUsages.includes(u)), [selectedUsages]);
 
@@ -113,7 +113,13 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices,font_files
 
   const totalPrice = useMemo(() => {
     if (!prices || isTrial) return 0;
-    if (isCorporate) return prices.corporate_full_suite || 0;
+   if (isCorporate) {
+
+      const baseCorporatePrice = prices.corporate_full_suite || 0;
+      return discount > 0 
+        ? Math.round(baseCorporatePrice * (1 - discount / 100)) 
+        : baseCorporatePrice;
+    }
     
     let total = 0;
     // FIXED: Hitung total harga sekaligus hitung berapa banyak lisensi yang memenuhi syarat diskon (>= 250)
@@ -147,8 +153,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices,font_files
     let originalPrice = 0;
 
     if (isCorporate) {
-      // Bandingkan Corporate dengan total harga MAKSIMAL dari ke-6 kategori lisensi
-      usageHierarchy.forEach(u => {
+      Object.keys(tierMap).forEach(u => {
         const tiers = (prices as any)[u];
         if (tiers) {
           const values = Object.values(tiers) as number[];
@@ -167,7 +172,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices,font_files
     const savedPercent = originalPrice > 0 ? Math.round((savedAmount / originalPrice) * 100) : 0;
 
     return savedAmount > 0 ? { amount: savedAmount, percent: savedPercent } : null;
-  }, [prices, isCorporate, isTrial, selectedUsages, selectedTiers, totalPrice, usageHierarchy]);
+}, [prices, isCorporate, isTrial, selectedUsages, selectedTiers, totalPrice, tierMap]);
 
     const finalUsages = [...selectedUsages];
     if (hasHigherTier && !finalUsages.includes('desktop')) {
