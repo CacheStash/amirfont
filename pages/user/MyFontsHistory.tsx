@@ -95,6 +95,9 @@ const MyFontsHistory = () => {
               </div>
               
               <div className="flex items-center gap-4">
+                <span className="text-[10px] font-black bg-black text-white px-2 py-1 border border-black group-hover:bg-white group-hover:text-black transition-all">
+                  {item.transaction_id}
+                </span>
                 <div className={`px-3 py-1 text-[10px] font-black border border-black ${item.download_type === 'trial' ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white'}`}>
                   {item.download_type === 'trial' ? 'DEMO' : 'FULL'}
                 </div>
