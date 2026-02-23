@@ -27,7 +27,7 @@ import Checkout from './pages/shop/Checkout'; // Ubah dari CartPage menjadi Chec
 import CartCard from './components/CartCard';
 import LicenseReceipt from './pages/user/LicenseReceipt';
 import FontDetail from './pages/FontDetail';
-
+import Footer from './components/Footer';
 
 
 // Placeholders
@@ -161,30 +161,7 @@ const App: React.FC = () => {
         {/* Tombol BackToTop hanya muncul jika Navigasi (Menu/Search) sedang TIDAK aktif */}
         {!isNavActive && <BackToTop />}
         
-        <footer className="w-full border-t border-black bg-transparent py-16 px-6 md:px-8">
-          <div className="max-w-full mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 text-[10px] md:text-xs font-normal tracking-[0.2em] text-gray-500 uppercase">
-            <div className="space-y-4">
-              <span className="block text-black font-bold">License</span>
-              <p className="normal-case leading-relaxed">Desktop, Web, App, Social Media, Broadcast, and Corporate Full Suite.</p>
-            </div>
-            <div className="space-y-4">
-              <span className="block text-black font-bold">Support</span>
-              <p className="text-black font-bold">amisubqisetiaji@gmail.com</p>
-            </div>
-            <div className="space-y-4">
-              <span className="block text-black font-bold">Social</span>
-              <div className="flex flex-col gap-2">
-                <a href="#" className="hover:text-black transition-colors">Instagram</a>
-                <a href="#" className="hover:text-black transition-colors">Twitter (X)</a>
-                <a href="#" className="hover:text-black transition-colors">Behance</a>
-              </div>
-            </div>
-            <div className="md:text-right flex flex-col justify-end">
-              <span className="text-black font-bold">&copy; SUBQI STUDIO 2026</span>
-              <p className="mt-1">Jakarta, Indonesia</p>
-            </div>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </Router>
     </CartProvider>
