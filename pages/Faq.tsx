@@ -98,15 +98,15 @@ const FAQ: React.FC = () => {
               <p>To ensure maximum security and prevent link expiration, **Subqi Studio does not distribute download links via email**.</p>
               
               <div className="space-y-4">
-                <p className="font-bold uppercase tracking-tight">Delivery & Account Flow:</p>
+                <p className="font-bold uppercase tracking-tight">Instant Delivery & Manual Login:</p>
                 <ul className="space-y-6">
                   <li className="flex gap-4 items-start border-l-2 border-black/10 pl-6 py-2">
                     <PlusBullet />
-                    <span>**Instant Redirection:** Upon successful payment, new buyers are automatically redirected to the **User Dashboard (Font History)** to initiate the .zip download.</span>
+                    <span>**Instant Access:** Upon successful payment, secure download buttons are generated immediately on your **Checkout Receipt**. You can download your assets instantly without leaving the page.</span>
                   </li>
                   <li className="flex gap-4 items-start border-l-2 border-black/10 pl-6 py-2">
                     <PlusBullet />
-                    <span>**Initial Credentials:** For first-time buyers, your **Checkout Code (Order ID)** serves as your initial account password. You are encouraged to update your password within the dashboard settings at your convenience.</span>
+                    <span>**Manual Login:** To access your permanent library, navigate to the **User Dashboard**. Use your **Registered Email** and the **Checkout Code (Order ID)** as your initial password.</span>
                   </li>
                 </ul>
               </div>
@@ -115,7 +115,7 @@ const FAQ: React.FC = () => {
                 <div className="space-y-2">
                   <h4 className="font-black text-xs tracking-[0.2em] text-orange-500 uppercase">Vital Record: LICENSE.TXT</h4>
                   <p className="text-sm normal-case italic opacity-80 leading-relaxed">
-                    Your downloaded .zip package includes a **license.txt** file. This document contains your specific license details, registered email, and the Checkout Code required for account access. **Please retain this file permanently.**
+                    Every downloaded .zip package contains a **license.txt** file. This document explicitly lists your **registered email** and the **Checkout Code** required for dashboard access. **Please keep this file safe as your primary credential record.**
                   </p>
                 </div>
                 
