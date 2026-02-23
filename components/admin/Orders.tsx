@@ -40,16 +40,16 @@ const fetchOrders = async () => {
       let query = supabase
         .from('font_history')
         .select(`
-          id,
-          transaction_id,
-          download_type,
-          download_date,
-          tier,
-          usages,
-          metadata,
-          fontbuyer${isEmail ? '!inner' : ''} ( email ),
-          fonts!inner ( name )
-        `, { count: 'exact' });
+        id,
+        transaction_id,
+        download_type,
+        download_date,
+        tier,
+        usages,
+        metadata,
+        fontbuyer${isEmail ? '!inner' : ''}(email),
+        fonts!inner(name)
+      `, { count: 'exact' });
 
       if (searchTerm) {
         const usageKeywords = ['personal', 'desktop', 'logo', 'branding', 'app', 'server', 'broadcast', 'social', 'web'];
@@ -68,9 +68,9 @@ const fetchOrders = async () => {
           // SENIOR SOLUTION: Gunakan sintaks 'fonts(name)' tanpa spasi sama sekali.
           // fonts!inner di select memastikan baris yang nggak punya font (nggak mungkin ada) terbuang.
           // Kita sertakan 'tier' dan 'transaction_id' untuk backup pencarian umum.
-          const filterStr = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts(name).ilike.%${searchTerm}%`;
-          query = query.or(filterStr);
-        }
+          const filterStr = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`;
+        query = query.or(filterStr);
+      }
       }
 
       const { data, error, count } = await query
