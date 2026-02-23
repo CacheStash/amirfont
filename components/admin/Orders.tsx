@@ -46,12 +46,8 @@ const Orders = () => {
       if (searchTerm) {
         // PostgREST Syntax: Menggunakan nama_tabel.nama_kolom.ilike
         // Filter ini mencari di Order ID, Tier, Email Pembeli, dan Nama Font
-        query = query.or(
-          `transaction_id.ilike.%${searchTerm}%,` +
-          `tier.ilike.%${searchTerm}%,` +
-          `fontbuyer.email.ilike.%${searchTerm}%,` +
-          `fonts.name.ilike.%${searchTerm}%`
-        );
+        const filterStr = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fontbuyer.email.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`;
+        query = query.or(filterStr);
       }
 
       const { data, error, count } = await query
