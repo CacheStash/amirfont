@@ -70,7 +70,8 @@ const Orders = () => {
           // SOLUSI KRITIKAL: Hapus fontbuyer.email dari string .or() di bawah ini.
           // Keberadaan kolom Left Join (fontbuyer) di dalam .or lintas tabel sering menyebabkan No Result.
           // fonts!inner pada select di atas menjamin pencarian nama font ini berfungsi 100%.
-          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`);
+          const filterStr = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts(name).ilike.%${searchTerm}%`;
+          query = query.or(filterStr);
         }
       }
 
