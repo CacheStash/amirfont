@@ -32,44 +32,43 @@ const Orders = () => {
       const lowerTerm = searchTerm.toLowerCase();
       const isOrderId = searchTerm.toUpperCase().startsWith('SQ-');
       const isTrialSearch = lowerTerm === 'trial';
-      const useInner = searchTerm && !isOrderId && !isTrialSearch;
+      const isEmail = searchTerm.includes('@');
+      // Buyer Inner Join hanya aktif jika mencari email eksplisit agar baris non-email terfilter keluar.
+      // Untuk pencarian Font/Umum, gunakan Left Join agar data Trial/Guest tidak hilang.
+      const useBuyerInner = isEmail;
 
-      let query = supabase
-        .from('font_history')
-        .select(`
-          id,
-          transaction_id,
-          download_type,
-          download_date,
-          tier,
-          usages,
-          metadata,
-          fontbuyer${useInner ? '!inner' : ''} ( email ),
-          fonts ( name )
-        `, { count: 'exact' });
+      let query = supabase
+        .from('font_history')
+        .select(`
+          id,
+          transaction_id,
+          download_type,
+          download_date,
+          tier,
+          usages,
+          metadata,
+          fontbuyer${useBuyerInner ? '!inner' : ''} ( email ),
+          fonts!inner ( name )
+        `, { count: 'exact' });
 
-      // 2. Logic Branching Search (Pencarian Pintar & Multi-Kolom)
-      if (searchTerm) {
-        const isEmail = searchTerm.includes('@');
-        const isTypeSearch = isTrialSearch || lowerTerm === 'full';
-        const usageKeywords = ['personal', 'desktop', 'logo', 'branding', 'app', 'server', 'broadcast', 'social', 'web'];
-        const isUsageSearch = usageKeywords.some(k => lowerTerm.includes(k));
+      // 2. Logic Branching Search (Pencarian Pintar & Multi-Kolom)
+      if (searchTerm) {
+        const isTypeSearch = isTrialSearch || lowerTerm === 'full';
+        const usageKeywords = ['personal', 'desktop', 'logo', 'branding', 'app', 'server', 'broadcast', 'social', 'web'];
+        const isUsageSearch = usageKeywords.some(k => lowerTerm.includes(k));
 
-        if (isEmail) {
-          query = query.ilike('fontbuyer.email', `%${lowerTerm}%`);
-        } else if (isOrderId) {
-          query = query.ilike('transaction_id', `%${searchTerm.toUpperCase()}%`);
-        } else if (isTypeSearch) {
-          // Cari berdasarkan tipe download (trial/full)
-          query = query.eq('download_type', lowerTerm);
-        } else if (isUsageSearch) {
-          // Khusus kolom ARRAY: Gunakan overlaps untuk mencari kata kunci di dalam list usages
-          // Kita kirim variasi format (Original, Underscore, Uppercase)
-          const searchTag = searchTerm.replace(' ', '_').toUpperCase();
-          query = query.overlaps('usages', [searchTerm.toUpperCase(), searchTag, searchTerm.toLowerCase()]);
-        } else {
-          // Pencarian Umum: Nama Font, Tier, dan Email (Case Insensitive)
-          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%,fontbuyer.email.ilike.%${lowerTerm}%`);
+        if (isEmail) {
+          query = query.ilike('fontbuyer.email', `%${lowerTerm}%`);
+        } else if (isOrderId) {
+          query = query.ilike('transaction_id', `%${searchTerm.toUpperCase()}%`);
+        } else if (isTypeSearch) {
+          query = query.eq('download_type', lowerTerm);
+        } else if (isUsageSearch) {
+          const searchTag = searchTerm.replace(' ', '_').toUpperCase();
+          query = query.overlaps('usages', [searchTerm.toUpperCase(), searchTag, searchTerm.toLowerCase()]);
+        } else {
+          // Pencarian Umum: Mendukung kata depan/belakang nama font secara partial
+          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%,fontbuyer.email.ilike.%${lowerTerm}%`);
         }
       }
 
