@@ -423,26 +423,20 @@ export default {
         licenseBody += `LICENSE HOLDER : ${buyerEmail} (USE AS LOGIN USERNAME)\n`;
         licenseBody += `ISSUE DATE     : ${issueDate}\n`;
         licenseBody += `ASSET NAME     : ${cleanFontName}\n`;
-        licenseBody += `TIER LEVEL     : ${displayTier}\n`;
-        
-        // OTOMATIS: Tambahkan baris MPV Reach jika ada di metadata
-        if (!isTrial && txData.metadata?.mpv) {
-          licenseBody += `MONTHLY REACH  : ${txData.metadata.mpv} (MONTHLY PAGE VIEWS)\n`;
-        }
-        
         licenseBody += `------------------------------------------------------------------------\n\n`;
 
         licenseBody += `LICENSED USAGE TERMS:\n\n`;
         usages.forEach((u, i) => {
           if (isTrial) {
-            // FIXED: Struktur Trial identik dengan visual struk
             licenseBody += `${i + 1}. ${TEXT_DB.trial.title}:\n`;
             licenseBody += `${TEXT_DB.trial.grant}\n\n`;
             licenseBody += `CHARACTER SET: ${TEXT_DB.trial.charSet}\n\n`;
             licenseBody += `RESTRICTIONS: ${TEXT_DB.trial.restrictions}\n\n`;
           } else {
-            const title = `${u.replace('_', ' & ').toUpperCase()} LICENSE`;
-            licenseBody += `${i + 1}. ${title}:\n`;
+            // FIXED: Masukkan Tier Label (misal: 1 User / Personal) ke dalam baris judul
+            const specificLabel = MASTER_TIER_LABELS[u]?.[rawTier] || rawTier.toUpperCase();
+            const title = `${u.replace('_', ' & ').toUpperCase()} LICENSE: ( ${specificLabel} )`;
+            licenseBody += `${i + 1}. ${title}\n`;
             licenseBody += `${TEXT_DB[u] || TEXT_DB.desktop}\n\n`;
           }
         });
