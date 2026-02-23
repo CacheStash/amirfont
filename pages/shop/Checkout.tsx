@@ -70,8 +70,12 @@ const [name, setName] = React.useState('');
 
     
 
-      if (subscribe) {
-        await supabase.from('fontsubscribers').upsert({ email, source: 'checkout_purchase' });
+     if (subscribe) {
+        await supabase.from('fontsubscribers').upsert({ 
+          email: email.toLowerCase(), 
+          source: 'checkout_purchase',
+          status: 'active' 
+        }, { onConflict: 'email' });
       }
 
       // FIXED: Alur baru - Jangan redirect, tapi tampilkan unduhan di tempat
@@ -160,7 +164,11 @@ const [name, setName] = React.useState('');
       
 
 if (subscribe) {
-        await supabase.from('fontsubscribers').upsert({ email, source: 'checkout_trial' });
+        await supabase.from('fontsubscribers').upsert({ 
+          email: email.toLowerCase(), 
+          source: 'checkout_trial',
+          status: 'active' 
+        }, { onConflict: 'email' });
       }
 
     
