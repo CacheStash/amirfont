@@ -35,8 +35,11 @@ const fetchOrders = async () => {
       const isTrialSearch = lowerTerm === 'trial';
       const isFullSearch = lowerTerm === 'full';
 
-      // SENIOR SOLUTION: Gunakan select yang stabil. 
-      // Kita tetap sertakan fontbuyer agar UI tidak pecah, tapi fonts dikunci dengan !inner.
+      // SENIOR ARCHITECTURE: 
+      // Jika mencari Nama Font/Umum, kita matikan relasi 'fontbuyer' agar tidak merusak filter .or()
+      // Ini adalah satu-satunya cara agar PostgREST bisa memfilter fonts.name secara stabil.
+      const isGeneralSearch = searchTerm && !isEmail && !isOrderId && !isTrialSearch && !isFullSearch;
+
       let query = supabase
         .from('font_history')
         .select(`
@@ -47,7 +50,7 @@ const fetchOrders = async () => {
           tier,
           usages,
           metadata,
-          fontbuyer(email),
+          ${isGeneralSearch ? '' : `fontbuyer${isEmail ? '!inner' : ''}(email),`}
           fonts!inner(name)
         `, { count: 'exact' });
 
@@ -68,8 +71,7 @@ const fetchOrders = async () => {
           // STRATEGI BARU: Gunakan Logical Grouping yang lebih eksplisit untuk PostgREST.
           // Kita pisahkan kolom tabel utama dan tabel join dengan format yang diakui parser.
           // %${searchTerm}% menjamin kata depan atau belakang font akan ditemukan.
-          const filterStr = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts!inner.name.ilike.%${searchTerm}%`;
-          query = query.or(filterStr);
+          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`);
         }
       }
 
