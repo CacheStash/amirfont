@@ -39,7 +39,7 @@ const Orders = () => {
         `, { count: 'exact' });
 
       if (searchTerm) {
-        query = query.or(`transaction_id.ilike.%${searchTerm}%,user_id.ilike.%${searchTerm}%`);
+        query = query.or(`transaction_id.ilike.%${searchTerm}%,fontbuyer.email.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%`);
       }
 
       const { data, error, count } = await query
@@ -93,6 +93,7 @@ const Orders = () => {
         <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Order_ID</th>
         <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Buyer_Email</th>
         <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Typeface</th>
+        <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500 text-center">Price</th>
         <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500 text-center">Type</th>
         <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Tier_&_Reach</th>
         <th className="p-4 text-[10px] uppercase font-black tracking-widest text-gray-500">Usage_Terms</th>
@@ -116,6 +117,9 @@ const Orders = () => {
           </td>
           <td className="p-4 font-black text-sm uppercase italic">
             {order.fonts?.name || 'UNKNOWN'}
+          </td>
+          <td className="p-4 text-center font-black text-sm">
+            ${order.metadata?.price_at_purchase ?? (order.download_type === 'trial' ? '0' : 'N/A')}
           </td>
           <td className="p-4 text-center">
             <span className={`px-2 py-1 text-[9px] font-black border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
