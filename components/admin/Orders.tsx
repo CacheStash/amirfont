@@ -68,7 +68,7 @@ const fetchOrders = async () => {
           // SENIOR SOLUTION: Gunakan sintaks 'fonts(name)' tanpa spasi sama sekali.
           // fonts!inner di select memastikan baris yang nggak punya font (nggak mungkin ada) terbuang.
           // Kita sertakan 'tier' dan 'transaction_id' untuk backup pencarian umum.
-       const filterStr = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts(name.ilike.%${searchTerm}%)`;
+       const filterStr = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`;
           query = query.or(filterStr);
         }
       }
