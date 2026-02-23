@@ -35,11 +35,9 @@ const fetchOrders = async () => {
       const isTrialSearch = lowerTerm === 'trial';
       const isFullSearch = lowerTerm === 'full';
 
-      // SENIOR ARCHITECTURE: 
-      // Jika mencari Nama Font/Umum, kita matikan relasi 'fontbuyer' agar tidak merusak filter .or()
-      // Ini adalah satu-satunya cara agar PostgREST bisa memfilter fonts.name secara stabil.
-      const isGeneralSearch = searchTerm && !isEmail && !isOrderId && !isTrialSearch && !isFullSearch;
-
+      // Senior Fix: Buang isGeneralSearch. Kita pakai select yang stabil.
+      // fontbuyer!inner hanya aktif saat cari email agar baris lain terbuang.
+      // fonts!inner SELALU aktif agar filter nama font di level root berfungsi.
       let query = supabase
         .from('font_history')
         .select(`
@@ -50,7 +48,7 @@ const fetchOrders = async () => {
           tier,
           usages,
           metadata,
-          ${isGeneralSearch ? '' : `fontbuyer${isEmail ? '!inner' : ''}(email),`}
+          fontbuyer${isEmail ? '!inner' : ''}(email),
           fonts!inner(name)
         `, { count: 'exact' });
 
@@ -68,9 +66,8 @@ const fetchOrders = async () => {
           const searchTag = searchTerm.replace(' ', '_').toUpperCase();
           query = query.overlaps('usages', [searchTerm.toUpperCase(), searchTag, searchTerm.toLowerCase()]);
         } else {
-          // STRATEGI BARU: Gunakan Logical Grouping yang lebih eksplisit untuk PostgREST.
-          // Kita pisahkan kolom tabel utama dan tabel join dengan format yang diakui parser.
-          // %${searchTerm}% menjamin kata depan atau belakang font akan ditemukan.
+          // Gunakan dot notation fonts.name yang bersih. 
+          // % di depan & belakang menjamin kata depan (Gali) atau belakang (Serif) ditemukan.
           query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`);
         }
       }
