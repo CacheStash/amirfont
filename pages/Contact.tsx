@@ -14,6 +14,31 @@ const BrutalBox: React.FC<{ children: React.ReactNode, className?: string }> = (
   </div>
 );
 
+const ContactCard: React.FC<{ 
+  number: string, 
+  title: string, 
+  category: string, 
+  children: React.ReactNode 
+}> = ({ number, title, category, children }) => (
+  <div className="mb-12 w-full border border-black bg-white relative z-10">
+    {/* Title Section */}
+    <div className="border-b border-black p-6 md:p-10 bg-white">
+      <span className="text-[10px] font-black tracking-[0.3em] text-orange-600 block mb-4 uppercase">
+        {category}
+      </span>
+      <h3 className="text-3xl md:text-6xl font-normal tracking-tighter uppercase leading-none">
+        <span className="opacity-20 mr-4 md:mr-8">{number}</span>
+        {title}
+      </h3>
+    </div>
+
+    {/* Content Section */}
+    <div className="p-6 md:p-14 space-y-10 normal-case text-gray-800 leading-relaxed">
+      {children}
+    </div>
+  </div>
+);
+
 const Contact: React.FC = () => {
   const [subject, setSubject] = useState("");
 
@@ -36,31 +61,7 @@ const Contact: React.FC = () => {
     window.location.href = mailtoUrl;
   };
 
-  // Komponen ContactCard - Mengikuti Style TermCard License.tsx
-  const ContactCard: React.FC<{ 
-    number: string, 
-    title: string, 
-    category: string, 
-    children: React.ReactNode 
-  }> = ({ number, title, category, children }) => (
-    <div className="mb-12 w-full border border-black bg-white relative z-10">
-      {/* Title Section */}
-      <div className="border-b border-black p-6 md:p-10 bg-white">
-        <span className="text-[10px] font-black tracking-[0.3em] text-orange-600 block mb-4 uppercase">
-          {category}
-        </span>
-        <h3 className="text-3xl md:text-6xl font-normal tracking-tighter uppercase leading-none">
-          <span className="opacity-20 mr-4 md:mr-8">{number}</span>
-          {title}
-        </h3>
-      </div>
-
-      {/* Content Section */}
-      <div className="p-6 md:p-14 space-y-10 normal-case text-gray-800 leading-relaxed">
-        {children}
-      </div>
-    </div>
-  );
+ 
 
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent overflow-x-hidden uppercase">
