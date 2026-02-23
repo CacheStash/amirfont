@@ -111,10 +111,12 @@ const [email, setEmail] = React.useState('');
       
       // FIXED: Bersihkan nama file dari timestamp agar sama dengan format Dashboard
      const cleanName = fileName.replace(/^\d+-/, '').split('.')[0];
-      const suffix = type === 'trial' ? '_Trial' : '';
-      a.download = `SQ_${cleanName}${suffix}.zip`;
+      const nameSuffix = type === 'trial' ? '_Trial' : '';
+      a.download = `SQ_${cleanName}${nameSuffix}.zip`;
       
+      document.body.appendChild(a); // Tambahkan ke body untuk kompabilitas browser
       a.click();
+      document.body.removeChild(a);
       window.URL.revokeObjectURL(urlBlob);
     } catch (e: any) {
       alert("DOWNLOAD_FAILED: " + e.message);
