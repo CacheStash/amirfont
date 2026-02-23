@@ -21,10 +21,24 @@ const [name, setName] = React.useState('');
 
   // AUTH & PRE-FILL: Menggunakan getSession agar lebih instan dibanding getUser
   React.useEffect(() => {
+    const fetchBuyerProfile = async (userId: string) => {
+      const { data, error } = await supabase
+        .from('fontbuyer')
+        .select('full_name, address')
+        .eq('id', userId)
+        .single();
+      
+      if (data && !error) {
+        setName(data.full_name || '');
+        setAddress(data.address || '');
+      }
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
         setEmail(session.user.email || '');
+        fetchBuyerProfile(session.user.id);
       }
     });
 
@@ -32,6 +46,12 @@ const [name, setName] = React.useState('');
       if (session?.user) {
         setUser(session.user);
         setEmail(session.user.email || '');
+        fetchBuyerProfile(session.user.id);
+      } else {
+        setUser(null);
+        setEmail('');
+        setName('');
+        setAddress('');
       }
     });
 
