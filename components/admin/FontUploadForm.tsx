@@ -14,6 +14,22 @@ interface UploadResponse {
 const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSuccess?: () => void }) => {
   // 1. State untuk Form (Diambil dari initialData jika sedang mode EDIT)
   const [fontName, setFontName] = useState(initialData?.name || '');
+  const FONT_TAGS_LIBRARY = [
+    // Dasar & Teknis
+    "Sans Serif", "Serif", "Slab Serif", "Monospace", "Variable Font", "Display", "Text", "Stencil", "Blackletter", "Script", "Handwritten",
+    // Sub-Klasifikasi Serif
+    "Didone", "Old Style", "Transitional", "Modern Serif", "Glyphic", "Didot", "Garalde", "Humanist Serif",
+    // Sub-Klasifikasi Sans
+    "Geometric Sans", "Grotesque", "Neo-Grotesque", "Humanist Sans", "Grotesk",
+    // Gaya & Era
+    "Art Deco", "Art Nouveau", "Bauhaus", "Vintage", "Retro", "Victorian", "Mid-Century", "Y2K", "90s", "80s", "Cyberpunk", "Futuristic",
+    // Vibe & Mood
+    "Minimalist", "Brutalism", "Acid", "Experimental", "Liquid", "Distorted", "Elegant", "Luxury", "Classic", "Editorial", "Fashion", "Corporate",
+    // Khusus & Dekoratif
+    "Horror", "Gothic", "Old English", "Fraktur", "Calligraphy", "Signature", "Brush", "Marker", "Comic", "Pixel", "Gaming", "Sports", "Techno",
+    // Karakteristik Fisik
+    "Condensed", "Expanded", "Narrow", "Wide", "Outline", "Inline", "Shadow", "Soft Edges", "Rounded", "Sharp", "High Contrast", "Low Contrast"
+  ].sort();
   const [description, setDescription] = useState(initialData?.description || '');
   const [tags, setTags] = useState(initialData?.tags?.join(', ') || ''); 
   
@@ -202,14 +218,19 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-2">
           <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Font Name</label>
-          <input 
+         <input 
             type="text" 
-            value={fontName}
-            onChange={(e) => setFontName(e.target.value)}
-            className="w-full border border-black p-3 outline-none font-normal uppercase text-xl focus:bg-yellow-50 transition-colors" 
-            placeholder="E.G. ROYAL GRANDE"
-            required
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            list="font-tags-suggestions"
+            className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
+            placeholder="Variable, Serif, Display" 
           />
+          <datalist id="font-tags-suggestions">
+            {FONT_TAGS_LIBRARY.map((tag) => (
+              <option key={tag} value={tag} />
+            ))}
+          </datalist>
         </div>
         <div className="space-y-2">
           <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Basic Price ($)</label>
