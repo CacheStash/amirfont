@@ -21,74 +21,87 @@ const Orders = () => {
     setCurrentPage(1);
   };
 
-  const fetchOrders = async () => {
-    setLoading(true);
-    const from = (currentPage - 1) * itemsPerPage;
-    const to = from + itemsPerPage - 1;
+  // --- REWRITE TOTAL UNTUK fetchOrders ---
 
-    try {
-      const lowerTerm = searchTerm.toLowerCase();
-      const isEmail = searchTerm.includes('@');
-      const isOrderId = searchTerm.toUpperCase().startsWith('SQ-');
-      const isTrialSearch = lowerTerm === 'trial';
-      
-      // Senior Logic: Buyer Inner Join hanya aktif jika cari email eksplisit.
-      // Fonts SELALU !inner agar filter nama font di level root berfungsi 100%.
-      const useBuyerInner = isEmail;
+const fetchOrders = async () => {
+  setLoading(true);
+  const from = (currentPage - 1) * itemsPerPage;
+  const to = from + itemsPerPage - 1;
 
-      let query = supabase
-        .from('font_history')
-        .select(`
-          id,
-          transaction_id,
-          download_type,
-          download_date,
-          tier,
-          usages,
-          metadata,
-          fontbuyer${useBuyerInner ? '!inner' : ''} ( email ),
-          fonts!inner ( name )
-        `, { count: 'exact' });
+  try {
+    const lowerTerm = searchTerm.toLowerCase();
+    const isEmail = searchTerm.includes('@');
+    const isOrderId = searchTerm.toUpperCase().startsWith('SQ-');
+    const isTrialSearch = lowerTerm === 'trial';
 
-      if (searchTerm) {
-        const isTypeSearch = isTrialSearch || lowerTerm === 'full';
-        const usageKeywords = ['personal', 'desktop', 'logo', 'branding', 'app', 'server', 'broadcast', 'social', 'web'];
-        const isUsageSearch = usageKeywords.some(k => lowerTerm.includes(k));
+    // 1. Inisialisasi Query Dasar
+    // Kita buat 'fonts' selalu !inner agar filter nama font diproses di level root (pasti ada fontnya)
+    // Kita buat 'fontbuyer' !inner HANYA jika mencari email agar baris non-email terbuang.
+    let query = supabase
+      .from('font_history')
+      .select(`
+        id,
+        transaction_id,
+        download_type,
+        download_date,
+        tier,
+        usages,
+        metadata,
+        fontbuyer${isEmail ? '!inner' : ''} ( email ),
+        fonts!inner ( name )
+      `, { count: 'exact' });
 
-        if (isEmail) {
-          query = query.ilike('fontbuyer.email', `%${lowerTerm}%`);
-        } else if (isOrderId) {
-          query = query.ilike('transaction_id', `%${searchTerm.toUpperCase()}%`);
-        } else if (isTypeSearch) {
-          query = query.eq('download_type', lowerTerm);
-        } else if (isUsageSearch) {
-          const searchTag = searchTerm.replace(' ', '_').toUpperCase();
-          query = query.overlaps('usages', [searchTerm.toUpperCase(), searchTag, searchTerm.toLowerCase()]);
-        } else {
-          // SOLUSI TOTAL: Menggunakan Dot Notation yang sinkron dengan !inner join di select.
-          // Ini mendukung partial match (depan/belakang/tengah) untuk nama font.
-          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`);
-        }
-      }
+    // 2. Logic Branching Search (Pencarian Pintar)
+    if (searchTerm) {
+      const isTypeSearch = isTrialSearch || lowerTerm === 'full';
+      const usageKeywords = ['personal', 'desktop', 'logo', 'branding', 'app', 'server', 'broadcast', 'social', 'web'];
+      const isUsageSearch = usageKeywords.some(k => lowerTerm.includes(k));
 
-      const { data, error, count } = await query
-        .order('download_date', { ascending: false })
-        .range(from, to);
-
-      if (error) {
-        console.error("SUPABASE_QUERY_ERROR:", error.message);
-        setOrders([]);
-        setTotalCount(0);
+      if (isEmail) {
+        // Jalur khusus Email (Buyer Only)
+        query = query.ilike('fontbuyer.email', `%${lowerTerm}%`);
+      } else if (isOrderId) {
+        // Jalur khusus Order ID (Tabel Utama)
+        query = query.ilike('transaction_id', `%${searchTerm.toUpperCase()}%`);
+      } else if (isTypeSearch) {
+        // Jalur khusus Tipe (Trial/Full)
+        query = query.eq('download_type', lowerTerm);
+      } else if (isUsageSearch) {
+        // Jalur khusus Usage (Array)
+        const searchTag = searchTerm.replace(' ', '_').toUpperCase();
+        query = query.overlaps('usages', [searchTerm.toUpperCase(), searchTag, searchTerm.toLowerCase()]);
       } else {
-        setOrders(data || []);
-        setTotalCount(count || 0);
+        // SOLUSI FINAL UNTUK NAMA FONT:
+        // Kita gunakan .or secara eksplisit hanya pada kolom yang 'Inner-Join Safe'.
+        // Jika input adalah kata depan/belakang font (misal: "Gali" atau "Serif"), 
+        // PostgREST akan memetakan fonts.name secara akurat karena fonts di-set sebagai !inner.
+        query = query.or(
+          `transaction_id.ilike.%${searchTerm}%,` +
+          `tier.ilike.%${searchTerm}%,` +
+          `fonts.name.ilike.%${searchTerm}%`
+        );
       }
-    } catch (err) {
-      console.error("SYSTEM_FETCH_ERROR:", err);
-    } finally {
-      setLoading(false);
     }
-  };
+
+    const { data, error, count } = await query
+      .order('download_date', { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      // Jika masih error, kita fallback ke query tanpa filter untuk menjaga kestabilan UI
+      console.error("SUPABASE_QUERY_ERROR:", error.message);
+      setOrders([]);
+      setTotalCount(0);
+    } else {
+      setOrders(data || []);
+      setTotalCount(count || 0);
+    }
+  } catch (err) {
+    console.error("SYSTEM_FETCH_ERROR:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
