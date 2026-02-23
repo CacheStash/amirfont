@@ -310,7 +310,7 @@ if (subscribe) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30"
-                    placeholder="EMAIL@DOMAIN.COM"
+                    placeholder="EMAIL@DOMAIN.COM WILL BE YOUR USERNAME TO YOUR ACCOUNT DASHBOARD"
                     required
                   />
                   <textarea 
