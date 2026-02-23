@@ -220,17 +220,12 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Font Name</label>
          <input 
             type="text" 
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            list="font-tags-suggestions"
-            className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
-            placeholder="Variable, Serif, Display" 
+            value={fontName}
+            onChange={(e) => setFontName(e.target.value)}
+            className="w-full border border-black p-3 outline-none font-normal uppercase text-xl focus:bg-yellow-50 transition-colors" 
+            placeholder="E.G. ROYAL GRANDE"
+            required
           />
-          <datalist id="font-tags-suggestions">
-            {FONT_TAGS_LIBRARY.map((tag) => (
-              <option key={tag} value={tag} />
-            ))}
-          </datalist>
         </div>
         <div className="space-y-2">
           <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Basic Price ($)</label>
@@ -345,9 +340,15 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
             type="text" 
             value={tags}
             onChange={(e) => setTags(e.target.value)}
+            list="font-tags-suggestions"
             className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
             placeholder="Variable, Serif, Display" 
           />
+          <datalist id="font-tags-suggestions">
+            {FONT_TAGS_LIBRARY.map((tag) => (
+              <option key={tag} value={tag} />
+            ))}
+          </datalist>
         </div>
       </div>
 
