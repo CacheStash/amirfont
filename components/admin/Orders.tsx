@@ -28,48 +28,17 @@ const fetchOrders = async () => {
     const from = (currentPage - 1) * itemsPerPage;
     const to = from + itemsPerPage - 1;
 
-    try {
+   try {
       const lowerTerm = searchTerm.toLowerCase();
-      const isEmail = searchTerm.includes('@');
-      const isOrderId = searchTerm.toUpperCase().startsWith('SQ-');
-      const isTrialSearch = lowerTerm === 'trial';
-      const isFullSearch = lowerTerm === 'full';
 
-      // Senior Fix: Buang isGeneralSearch. Kita pakai select yang stabil.
-      // fontbuyer!inner hanya aktif saat cari email agar baris lain terbuang.
-      // fonts!inner SELALU aktif agar filter nama font di level root berfungsi.
+      // Menembak VIEW virtual yang sudah digabung (FLAT)
       let query = supabase
-        .from('font_history')
-        .select(`
-          id,
-          transaction_id,
-          download_type,
-          download_date,
-          tier,
-          usages,
-          metadata,
-          fontbuyer${isEmail ? '!inner' : ''}(email),
-          fonts!inner(name)
-        `, { count: 'exact' });
+        .from('admin_order_view')
+        .select('*', { count: 'exact' });
 
       if (searchTerm) {
-        const usageKeywords = ['personal', 'desktop', 'logo', 'branding', 'app', 'server', 'broadcast', 'social', 'web'];
-        const isUsageSearch = usageKeywords.some(k => lowerTerm === k);
-
-        if (isEmail) {
-          query = query.ilike('fontbuyer.email', `%${lowerTerm}%`);
-        } else if (isOrderId) {
-          query = query.ilike('transaction_id', `%${searchTerm.toUpperCase()}%`);
-        } else if (isTrialSearch || isFullSearch) {
-          query = query.eq('download_type', lowerTerm);
-        } else if (isUsageSearch) {
-          const searchTag = searchTerm.replace(' ', '_').toUpperCase();
-          query = query.overlaps('usages', [searchTerm.toUpperCase(), searchTag, searchTerm.toLowerCase()]);
-        } else {
-          // Gunakan dot notation fonts.name yang bersih. 
-          // % di depan & belakang menjamin kata depan (Gali) atau belakang (Serif) ditemukan.
-          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`);
-        }
+        // Filter OR menjadi sangat stabil karena semua kolom kini berada di satu tabel yang sama
+        query = query.or(`transaction_id.ilike.%${searchTerm}%,buyer_email.ilike.%${searchTerm}%,font_name.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%`);
       }
 
       const { data, error, count } = await query
@@ -81,7 +50,13 @@ const fetchOrders = async () => {
         setOrders([]);
         setTotalCount(0);
       } else {
-        setOrders(data || []);
+        // RE-MAPPING: Mengembalikan struktur data agar sesuai dengan komponen Tabel (fontbuyer & fonts)
+        const formattedData = data?.map(item => ({
+          ...item,
+          fontbuyer: { email: item.buyer_email },
+          fonts: { name: item.font_name }
+        }));
+        setOrders(formattedData || []);
         setTotalCount(count || 0);
       }
     } catch (err) {
