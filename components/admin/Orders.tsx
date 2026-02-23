@@ -48,17 +48,15 @@ const Orders = () => {
         const isEmail = searchTerm.includes('@');
         const isOrderId = searchTerm.toUpperCase().startsWith('SQ-');
 
-        if (isEmail) {
-          // Jika input ada @, fokus cari di tabel fontbuyer
-          query = query.filter('fontbuyer.email', 'ilike', `%${searchTerm}%`);
+       if (isEmail) {
+          // Normalisasi ke lowercase untuk email agar cocok dengan data database
+          query = query.ilike('fontbuyer.email', `%${searchTerm.toLowerCase()}%`);
         } else if (isOrderId) {
-          // Jika input SQ-, fokus cari di transaction_id
-          query = query.ilike('transaction_id', `%${searchTerm}%`);
+          // Normalisasi ke uppercase untuk Order ID
+          query = query.ilike('transaction_id', `%${searchTerm.toUpperCase()}%`);
         } else {
-          // Jika umum, gunakan .or() hanya pada kolom tabel utama untuk kestabilan
-          // Cari di ID Transaksi, Tier, atau Nama Font (via join)
-          // Catatan: PostgREST membutuhkan relasi eksplisit untuk .or() antar tabel
-          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`);
+          // Masukkan fontbuyer.email ke pencarian umum agar "lalala" bisa menemukan "lalala@mbuh.com"
+          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%,fontbuyer.email.ilike.%${searchTerm.toLowerCase()}%`);
         }
       }
 
