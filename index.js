@@ -365,7 +365,7 @@ export default {
 
         // FIXED 3: Gunakan branding SQ_ dan tambahkan -Trial jika isTrial bernilai true
         const baseName = cleanFontName.split('.')[0];
-        const zipName = `SQ_${baseName}${isTrial ? '-Trial' : ''}.zip`;
+        const zipName = `SQ_${baseName}${isTrial ? '_Trial' : ''}.zip`;
 
         const object = await env.R2_BUCKET.get(fontFile);
         if (!object) return new Response(`File Not Found: ${fontFile}`, { status: 404 });
@@ -419,11 +419,11 @@ export default {
         const issueDate = new Date().toLocaleDateString();
         let licenseBody = `SUBQI STUDIO — OFFICIAL LICENSE CERTIFICATE\n`;
         licenseBody += `========================================================================\n`;
-        licenseBody += `ORDER ID       : ${transactionId || 'N/A'} (USE AS INITIAL PASSWORD / RESETTER)\n`;
+        licenseBody += `ORDER ID       : ${transactionId || 'N/A'} (USE AS PASSWORD RESETTER)\n`;
         licenseBody += `LICENSE HOLDER : ${buyerEmail} (USE AS LOGIN USERNAME)\n`;
         licenseBody += `ISSUE DATE     : ${issueDate}\n`;
         licenseBody += `ASSET NAME     : ${cleanFontName}\n`;
-        licenseBody += `SEAT TIER      : ${displayTier}\n`;
+        licenseBody += `TIER LEVEL     : ${displayTier}\n`;
         
         // OTOMATIS: Tambahkan baris MPV Reach jika ada di metadata
         if (!isTrial && txData.metadata?.mpv) {

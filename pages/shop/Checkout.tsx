@@ -110,10 +110,12 @@ const [email, setEmail] = React.useState('');
       a.href = urlBlob;
       
       // FIXED: Bersihkan nama file dari timestamp agar sama dengan format Dashboard
-      const cleanName = fileName.replace(/^\d+-/, '').split('.')[0];
-      a.download = `SQ_${cleanName}.zip`;
+     const cleanName = fileName.replace(/^\d+-/, '').split('.')[0];
+      const suffix = type === 'trial' ? '_Trial' : '';
+      a.download = `SQ_${cleanName}${suffix}.zip`;
+      
       a.click();
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(urlBlob);
     } catch (e: any) {
       alert("DOWNLOAD_FAILED: " + e.message);
     }
