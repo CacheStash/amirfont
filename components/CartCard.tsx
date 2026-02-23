@@ -65,11 +65,11 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices,font_files
   const hasHigherTier = useMemo(() => selectedUsages.some(u => higherTierUsages.includes(u)), [selectedUsages]);
 
   const tierMap: Record<string, { key: string; label: string }[]> = {
-    desktop: [{key:'solo',label:'1 USER'}, {key:'team',label:'UP TO 30'}, {key:'studio',label:'UP TO 100'}, {key:'enterprise',label:'UNLIMITED'}],
-    social_web: [{key:'small_50k',label:'50K VIEWS'}, {key:'medium_500k',label:'500K VIEWS'}, {key:'large_5m',label:'2M VIEWS'}, {key:'enterprise_unlimited',label:'UNLIMITED'}],
+    desktop: [{key:'solo',label:'1 USER ONLY'}, {key:'team',label:'UP TO 30 USERS'}, {key:'studio',label:'UP TO 100 USERS'}, {key:'enterprise',label:'UNLIMITED USERS'}],
+    social_web: [{key:'small_50k',label:'50K VIEWS'}, {key:'medium_500k',label:'500K VIEWS'}, {key:'large_5m',label:'2M VIEWS'}, {key:'enterprise_unlimited',label:'UNLIMITED VIEWS'}],
     logo_branding: [{key:'personal',label:'PERSONAL'}, {key:'solo',label:'1-10 EMPLOYEES'}, {key:'team',label:'11-50 EMPLOYEES'}, {key:'studio',label:'51-250 EMPLOYEES'}, {key:'enterprise',label:'251+ EMPLOYEES'}],
-    app: [{key:'solo',label:'1 TITLE'}, {key:'team',label:'UP TO 10'}, {key:'studio',label:'UP TO 50'}, {key:'enterprise',label:'UNLIMITED'}],
-    server: [{key:'solo',label:'SINGLE'}, {key:'studio',label:'50 SERVERS'}, {key:'enterprise',label:'UNLIMITED'}],
+    app: [{key:'solo',label:'1 TITLE ONLY'}, {key:'team',label:'UP TO 10 TITLES'}, {key:'studio',label:'UP TO 50 TITLES'}, {key:'enterprise',label:'UNLIMITED TITLES'}],
+    server: [{key:'solo',label:'SINGLE SERVER'}, {key:'studio',label:'UP TO 50 SERVERS'}, {key:'enterprise',label:'UNLIMITED SERVERS'}],
     broadcast: [{key:'solo',label:'REGIONAL'}, {key:'studio',label:'NATIONAL'}, {key:'enterprise',label:'WORLDWIDE'}]
   };
 
