@@ -375,11 +375,11 @@ export default {
 
        // 3. MASTER TIER MAPPING (Sinkronisasi Frontend CartCard.tsx)
         const MASTER_TIER_LABELS = {
-          desktop: { solo: '1 USER', team: 'UP TO 30', studio: 'UP TO 100', enterprise: 'UNLIMITED' },
-          social_web: { small_50k: '50K VIEWS', medium_500k: '500K VIEWS', large_5m: '2M VIEWS', enterprise_unlimited: 'UNLIMITED' },
-          logo_branding: { personal: 'PERSONAL', solo: '1-10 EMPLOYEES', team: '11-50 EMPLOYEES', studio: '51-250 EMPLOYEES', enterprise: '251+ EMPLOYEES' },
-          app: { solo: '1 TITLE', team: 'UP TO 10', studio: 'UP TO 50', enterprise: 'UNLIMITED' },
-          server: { solo: 'SINGLE', studio: '50 SERVERS', enterprise: 'UNLIMITED' },
+          desktop: { solo: '1 USER ONLY', team: 'UP TO 30 USER', studio: 'UP TO 100 USER', enterprise: 'UNLIMITED USER' },
+          social_web: { small_50k: '50K VIEWS', medium_500k: '500K VIEWS', large_5m: '2M VIEWS', enterprise_unlimited: 'UNLIMITED VIEWS' },
+          logo_branding: { personal: 'PERSONAL BRANDING', solo: '1-10 EMPLOYEES', team: '11-50 EMPLOYEES', studio: '51-250 EMPLOYEES', enterprise: '251+ EMPLOYEES' },
+          app: { solo: '1 TITLE', team: 'UP TO 10 TITLES', studio: 'UP TO 50 TITLES', enterprise: 'UNLIMITED TITLES' },
+          server: { solo: 'SINGLE', studio: 'UP TO 50 SERVERS', enterprise: 'UNLIMITED' },
           broadcast: { solo: 'REGIONAL', studio: 'NATIONAL', enterprise: 'WORLDWIDE' }
         };
 
@@ -406,13 +406,13 @@ export default {
             charSet: "The Demo version is a trial asset and contains a limited glyph set.",
             restrictions: "Commercial utilization, business promotion, or revenue-generating activities are strictly prohibited."
           },
-          desktop: "A. DESKTOP / PRINT: Install on workstations to create static visual content (PNG, JPG, PDF) for digital and print media.",
-          social_web: "B. DIGITAL MEDIA (SOCIAL/WEB): Specifically for digital platforms, including website embedding and social media advertising.",
-          logo_branding: "C. LOGO & BRANDING: Utilize the font as a core element of a visual identity system (Logos, Wordmarks).",
-          app: "D. APP / GAME / EBOOK: Embed font software into mobile applications, software, games, or electronic publications.",
-          broadcast: "E. BROADCAST: For motion graphics, television, cinema, streaming, and video advertisements.",
-          server: "F. SERVER: Install on a server to facilitate automated end-user customization (Web-to-Print).",
-          corporate: "G. CORPORATE ALL-IN-ONE: A comprehensive license covering all categories for an entire organization with no limits on seats or impressions."
+          desktop: "DESKTOP / PRINT: Install on workstations to create static visual content (PNG, JPG, PDF) for digital and print media.",
+          social_web: "DIGITAL MEDIA (SOCIAL/WEB): Specifically for digital platforms, including website embedding and social media advertising.",
+          logo_branding: "LOGO & BRANDING: Utilize the font as a core element of a visual identity system (Logos, Wordmarks).",
+          app: "APP / GAME / EBOOK: Embed font software into mobile applications, software, games, or electronic publications.",
+          broadcast: "BROADCAST: For motion graphics, television, cinema, streaming, and video advertisements.",
+          server: "SERVER: Install on a server to facilitate automated end-user customization (Web-to-Print).",
+          corporate: "CORPORATE ALL-IN-ONE: A comprehensive license covering all categories for an entire organization with no limits on seats or impressions."
         };
 
         // 4. Susun isi LICENSE.txt
