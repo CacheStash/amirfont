@@ -28,10 +28,11 @@ const Orders = () => {
     const to = from + itemsPerPage - 1;
 
     try {
-      // Senior Logic: Gunakan !inner join hanya jika sedang mencari email/general 
-      // agar baris yang tidak cocok benar-benar terbuang (Root Filter).
-      // Jika mencari Order ID (SQ-), tetap gunakan Left Join agar Guest/Trial tetap muncul.
-      const useInner = searchTerm && !searchTerm.toUpperCase().startsWith('SQ-');
+      // Senior Logic: Matikan !inner jika mencari "Trial" agar data Guest muncul.
+      const lowerTerm = searchTerm.toLowerCase();
+      const isOrderId = searchTerm.toUpperCase().startsWith('SQ-');
+      const isTrialSearch = lowerTerm === 'trial';
+      const useInner = searchTerm && !isOrderId && !isTrialSearch;
 
       let query = supabase
         .from('font_history')
@@ -47,20 +48,28 @@ const Orders = () => {
           fonts ( name )
         `, { count: 'exact' });
 
-      // 2. Logic Branching Search (Pencarian Pintar)
+      // 2. Logic Branching Search (Pencarian Pintar & Multi-Kolom)
       if (searchTerm) {
         const isEmail = searchTerm.includes('@');
-        const isOrderId = searchTerm.toUpperCase().startsWith('SQ-');
+        const isTypeSearch = isTrialSearch || lowerTerm === 'full';
+        const usageKeywords = ['personal', 'desktop', 'logo', 'branding', 'app', 'server', 'broadcast', 'social', 'web'];
+        const isUsageSearch = usageKeywords.some(k => lowerTerm.includes(k));
 
         if (isEmail) {
-          // Normalisasi ke lowercase untuk email agar cocok dengan data database
-          query = query.ilike('fontbuyer.email', `%${searchTerm.toLowerCase()}%`);
+          query = query.ilike('fontbuyer.email', `%${lowerTerm}%`);
         } else if (isOrderId) {
-          // Normalisasi ke uppercase untuk Order ID
           query = query.ilike('transaction_id', `%${searchTerm.toUpperCase()}%`);
+        } else if (isTypeSearch) {
+          // Cari berdasarkan tipe download (trial/full)
+          query = query.eq('download_type', lowerTerm);
+        } else if (isUsageSearch) {
+          // Khusus kolom ARRAY: Gunakan overlaps untuk mencari kata kunci di dalam list usages
+          // Kita kirim variasi format (Original, Underscore, Uppercase)
+          const searchTag = searchTerm.replace(' ', '_').toUpperCase();
+          query = query.overlaps('usages', [searchTerm.toUpperCase(), searchTag, searchTerm.toLowerCase()]);
         } else {
-          // Masukkan fontbuyer.email ke pencarian umum agar "lalala" bisa menemukan "lalala@mbuh.com"
-          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%,fontbuyer.email.ilike.%${searchTerm.toLowerCase()}%`);
+          // Pencarian Umum: Nama Font, Tier, dan Email (Case Insensitive)
+          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%,fontbuyer.email.ilike.%${lowerTerm}%`);
         }
       }
 
