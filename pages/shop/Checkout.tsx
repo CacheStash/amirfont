@@ -412,9 +412,9 @@ if (subscribe) {
                   {/* FIXED: Hilangkan tombol Library dari sini agar tidak double */}
                   {!isPaid && (
                     <button 
-                      onClick={total === 0 ? handleFreeTrial : () => alert("Midtrans Coming Soon...")}
-                      disabled={loading}
-                      className="w-full bg-black text-white py-5 text-sm font-black tracking-[0.2em] hover:invert transition-all disabled:opacity-50"
+                     onClick={total === 0 ? handleFreeTrial : () => alert("Midtrans Coming Soon...")}
+                      disabled={loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
+                      className="w-full bg-black text-white py-5 text-sm font-black tracking-[0.2em] hover:invert transition-all disabled:opacity-20 disabled:grayscale"
                     >
                       {total === 0 ? (loading ? "PROCESSING..." : "CLAIM FREE DEMO") : "PAY WITH MIDTRANS"}
                     </button>
@@ -428,7 +428,7 @@ if (subscribe) {
                   </div>
                   <span className="text-[10px] font-black tracking-widest text-black/40">PAYPAL / CREDIT CARD / APPLE PAY</span>
                   
-                  <div className="relative z-0">
+                  <div className={`relative z-0 transition-all ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
                     <PayPalButtons 
                       style={{ layout: "vertical", shape: "rect", label: "pay", height: 50 }}
                       // FIXED: Validasi email sebelum popup PayPal muncul
