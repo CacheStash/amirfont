@@ -11,7 +11,9 @@ const Checkout: React.FC = () => {
   const [user, setUser] = React.useState<User | null>(null);
   const orderId = React.useMemo(() => `SQ-${Math.floor(100000 + Math.random() * 900000)}`, []);
   const [loading, setLoading] = React.useState(false);
-const [email, setEmail] = React.useState(''); 
+const [name, setName] = React.useState('');
+  const [email, setEmail] = React.useState(''); 
+  const [address, setAddress] = React.useState('');
   const [isPaid, setIsPaid] = React.useState(false);
   const [subscribe, setSubscribe] = React.useState(true);
   const [purchasedItems, setPurchasedItems] = React.useState<any[]>([]);
@@ -49,8 +51,10 @@ const [email, setEmail] = React.useState('');
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+       body: JSON.stringify({
           email,
+          name,
+          address,
           fontName: cart.map(i => i.name).join(', '),
           type: 'full', // FIXED: Gunakan 'full' untuk pembelian sukses
           metadata: { 
@@ -140,6 +144,8 @@ const [email, setEmail] = React.useState('');
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
+          name,
+          address,
           type: 'trial',
           metadata: { 
             order_id: orderId,
@@ -261,48 +267,72 @@ if (subscribe) {
               <span className="text-6xl md:text-8xl font-normal tracking-tighter">${total}</span>
             </div>
 
-            {/* 00. MANDATORY EMAIL FIELD */}
+            {/* 00. MANDATORY PURCHASER INFO */}
             {!isPaid && (
-              <div className="mb-10 p-6 border-2 border-black bg-black text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                <label className="block text-[10px] font-black tracking-[0.2em] mb-3 italic">00. PROVIDE_RECEIVER_EMAIL*</label>
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white text-black p-4 font-mono font-black outline-none border-none text-sm placeholder:text-gray-300"
-                  placeholder="NAME@DOMAIN.COM"
-                  required
-                />
-
-                {/* FIXED: Tombol Claim muncul di bawah input email jika total 0 dan email valid */}
-                {total === 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
-                  <button 
-                    onClick={handleFreeTrial}
-                    disabled={loading}
-                    className="w-full mt-6 bg-orange-600 text-white py-5 text-sm font-black tracking-[0.2em] hover:invert transition-all disabled:opacity-50 animate-in slide-in-from-top-2"
-                  >
-                    {loading ? "PROCESSING..." : "CLAIM FREE DEMO ACCESS"}
-                  </button>
-                )}
-
+              <div className="mb-10 p-6 border border-black bg-[#FF5C00] text-black">
+                <label className="block text-[10px] font-black tracking-[0.2em] mb-4 italic">00. PROVIDE_PURCHASER_INFO*</label>
                 
+                <div className="flex flex-col gap-1 overflow-hidden border border-black bg-white mb-4">
+                  <input 
+                    type="text" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30"
+                    placeholder="FULL NAME"
+                    required
+                  />
+                  <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30"
+                    placeholder="EMAIL@DOMAIN.COM"
+                    required
+                  />
+                  <textarea 
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full p-4 font-mono font-bold outline-none text-sm placeholder:text-black/30 min-h-[80px] resize-none"
+                    placeholder="COMPLETE ADDRESS (STREET, CITY, ZIP CODE)"
+                    required
+                  />
+                </div>
 
-                {/* SUBSCRIBE OPTION */}
-                <label className="flex items-center gap-3 cursor-pointer group mt-4">
+                {/* CUSTOM CHECKBOX SUBSCRIBE */}
+                <label className="flex items-center gap-3 cursor-pointer group select-none">
                   <div className="relative flex items-center">
                     <input 
                       type="checkbox" 
                       checked={subscribe}
                       onChange={() => setSubscribe(!subscribe)}
-                      className="sr-only peer"
+                      className="sr-only"
                     />
-                    <div className={`w-5 h-5 border-2 transition-all shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] ${subscribe ? 'bg-orange-600 border-orange-600' : 'bg-transparent border-white'}`} />
+                    {/* Outer White Box */}
+                    <div className="w-5 h-5 border border-black bg-white flex items-center justify-center">
+                      {/* Inner Black Square (When Checked) */}
+                      {subscribe && <div className="w-3 h-3 bg-black" />}
+                    </div>
                   </div>
-                  <span className="text-[10px] font-bold tracking-widest group-hover:underline text-white">
+                  <span className="text-[10px] font-bold tracking-widest group-hover:underline">
                     SUBSCRIBE TO NEWSLETTER & NEW RELEASES
                   </span>
                 </label>
-                <p className="text-[9px] mt-3 opacity-60 italic">* YOUR ACCOUNT WILL BE CREATED AUTOMATICALLY. PASSWORD = YOUR ORDER ID.</p>
+
+                {/* CLAIM BUTTON FOR TRIAL */}
+                {total === 0 && name && address && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
+                  <button 
+                    onClick={handleFreeTrial}
+                    disabled={loading}
+                    className="w-full mt-6 bg-black text-white py-5 text-sm font-black tracking-[0.2em] hover:bg-white hover:text-black border border-black transition-all disabled:opacity-50 animate-in slide-in-from-top-2"
+                  >
+                    {loading ? "PROCESSING..." : "CLAIM FREE DEMO ACCESS"}
+                  </button>
+                )}
+
+                <p className="text-[9px] mt-4 opacity-60 italic leading-tight">
+                  * DATA IS SECURE. YOUR ACCOUNT WILL BE UPDATED AUTOMATICALLY.<br/>
+                  PASSWORD RESET KEY = YOUR ORDER ID.
+                </p>
               </div>
             )}
 

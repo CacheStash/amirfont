@@ -199,11 +199,11 @@ export default {
       try {
         const body = await request.json();
         // FIXED: Masukkan tier, usages, amount, fontName, dan fontId agar tidak undefined saat digunakan di mapping
-        const { email, metadata, type, tier, usages, amount, fontName, fontId } = body;
+        const { email, name, address, metadata, type, tier, usages, amount, fontName, fontId } = body;
         const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
         const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
-       const transactionId = metadata?.order_id || `TX-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        const transactionId = metadata?.order_id || `TX-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
         // 1. Cari/Update User (Logic Resetter)
         const userCheckRes = await fetch(`${supabaseUrl}/rest/v1/fontbuyer?email=eq.${email}&select=id`, {
@@ -214,11 +214,24 @@ export default {
 
         if (userCheckData && userCheckData.length > 0) {
           targetUserId = userCheckData[0].id;
+          
+          // A. Reset Password via Admin Auth
           await fetch(`${supabaseUrl}/auth/v1/admin/users/${targetUserId}`, {
             method: 'PUT',
             headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: transactionId })
           });
+
+          // B. Update Data Terbaru di tabel fontbuyer
+          await fetch(`${supabaseUrl}/rest/v1/fontbuyer?id=eq.${targetUserId}`, {
+            method: 'PATCH',
+            headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              full_name: name || null, 
+              address: address || null 
+            })
+          });
+
         } else {
           const createRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
             method: 'POST',
@@ -232,7 +245,12 @@ export default {
             await fetch(`${supabaseUrl}/rest/v1/fontbuyer`, {
               method: 'POST',
               headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id: targetUserId, email: email })
+              body: JSON.stringify({ 
+                id: targetUserId, 
+                email: email, 
+                full_name: name || null, 
+                address: address || null 
+              })
             });
           }
         }
