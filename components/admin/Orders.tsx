@@ -39,9 +39,9 @@ const Orders = () => {
         `, { count: 'exact' });
 
       if (searchTerm) {
-        query = query.or(`transaction_id.ilike.%${searchTerm}%,fontbuyer.email.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%`);
+        const filterStr = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fontbuyer(email).ilike.%${searchTerm}%,fonts(name).ilike.%${searchTerm}%`;
+        query = query.or(filterStr);
       }
-
       const { data, error, count } = await query
         .order('download_date', { ascending: false })
         .range(from, to);
