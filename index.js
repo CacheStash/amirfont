@@ -219,16 +219,13 @@ export default {
           targetUserId = userCheckData[0].id;
           
           // A. Reset Password via Admin Auth
-          await fetch(`${supabaseUrl}/auth/v1/admin/users/${targetUserId}`, {
-            method: 'PUT',
-            headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: transactionId })
-          });
-
-          // B. Update Data Terbaru di tabel fontbuyer
           await fetch(`${supabaseUrl}/rest/v1/fontbuyer?id=eq.${targetUserId}`, {
             method: 'PATCH',
-            headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+            headers: { 
+              'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 
+              'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 
+              'Content-Type': 'application/json' 
+            },
             body: JSON.stringify({ 
               full_name: name || null, 
               address: address || null 
@@ -236,6 +233,7 @@ export default {
           });
 
         } else {
+          // Hanya user BARU yang dibuatkan password otomatis menggunakan Order ID
           const createRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
             method: 'POST',
             headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
@@ -332,6 +330,9 @@ export default {
         const supabaseKey = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
         const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
+        let buyerName = 'N/A';
+        let buyerAddress = 'N/A';
+
         // 1a. VERIFIKASI VIA TOKEN (Untuk User yang sedang Login)
         if (authHeader) {
           const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
@@ -341,27 +342,30 @@ export default {
           if (userData) {
             isAuthorized = true;
             buyerEmail = userData.email;
+            
+            // Ambil data profil untuk LICENSE.txt (Bypass RLS via Service Role)
+            const profRes = await fetch(`${supabaseUrl}/rest/v1/fontbuyer?id=eq.${userData.id}&select=full_name,address`, {
+              headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` }
+            });
+            const profData = await profRes.json();
+            if (profData?.[0]) {
+              buyerName = profData[0].full_name || 'N/A';
+              buyerAddress = profData[0].address || 'N/A';
+            }
           }
         }
 
-        // 1b. FALLBACK: VERIFIKASI VIA EMAIL + ORDER ID (Untuk pembeli lama yang tidak login)
+        // 1b. FALLBACK: VERIFIKASI VIA EMAIL + ORDER ID (Untuk pembeli lama/guest)
         if (!isAuthorized && email && transactionId && serviceRoleKey) {
-          // Query ke history menggunakan service_role untuk memastikan transaksi valid (Bypass RLS)
           const checkRes = await fetch(
-           // --- PARTIAL FIX ---
             `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&select=id,fontbuyer!inner(email,full_name,address)`,
-            { headers: { 
-              'apikey': serviceRoleKey, 
-              'Authorization': `Bearer ${serviceRoleKey}` 
-            } }
+            { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
           );
           const checkData = await checkRes.json();
-          // Verifikasi apakah record ditemukan dan email pembeli cocok (Case Insensitive)
           const record = checkData?.[0];
           if (record && record.fontbuyer?.email?.toLowerCase() === email.toLowerCase()) {
             isAuthorized = true;
             buyerEmail = email;
-            // Simpan info tambahan untuk LICENSE.txt
             buyerName = record.fontbuyer?.full_name || 'N/A';
             buyerAddress = record.fontbuyer?.address || 'N/A';
           }
