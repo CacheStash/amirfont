@@ -41,28 +41,19 @@ const Footer = () => {
 
   return (
     <footer className="w-full bg-[#FF5C00] border-t border-black font-mono uppercase text-black mt-[-1px]">
-      {/* BARIS SATU: NEWSLETTER (TALL & FULLWIDTH) */}
-      <div className="w-full py-24 px-6 md:px-12 border-b border-black">
-        <div className="max-w-full flex flex-col lg:flex-row justify-between items-center gap-12">
-          <div className="space-y-3 text-center lg:text-left">
-            <h3 className="text-4xl md:text-7xl font-black italic tracking-tighter leading-none">
-              STAY_IN_THE_LOOP
-            </h3>
-            <p className="text-[10px] md:text-xs font-bold tracking-[0.2em] opacity-80">
-              {status === 'success' ? 'THANK_YOU_FOR_JOINING_THE_TRIBE' : 'GET NOTIFIED ON NEW RELEASES & EXCLUSIVE DEALS'}
-            </p>
-          </div>
-
+      {/* BARIS SATU: NEWSLETTER (COMPACT & FULLWIDTH) */}
+      <div className="w-full py-10 px-3 md:px-8 border-b border-black">
+        <div className="w-full">
           <form 
             onSubmit={handleSubscribe} 
-            className="w-full max-w-2xl flex border border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white overflow-hidden"
+            className="w-full flex border border-black bg-white overflow-hidden"
           >
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="ENTER_YOUR_EMAIL_ADDRESS"
-              className="w-full p-5 bg-transparent outline-none font-bold text-sm md:text-base placeholder:text-black/20"
+              placeholder="ENTER YOUR VALID EMAIL TO GET NOTIFIED ON NEW RELEASES & EXCLUSIVE DEALS"
+              className="w-full p-5 bg-transparent outline-none font-bold text-[10px] md:text-sm placeholder:text-black/40"
               required
               disabled={status === 'loading'}
             />
@@ -80,22 +71,24 @@ const Footer = () => {
       {/* BARIS KEDUA: 4 KOLOM (NO VERTICAL GRID) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-12 p-8 md:p-12 text-[11px] font-bold leading-relaxed">
         
-        {/* KOLOM 1: NAV MENU (EXCEPT LOGIN) */}
-        <div className="flex flex-col gap-3">
+        {/* KOLOM 1: DIRECTORY LEFT */}
+        <div className="flex flex-col gap-3 font-bold">
           <span className="opacity-40 tracking-[0.2em] mb-2 italic">DIRECTORY</span>
-          {menuItems.map((item) => (
-            <Link 
-              key={item} 
-              to={`/${item.toLowerCase()}`} 
-              className="hover:underline tracking-widest w-fit"
-            >
+          {menuItems.slice(0, 4).map((item) => (
+            <Link key={item} to={`/${item.toLowerCase()}`} className="hover:underline tracking-widest w-fit">
               {item}
             </Link>
           ))}
         </div>
 
-        {/* KOLOM 2: GAP */}
-        <div className="hidden md:block"></div>
+        {/* KOLOM 2: DIRECTORY RIGHT */}
+        <div className="flex flex-col gap-3 md:pt-6 font-bold">
+          {menuItems.slice(4).map((item) => (
+            <Link key={item} to={`/${item.toLowerCase()}`} className="hover:underline tracking-widest w-fit">
+              {item}
+            </Link>
+          ))}
+        </div>
 
         {/* KOLOM 3: SOCIALS */}
         <div className="flex flex-col gap-3">
