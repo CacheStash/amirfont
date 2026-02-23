@@ -62,13 +62,13 @@ const fetchOrders = async () => {
         } else if (isTrialSearch || isFullSearch) {
           query = query.eq('download_type', lowerTerm);
         } else if (isUsageSearch) {
-          // Hanya masuk sini jika user mengetik "desktop", "web", dll secara spesifik
-          const searchTag = searchTerm.replace(' ', '_').toUpperCase();
+         const searchTag = searchTerm.replace(' ', '_').toUpperCase();
           query = query.overlaps('usages', [searchTerm.toUpperCase(), searchTag, searchTerm.toLowerCase()]);
         } else {
-          // SOLUSI TOTAL: Kita gabungkan pencarian Tier, Order ID, dan Nama Font
-          // Pastikan tidak ada spasi di dalam string template ini.
-          const filterStr = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`;
+          // SENIOR SOLUTION: Gunakan sintaks 'fonts(name)' tanpa spasi sama sekali.
+          // fonts!inner di select memastikan baris yang nggak punya font (nggak mungkin ada) terbuang.
+          // Kita sertakan 'tier' dan 'transaction_id' untuk backup pencarian umum.
+          const filterStr = `transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts(name).ilike.%${searchTerm}%`;
           query = query.or(filterStr);
         }
       }
