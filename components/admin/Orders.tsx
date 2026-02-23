@@ -28,7 +28,11 @@ const Orders = () => {
     const to = from + itemsPerPage - 1;
 
     try {
-      // 1. Inisialisasi Query Dasar (Tanpa !inner agar data tidak hilang jika buyer null)
+      // Senior Logic: Gunakan !inner join hanya jika sedang mencari email/general 
+      // agar baris yang tidak cocok benar-benar terbuang (Root Filter).
+      // Jika mencari Order ID (SQ-), tetap gunakan Left Join agar Guest/Trial tetap muncul.
+      const useInner = searchTerm && !searchTerm.toUpperCase().startsWith('SQ-');
+
       let query = supabase
         .from('font_history')
         .select(`
@@ -39,7 +43,7 @@ const Orders = () => {
           tier,
           usages,
           metadata,
-          fontbuyer ( email ),
+          fontbuyer${useInner ? '!inner' : ''} ( email ),
           fonts ( name )
         `, { count: 'exact' });
 
@@ -48,7 +52,7 @@ const Orders = () => {
         const isEmail = searchTerm.includes('@');
         const isOrderId = searchTerm.toUpperCase().startsWith('SQ-');
 
-       if (isEmail) {
+        if (isEmail) {
           // Normalisasi ke lowercase untuk email agar cocok dengan data database
           query = query.ilike('fontbuyer.email', `%${searchTerm.toLowerCase()}%`);
         } else if (isOrderId) {
