@@ -1,125 +1,193 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, Search, Plus, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
+import { User } from '@supabase/supabase-js';
 
-const Footer = () => {
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+interface NavbarProps {
+  onStateChange?: (isActive: boolean) => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  
+  const location = useLocation();
+  const { cartCount } = useCart();
 
   const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Insights'];
 
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setStatus('loading');
+  // AUTH LOGIC
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
 
-    try {
-      const { error } = await supabase
-        .from('fontsubscribers')
-        .insert([{ 
-          email: email.toLowerCase(), 
-          source: 'footer_subscription',
-          status: 'active' 
-        }]);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
+      setUser(session?.user ?? null);
+    });
 
-      if (error) {
-        if (error.code === '23505') throw new Error("EMAIL_ALREADY_SUBSCRIBED");
-        throw error;
-      }
+    return () => subscription.unsubscribe();
+  }, []);
 
-      setStatus('success');
-      setEmail('');
-      setTimeout(() => setStatus('idle'), 5000);
-    } catch (err: any) {
-      console.error(err);
-      setStatus('error');
-      alert(err.message === "EMAIL_ALREADY_SUBSCRIBED" 
-        ? "YOU ARE ALREADY IN OUR SYSTEM!" 
-        : "SUBSCRIPTION_FAILED. PLEASE TRY AGAIN.");
-      setTimeout(() => setStatus('idle'), 3000);
-    }
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsOpen(false);
   };
 
+  // OVERLAY LOGIC
+  useEffect(() => {
+    if (onStateChange) {
+      onStateChange(isOpen || isSearchOpen);
+    }
+  }, [isOpen, isSearchOpen, onStateChange]);
+
+  useEffect(() => {
+    setIsOpen(false);
+    setIsSearchOpen(false);
+  }, [location]);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <footer className="w-full bg-[#FF5C00] border-t border-black font-mono uppercase text-black mt-[-1px]">
-      {/* BARIS SATU: NEWSLETTER (TALL & FULLWIDTH) */}
-      <div className="w-full py-24 px-6 md:px-12 border-b border-black">
-        <div className="max-w-full flex flex-col lg:flex-row justify-between items-center gap-12">
-          <div className="space-y-3 text-center lg:text-left">
-            <h3 className="text-4xl md:text-7xl font-black italic tracking-tighter leading-none">
-              STAY_IN_THE_LOOP
-            </h3>
-            <p className="text-[10px] md:text-xs font-bold tracking-[0.2em] opacity-80">
-              {status === 'success' ? 'THANK_YOU_FOR_JOINING_THE_TRIBE' : 'GET NOTIFIED ON NEW RELEASES & EXCLUSIVE DEALS'}
-            </p>
-          </div>
-
-          <form 
-            onSubmit={handleSubscribe} 
-            className="w-full max-w-2xl flex border border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white overflow-hidden"
-          >
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ENTER_YOUR_EMAIL_ADDRESS"
-              className="w-full p-5 bg-transparent outline-none font-bold text-sm md:text-base placeholder:text-black/20"
-              required
-              disabled={status === 'loading'}
-            />
-            <button 
-              type="submit" 
-              disabled={status === 'loading'}
-              className="bg-black text-white px-8 md:px-12 font-black text-xs md:text-sm hover:bg-[#FF5C00] hover:text-black transition-all border-l border-black uppercase disabled:opacity-50 whitespace-nowrap"
-            >
-              {status === 'loading' ? 'WAITING...' : 'Subscribe'}
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* BARIS KEDUA: 4 KOLOM (NO VERTICAL GRID) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-12 p-8 md:p-12 text-[11px] font-bold leading-relaxed">
+    <nav className={`w-full sticky top-0 z-[100] transition-all duration-300 mb-[-1px] ${
+      isScrolled ? 'backdrop-blur-xl bg-[#EDEBE6]/70' : 'bg-[#EDEBE6]'
+    }`}>
+      
+      {/* 1. MAIN BAR */}
+      <div className={`w-full flex justify-between items-center h-14 md:h-16 px-0 relative z-[130] border-b border-black transition-colors duration-300 ${
+        (isOpen || isSearchOpen) ? 'bg-[#EDEBE6]' : 'bg-transparent'
+      }`}>
         
-        {/* KOLOM 1: NAV MENU (EXCEPT LOGIN) */}
-        <div className="flex flex-col gap-3">
-          <span className="opacity-40 tracking-[0.2em] mb-2 italic">DIRECTORY</span>
-          {menuItems.map((item) => (
-            <Link 
-              key={item} 
-              to={`/${item.toLowerCase()}`} 
-              className="hover:underline tracking-widest w-fit"
+        {/* Left: Toggle & Logo */}
+        <div className="flex items-center gap-2 md:gap-4 h-full border-r border-black px-3 md:px-8 flex-1 md:flex-none md:w-[450px] min-w-0">
+          <button 
+            onClick={() => { setIsOpen(!isOpen); setIsSearchOpen(false); }}
+            className="p-1 hover:bg-black hover:text-white transition-colors border border-black md:border-transparent md:hover:border-black shrink-0"
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          <Link to="/" className="font-normal tracking-tighter text-xl md:text-2xl uppercase hover:opacity-70 transition-opacity truncate">
+            Subqi Studio
+          </Link>
+        </div>
+
+        {/* Right: Search & Cart */}
+        <div className="flex items-center justify-end gap-2 md:gap-4 h-full border-l-0 md:border-l border-black px-3 md:px-8 shrink-0 bg-inherit">
+            <button
+              onClick={() => { setIsSearchOpen(!isSearchOpen); setIsOpen(false); }}
+              className={`p-1 transition-colors border border-transparent ${isSearchOpen ? 'bg-black text-white' : 'hover:bg-black hover:text-white hover:border-black'}`}
             >
-              {item}
+               {isSearchOpen ? <X size={20} /> : <Search size={20} />}
+            </button>
+
+            <Link 
+              to="/cart" 
+              className="flex items-center gap-2 font-bold text-xs md:text-sm border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-all whitespace-nowrap uppercase group"
+            >
+               <Plus size={16} className="shrink-0 group-hover:rotate-90 transition-transform duration-300" />
+               <span>CART ({cartCount})</span>
             </Link>
-          ))}
-        </div>
-
-        {/* KOLOM 2: GAP */}
-        <div className="hidden md:block"></div>
-
-        {/* KOLOM 3: SOCIALS */}
-        <div className="flex flex-col gap-3">
-          <span className="opacity-40 tracking-[0.2em] mb-2 italic">SOCIAL_CHANNELS</span>
-          <a href="https://behance.net" target="_blank" rel="noopener noreferrer" className="hover:underline w-fit">BEHANCE</a>
-          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:underline w-fit">INSTAGRAM</a>
-          <a href="mailto:hello@subqi.com" className="hover:underline w-fit">EMAIL_INQUIRY</a>
-        </div>
-
-        {/* KOLOM 4: COPYRIGHT & LOCATION */}
-        <div className="flex flex-col gap-1 md:text-right">
-          <span className="opacity-40 tracking-[0.2em] mb-2 italic">LEGAL_AND_HQ</span>
-          <span className="tracking-tighter text-sm md:text-base font-black italic">© SUBQI STUDIO 2026</span>
-          <span className="opacity-80">SLEMAN, YOGYAKARTA</span>
-          <span className="opacity-80">INDONESIA</span>
-          <div className="mt-6 flex md:justify-end gap-3 opacity-20 grayscale scale-90 origin-right">
-             <span className="border border-black px-1">VISA</span> 
-             <span className="border border-black px-1">MC</span> 
-             <span className="border border-black px-1">PAYPAL</span>
-          </div>
         </div>
       </div>
-    </footer>
+
+      {/* 2. SEARCH OVERLAY */}
+      <div className={`fixed inset-0 top-0 w-full h-fit bg-[#EDEBE6] z-[120] border-b border-black transition-transform duration-700 cubic-bezier(0.85, 0, 0.15, 1) ${
+        isSearchOpen ? 'translate-y-0' : '-translate-y-full'
+      }`}>
+          <div className="h-14 md:h-16 w-full border-b border-black"></div>
+          <div className="p-4 md:p-10 max-w-full">
+              <div className="flex items-center w-full gap-0 border border-black bg-transparent overflow-hidden">
+                  <div className="p-4 border-r border-black flex items-center justify-center bg-transparent">
+                      <Search size={24} className="opacity-50"/>
+                  </div>
+                  <input 
+                    type="text" 
+                    placeholder="TYPE TO SEARCH ANYTHING AT THIS SITE..." 
+                    className="w-full p-4 md:text-2xl font-normal uppercase bg-transparent outline-none placeholder:text-gray-400"
+                    autoFocus={isSearchOpen}
+                  />
+                  <button className="p-4 px-6 hover:bg-black hover:text-white border-l border-black transition-colors md:text-xl font-bold">
+                      SEARCH
+                  </button>
+              </div>
+          </div>
+      </div>
+
+      {/* 3. NAVIGATION MENU OVERLAY */}
+      <div className={`fixed inset-0 top-0 w-full h-screen bg-[#EDEBE6] z-[110] transition-transform duration-700 cubic-bezier(0.85, 0, 0.15, 1) flex flex-col ${
+        isOpen ? 'translate-y-0' : '-translate-y-full'
+      }`}>
+          <div className="h-14 md:h-16 w-full border-b border-black bg-[#EDEBE6] flex-shrink-0"></div>
+
+          <div className="flex-1 overflow-y-auto pt-0"> 
+              {/* FIXED: Menghapus h-full pada mobile agar tidak ada gap antar blok menu */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 w-full lg:h-full border-black">
+                  
+                  {/* Column 1: Items 1-4 */}
+                  <div className="flex flex-col border-r-0 lg:border-r border-black">
+                      {menuItems.slice(0, 4).map((item) => (
+                        <Link 
+                          key={item} 
+                          to={`/${item.toLowerCase()}`}
+                         className="text-3xl lg:text-6xl font-normal uppercase tracking-tighter px-3 lg:px-8 py-6 lg:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
+                        >
+                          <span>{item}</span>
+                          <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        </Link>
+                      ))}
+                  </div>
+
+                  {/* Column 2: Items 5-7 + Auth Button */}
+                  <div className="flex flex-col">
+                      {menuItems.slice(4).map((item) => (
+                        <Link 
+                          key={item} 
+                          to={`/${item.toLowerCase()}`}
+                          className="text-3xl lg:text-6xl font-normal uppercase tracking-tighter px-3 lg:px-8 py-6 lg:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
+                        >
+                          <span>{item}</span>
+                          <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        </Link>
+                      ))}
+
+                      {/* Baris ke-4 Kolom Kanan: Login/Logout */}
+                      {user ? (
+                        <Link 
+                          to="/user/dashboard"
+                         className="text-3xl lg:text-6xl font-normal uppercase tracking-tighter px-3 lg:px-8 py-6 lg:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
+                        >
+                          <span>DASHBOARD</span>
+                          <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        </Link>
+                      ) : (
+                        <Link 
+                          to="/user/auth"
+                          className="text-3xl lg:text-6xl font-normal uppercase tracking-tighter px-3 lg:px-8 py-6 lg:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
+                        >
+                          <span>LOGIN</span>
+                          <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        </Link>
+                      )}
+                      
+                      <div className="flex-1 border-b border-black md:border-b-0"></div>
+                  </div>
+              </div>
+
+              <div className="p-3 md:px-8 py-10 opacity-30">
+                  <div className="font-bold uppercase text-[10px] tracking-widest">Subqi Studio HQ — Jakarta, ID</div>
+              </div>
+          </div>
+      </div>
+    </nav>
   );
 };
 
-export default Footer;
+export default Navbar;
