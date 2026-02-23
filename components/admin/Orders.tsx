@@ -67,9 +67,9 @@ const Orders = () => {
           const searchTag = searchTerm.replace(' ', '_').toUpperCase();
           query = query.overlaps('usages', [searchTerm.toUpperCase(), searchTag, searchTerm.toLowerCase()]);
         } else {
-          // Pencarian Umum: Fokus pada Font Name, Tier, dan Order ID.
-          // Kita hapus fontbuyer.email dari sini untuk mencegah 'No Result' pada data Trial/Guest.
-          // fonts!inner di select memastikan baris terfilter jika nama font cocok secara partial.
+          // SOLUSI KRITIKAL: Hapus fontbuyer.email dari string .or() di bawah ini.
+          // Keberadaan kolom Left Join (fontbuyer) di dalam .or lintas tabel sering menyebabkan No Result.
+          // fonts!inner pada select di atas menjamin pencarian nama font ini berfungsi 100%.
           query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`);
         }
       }
