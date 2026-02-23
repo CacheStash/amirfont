@@ -9,13 +9,25 @@ const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('library');
 
 const [userEmail, setUserEmail] = useState('');
+const [fullName, setFullName] = useState('');
 
   // Ambil data user saat dashboard dibuka
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user?.email) setUserEmail(user.email);
-    });
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email || '');
+        const { data } = await supabase
+          .from('fontbuyer')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        if (data?.full_name) setFullName(data.full_name);
+      }
+    };
+    fetchProfile();
   }, []);
+// --- END FIX ---
 
 
   const handleLogout = async () => {
@@ -37,7 +49,7 @@ const [userEmail, setUserEmail] = useState('');
           </Link>
           <h1 className="font-normal tracking-tighter text-lg md:text-xl italic break-all uppercase">
   Hello,<br />
-  {userEmail ? userEmail.split('@')[0] : 'FELLAS!'}
+ {fullName ? fullName.split(' ')[0] : (userEmail ? userEmail.split('@')[0] : 'FELLAS!')}
 </h1>
         </div>
         

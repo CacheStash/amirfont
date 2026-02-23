@@ -110,7 +110,6 @@ const [buyerInfo, setBuyerInfo] = useState<{name: string, address: string}>({ na
           <div className="flex justify-between"><span>LICENSEE_NAME</span> <span className="font-black underline">{buyerInfo.name}</span></div>
           <div className="flex justify-between gap-8"><span className="shrink-0">LICENSEE_ADDRESS</span> <span className="text-right italic">{buyerInfo.address}</span></div>
           <div className="flex justify-between"><span>ISSUE_DATE</span> <span>{new Date(data[0]?.download_date).toLocaleDateString()}</span></div>
-          <div className="flex justify-between"><span>ISSUE_DATE</span> <span>{new Date(data[0]?.download_date).toLocaleDateString()}</span></div>
         </div>
 
         <div className="border-y border-black py-8 mb-10 space-y-12">
