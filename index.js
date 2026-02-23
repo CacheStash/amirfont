@@ -446,7 +446,7 @@ export default {
         licenseBody += `1. This license is non-transferable and belongs strictly to the buyer.\n`;
         licenseBody += `2. You may not sell, rent, sublicense, or redistribute the font files.\n`;
         licenseBody += `3. The font software remains the sole property of Subqi Studio.\n\n`;
-        licenseBody += `FULL DIGITAL RECEIPT:\nhttps://subqi-studio.fontshop.workers.dev/user/receipt/${transactionId}`;
+        licenseBody += `FULL DIGITAL RECEIPT:\nhttps://subqi-studio.fontshop.workers.dev/user/receipt/${transactionId} *LOGIN FIRST TO ACCESS*\n`;
 
         const licenseData = new TextEncoder().encode(licenseBody.trim());
 
