@@ -17,6 +17,25 @@ const BrutalBox: React.FC<{ children: React.ReactNode, className?: string }> = (
 const Contact: React.FC = () => {
   const [subject, setSubject] = useState("");
 
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validasi Format Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRegex.test(email) || !subject || !message.trim()) {
+      alert("ATTENTION: ALL FIELDS ARE MANDATORY. PLEASE PROVIDE A VALID EMAIL, SELECT A SUBJECT, AND WRITE YOUR MESSAGE.");
+      return;
+    }
+
+    const mailtoUrl = `mailto:amirsubqisetiaji@gmail.com?subject=${encodeURIComponent(`[SUBQI STUDIO INQUIRY] ${subject}`)}&body=${encodeURIComponent(`FROM: ${email}\n\nMESSAGE:\n${message}`)}`;
+    
+    window.location.href = mailtoUrl;
+  };
+
   // Komponen ContactCard - Mengikuti Style TermCard License.tsx
   const ContactCard: React.FC<{ 
     number: string, 
@@ -95,12 +114,14 @@ const Contact: React.FC = () => {
             category="Inquiry Portal" 
             title="How Can I Help?"
           >
-            <form className="space-y-12">
+            <form className="space-y-12" onSubmit={handleSendMessage}>
               {/* Input Email */}
               <div className="border-b border-black/10 pb-6">
                 <label className="block text-[10px] font-black tracking-[0.2em] mb-4 text-black/40 uppercase">Your Email Address</label>
                 <input 
                   type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="NAME@YOURDOMAIN.COM"
                   className="w-full bg-transparent border-none outline-none text-2xl md:text-4xl font-normal tracking-tighter p-0 placeholder:text-gray-200 uppercase"
                 />
@@ -134,13 +155,18 @@ const Contact: React.FC = () => {
               <div className="pb-6">
                 <label className="block text-[10px] font-black tracking-[0.2em] mb-4 text-black/40 uppercase">Your Message</label>
                 <textarea 
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                   placeholder="TELL ME EVERYTHING..."
                   className="w-full min-h-[200px] bg-transparent border-none outline-none text-lg md:text-xl font-normal tracking-tight p-0 placeholder:text-gray-200 resize-none normal-case leading-relaxed"
                 />
               </div>
 
               {/* Submit Button */}
-              <button className="group w-full md:w-fit px-12 py-8 bg-black text-white hover:bg-orange-600 transition-colors duration-500 flex items-center justify-center gap-8 border border-black">
+              <button 
+                type="submit"
+                className="group w-full md:w-fit px-12 py-8 bg-black text-white hover:bg-orange-600 transition-colors duration-500 flex items-center justify-center gap-8 border border-black"
+              >
                 <span className="text-2xl md:text-4xl font-normal tracking-tighter uppercase">Send Message</span>
                 <Send size={32} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform duration-500" strokeWidth={1.5} />
               </button>
