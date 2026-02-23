@@ -53,22 +53,24 @@ const Orders = () => {
 
       // 2. Logic Branching Search (Pencarian Pintar & Multi-Kolom)
       if (searchTerm) {
-        const isTypeSearch = isTrialSearch || lowerTerm === 'full';
-        const usageKeywords = ['personal', 'desktop', 'logo', 'branding', 'app', 'server', 'broadcast', 'social', 'web'];
-        const isUsageSearch = usageKeywords.some(k => lowerTerm.includes(k));
+        const isTypeSearch = isTrialSearch || lowerTerm === 'full';
+        const usageKeywords = ['personal', 'desktop', 'logo', 'branding', 'app', 'server', 'broadcast', 'social', 'web'];
+        const isUsageSearch = usageKeywords.some(k => lowerTerm.includes(k));
 
-        if (isEmail) {
-          query = query.ilike('fontbuyer.email', `%${lowerTerm}%`);
-        } else if (isOrderId) {
-          query = query.ilike('transaction_id', `%${searchTerm.toUpperCase()}%`);
-        } else if (isTypeSearch) {
-          query = query.eq('download_type', lowerTerm);
-        } else if (isUsageSearch) {
-          const searchTag = searchTerm.replace(' ', '_').toUpperCase();
-          query = query.overlaps('usages', [searchTerm.toUpperCase(), searchTag, searchTerm.toLowerCase()]);
-        } else {
-          // Pencarian Umum: Mendukung kata depan/belakang nama font secara partial
-          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%,fontbuyer.email.ilike.%${lowerTerm}%`);
+        if (isEmail) {
+          query = query.ilike('fontbuyer.email', `%${lowerTerm}%`);
+        } else if (isOrderId) {
+          query = query.ilike('transaction_id', `%${searchTerm.toUpperCase()}%`);
+        } else if (isTypeSearch) {
+          query = query.eq('download_type', lowerTerm);
+        } else if (isUsageSearch) {
+          const searchTag = searchTerm.replace(' ', '_').toUpperCase();
+          query = query.overlaps('usages', [searchTerm.toUpperCase(), searchTag, searchTerm.toLowerCase()]);
+        } else {
+          // Pencarian Umum: Fokus pada Font Name, Tier, dan Order ID.
+          // Kita hapus fontbuyer.email dari sini untuk mencegah 'No Result' pada data Trial/Guest.
+          // fonts!inner di select memastikan baris terfilter jika nama font cocok secara partial.
+          query = query.or(`transaction_id.ilike.%${searchTerm}%,tier.ilike.%${searchTerm}%,fonts.name.ilike.%${searchTerm}%`);
         }
       }
 
