@@ -24,12 +24,12 @@ const AdminMessages = () => {
       .select(`
         *,
         sender:fontbuyer (
-          full_name
+          full_name,
+          email
         )
       `)
       .order('created_at', { ascending: false });
     
-    // Note: Email biasanya ada di auth.users, kita asumsikan data sender ter-link
     if (data) setMessages(data);
     setLoading(false);
   };
@@ -95,6 +95,9 @@ const AdminMessages = () => {
             <div className="space-y-2 border-b border-black pb-6">
               <div className="flex items-center gap-2 text-[10px] font-black opacity-40">
                 <User size={12}/> FROM: {selectedMessage.sender?.full_name || 'UNKNOWN_BUYER'}
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-black opacity-40">
+                <AtSign size={12}/> EMAIL: {selectedMessage.sender?.email || 'N/A'}
               </div>
               <div className="flex items-center gap-2 text-[10px] font-black opacity-40">
                 <Calendar size={12}/> DATE: {new Date(selectedMessage.created_at).toLocaleString()}

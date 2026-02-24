@@ -34,27 +34,27 @@ const UserMessages = () => {
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("AUTH_SESSION_MISSING");
       
-      // LOGIKA DINAMIS: Cari ID Admin berdasarkan email (Ganti dengan email admin lo)
-      // Jika lo tahu UUID admin lo, masukkan langsung di sini.
-      const ADMIN_EMAIL = 'admin@subqi.studio'; 
-      
-      const { data: adminData } = await supabase
-        .from('fontbuyer') // Mencari di tabel fontbuyer yang kita asumsikan berisi profil admin juga
+      // Ambil ID Admin secara dinamis dari tabel fontadmin
+      const { data: admin, error: adminErr } = await supabase
+        .from('fontadmin')
         .select('id')
-        .eq('id', '6783856d-e448-47bc-ae55-520e7f7e9f3b') // Gunakan ID ini jika valid, atau ganti query-nya
+        .limit(1)
         .single();
 
+      if (adminErr || !admin) throw new Error("ADMIN_NOT_FOUND_IN_SYSTEM");
+
       const { error } = await supabase.from('font_messages').insert([{
-        sender_id: user?.id,
-        recipient_id: '6783856d-e448-47bc-ae55-520e7f7e9f3b', // Pastikan ID ini ada di tabel auth.users
+        sender_id: user.id,
+        recipient_id: admin.id,
         subject,
         content,
         message_type: 'support'
       }]);
 
       if (error) throw error;
-      alert("MESSAGE_SENT");
+      alert("MESSAGE_DISPATCHED_TO_ADMIN");
       setSubject(''); setContent(''); setShowForm(false); fetchMessages();
     } catch (err: any) {
       alert("SEND_ERROR: " + err.message);
@@ -62,7 +62,7 @@ const UserMessages = () => {
       setSending(false);
     }
   };
-
+  
   const handleDelete = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (!confirm("DELETE_MESSAGE?")) return;
