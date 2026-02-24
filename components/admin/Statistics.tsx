@@ -53,13 +53,16 @@ const Statistics: React.FC = () => {
   const itemsPerPage = 10;
 
   // Filters State
+  const [dateRange, setDateRange] = useState('monthly'); // weekly, monthly, yearly, custom
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
   const [fontFilter, setFontFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
 
   useEffect(() => {
     fetchSalesData();
     fetchSubscribers();
-  }, [fontFilter, typeFilter]);
+  }, [dateRange, customStart, customEnd, fontFilter, typeFilter]);
 
   useEffect(() => {
     fetchSubscribers();
@@ -68,6 +71,20 @@ const Statistics: React.FC = () => {
   const fetchSalesData = async () => {
     setLoading(true);
     let query = supabase.from('admin_order_view').select('*');
+
+    if (dateRange !== 'custom') {
+      const now = new Date();
+      let startDate = new Date();
+      
+      if (dateRange === 'weekly') startDate.setDate(now.getDate() - 7);
+      else if (dateRange === 'monthly') startDate.setMonth(now.getMonth() - 1);
+      else if (dateRange === 'yearly') startDate.setFullYear(now.getFullYear() - 1);
+      
+      query = query.gte('download_date', startDate.toISOString());
+    } else if (customStart && customEnd) {
+      query = query.gte('download_date', new Date(customStart).toISOString())
+                   .lte('download_date', new Date(customEnd).toISOString());
+    }
 
     if (fontFilter !== 'all') query = query.eq('font_name', fontFilter);
     if (typeFilter !== 'all') query = query.eq('download_type', typeFilter);
@@ -159,6 +176,38 @@ const Statistics: React.FC = () => {
         </div>
         
         <div className="flex flex-wrap gap-4">
+
+            {/* Date Range Selector */}
+          <div className="flex gap-2">
+            <select 
+              value={dateRange} 
+              onChange={(e) => setDateRange(e.target.value)} 
+              className="border-2 border-black p-2 text-[10px] font-black outline-none bg-white"
+            >
+              <option value="weekly">LAST_7_DAYS</option>
+              <option value="monthly">LAST_30_DAYS</option>
+              <option value="yearly">LAST_YEAR</option>
+              <option value="custom">CUSTOM_RANGE</option>
+            </select>
+
+            {dateRange === 'custom' && (
+              <div className="flex gap-2 animate-in fade-in slide-in-from-right-2">
+                <input 
+                  type="date" 
+                  value={customStart} 
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  className="border-2 border-black p-1 text-[10px] font-black outline-none"
+                />
+                <input 
+                  type="date" 
+                  value={customEnd} 
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  className="border-2 border-black p-1 text-[10px] font-black outline-none"
+                />
+              </div>
+            )}
+          </div>
+
           <select value={fontFilter} onChange={(e) => setFontFilter(e.target.value)} className="border-2 border-black p-2 text-[10px] font-black outline-none bg-white">
             <option value="all">ALL_FONTS</option>
             {Array.from(new Set(salesData.map(d => d.font_name))).map(f => <option key={f} value={f}>{f}</option>)}
