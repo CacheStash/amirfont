@@ -426,11 +426,11 @@ if (subscribe) {
                   <div className="absolute -top-3 left-4 bg-[#EDEBE6] px-2 text-[10px] font-black tracking-widest border border-black">
                     PAYMENT GATEWAY (USD)
                   </div>
-                  <span className="text-[10px] font-black tracking-widest text-black/40">PAYPAL / CREDIT CARD / APPLE PAY</span>
+                  <span className="text-[10px] font-black tracking-widest text-black/40">PAYPAL / CREDIT CARD</span>
                   
-                  <div className={`relative z-0 transition-all ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
+                  <div className={`relative z-0 transition-all w-full ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
                     <PayPalButtons 
-                      style={{ layout: "vertical", shape: "rect", label: "pay", height: 50 }}
+                      style={{ layout: "vertical", shape: "rect", label: "pay", height: 55 }}
                       // FIXED: Validasi email sebelum popup PayPal muncul
                     onClick={(data, actions) => {
                       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
