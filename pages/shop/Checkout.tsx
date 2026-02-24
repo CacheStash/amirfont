@@ -428,7 +428,8 @@ if (subscribe) {
                   </div>
                   <span className="text-[10px] font-black tracking-widest text-black/40 px-2">PAYPAL / CREDIT CARD</span>
                   
-                  <div className={`relative z-0 transition-all w-full grid place-items-stretch [&_div]:!max-w-full ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
+                  <div className={`relative z-0 transition-all w-full flex justify-center ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
+                    <div className="w-full max-w-[750px]">
                     <PayPalButtons 
                       style={{ layout: "vertical", shape: "rect", label: "pay", height: 55 }}
                       // FIXED: Validasi email sebelum popup PayPal muncul
@@ -487,6 +488,7 @@ if (subscribe) {
         </div>
         
         <div className="mt-12 text-[10px] opacity-20 print:hidden font-bold">** END OF RECEIPT **</div>
+      </div>
       </div>
     </PayPalScriptProvider>
   );
