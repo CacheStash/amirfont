@@ -476,17 +476,7 @@ if (subscribe) {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center gap-4 border-t border-black border-dotted pt-8">
-                <div className="flex gap-4 opacity-50 grayscale scale-75 md:scale-100">
-                  <span className="text-[10px] border border-black px-2 py-0.5 font-bold">VISA</span>
-                  <span className="text-[10px] border border-black px-2 py-0.5 font-bold">MASTERCARD</span>
-                  <span className="text-[10px] border border-black px-2 py-0.5 font-bold">QRIS</span>
-                  <span className="text-[10px] border border-black px-2 py-0.5 font-bold">PAYPAL</span>
-                </div>
-                <p className="text-[9px] text-center max-w-sm leading-relaxed opacity-60 italic">
-                  * SELECT YOUR PREFERRED GATEWAY. ALL TRANSACTIONS ARE ENCRYPTED AND SECURE.
-                </p>
-              </div>
+              
             </div>
           </div>
 
