@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Send, Mail, User, Megaphone, Trash2, ArrowLeft, Calendar, AtSign } from 'lucide-react';
+import { Send, Mail, User, Megaphone, Trash2, ArrowLeft, Calendar, AtSign, History } from 'lucide-react';
 
 const AdminMessages = () => {
   const [messages, setMessages] = useState<any[]>([]);
@@ -18,11 +18,9 @@ const AdminMessages = () => {
   }, []);
 
   const fetchMessages = async () => {
-    // Join dengan fontbuyer untuk dapatkan full_name
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data } = await supabase
+    setLoading(true);
+    // Admin menarik SEMUA pesan support dan broadcast secara global
+    const { data, error } = await supabase
       .from('font_messages')
       .select(`
         *,
@@ -31,23 +29,26 @@ const AdminMessages = () => {
           email
         )
       `)
-      // Admin menarik semua pesan support (tiket masuk) 
-      // atau pesan yang ditujukan langsung ke ID mereka (balasan/private)
-      .or(`message_type.eq.support,recipient_id.eq.${user.id}`)
       .order('created_at', { ascending: false });
     
-    if (data) setMessages(data);
+    if (error) {
+      console.error("FETCH_ERROR:", error.message);
+    } else if (data) {
+      setMessages(data);
+    }
     setLoading(false);
   };
 
   const handleDelete = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (!confirm("PERMANENTLY_DELETE_MESSAGE?")) return;
+    if (!confirm("HAPUS_PERMANEN? Tindakan ini akan menghapus pesan dari database dan semua inbox user.")) return;
     
     const { error } = await supabase.from('font_messages').delete().eq('id', id);
     if (!error) {
       setMessages(messages.filter(m => m.id !== id));
       if (selectedMessage?.id === id) setSelectedMessage(null);
+    } else {
+      alert("DELETE_FAILED: " + error.message);
     }
   };
 
@@ -65,60 +66,75 @@ const AdminMessages = () => {
     }]);
 
     if (!error) {
-      alert("BROADCAST_DISPATCHED");
-      setSubject(''); setContent(''); fetchMessages();
+      alert("BROADCAST_SUCCESSFULLY_DISPATCHED");
+      setSubject('');
+      setContent('');
+      fetchMessages(); // Refresh riwayat
+    } else {
+      alert("BROADCAST_FAILED: " + error.message);
     }
     setSending(false);
   };
 
   return (
-    <div className="space-y-8 font-mono uppercase">
+    <div className="space-y-8 font-mono uppercase text-black">
       <div className="border-b-2 border-black pb-4 flex justify-between items-end">
         <div>
           <h2 className="text-4xl font-black italic">MAIL_CENTER</h2>
-          <p className="text-[10px] opacity-40">Manage support & dispatch newsletters</p>
+          <p className="text-[10px] opacity-40">Manage support tickets & broadcast newsletters</p>
         </div>
         {!selectedMessage && (
-          <div className="flex border-2 border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <button onClick={() => setTab('inbox')} className={`px-4 py-2 text-[10px] font-black ${tab === 'inbox' ? 'bg-black text-white' : 'bg-white'}`}>INBOX</button>
-            <button onClick={() => setTab('broadcast')} className={`px-4 py-2 text-[10px] font-black ${tab === 'broadcast' ? 'bg-black text-white' : 'bg-white'}`}>BROADCAST</button>
+          <div className="flex border-2 border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white">
+            <button 
+              onClick={() => setTab('inbox')} 
+              className={`px-4 py-2 text-[10px] font-black transition-all ${tab === 'inbox' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+            >
+              INBOX_SUPPORT
+            </button>
+            <button 
+              onClick={() => setTab('broadcast')} 
+              className={`px-4 py-2 text-[10px] font-black transition-all ${tab === 'broadcast' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+            >
+              BROADCAST_HUB
+            </button>
           </div>
         )}
       </div>
 
       {selectedMessage ? (
-        /* DETAIL VIEW */
+        /* --- DETAIL VIEW --- */
         <div className="border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in fade-in zoom-in-95 duration-200">
-          <div className="p-4 border-b-2 border-black bg-gray-50 flex justify-between items-center">
-            <button onClick={() => setSelectedMessage(null)} className="flex items-center gap-2 font-black text-[10px] hover:underline">
+          <div className="p-4 border-b-2 border-black bg-gray-50 flex justify-between items-center text-[10px] font-black">
+            <button onClick={() => setSelectedMessage(null)} className="flex items-center gap-2 hover:underline cursor-pointer">
               <ArrowLeft size={14} /> BACK_TO_LIST
             </button>
-            <button onClick={() => handleDelete(selectedMessage.id)} className="text-red-600 hover:bg-red-50 p-2 transition-colors">
-              <Trash2 size={18} />
+            <button onClick={() => handleDelete(selectedMessage.id)} className="text-red-600 hover:bg-red-50 p-2 flex items-center gap-2 border border-transparent hover:border-red-600 transition-all">
+              <Trash2 size={14} /> PERMANENT_DELETE
             </button>
           </div>
           <div className="p-8 space-y-6">
             <div className="space-y-2 border-b border-black pb-6">
               <div className="flex items-center gap-2 text-[10px] font-black opacity-40">
-                <User size={12}/> FROM: {selectedMessage.sender?.full_name || 'UNKNOWN_BUYER'}
+                <User size={12}/> FROM: {selectedMessage.sender?.full_name || 'SYSTEM_ADMIN'}
               </div>
               <div className="flex items-center gap-2 text-[10px] font-black opacity-40">
-                <AtSign size={12}/> EMAIL: {selectedMessage.sender?.email || 'N/A'}
+                <AtSign size={12}/> MAIL: {selectedMessage.sender?.email || 'N/A'}
               </div>
               <div className="flex items-center gap-2 text-[10px] font-black opacity-40">
                 <Calendar size={12}/> DATE: {new Date(selectedMessage.created_at).toLocaleString()}
               </div>
-              <h3 className="text-3xl font-black italic break-words">{selectedMessage.subject}</h3>
+              <h3 className="text-3xl font-black italic break-words mt-4">{selectedMessage.subject}</h3>
             </div>
             <p className="text-sm font-bold leading-relaxed whitespace-pre-wrap py-4">{selectedMessage.content}</p>
           </div>
         </div>
       ) : tab === 'inbox' ? (
-        /* LIST VIEW */
-        <div className="space-y-2">
-          {loading ? <div className="animate-pulse font-black text-xs">SCANNING...</div> : 
-           messages.filter(m => m.message_type === 'support').length === 0 ? (
-            <div className="p-20 border-2 border-dashed border-black text-center opacity-20 font-bold">EMPTY_INBOX</div>
+        /* --- INBOX LIST --- */
+        <div className="space-y-3">
+          {loading ? (
+            <div className="animate-pulse font-black text-xs italic">SCANNING_INCOMING_TRAFFIC...</div>
+          ) : messages.filter(m => m.message_type === 'support').length === 0 ? (
+            <div className="p-20 border-2 border-dashed border-black text-center opacity-20 font-bold">NO_TICKETS_FOUND</div>
           ) : (
             messages.filter(m => m.message_type === 'support').map(m => (
               <div 
@@ -129,14 +145,14 @@ const AdminMessages = () => {
                 <div className="flex flex-col gap-1 overflow-hidden">
                   <div className="flex items-center gap-3">
                     <span className="text-[9px] font-black bg-black text-white px-2 py-0.5 group-hover:bg-white group-hover:text-black">
-                      {m.sender?.full_name || 'BUYER'}
+                      {m.sender?.full_name?.split(' ')[0] || 'BUYER'}
                     </span>
                     <span className="text-[9px] font-bold opacity-40 group-hover:text-white/40">{new Date(m.created_at).toLocaleDateString()}</span>
                   </div>
                   <h4 className="text-sm font-black truncate">{m.subject}</h4>
                   <p className="text-[10px] font-bold opacity-40 truncate group-hover:text-white/60">{m.content.substring(0, 80)}...</p>
                 </div>
-                <button onClick={(e) => handleDelete(m.id, e)} className="p-2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-200 transition-opacity">
+                <button onClick={(e) => handleDelete(m.id, e)} className="p-2 opacity-0 group-hover:opacity-100 text-red-500 hover:scale-110 transition-all">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -144,18 +160,48 @@ const AdminMessages = () => {
           )}
         </div>
       ) : (
-        /* BROADCAST FORM */
-        <div className="max-w-2xl border-2 border-black p-8 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <form onSubmit={handleBroadcast} className="space-y-6">
-            <h3 className="text-2xl font-black italic flex items-center gap-3 border-b-2 border-black pb-4">
-              <Megaphone /> DISPATCH_NEWSLETTER
+        /* --- BROADCAST HUB --- */
+        <div className="grid md:grid-cols-5 gap-8 items-start">
+          {/* Form Kirim */}
+          <div className="md:col-span-2 border-2 border-black p-6 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-6">
+            <h3 className="text-xl font-black italic flex items-center gap-3 border-b-2 border-black pb-3 text-red-600">
+              <Megaphone size={20} /> DISPATCH_NEWS
             </h3>
-            <input type="text" value={subject} onChange={e => setSubject(e.target.value)} className="w-full border-2 border-black p-3 outline-none focus:bg-yellow-50 font-bold" placeholder="SUBJECT" required />
-            <textarea rows={6} value={content} onChange={e => setContent(e.target.value)} className="w-full border-2 border-black p-3 outline-none focus:bg-yellow-50 font-bold resize-none" placeholder="CONTENT..." required />
-            <button disabled={sending} className="w-full bg-black text-white p-4 font-black flex justify-center items-center gap-2 uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]">
-              {sending ? 'SENDING...' : <><Send size={18} /> BROADCAST_NOW</>}
-            </button>
-          </form>
+            <form onSubmit={handleBroadcast} className="space-y-4">
+              <div>
+                <label className="text-[9px] font-black block mb-1">SUBJECT</label>
+                <input type="text" value={subject} onChange={e => setSubject(e.target.value)} className="w-full border-2 border-black p-3 outline-none focus:bg-yellow-50 font-bold text-xs" required />
+              </div>
+              <div>
+                <label className="text-[9px] font-black block mb-1">CONTENT</label>
+                <textarea rows={5} value={content} onChange={e => setContent(e.target.value)} className="w-full border-2 border-black p-3 outline-none focus:bg-yellow-50 font-bold text-xs resize-none" required />
+              </div>
+              <button disabled={sending} className="w-full bg-black text-white p-4 font-black flex justify-center items-center gap-2 text-xs hover:bg-green-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] active:shadow-none">
+                {sending ? 'DISPATCHING...' : <><Send size={16} /> BROADCAST_NOW</>}
+              </button>
+            </form>
+          </div>
+
+          {/* Riwayat Broadcast */}
+          <div className="md:col-span-3 space-y-4">
+            <h3 className="text-xl font-black italic flex items-center gap-3 opacity-40">
+              <History size={20} /> BROADCAST_HISTORY
+            </h3>
+            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+              {messages.filter(m => m.message_type === 'broadcast').map(m => (
+                <div key={m.id} className="border-2 border-black p-4 bg-gray-100 flex justify-between items-center group shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="overflow-hidden">
+                    <p className="text-[9px] font-black opacity-40">{new Date(m.created_at).toLocaleString()}</p>
+                    <h4 className="text-xs font-black truncate">{m.subject}</h4>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setSelectedMessage(m)} className="text-[9px] font-black bg-white border border-black px-2 py-1 hover:bg-black hover:text-white transition-all">VIEW</button>
+                    <button onClick={(e) => handleDelete(m.id, e)} className="text-red-600 hover:scale-110 transition-all"><Trash2 size={14}/></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
