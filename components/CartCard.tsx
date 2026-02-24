@@ -35,11 +35,12 @@ interface CartCardProps {
   trialFileUrl?: string;
   discount?: number;
 directCheckout?: boolean; // FIXED: Properti baru untuk menyembunyikan 'Add to Cart'
+initialOption?: 'trial' | 'corporate';
 }
 
 import { useNavigate } from 'react-router-dom'; // FIXED: Wajib tambah ini
 
-const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices,font_files, trialFileUrl, discount = 0, directCheckout = false }) => {
+const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, font_files, trialFileUrl, discount = 0, directCheckout = false, initialOption }) => {
   const { addToCart, closeConfigurator } = useCart();
   const navigate = useNavigate(); // FIXED: Inisialisasi navigasi
   const [selectedTier, setSelectedTier] = useState<'solo' | 'team' | 'studio' | 'enterprise'>('solo');
@@ -51,8 +52,8 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices,font_files
     desktop: 'solo', social_web: 'small_50k', logo_branding: 'personal', app: 'solo', server: 'solo', broadcast: 'solo'
   });
 
-  const [isCorporate, setIsCorporate] = useState(false);
-  const [isTrial, setIsTrial] = useState(false);
+  const [isCorporate, setIsCorporate] = useState(initialOption === 'corporate');
+  const [isTrial, setIsTrial] = useState(initialOption === 'trial');
   const [isAdded, setIsAdded] = useState(false);
 
   useEffect(() => {
