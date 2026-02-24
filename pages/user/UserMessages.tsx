@@ -21,7 +21,7 @@ const UserMessages = () => {
     const { data } = await supabase
       .from('font_messages')
       .select('*')
-      .or(`recipient_id.eq.${user.id},recipient_id.is.null,sender_id.eq.${user.id}`)
+      .or(`recipient_id.eq.${user.id},recipient_id.is.null`)
       .order('created_at', { ascending: false });
 
     if (data) setMessages(data);
@@ -62,7 +62,7 @@ const UserMessages = () => {
       setSending(false);
     }
   };
-  
+
   const handleDelete = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (!confirm("DELETE_MESSAGE?")) return;
