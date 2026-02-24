@@ -39,8 +39,8 @@ const AdminDashboard = () => {
       </div>
 
       <aside className={`
-        fixed md:relative w-full md:w-64 border-r-0 md:border-r border-black bg-white flex flex-col transition-all duration-300 z-40
-        ${isMenuOpen ? 'top-[61px] h-[calc(100vh-61px)] border-b border-black' : 'top-[-100%] md:top-0 h-0 md:min-h-screen overflow-hidden md:overflow-visible'}
+        fixed md:sticky md:top-0 w-full md:w-64 border-r-0 md:border-r border-black bg-white flex flex-col transition-all duration-300 z-40
+        ${isMenuOpen ? 'top-[61px] h-[calc(100vh-61px)] border-b border-black' : 'top-[-100%] md:top-0 h-0 md:h-screen overflow-hidden md:overflow-visible'}
       `}>
         <div className="p-8 border-b border-black hidden md:block">
          <h1 className="font-normal uppercase tracking-tighter text-xl italic">Studio Admin</h1>
