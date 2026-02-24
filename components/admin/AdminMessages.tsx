@@ -12,6 +12,8 @@ const AdminMessages = () => {
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [sending, setSending] = useState(false);
+const [replyContent, setReplyContent] = useState('');
+  const [replying, setReplying] = useState(false);
 
   useEffect(() => {
     fetchMessages();
@@ -78,6 +80,35 @@ const AdminMessages = () => {
     }
   };
 
+  const handleReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMessage?.sender_id) return;
+    setReplying(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase.from('font_messages').insert([{
+        sender_id: user?.id,
+        recipient_id: selectedMessage.sender_id, // Kirim balik ke pengirim asli
+        subject: `RE: ${selectedMessage.subject}`,
+        content: replyContent,
+        message_type: 'reply'
+      }]);
+
+      if (error) throw error;
+      
+      alert("REPLY_SENT_SUCCESSFULLY");
+      setReplyContent('');
+      setSelectedMessage(null); // Kembali ke list
+      fetchMessages();
+    } catch (err: any) {
+      alert("REPLY_ERROR: " + err.message);
+    } finally {
+      setReplying(false);
+    }
+  };
+
   return (
     <div className="space-y-8 font-mono uppercase text-black">
       <div className="border-b-2 border-black pb-4 flex justify-between items-end">
@@ -128,6 +159,28 @@ const AdminMessages = () => {
               <h3 className="text-3xl font-black italic break-words mt-4">{selectedMessage.subject}</h3>
             </div>
             <p className="text-sm font-bold leading-relaxed whitespace-pre-wrap py-4">{selectedMessage.content}</p>
+            {/* REPLY FORM */}
+            {selectedMessage.message_type === 'support' && (
+              <form onSubmit={handleReply} className="mt-8 pt-8 border-t-2 border-black space-y-4">
+                <div className="flex items-center gap-2 text-[10px] font-black italic text-blue-600">
+                  <Send size={12} /> QUICK_REPLY_TO_{selectedMessage.sender_name || 'BUYER'}
+                </div>
+                <textarea 
+                  rows={4} 
+                  placeholder="TYPE YOUR RESPONSE HERE..." 
+                  value={replyContent}
+                  onChange={e => setReplyContent(e.target.value)}
+                  className="w-full border-2 border-black p-4 outline-none focus:bg-blue-50 font-bold text-xs resize-none" 
+                  required 
+                />
+                <button 
+                  disabled={replying}
+                  className="bg-black text-white px-8 py-3 font-black text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-y-0 active:translate-y-[2px] transition-all flex items-center gap-2"
+                >
+                  {replying ? 'SENDING_REPLY...' : 'DISPATCH_REPLY'}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       ) : tab === 'inbox' ? (
