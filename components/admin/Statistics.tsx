@@ -182,7 +182,14 @@ const Statistics: React.FC = () => {
                 <XAxis dataKey="date" hide />
                 <YAxis fontSize={10} fontStyle="bold" />
                 <Tooltip contentStyle={{ borderRadius: '0', border: '2px solid black' }} />
-                <Line type="stepAfter" dataKey="amount" stroke="#000" strokeWidth={3} dot={false} />
+                <Line 
+                  type="monotone" 
+                  dataKey="amount" 
+                  stroke="#000" 
+                  strokeWidth={3} 
+                  dot={{ r: 4, fill: '#fff', stroke: '#000', strokeWidth: 2 }} 
+                  activeDot={{ r: 6, fill: '#FF5C00', stroke: '#000', strokeWidth: 2 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
