@@ -19,6 +19,9 @@ const AdminMessages = () => {
 
   const fetchMessages = async () => {
     // Join dengan fontbuyer untuk dapatkan full_name
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     const { data } = await supabase
       .from('font_messages')
       .select(`
@@ -28,6 +31,7 @@ const AdminMessages = () => {
           email
         )
       `)
+      .or(`recipient_id.eq.${user.id},message_type.eq.support`) // Admin melihat pesan untuknya ATAU semua tipe support
       .order('created_at', { ascending: false });
     
     if (data) setMessages(data);

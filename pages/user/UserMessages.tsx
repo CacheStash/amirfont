@@ -43,11 +43,11 @@ const UserMessages = () => {
         .limit(1)
         .single();
 
-      if (adminErr || !admin) throw new Error("ADMIN_NOT_FOUND_IN_SYSTEM");
+      if (adminErr || !admin) throw new Error("ADMIN_NOT_FOUND_IN_fontadmin_TABLE");
 
       const { error } = await supabase.from('font_messages').insert([{
         sender_id: user.id,
-        recipient_id: admin.id,
+        recipient_id: admin.id, // ID Admin dari fontadmin
         subject,
         content,
         message_type: 'support'
