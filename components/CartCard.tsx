@@ -57,6 +57,18 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, font_file
   const [isAdded, setIsAdded] = useState(false);
 
   useEffect(() => {
+    if (initialOption === 'trial') {
+      setIsTrial(true);
+      setIsCorporate(false);
+      setSelectedUsages([]);
+    } else if (initialOption === 'corporate') {
+      setIsCorporate(true);
+      setIsTrial(false);
+      setSelectedUsages([]);
+    }
+  }, [initialOption, fontId]);
+
+  useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = 'unset'; };
   }, []);
