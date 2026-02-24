@@ -7,6 +7,8 @@ import { supabase } from '../../lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 const Checkout: React.FC = () => {
+
+  
   const { cart, clearCart } = useCart();
   const [user, setUser] = React.useState<User | null>(null);
   const orderId = React.useMemo(() => `SQ-${Math.floor(100000 + Math.random() * 900000)}`, []);
