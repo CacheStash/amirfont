@@ -68,7 +68,13 @@ const UserMessages = () => {
   const handleDelete = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (!confirm("DELETE_MESSAGE?")) return;
-    await supabase.from('font_messages').delete().eq('id', id);
+    const { error } = await supabase.from('font_messages').delete().eq('id', id);
+    
+    if (error) {
+      alert("DATABASE_ERROR: " + error.message);
+      return;
+    }
+
     setMessages(messages.filter(m => m.id !== id));
     if (selectedMessage?.id === id) setSelectedMessage(null);
   };
