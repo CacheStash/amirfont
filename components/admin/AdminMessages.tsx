@@ -31,7 +31,9 @@ const AdminMessages = () => {
           email
         )
       `)
-      .or(`recipient_id.eq.${user.id},message_type.eq.support`) // Admin melihat pesan untuknya ATAU semua tipe support
+      // Admin menarik semua pesan support (tiket masuk) 
+      // atau pesan yang ditujukan langsung ke ID mereka (balasan/private)
+      .or(`message_type.eq.support,recipient_id.eq.${user.id}`)
       .order('created_at', { ascending: false });
     
     if (data) setMessages(data);

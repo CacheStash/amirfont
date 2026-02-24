@@ -21,6 +21,8 @@ const UserMessages = () => {
     const { data } = await supabase
       .from('font_messages')
       .select('*')
+      // User hanya melihat pesan yang ditujukan KE mereka (recipient_id)
+      // atau pesan BROADCAST (recipient_id is null)
       .or(`recipient_id.eq.${user.id},recipient_id.is.null`)
       .order('created_at', { ascending: false });
 
