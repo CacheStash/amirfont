@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Library, Settings, LifeBuoy, LogOut, ArrowLeft } from 'lucide-react';
+import { Library, Settings, LogOut, ArrowLeft, Menu, X, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import MyFontsHistory from './MyFontsHistory';
 import AccountSettings from './AccountSettings'; 
+import UserMessages from './UserMessages'; // Komponen pesan baru
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('library');
@@ -12,13 +12,13 @@ const UserDashboard = () => {
   const [userEmail, setUserEmail] = useState('');
   const [fullName, setFullName] = useState('');
 
-  // Tutup menu otomatis saat tab berpindah (Mobile)
+  // Sinkronisasi Sidebar & Content
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     setIsMenuOpen(false);
   };
 
-  // Ambil data user saat dashboard dibuka
+  // Fetch data profil user
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -34,24 +34,23 @@ const UserDashboard = () => {
     };
     fetchProfile();
   }, []);
-// --- END FIX ---
-
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       alert("Failed to logout: " + error.message);
     } else {
-      window.location.href = '/'; // Kembali ke Storefront
+      window.location.href = '/'; 
     }
   };
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-50 text-black font-sans uppercase">
-      {/* MOBILE DASHBOARD NAV - Muncul tepat di bawah Navbar Global */}
+      
+      {/* MOBILE HEADER - STICKY */}
       <div className="md:hidden flex items-center justify-between px-6 py-4 border-b border-black bg-white sticky top-0 z-50">
         <div className="flex flex-col">
-          <span className="text-[8px] font-black opacity-40 leading-none tracking-widest">DASHBOARD_PANEL</span>
+          <span className="text-[8px] font-black opacity-40 leading-none tracking-widest">USER_PANEL</span>
           <span className="text-xs font-black italic">{activeTab.replace('_', ' ')}</span>
         </div>
         <button 
@@ -62,9 +61,10 @@ const UserDashboard = () => {
         </button>
       </div>
 
+      {/* SIDEBAR NAVIGATION */}
       <aside className={`
-        fixed md:relative w-full md:w-64 border-r-0 md:border-r border-black bg-white flex flex-col transition-all duration-300 z-40
-        ${isMenuOpen ? 'top-[61px] h-[calc(100vh-61px)] border-b border-black shadow-[0px_10px_30px_rgba(0,0,0,0.1)]' : 'top-[-100%] md:top-0 h-0 md:h-auto overflow-hidden md:overflow-visible'}
+        fixed md:sticky md:top-0 w-full md:w-64 border-r-0 md:border-r border-black bg-white flex flex-col transition-all duration-300 z-40
+        ${isMenuOpen ? 'top-[61px] h-[calc(100vh-61px)] border-b border-black shadow-[0px_10px_30px_rgba(0,0,0,0.1)]' : 'top-[-100%] md:top-0 h-0 md:h-screen overflow-hidden md:overflow-visible'}
       `}>
         <div className="p-8 border-b border-black flex flex-col gap-2">
           <Link to="/" className="flex items-center gap-1 text-[10px] font-black opacity-30 hover:opacity-100 transition-opacity">
@@ -83,17 +83,19 @@ const UserDashboard = () => {
           >
             <Library size={18} /> My Library
           </button>
+          
+          <button 
+            onClick={() => handleTabChange('inbox')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 font-bold text-xs transition-all ${activeTab === 'inbox' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+          >
+            <Mail size={18} /> Inbox & Support
+          </button>
+
           <button 
             onClick={() => handleTabChange('settings')} 
             className={`w-full flex items-center gap-3 px-4 py-3 font-bold text-xs transition-all ${activeTab === 'settings' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
           >
-            <Settings size={18} /> Change Password
-          </button>
-          <button 
-            onClick={() => handleTabChange('support')} 
-            className={`w-full flex items-center gap-3 px-4 py-3 font-bold text-xs transition-all ${activeTab === 'support' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
-          >
-            <LifeBuoy size={18} /> Support / Help
+            <Settings size={18} /> Settings
           </button>
         </nav>
 
@@ -104,8 +106,7 @@ const UserDashboard = () => {
         </div>
       </aside>
 
-      {/* Overlay Mobile */}
-      {/* Overlay Mobile (Muncul saat menu terbuka untuk fokus) */}
+      {/* OVERLAY MOBILE */}
       {isMenuOpen && (
         <div 
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 md:hidden" 
@@ -113,11 +114,11 @@ const UserDashboard = () => {
         />
       )}
 
-      {/* MAIN CONTENT */}
+      {/* MAIN CONTENT AREA */}
       <main className="flex-grow p-6 md:p-10 overflow-y-auto w-full">
         {activeTab === 'library' && <MyFontsHistory />}
+        {activeTab === 'inbox' && <UserMessages />}
         {activeTab === 'settings' && <AccountSettings />}
-        {activeTab === 'support' && <div className="p-20 text-center font-bold opacity-20 text-xs tracking-[0.2em]">Need help? Email support@subqi.studio</div>}
       </main>
     </div>
   );
