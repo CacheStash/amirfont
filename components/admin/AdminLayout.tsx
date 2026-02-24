@@ -4,6 +4,7 @@ import { Menu, X } from 'lucide-react';
 import ProductManager from './ProductManager';
 import PromotionsManager from './PromotionsManager'; 
 import Orders from './Orders';
+import Statistics from './Statistics';
 import { supabase } from '../../lib/supabase';
 
 const AdminDashboard = () => {
@@ -71,7 +72,7 @@ const AdminDashboard = () => {
       <main className="flex-grow p-6 md:p-10 overflow-x-hidden overflow-y-auto w-full">
         {activeTab === 'products' && <ProductManager />}
         {activeTab === 'promotions' && <PromotionsManager />}
-        {activeTab === 'stats' && <div className="p-20 text-center font-bold opacity-20 uppercase text-xs tracking-[0.2em]">Stats Dashboard (Coming Soon)</div>}
+        {activeTab === 'stats' && <Statistics />}
         {activeTab === 'orders' && <Orders />}
       </main>
     </div>
