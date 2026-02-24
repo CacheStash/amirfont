@@ -39,11 +39,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFont, setSelectedFont] = useState<any>(null);
 
-  const openConfigurator = (font: any) => {
-    setSelectedFont(font);
+ const openConfigurator = (font: any) => {
+    // Gunakan spread operator untuk memastikan state mendapat objek baru 
+    // termasuk membawa properti initialOption jika ada.
+    setSelectedFont({ ...font });
     setIsModalOpen(true);
   };
-
   const closeConfigurator = () => {
     setIsModalOpen(false);
     setSelectedFont(null);
