@@ -47,6 +47,7 @@ const CartConfiguratorModal = () => {
             fontId={selectedFont.id} // FIXED: Mengirimkan UUID asli dari database
             fontName={selectedFont.name} 
             prices={selectedFont.license_prices} 
+            initialOption={selectedFont.initialOption}
             
             font_files={selectedFont.font_files}
             trialFileUrl={selectedFont.trial_file_url}
