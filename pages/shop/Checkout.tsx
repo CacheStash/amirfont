@@ -420,61 +420,55 @@ if (subscribe) {
 
             {/* Dual Payment Gateway Section */}
             <div className="w-full flex flex-col gap-10 print:hidden">
-              <div className="w-full">
-                {/* GLOBAL PAYMENT (PAYPAL) - FULL WIDTH */}
-                <div className={`flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative ${total === 0 ? 'opacity-20 pointer-events-none' : ''}`}>
-                  <div className="absolute -top-3 left-4 bg-[#EDEBE6] px-2 text-[10px] font-black tracking-widest border border-black">
-                    PAYMENT GATEWAY (USD)
-                  </div>
-                  <span className="text-[10px] font-black tracking-widest text-black/40">PAYPAL / CREDIT CARD</span>
-                  
-                  <div className={`relative z-0 transition-all w-full ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
-                    <PayPalButtons 
-                      style={{ layout: "vertical", shape: "rect", label: "pay", height: 55 }}
-                      // FIXED: Validasi email sebelum popup PayPal muncul
-                    onClick={(data, actions) => {
-                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                      if (!emailRegex.test(email)) {
-                        alert("PLEASE PROVIDE A VALID RECEIVER EMAIL (BLOCK 00) BEFORE PROCEEDING TO PAYMENT.");
-                        return actions.reject();
-                      }
-                      return actions.resolve();
-                    }}
-                    createOrder={(data, actions) => {
-                      return actions.order.create({
-                        intent: "CAPTURE",
-                        purchase_units: [{
-                          amount: { 
-                            currency_code: "USD",
-                            // FIXED: PayPal API mewajibkan string dengan 2 digit desimal (misal: "25.00")
-                            value: total.toFixed(2) 
-                          },
-                          description: `Subqi Studio Font Purchase - Order ${orderId}`
-                        }]
-                      });
-                    }}
-                    onApprove={async (data, actions) => {
-                      try {
-                        const details = await actions.order?.capture();
-                        if (details && details.status === "COMPLETED") {
-                          // PANGGIL LOGIKA AUTO-REGISTER SETELAH DANA TERKUNCI
-                          await handlePurchaseSuccess(orderId);
-                          alert(`TRANSACTION SUCCESSFUL! WELCOME, ${details?.payer?.name?.given_name || 'BUYER'}.`);
-                        }
-                      } catch (captureError) {
-                        console.error("Capture Error:", captureError);
-                        alert("PAYMENT_CAPTURE_FAILED. YOUR FUNDS WERE NOT DEDUCTED. PLEASE TRY AGAIN.");
-                      }
-                    }}
-                    // FIXED: Menangkap error teknis (Client ID salah, koneksi, atau kartu ditolak)
-                    onError={(err) => {
-                      console.error("PayPal Gateway Error:", err);
-                      alert("PAYPAL_GATEWAY_ERROR: COULD NOT INITIALIZE TRANSACTION. CHECK YOUR EMAIL FORMAT OR PAYMENT METHOD.");
-                    }}
-                    />
-                  </div>
-                </div>
-              </div>
+              {/* GLOBAL PAYMENT (PAYPAL) - FULL WIDTH BLOCK */}
+              <div className={`flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative ${total === 0 ? 'opacity-20 pointer-events-none' : ''}`}>
+                <div className="absolute -top-3 left-4 bg-[#EDEBE6] px-2 text-[10px] font-black tracking-widest border border-black">
+                  PAYMENT GATEWAY (USD)
+                </div>
+                <span className="text-[10px] font-black tracking-widest text-black/40">PAYPAL / CREDIT CARD</span>
+                
+                <div className={`relative z-0 transition-all w-full block ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
+                  <PayPalButtons 
+                    style={{ layout: "vertical", shape: "rect", label: "pay", height: 55 }}
+                    onClick={(data, actions) => {
+                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                      if (!emailRegex.test(email)) {
+                        alert("PLEASE PROVIDE A VALID RECEIVER EMAIL (BLOCK 00) BEFORE PROCEEDING TO PAYMENT.");
+                        return actions.reject();
+                      }
+                      return actions.resolve();
+                    }}
+                    createOrder={(data, actions) => {
+                      return actions.order.create({
+                        intent: "CAPTURE",
+                        purchase_units: [{
+                          amount: { 
+                            currency_code: "USD",
+                            value: total.toFixed(2) 
+                          },
+                          description: `Subqi Studio Font Purchase - Order ${orderId}`
+                        }]
+                      });
+                    }}
+                    onApprove={async (data, actions) => {
+                      try {
+                        const details = await actions.order?.capture();
+                        if (details && details.status === "COMPLETED") {
+                          await handlePurchaseSuccess(orderId);
+                          alert(`TRANSACTION SUCCESSFUL! WELCOME, ${details?.payer?.name?.given_name || 'BUYER'}.`);
+                        }
+                      } catch (captureError) {
+                        console.error("Capture Error:", captureError);
+                        alert("PAYMENT_CAPTURE_FAILED. YOUR FUNDS WERE NOT DEDUCTED. PLEASE TRY AGAIN.");
+                      }
+                    }}
+                    onError={(err) => {
+                      console.error("PayPal Gateway Error:", err);
+                      alert("PAYPAL_GATEWAY_ERROR: COULD NOT INITIALIZE TRANSACTION. CHECK YOUR EMAIL FORMAT OR PAYMENT METHOD.");
+                    }}
+                    />
+                </div>
+              </div>
 
               <div className="flex flex-col items-center gap-4 border-t border-black border-dotted pt-8">
                 <div className="flex gap-4 opacity-50 grayscale scale-75 md:scale-100">
