@@ -420,37 +420,15 @@ if (subscribe) {
 
             {/* Dual Payment Gateway Section */}
             <div className="w-full flex flex-col gap-10 print:hidden">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                
-                {/* BLOCK 01: DYNAMICAL BLOCK (TRIAL OR MIDTRANS) */}
-                <div className="flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative group">
-                  <div className="absolute -top-3 left-4 bg-[#EDEBE6] px-2 text-[10px] font-black tracking-widest border border-black">
-                    {total === 0 ? "01. TRIAL ACCESS" : "01. LOCAL (IDN)"}
-                  </div>
-                  <span className="text-[10px] font-black tracking-widest text-black/40">
-                    {total === 0 ? "NO PAYMENT REQUIRED" : "QRIS / VIRTUAL ACCOUNT / GOPAY"}
-                  </span>
-                  
-                  {/* FIXED: Hilangkan tombol Library dari sini agar tidak double */}
-                  {!isPaid && (
-                    <button 
-                     onClick={total === 0 ? handleFreeTrial : () => alert("Midtrans Coming Soon...")}
-                      disabled={loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
-                      className="w-full bg-black text-white py-5 text-sm font-black tracking-[0.2em] hover:invert transition-all disabled:opacity-20 disabled:grayscale"
-                    >
-                      {total === 0 ? (loading ? "PROCESSING..." : "CLAIM FREE DEMO") : "PAY WITH MIDTRANS"}
-                    </button>
-                  )}
-                </div>
-
-                {/* BLOCK 02: GLOBAL PAYMENT (PAYPAL) */}
-                <div className={`flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative ${total === 0 ? 'opacity-20 pointer-events-none' : ''}`}>
-                  <div className="absolute -top-3 left-4 bg-[#EDEBE6] px-2 text-[10px] font-black tracking-widest border border-black">
-                    02. GLOBAL (USD)
-                  </div>
-                  <span className="text-[10px] font-black tracking-widest text-black/40">PAYPAL / CREDIT CARD / APPLE PAY</span>
-                  
-                  <div className={`relative z-0 transition-all ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
+              <div className="w-full">
+                {/* GLOBAL PAYMENT (PAYPAL) - FULL WIDTH */}
+                <div className={`flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative ${total === 0 ? 'opacity-20 pointer-events-none' : ''}`}>
+                  <div className="absolute -top-3 left-4 bg-[#EDEBE6] px-2 text-[10px] font-black tracking-widest border border-black">
+                    PAYMENT GATEWAY (USD)
+                  </div>
+                  <span className="text-[10px] font-black tracking-widest text-black/40">PAYPAL / CREDIT CARD / APPLE PAY</span>
+                  
+                  <div className={`relative z-0 transition-all ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
                     <PayPalButtons 
                       style={{ layout: "vertical", shape: "rect", label: "pay", height: 50 }}
                       // FIXED: Validasi email sebelum popup PayPal muncul
