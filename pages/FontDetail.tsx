@@ -105,6 +105,20 @@ const FontDetail: React.FC = () => {
             >
               BUY LICENSE
             </button>
+            <button 
+          onClick={() => {
+            const discountPercent = activePromo ? activePromo.discount_percent : 0;
+            openConfigurator({ 
+              ...font, 
+              trialFileUrl: font.trial_file_url,
+              activeDiscount: discountPercent,
+              initialOption: 'trial' // Mengaktifkan opsi trial/demo secara otomatis
+            });
+          }}
+          className="w-full md:w-64 border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center justify-center"
+        >
+          Free Trial
+        </button>
 
             <button 
               onClick={() => navigate(-1)} 
