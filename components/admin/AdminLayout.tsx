@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Type, ShoppingCart, LogOut, Tag } from 'lucide-react';
-import { Menu, X } from 'lucide-react';
+import { LayoutDashboard, Type, ShoppingCart, LogOut, Tag, Menu, X, Mail } from 'lucide-react';
 import ProductManager from './ProductManager';
 import PromotionsManager from './PromotionsManager'; 
 import Orders from './Orders';
 import Statistics from './Statistics';
+import AdminMessages from './AdminMessages';
 import { supabase } from '../../lib/supabase';
 
 const AdminDashboard = () => {
@@ -38,6 +38,7 @@ const AdminDashboard = () => {
         </button>
       </div>
 
+      {/* SIDEBAR */}
       <aside className={`
         fixed md:sticky md:top-0 w-full md:w-64 border-r-0 md:border-r border-black bg-white flex flex-col transition-all duration-300 z-40
         ${isMenuOpen ? 'top-[61px] h-[calc(100vh-61px)] border-b border-black' : 'top-[-100%] md:top-0 h-0 md:h-screen overflow-hidden md:overflow-visible'}
@@ -49,6 +50,9 @@ const AdminDashboard = () => {
         <nav className="flex-grow p-4 space-y-2">
           <button onClick={() => handleTabChange('stats')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'stats' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <LayoutDashboard size={18} /> Statistics
+          </button>
+          <button onClick={() => handleTabChange('inbox')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'inbox' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+            <Mail size={18} /> Inbox & Broadcast
           </button>
           <button onClick={() => handleTabChange('products')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'products' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <Type size={18} /> Products
@@ -73,6 +77,7 @@ const AdminDashboard = () => {
         {activeTab === 'products' && <ProductManager />}
         {activeTab === 'promotions' && <PromotionsManager />}
         {activeTab === 'stats' && <Statistics />}
+        {activeTab === 'inbox' && <AdminMessages />}
         {activeTab === 'orders' && <Orders />}
       </main>
     </div>
