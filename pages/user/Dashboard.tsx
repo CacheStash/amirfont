@@ -47,20 +47,24 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 text-black font-sans uppercase">
-      {/* SIDEBAR */}
-      {/* Mobile Toggle Button */}
-      <button 
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="md:hidden fixed top-4 right-4 z-50 bg-black text-white p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-      >
-        {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
+    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50 text-black font-sans uppercase">
+      {/* MOBILE DASHBOARD NAV - Muncul tepat di bawah Navbar Global */}
+      <div className="md:hidden flex items-center justify-between px-6 py-4 border-b border-black bg-white sticky top-0 z-50">
+        <div className="flex flex-col">
+          <span className="text-[8px] font-black opacity-40 leading-none tracking-widest">DASHBOARD_PANEL</span>
+          <span className="text-xs font-black italic">{activeTab.replace('_', ' ')}</span>
+        </div>
+        <button 
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="bg-black text-white p-2 border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all"
+        >
+          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </div>
 
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 border-r border-black bg-white flex flex-col transition-transform duration-300
-        md:relative md:translate-x-0
-        ${isMenuOpen ? 'translate-x-0 shadow-[10px_0px_50px_rgba(0,0,0,0.1)]' : '-translate-x-full'}
+        fixed md:relative w-full md:w-64 border-r-0 md:border-r border-black bg-white flex flex-col transition-all duration-300 z-40
+        ${isMenuOpen ? 'top-[61px] h-[calc(100vh-61px)] border-b border-black shadow-[0px_10px_30px_rgba(0,0,0,0.1)]' : 'top-[-100%] md:top-0 h-0 md:h-auto overflow-hidden md:overflow-visible'}
       `}>
         <div className="p-8 border-b border-black flex flex-col gap-2">
           <Link to="/" className="flex items-center gap-1 text-[10px] font-black opacity-30 hover:opacity-100 transition-opacity">
@@ -101,6 +105,7 @@ const UserDashboard = () => {
       </aside>
 
       {/* Overlay Mobile */}
+      {/* Overlay Mobile (Muncul saat menu terbuka untuk fokus) */}
       {isMenuOpen && (
         <div 
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 md:hidden" 
