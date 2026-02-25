@@ -36,9 +36,9 @@ const License: React.FC = () => {
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-[#F5F5F0] overflow-x-hidden uppercase">
       
       {/* 1. BACKGROUND ORBS - Posisi sesuai request (Top Right, Middle Left, Bottom Right) */}
-      <div className="grain-orb-base orb-top-right opacity-30" />
-      <div className="fixed left-0 top-1/2 -translate-y-1/2 w-[60vw] h-[60vw] bg-orange-600/10 blur-[120px] rounded-full -ml-[30vw] pointer-events-none z-[-1]" />
-      <div className="fixed right-0 bottom-0 w-[60vw] h-[60vw] bg-red-600/10 blur-[120px] rounded-full -mr-[30vw] -mb-[30vw] pointer-events-none z-[-1]" />
+      <div className="grain-orb-base orb-top-right" />
+      <div className="grain-orb-base orb-bottom-left" />
+      <div className="grain-orb-base orb-top-right !top-auto !bottom-0 !-right-[10%] !bg-red-600/20" />
 
       <div className="w-full relative z-10">
         {/* HEADER SECTION */}
