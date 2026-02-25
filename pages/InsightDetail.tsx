@@ -87,10 +87,13 @@ const InsightDetail: React.FC = () => {
 
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent overflow-x-hidden uppercase">
-      <div className="grain-orb-base orb-top-right !opacity-30" />
+      {/* VIBRANT BACKGROUND ORBS - Posisi Sinkron dengan Insights.tsx */}
+      <div className="grain-orb-base orb-top-right" />
+      <div className="grain-orb-base orb-bottom-left" />
+      <div className="grain-orb-base orb-top-right !top-auto !bottom-0 !-right-[10%] !bg-red-600/20" />
       <div className="w-full relative z-10">
         <header className="px-6 py-16 md:px-8 border-b border-black mb-12 bg-transparent">
-          <Link to="/insights" className="inline-flex items-center gap-2 text-[10px] font-black hover:underline mb-12">
+          <Link to="/insights" className="inline-flex items-center gap-2 text-[10px] font-normal hover:underline mb-12">
             <ArrowLeft size={14} /> BACK_TO_LAB
           </Link>
           <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85]">{article.title}</h2>
