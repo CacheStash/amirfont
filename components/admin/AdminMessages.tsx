@@ -153,7 +153,7 @@ const AdminMessages = () => {
               <h2 className="text-4xl font-black italic">MAIL_CENTER</h2>
               <p className="text-[10px] opacity-40">Admin Message & Support Control</p>
             </div>
-            <div className="flex border-2 border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white">
+            <div className="flex border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white">
               <button onClick={() => {setTab('inbox'); setCurrentPage(0);}} className={`px-4 py-2 text-[10px] font-black flex items-center gap-2 relative ${tab === 'inbox' ? 'bg-black text-white' : ''}`}>
                 <Inbox size={14}/> INBOX
                 {unreadCount > 0 && (
