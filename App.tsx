@@ -164,7 +164,9 @@ const App: React.FC = () => {
         {/* Tombol BackToTop hanya muncul jika Navigasi (Menu/Search) sedang TIDAK aktif */}
         {!isNavActive && <BackToTop />}
         
-        <Footer />
+        <footer className="relative z-50 bg-[#EDEBE6]">
+          <Footer />
+        </footer>
       </div>
     </Router>
     </CartProvider>
