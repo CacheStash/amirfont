@@ -300,14 +300,14 @@ const Fonts: React.FC = () => {
                    <div className="mt-8">
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2 mb-4">
-                           <span className="inline-block border border-black rounded-full px-3 py-1 font-regular italic text-[11px] md:text-[14px] lowercase text-black bg-transparent leading-none">
-                             starting at
-                           </span>
-                           {promo && (
-                             <span className="inline-block border border-orange-600 rounded-full px-3 py-1 font-bold text-[11px] md:text-[14px] uppercase text-red-600 bg-transparent leading-none">
-                               {promo.discount_percent}% OFF
+                           <span className="flex items-center justify-center border border-black rounded-full px-3 h-6 md:h-7 font-regular italic text-[11px] md:text-[14px] lowercase text-black bg-transparent">
+                               starting at
                              </span>
-                           )}
+                             {promo && (
+                               <span className="flex items-center justify-center border border-orange-600 rounded-full px-3 h-6 md:h-7 font-bold text-[11px] md:text-[14px] uppercase text-red-600 bg-transparent">
+                                 {promo.discount_percent}% OFF
+                               </span>
+                             )}
                         </div>
                         <div className="flex flex-col">
                            {promo ? (
