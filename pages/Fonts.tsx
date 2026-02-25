@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { MoveRight, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight, MoveRight, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -394,29 +394,42 @@ const Fonts: React.FC = () => {
         </main>
 
         {/* PAGINATION CONTROLS */}
-        {totalPages > 1 && (
-          <footer className="p-8 flex justify-center items-center gap-8 border-t border-black bg-white/20 backdrop-blur-sm">
-            <button 
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="border border-black p-3 disabled:opacity-20 hover:bg-black hover:text-white transition-all active:scale-95"
-            >
-              <ChevronLeft size={24} />
-            </button>
-            
-            <div className="text-sm font-bold uppercase tracking-widest">
-              Page {currentPage} / {totalPages}
-            </div>
-
-            <button 
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="border border-black p-3 disabled:opacity-20 hover:bg-black hover:text-white transition-all active:scale-95"
-            >
-              <ChevronRight size={24} />
-            </button>
-          </footer>
-        )}
+        {/* PAGINATION ROW */}
+        {totalPages > 1 && (
+          <div className="grid grid-cols-[1fr_1fr_2fr_1fr_1fr] w-full border-b border-black bg-transparent relative z-50">
+            <button 
+              onClick={() => { setCurrentPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              disabled={currentPage === 1}
+              className="flex items-center justify-center py-8 border-r border-black hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+            >
+              <ChevronsLeft size={32} strokeWidth={1} className="transition-transform group-hover/page:-translate-x-1" />
+            </button>
+            <button 
+              onClick={() => { setCurrentPage(prev => Math.max(1, prev - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              disabled={currentPage === 1}
+              className="flex items-center justify-center py-8 border-r border-black hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+            >
+              <ChevronLeft size={32} strokeWidth={1} className="transition-transform group-hover/page:-translate-x-1" />
+            </button>
+            <div className="flex items-center justify-center py-8 border-r border-black text-[11px] font-normal uppercase tracking-widest text-black">
+              Page {currentPage} / {totalPages}
+            </div>
+            <button 
+              onClick={() => { setCurrentPage(prev => Math.min(totalPages, prev + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              disabled={currentPage === totalPages}
+              className="flex items-center justify-center py-8 border-r border-black hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+            >
+              <ChevronRight size={32} strokeWidth={1} className="transition-transform group-hover/page:translate-x-1" />
+            </button>
+            <button 
+              onClick={() => { setCurrentPage(totalPages); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              disabled={currentPage === totalPages}
+              className="flex items-center justify-center py-8 hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+            >
+              <ChevronsRight size={32} strokeWidth={1} className="transition-transform group-hover/page:translate-x-1" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
