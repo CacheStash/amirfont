@@ -32,8 +32,8 @@ const Policy: React.FC = () => {
       <div className="grain-orb-base orb-top-right" />
       <div className="grain-orb-base orb-bottom-left !top-[40%] !-left-[15%] !opacity-40" />
       <div className="grain-orb-base orb-top-right !top-auto !bottom-0 !-right-[10%] !bg-red-600/20" />
-      <div className="grain-orb-base orb-top-right !top-auto !bottom-[-5%] !left-[5%] !opacity-100 !scale-[2]" />
-      
+      <div className="grain-orb-base orb-bottom-left !top-auto !bottom-[-10%] !left-[-5%] !opacity-60" />
+
       <div className="max-w-full mx-auto relative z-10">
         <header className="px-6 py-16 md:px-8 border-b border-black mb-12 bg-transparent text-left">
           <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-6">
