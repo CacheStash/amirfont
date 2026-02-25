@@ -76,7 +76,7 @@ const AdminDashboard = () => {
             <div className="relative">
               <Mail size={18} />
               {unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[8px] font-black px-1 py-0.5 border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] animate-pulse">
+                <span className="absolute -top-1.5 -left-2.5 bg-red-600 text-white text-[7px] font-black px-1 py-0 border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] animate-pulse">
                   {unreadCount}
                 </span>
               )}
