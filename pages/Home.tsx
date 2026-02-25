@@ -525,39 +525,47 @@ const Home: React.FC = () => {
 
             {/* PAGINATION ROW */}
             {totalPages > 1 && (
-              <div className="grid grid-cols-5 w-full border-b border-black bg-transparent relative z-50">
-                <button 
-                  onClick={() => { setCurrentPage(1); document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' }); }}
-                  disabled={currentPage === 1}
-                  className="flex items-center justify-center py-8 border-r border-black hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
-                >
-                  <ChevronsLeft size={32} strokeWidth={1} className="transition-transform group-hover/page:-translate-x-1" />
-                </button>
-                <button 
-                  onClick={() => { setCurrentPage(prev => Math.max(1, prev - 1)); document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' }); }}
-                  disabled={currentPage === 1}
-                  className="flex items-center justify-center py-8 border-r border-black hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
-                >
-                  <ChevronLeft size={32} strokeWidth={1} className="transition-transform group-hover/page:-translate-x-1" />
-                </button>
-                <div className="flex items-center justify-center py-8 border-r border-black text-[11px] font-normal uppercase tracking-widest text-black">
-                  Page {currentPage} / {totalPages}
+              <>
+                <div className="grid grid-cols-[1fr_1fr_2fr_1fr_1fr] w-full border-b border-black bg-transparent relative z-50">
+                  <button 
+                    onClick={() => { setCurrentPage(1); document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' }); }}
+                    disabled={currentPage === 1}
+                    className="flex items-center justify-center py-8 border-r border-black hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+                  >
+                    <ChevronsLeft size={32} strokeWidth={1} className="transition-transform group-hover/page:-translate-x-1" />
+                  </button>
+                  <button 
+                    onClick={() => { setCurrentPage(prev => Math.max(1, prev - 1)); document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' }); }}
+                    disabled={currentPage === 1}
+                    className="flex items-center justify-center py-8 border-r border-black hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+                  >
+                    <ChevronLeft size={32} strokeWidth={1} className="transition-transform group-hover/page:-translate-x-1" />
+                  </button>
+                  <div className="flex items-center justify-center py-8 border-r border-black text-[11px] font-normal uppercase tracking-widest text-black">
+                    Page {currentPage} / {totalPages}
+                  </div>
+                  <button 
+                    onClick={() => { setCurrentPage(prev => Math.min(totalPages, prev + 1)); document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' }); }}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center justify-center py-8 border-r border-black hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+                  >
+                    <ChevronRight size={32} strokeWidth={1} className="transition-transform group-hover/page:translate-x-1" />
+                  </button>
+                  <button 
+                    onClick={() => { setCurrentPage(totalPages); document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' }); }}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center justify-center py-8 hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+                  >
+                  <ChevronsRight size={32} strokeWidth={1} className="transition-transform group-hover/page:translate-x-1" />
+                  </button>
                 </div>
                 <button 
-                  onClick={() => { setCurrentPage(prev => Math.min(totalPages, prev + 1)); document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' }); }}
-                  disabled={currentPage === totalPages}
-                  className="flex items-center justify-center py-8 border-r border-black hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+                  onClick={() => navigate('/fonts')}
+                  className="w-full h-12 border-b border-black flex items-center justify-center hover:bg-black hover:text-white transition-all text-[11px] font-normal uppercase tracking-widest text-black bg-transparent relative z-50"
                 >
-                  <ChevronRight size={32} strokeWidth={1} className="transition-transform group-hover/page:translate-x-1" />
+                  Browse All Fonts
                 </button>
-                <button 
-                  onClick={() => { setCurrentPage(totalPages); document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' }); }}
-                  disabled={currentPage === totalPages}
-                  className="flex items-center justify-center py-8 hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
-                >
-                  <ChevronsRight size={32} strokeWidth={1} className="transition-transform group-hover/page:translate-x-1" />
-                </button>
-              </div>
+              </>
             )}
             </>
           ) : (
