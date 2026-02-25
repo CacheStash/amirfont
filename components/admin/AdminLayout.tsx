@@ -7,9 +7,30 @@ import Statistics from './Statistics';
 import AdminMessages from './AdminMessages';
 import { supabase } from '../../lib/supabase';
 
+import { useEffect } from 'react';
+
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('products');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('products');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    fetchUnreadCount();
+    // Setup realtime listener opsional di sini jika ingin auto-update
+  }, []);
+
+  const fetchUnreadCount = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { count } = await supabase
+      .from('font_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_id', user.id)
+      .eq('is_read', false);
+
+    setUnreadCount(count || 0);
+  };
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -51,9 +72,17 @@ const AdminDashboard = () => {
           <button onClick={() => handleTabChange('stats')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'stats' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <LayoutDashboard size={18} /> Statistics
           </button>
-          <button onClick={() => handleTabChange('inbox')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'inbox' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
-            <Mail size={18} /> Inbox & Broadcast
-          </button>
+          <button onClick={() => handleTabChange('inbox')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all relative ${activeTab === 'inbox' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+            <div className="relative">
+              <Mail size={18} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[8px] font-black px-1 py-0.5 border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] animate-pulse">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+            Inbox & Broadcast
+          </button>
           <button onClick={() => handleTabChange('products')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'products' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <Type size={18} /> Products
           </button>

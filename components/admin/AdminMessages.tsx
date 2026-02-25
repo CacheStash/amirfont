@@ -157,7 +157,7 @@ const AdminMessages = () => {
               <button onClick={() => {setTab('inbox'); setCurrentPage(0);}} className={`px-4 py-2 text-[10px] font-black flex items-center gap-2 relative ${tab === 'inbox' ? 'bg-black text-white' : ''}`}>
                 <Inbox size={14}/> INBOX
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] w-4 h-4 flex items-center justify-center rounded-full animate-pulse border border-white">
+                  <span className="absolute -top-3 -right-2 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-pulse">
                     {unreadCount}
                   </span>
                 )}
