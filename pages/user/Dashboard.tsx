@@ -14,11 +14,12 @@ const UserDashboard = () => {
 
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Fetch data profil user
+  // Fetch data profil & unread messages (Filtered by Registration Date)
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchInitialData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        const userJoinedAt = user.created_at;
         setUserEmail(user.email || '');
         const { data } = await supabase
           .from('fontbuyer')
@@ -27,48 +28,33 @@ const UserDashboard = () => {
           .single();
         if (data?.full_name) setFullName(data.full_name);
 
-        // Fetch Unread Messages (Direct + Broadcast)
-        const [{ data: readData }, { data: hiddenData }, { data: messages }] = await Promise.all([
-          supabase.from('font_message_reads').select('message_id').eq('user_id', user.id),
-          supabase.from('font_message_hides').select('message_id').eq('user_id', user.id),
-          supabase.from('font_messages').select('id, recipient_id, is_read').or(`recipient_id.eq.${user.id},recipient_id.is.null`)
-        ]);
+        // Fetch Unread Messages (Direct + Broadcast Filtered)
+        const [{ data: readData }, { data: hiddenData }, { data: messages }] = await Promise.all([
+          supabase.from('font_message_reads').select('message_id').eq('user_id', user.id),
+          supabase.from('font_message_hides').select('message_id').eq('user_id', user.id),
+          supabase.from('font_messages')
+            .select('id, recipient_id, is_read, created_at')
+            .or(`recipient_id.eq.${user.id},and(recipient_id.is.null,created_at.gte.${userJoinedAt})`)
+        ]);
 
-        const rIds = readData?.map(r => r.message_id) || [];
-        const hIds = hiddenData?.map(h => h.message_id) || [];
-        const count = messages?.filter(m => 
-          !hIds.includes(m.id) && 
-          (m.recipient_id === null ? !rIds.includes(m.id) : !m.is_read)
-        ).length || 0;
+        const rIds = readData?.map(r => r.message_id) || [];
+        const hIds = hiddenData?.map(h => h.message_id) || [];
+        const count = messages?.filter(m => 
+          !hIds.includes(m.id) && 
+          (m.recipient_id === null ? !rIds.includes(m.id) : !m.is_read)
+        ).length || 0;
 
-        setUnreadCount(count);
+        setUnreadCount(count);
       }
     };
-    fetchProfile();
+    fetchInitialData();
   }, []);
 
-  // Sinkronisasi Sidebar & Content
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    setIsMenuOpen(false);
-  };
-
-  // Fetch data profil user
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserEmail(user.email || '');
-        const { data } = await supabase
-          .from('fontbuyer')
-          .select('full_name')
-          .eq('id', user.id)
-          .single();
-        if (data?.full_name) setFullName(data.full_name);
-      }
-    };
-    fetchProfile();
-  }, []);
+  // Sinkronisasi Sidebar & Content
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setIsMenuOpen(false);
+  };
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
