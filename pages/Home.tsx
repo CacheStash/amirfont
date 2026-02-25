@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { FontConfig } from '../types';
 import { MousePointer2, MoveRight, Circle, Square, Triangle, X } from 'lucide-react';
 import { ChevronLeft, ChevronRight , ChevronDown} from 'lucide-react';
-import { Plus, Eye } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight, Plus, Eye } from 'lucide-react';
 import { useCart } from '../context/CartContext'; // Pastikan path benar
 import { useNavigate } from 'react-router-dom';
 
@@ -232,6 +232,9 @@ const Home: React.FC = () => {
     return fontIds.includes(font.id);
   });
 
+  const totalPages = Math.ceil(displayedFonts.length / fontsPerPage);
+  const currentFonts = displayedFonts.slice((currentPage - 1) * fontsPerPage, currentPage * fontsPerPage);
+  
   return (
 
     
@@ -342,182 +345,221 @@ const Home: React.FC = () => {
               Loading collection...
             </div>
           ) : displayedFonts.length > 0 ? (
-            displayedFonts.map((font, index) => {
-              const isEven = index % 2 === 0;
-              // DESKTOP: Zig Zag logic
-              // Tablet Portrait (md) disamakan dengan Mobile. Desktop Layout dimulai pada 'lg' (1024px).
-             const gridLayoutClass = isEven 
-                ? "lg:grid-cols-[320px_60px_1fr]" 
-                : "lg:grid-cols-[1fr_60px_320px]";
-              
-              const isExpanded = expandedFontId === font.id;
-              const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
+            <>
+              {currentFonts.map((font, index) => {
+                const isEven = index % 2 === 0;
+                // DESKTOP: Zig Zag logic
+                // Tablet Portrait (md) disamakan dengan Mobile. Desktop Layout dimulai pada 'lg' (1024px).
+               const gridLayoutClass = isEven 
+                  ? "lg:grid-cols-[320px_60px_1fr]" 
+                  : "lg:grid-cols-[1fr_60px_320px]";
+                
+                const isExpanded = expandedFontId === font.id;
+                const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
 
-              const displayFont = {
-                ...font,
-                family: `"${font.name}"`,
-                tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []),
-                styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
-                randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
-              };
+                const displayFont = {
+                  ...font,
+                  family: `"${font.name}"`,
+                  tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []),
+                  styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
+                  randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
+                };
 
-              const promo = getActivePromo(font.id || '');
-              const basePrice = font.price || 25;
+                const promo = getActivePromo(font.id || '');
+                const basePrice = font.price || 25;
 
-              return (
-                <section key={font.id} className="relative border-b border-black flex flex-col overflow-hidden lg:overflow-visible">
-                  {/* GRID UTAMA (Info, Toggle, Tester) */}
-                  <div className={`grid grid-cols-1 ${gridLayoutClass}`}>
-                 {/* BACKGROUND ORB EFFECT */}
-                    <div className="absolute z-0 pointer-events-none overflow-visible hidden md:block" 
-                         style={{ 
-                           width: '1000px', 
-                           height: '600px',
-                           top: '50%',
-                           left: isEven ? '22%' : '78%', 
-                           transform: 'translate(-50%, -50%)',
-                           opacity: 0.8
-                         }}>
-                         <div className="w-full h-full mix-blend-multiply blur-[60px]" 
-                       style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
-                    </div>
-                    
-                    {/* FIXED: Menghapus pb-6 pada mobile (pb-0) agar button menempel sempurna ke bawah */}
-                  <div className={`p-6 lg:p-8 pb-0 lg:pb-8 flex flex-col justify-between border-b-0 lg:border-b-0 order-1 ${isEven ? 'lg:order-1 lg:border-r border-black' : 'lg:order-3 lg:border-l border-black'}`}>
-                    <div>
-                      {/* Header: Title Only */}
-                      <div className="flex justify-between items-start gap-4 mb-2">
-                        <div className="flex-1">
-                          <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1 break-words">
-                            {font.name}
-                          </h2>
-                          <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase">{displayFont.styleCount} STYLES</span>
-                        </div>
-                      </div>
+                return (
+                  <section key={font.id} className="relative border-b border-black flex flex-col overflow-hidden lg:overflow-visible">
+                    {/* GRID UTAMA (Info, Toggle, Tester) */}
+                    <div className={`grid grid-cols-1 ${gridLayoutClass}`}>
+                   {/* BACKGROUND ORB EFFECT */}
+                      <div className="absolute z-0 pointer-events-none overflow-visible hidden md:block" 
+                           style={{ 
+                             width: '1000px', 
+                             height: '600px',
+                             top: '50%',
+                             left: isEven ? '22%' : '78%', 
+                             transform: 'translate(-50%, -50%)',
+                             opacity: 0.8
+                           }}>
+                           <div className="w-full h-full mix-blend-multiply blur-[60px]" 
+                         style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.8) 0%, rgba(253, 186, 116, 0.5) 50%, rgba(253, 186, 116, 0) 100%)' }} />
+                      </div>
+                      
+                      {/* FIXED: Menghapus pb-6 pada mobile (pb-0) agar button menempel sempurna ke bawah */}
+                    <div className={`p-6 lg:p-8 pb-0 lg:pb-8 flex flex-col justify-between border-b-0 lg:border-b-0 order-1 ${isEven ? 'lg:order-1 lg:border-r border-black' : 'lg:order-3 lg:border-l border-black'}`}>
+                      <div>
+                        {/* Header: Title Only */}
+                        <div className="flex justify-between items-start gap-4 mb-2">
+                          <div className="flex-1">
+                            <h2 className="text-2xl md:text-3xl font-normal uppercase tracking-tight leading-none mb-1 break-words">
+                              {font.name}
+                            </h2>
+                            <span className="block text-[10px] md:text-xs font-bold text-gray-400 uppercase">{displayFont.styleCount} STYLES</span>
+                          </div>
+                        </div>
 
-                      <div className="hidden lg:block mb-8"><BrutalistGraphic /></div>
-                      
-                      <div className="hidden lg:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
-                        {displayFont.tags.map((tag: string) => (
-                          <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className={`border px-3 py-1 rounded-full font-bold uppercase ${activeTag === tag.trim() ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'}`}>{tag}</button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* FIXED: Mengeluarkan button dari div mb-6 agar margin bottom tidak menciptakan gap */}
-                    <div className="mb-0">
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2 mb-4">
-                          <span className="flex items-center justify-center border border-black rounded-full px-3 h-6 md:h-7 font-regular italic text-[11px] md:text-[14px] lowercase text-black bg-transparent">
-                             starting at
-                           </span>
-                           {promo && (
-                             <span className="flex items-center justify-center border border-orange-600 rounded-full px-3 h-6 md:h-7 font-bold text-[11px] md:text-[14px] uppercase text-red-600 bg-transparent">
-                               {promo.discount_percent}% OFF
-                             </span>
-                           )}
-                            </div>
-                        <div className="flex flex-col">
-                           {promo ? (
-                            <div className="flex flex-col items-start gap-2">
-                               <span className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}</span>
-                               <div className="flex items-center gap-4 mt-2">
-                                 <div className="relative w-fit text-center">
-                                  <span className="text-3xl md:text-4xl font-bold text-red-600 leading-none">${basePrice}</span>
-                                  <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
-                                 </div>
-                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap">{calculateDaysLeft(promo.end_date)}</span>
-                               </div>
-                             </div>
-                           ) : (
-                             <div className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">${basePrice}</div>
-                           )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2 mt-6 lg:hidden">
-                        {displayFont.tags.map((tag: string) => (
-                          <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className="border border-black px-2 py-1 rounded-full font-bold text-[10px] uppercase whitespace-nowrap bg-transparent text-black">{tag}</button>
-                        ))}
-                      </div>
-                    </div>
+                        <div className="hidden lg:block mb-8"><BrutalistGraphic /></div>
+                        
+                        <div className="hidden lg:flex flex-wrap gap-2 text-[10px] uppercase mb-6">
+                          {displayFont.tags.map((tag: string) => (
+                            <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className={`border px-3 py-1 rounded-full font-bold uppercase ${activeTag === tag.trim() ? 'bg-black text-white border-black' : 'border-black text-black hover:bg-black hover:text-white'}`}>{tag}</button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* FIXED: Mengeluarkan button dari div mb-6 agar margin bottom tidak menciptakan gap */}
+                      <div className="mb-0">
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-2 mb-4">
+                            <span className="flex items-center justify-center border border-black rounded-full px-3 h-6 md:h-7 font-regular italic text-[11px] md:text-[14px] lowercase text-black bg-transparent">
+                               starting at
+                            </span>
+                            {promo && (
+                              <span className="flex items-center justify-center border border-orange-600 rounded-full px-3 h-6 md:h-7 font-bold text-[11px] md:text-[14px] uppercase text-red-600 bg-transparent">
+                                {promo.discount_percent}% OFF
+                              </span>
+                            )}
+                            </div>
+                        <div className="flex flex-col">
+                           {promo ? (
+                            <div className="flex flex-col items-start gap-2">
+                               <span className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">${(basePrice * (1 - (promo.discount_percent / 100))).toFixed(0)}</span>
+                               <div className="flex items-center gap-4 mt-2">
+                                 <div className="relative w-fit text-center">
+                                  <span className="text-3xl md:text-4xl font-bold text-red-600 leading-none">${basePrice}</span>
+                                  <div className="absolute top-[50%] left-[-5%] w-[110%] h-[2px] bg-orange-600"></div>
+                                 </div>
+                                 <span className="inline-block border border-orange-600 rounded-full px-2 md:px-3 py-1 font-bold text-[9px] md:text-[10px] uppercase text-red-600 bg-transparent whitespace-nowrap">{calculateDaysLeft(promo.end_date)}</span>
+                               </div>
+                             </div>
+                           ) : (
+                             <div className="text-8xl sm:text-8xl md:text-9xl font-light tracking-tighter text-black leading-[0.8]">${basePrice}</div>
+                           )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 mt-6 lg:hidden">
+                        {displayFont.tags.map((tag: string) => (
+                          <button key={tag} onClick={() => setActiveTag(activeTag === tag.trim() ? null : tag.trim())} className="border border-black px-2 py-1 rounded-full font-bold text-[10px] uppercase whitespace-nowrap bg-transparent text-black">{tag}</button>
+                        ))}
+                      </div>
+                    </div>
 
-                    {/* MOBILE PREVIEW TOGGLE: Sekarang nempel ke grid bawah karena pb-0 di parent dan mb-[-1.5rem] dihapus */}
-                    <button 
-                      onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
-                      className="lg:hidden w-[calc(100%+3rem)] -mx-6 mt-10 flex items-center justify-center gap-6 py-6 border-y border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
-                    >
-                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                      <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
-                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-                  </div>
+                    {/* MOBILE PREVIEW TOGGLE: Sekarang nempel ke grid bawah karena pb-0 di parent dan mb-[-1.5rem] dihapus */}
+                    <button 
+                      onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
+                      className="lg:hidden w-[calc(100%+3rem)] -mx-6 mt-10 flex items-center justify-center gap-6 py-6 border-y border-black bg-white group/m-toggle hover:bg-black hover:text-white transition-colors relative z-20"
+                    >
+                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                      <span className="text-[11px] font-normal tracking-[0.4em] uppercase">Preview Images</span>
+                      <ChevronDown size={16} className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
 
-                    {/* COLUMN: TOGGLE (DESKTOP) */}
-                    {/* FIXED: Menggunakan ChevronRight untuk ganjil (isEven=true) dan ChevronLeft untuk genap (isEven=false) */}
-                  <div 
-                    onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
-                    className={`hidden lg:flex flex-col items-center justify-between py-12 border-black cursor-pointer hover:bg-black/5 transition-colors z-40 bg-transparent
-                      ${isEven ? 'lg:order-2 border-r' : 'lg:order-2 border-l'}`}
-                  >
-                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
-                      {isEven ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-                    </div>
-                    
-                    <span className="uppercase text-[11px] font-normal tracking-[0.4em] whitespace-nowrap -rotate-90 origin-center">
-                      PREVIEW IMAGES
-                    </span>
-                    
-                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
-                      {isEven ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-                    </div>
-                  </div>
+                    {/* COLUMN: TOGGLE (DESKTOP) */}
+                    {/* FIXED: Menggunakan ChevronRight untuk ganjil (isEven=true) dan ChevronLeft untuk genap (isEven=false) */}
+                  <div 
+                    onClick={() => setExpandedFontId(isExpanded ? null : font.id)}
+                    className={`hidden lg:flex flex-col items-center justify-between py-12 border-black cursor-pointer hover:bg-black/5 transition-colors z-40 bg-transparent
+                      ${isEven ? 'lg:order-2 border-r' : 'lg:order-2 border-l'}`}
+                  >
+                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                      {isEven ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                    </div>
+                    
+                    <span className="uppercase text-[11px] font-normal tracking-[0.4em] whitespace-nowrap -rotate-90 origin-center">
+                      PREVIEW IMAGES
+                    </span>
+                    
+                    <div className={`transition-transform duration-500 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                      {isEven ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                    </div>
+                  </div>
 
-                    {/* COLUMN: TESTER */}
-                    <div className={`relative min-h-[400px] border-b-0 lg:border-b-0 order-2 flex items-stretch overflow-hidden ${isEven ? 'lg:order-3' : 'lg:order-1'}`}>
-                        <div className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out ${isExpanded ? 'translate-x-0 translate-y-0' : ''} ${!isExpanded ? (isEven ? 'lg:-translate-x-full -translate-y-full lg:translate-y-0' : 'lg:translate-x-full -translate-y-full lg:translate-y-0') : ''}`}>
-                          <ScrollableImageStack images={fontPreviews} onImageClick={(index, allResolved) => { setActiveGallery(allResolved); setActiveIndex(index); setSelectedImage(allResolved[index]); }} />
-                          <button onClick={(e) => { e.stopPropagation(); setExpandedFontId(null); }} className="absolute top-4 right-4 z-50 p-2 bg-black text-white rounded-full hover:scale-110 transition-transform shadow-xl"><X size={16} /></button>
-                        </div>
-                        <div className="w-full h-full flex items-center">
-                          <TypeTester config={displayFont} isEven={isEven} defaultText={isEven ? "The quick brown fox jumps over the lazy dog." : undefined} />
-                        </div>
-                    </div>
-                  </div> {/* GRID UTAMA SELESAI */}
+                    {/* COLUMN: TESTER */}
+                    <div className={`relative min-h-[400px] border-b-0 lg:border-b-0 order-2 flex items-stretch overflow-hidden ${isEven ? 'lg:order-3' : 'lg:order-1'}`}>
+                        <div className={`absolute inset-0 z-30 bg-white transition-transform duration-700 ease-in-out ${isExpanded ? 'translate-x-0 translate-y-0' : ''} ${!isExpanded ? (isEven ? 'lg:-translate-x-full -translate-y-full lg:translate-y-0' : 'lg:translate-x-full -translate-y-full lg:translate-y-0') : ''}`}>
+                          <ScrollableImageStack images={fontPreviews} onImageClick={(index, allResolved) => { setActiveGallery(allResolved); setActiveIndex(index); setSelectedImage(allResolved[index]); }} />
+                          <button onClick={(e) => { e.stopPropagation(); setExpandedFontId(null); }} className="absolute top-4 right-4 z-50 p-2 bg-black text-white rounded-full hover:scale-110 transition-transform shadow-xl"><X size={16} /></button>
+                        </div>
+                        <div className="w-full h-full flex items-center">
+                          <TypeTester config={displayFont} isEven={isEven} defaultText={isEven ? "The quick brown fox jumps over the lazy dog." : undefined} />
+                        </div>
+                    </div>
+                  </div> {/* GRID UTAMA SELESAI */}
 
-                  {/* 2. NEW ACTION ROW (HORIZONTAL BOTTOM) */}
-                  {/* FIXED: bg-white diubah menjadi bg-transparent */}
-                  <div className="grid grid-cols-2 w-full border-t border-black bg-transparent relative z-50">
-                     <button 
-                       onClick={() => {
-                         const promo = getActivePromo(font.id);
-                         const discountPercent = promo ? promo.discount_percent : 0;
-                         openConfigurator({ 
-                           ...font, 
-                           trialFileUrl: font.trial_file_url,
-                           activeDiscount: discountPercent 
-                         });
-                       }}
-                       className="flex items-center justify-center gap-4 py-8 border-r border-black hover:bg-black hover:text-white transition-all group/cart text-black"
-                     >
-                        <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90 flex-shrink-0" />
-                        <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
-                     </button>
-                     <button 
-                       onClick={() => navigate(`/font/${font.id}`)} // FIXED: Navigasi ke halaman detail
-                       className="flex items-center justify-center gap-4 py-8 hover:bg-black hover:text-white transition-all group/view text-black"
-                     >
-                        <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
-                        <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
-                     </button>
-                  </div>
+                  {/* 2. NEW ACTION ROW (HORIZONTAL BOTTOM) */}
+                  {/* FIXED: bg-white diubah menjadi bg-transparent */}
+                  <div className="grid grid-cols-2 w-full border-t border-black bg-transparent relative z-50">
+                     <button 
+                       onClick={() => {
+                         const promo = getActivePromo(font.id);
+                         const discountPercent = promo ? promo.discount_percent : 0;
+                         openConfigurator({ 
+                           ...font, 
+                           trialFileUrl: font.trial_file_url,
+                           activeDiscount: discountPercent 
+                         });
+                       }}
+                       className="flex items-center justify-center gap-4 py-8 border-r border-black hover:bg-black hover:text-white transition-all group/cart text-black"
+                     >
+                        <Plus size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/cart:rotate-90 flex-shrink-0" />
+                        <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Add to Cart</span>
+                     </button>
+                     <button 
+                       onClick={() => navigate(`/font/${font.id}`)} // FIXED: Navigasi ke halaman detail
+                       className="flex items-center justify-center gap-4 py-8 hover:bg-black hover:text-white transition-all group/view text-black"
+                     >
+                        <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
+                        <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
+                     </button>
+                  </div>
 
-                  {/* 3. SPACER: Muncul di semua ukuran layar (Mobile, Tablet, & Desktop) */}
-                  <div className="h-12 border-t border-black w-full bg-orange-500/10" />
+                  {/* 3. SPACER: Muncul di semua ukuran layar (Mobile, Tablet, & Desktop) */}
+                  <div className="h-12 border-t border-black w-full bg-orange-500/10" />
 
-                </section>
-              );
-            })
+                </section>
+              );
+            })}
+
+            {/* PAGINATION ROW */}
+            {totalPages > 1 && (
+              <div className="grid grid-cols-5 w-full border-b border-black bg-transparent relative z-50">
+                <button 
+                  onClick={() => { setCurrentPage(1); document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' }); }}
+                  disabled={currentPage === 1}
+                  className="flex items-center justify-center py-8 border-r border-black hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+                >
+                  <ChevronsLeft size={32} strokeWidth={1} className="transition-transform group-hover/page:-translate-x-1" />
+                </button>
+                <button 
+                  onClick={() => { setCurrentPage(prev => Math.max(1, prev - 1)); document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' }); }}
+                  disabled={currentPage === 1}
+                  className="flex items-center justify-center py-8 border-r border-black hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+                >
+                  <ChevronLeft size={32} strokeWidth={1} className="transition-transform group-hover/page:-translate-x-1" />
+                </button>
+                <div className="flex items-center justify-center py-8 border-r border-black text-[11px] font-normal uppercase tracking-widest text-black">
+                  Page {currentPage} / {totalPages}
+                </div>
+                <button 
+                  onClick={() => { setCurrentPage(prev => Math.min(totalPages, prev + 1)); document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' }); }}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center justify-center py-8 border-r border-black hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+                >
+                  <ChevronRight size={32} strokeWidth={1} className="transition-transform group-hover/page:translate-x-1" />
+                </button>
+                <button 
+                  onClick={() => { setCurrentPage(totalPages); document.getElementById('collection-start')?.scrollIntoView({ behavior: 'smooth' }); }}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center justify-center py-8 hover:bg-black hover:text-white transition-all disabled:opacity-20 group/page"
+                >
+                  <ChevronsRight size={32} strokeWidth={1} className="transition-transform group-hover/page:translate-x-1" />
+                </button>
+              </div>
+            )}
+            </>
           ) : (
              <div className="p-20 text-center font-mono uppercase text-gray-400">
                No fonts found with tag "{activeTag}". 
