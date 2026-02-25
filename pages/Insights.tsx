@@ -84,44 +84,39 @@ const Insights: React.FC = () => {
           
           {/* ARTICLE 01 */}
           <InsightCard 
-            number="01" 
-            category="Philosophy / Story" 
-            title="The Art of the Slow Curve"
-            linkText="Read the Story"
-          >
-            <p className="text-lg md:text-2xl">
-              In my studio in Sleman, time moves differently. This insight explores why hand-sketching remains a vital ritual before digital execution, ensuring every curve retains a human heartbeat.
-            </p>
-            <BrutalBox className="bg-[#f9f9f9] border-black/10">
-               <p className="text-sm md:text-lg italic opacity-70">
-                 "Slowing down is not a delay; it is the process of embedding intent into every anchor point."
-               </p>
-            </BrutalBox>
-          </InsightCard>
+            number="01" 
+            category="Design / Hierarchy" 
+            title="Typographic Hierarchy: The Science of Visual Order"
+            linkText="Read the Guide"
+          >
+            <p className="text-lg md:text-2xl">
+              Hierarchy isn't just about font size. It's a strategic system of scale, weight, and white space designed to guide the reader's eye through a layout in a specific order.
+            </p>
+          </InsightCard>
 
-          {/* ARTICLE 02 */}
-          <InsightCard 
-            number="02" 
-            category="Technical / Licensing" 
-            title="Choosing the Right Seat"
-            linkText="Read the Guide"
-          >
-            <p className="text-lg md:text-2xl">
-              Licensing shouldn't be a barrier to creativity. We break down our Solo, Team, and Studio tiers in plain language, helping you navigate legal compliance with confidence.
-            </p>
-          </InsightCard>
+          {/* ARTICLE 02 */}
+          <InsightCard 
+            number="02" 
+            category="Technical / Precision" 
+            title="Optical Kerning: Why Your Eyes Beat Algorithms"
+            linkText="Master Kerning"
+          >
+            <p className="text-lg md:text-2xl">
+              Software uses mathematical metrics, but the human eye perceives space differently. Learn why "Optical" settings often yield better results than "Metric" for display headlines.
+            </p>
+          </InsightCard>
 
-          {/* ARTICLE 03 */}
-          <InsightCard 
-            number="03" 
-            category="Life / Routine" 
-            title="Finding Peace in the Noise"
-            linkText="Read More"
-          >
-            <p className="text-lg md:text-2xl">
-              How do we maintain creative focus in an era of constant digital noise? Insights into a one-man studio routine and how tranquil surroundings influence the architecture of type.
-            </p>
-          </InsightCard>
+          {/* ARTICLE 03 */}
+          <InsightCard 
+            number="03" 
+            category="Trend / Technology" 
+            title="The Variable Revolution: Fluid Type for the Web"
+            linkText="Explore Trends"
+          >
+            <p className="text-lg md:text-2xl">
+              Variable fonts allow a single file to act as an infinite family of weights and widths. This shift is changing how we approach responsive design and web performance.
+            </p>
+          </InsightCard>
 
         </main>
 

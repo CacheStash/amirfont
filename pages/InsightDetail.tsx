@@ -11,75 +11,76 @@ const InsightDetail: React.FC = () => {
 
   const INSIGHTS_CONTENT: Record<string, any> = {
     "01": {
-      category: "Philosophy / Story",
-      title: "The Art of the Slow Curve",
-      date: "FEBRUARY 15, 2026",
-      readTime: "6 MIN READ",
-      content: (
-        <div className="space-y-12">
-          <p className="text-xl md:text-3xl font-medium leading-tight">
-            In the quiet corners of my Sleman studio, the digital world feels miles away. Before a single anchor point is ever clicked in a vector software, there is the paper.
-          </p>
-          <p>
-            This ritual of hand-sketching isn't just about nostalgia; it's where the soul of the typeface is born. Digital tools are precise, but often they are too perfect, too cold. Hand-drawn curves carry the subtle imperfections of a human hand—what I call the "slow curve"—that allows a letterform to actually breathe.
-          </p>
-          <div className="border-y border-black py-10 my-10 italic text-2xl md:text-5xl tracking-tighter normal-case">
-            "Slowing down the process isn't a delay; it is the deliberate act of embedding human intent into every anchor point."
-          </div>
-          <p>
-            When you sketch, you debate every serif, every terminal, and every junction with the lead of a pencil. By the time I move to digital execution, the character is already 'alive'. The computer is merely a tool for refinement, not the source of the idea. This ensures that even when scaled to a massive billboard, the typeface retains that vital human heartbeat.
-          </p>
-        </div>
-      )
-    },
-    "02": {
-      category: "Technical / Licensing",
-      title: "Choosing the Right Seat",
-      date: "JANUARY 28, 2026",
-      readTime: "4 MIN READ",
-      content: (
-        <div className="space-y-8">
-          <p className="text-xl md:text-2xl font-medium">
-            Licensing is often the most overlooked part of design, but it shouldn't be a source of creative anxiety. 
-          </p>
-          <p>
-            At Subqi Studio, we’ve stripped away the complex legalese to focus on three simple paths: Solo, Team, and Studio. Whether you are a lone freelancer crafting a brand identity or a large agency managing global campaigns, the goal remains the same: ensuring legal safety without compromising creative freedom.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-8">
-             <div className="border border-black p-6 bg-black text-white uppercase">
-                <h4 className="text-xs font-black mb-2 tracking-widest">Solo Tier</h4>
-                <p className="text-[10px] opacity-70 normal-case">Perfect for individual creators and small-scale projects. Permanent and straightforward.</p>
-             </div>
-             <div className="border border-black p-6 bg-white text-black uppercase">
-                <h4 className="text-xs font-black mb-2 tracking-widest">Studio Tier</h4>
-                <p className="text-[10px] opacity-70 normal-case">Built for agencies requiring multi-user access and enterprise-level protection.</p>
-             </div>
-          </div>
-          <p>
-            Choosing the right "seat" today prevents a legal headache tomorrow. We believe that when you respect the craft by licensing correctly, you are directly fueling the creation of future typefaces.
-          </p>
-        </div>
-      )
-    },
-    "03": {
-      category: "Life / Routine",
-      title: "Finding Peace in the Noise",
-      date: "DECEMBER 12, 2025",
-      readTime: "5 MIN READ",
-      content: (
-        <div className="space-y-12">
-          <p className="text-xl md:text-3xl font-medium leading-tight">
-            Maintaining creative focus in an era of constant digital notifications requires more than just discipline; it requires a sanctuary.
-          </p>
-          <p>
-            Living and working in Yogyakarta offers a specific kind of tranquility that directly influences the architecture of my type. Designing a full character set—often spanning hundreds of glyphs—requires a level of "deep work" that is impossible to achieve in a state of distraction.
-          </p>
-          <p>
-            I’ve found that my most successful typefaces are those where I was most present in the silence. My routine involves long periods of disconnect, allowing the eyes and the mind to rest, ensuring that when I return to the screen, every curve is seen with absolute clarity. Ketenangan (tranquility) is as much a design material as the pixels themselves.
-          </p>
-        </div>
-      )
-    }
+      category: "Design / Hierarchy",
+      title: "Typographic Hierarchy: The Science of Visual Order",
+      date: "FEBRUARY 15, 2026",
+      readTime: "7 MIN READ",
+      content: (
+        <div className="space-y-12">
+          <p className="text-xl md:text-3xl font-medium leading-tight">
+            Visual hierarchy is the most powerful tool in a designer's arsenal. It tells the reader where to look first, what is important, and what to read next.
+          </p>
+          <img 
+            src="https://images.unsplash.com/photo-1516383274235-5f42d6c6426d?q=80&w=2070&auto=format&fit=crop" 
+            alt="Typographic Layout" 
+            className="w-full border border-black grayscale"
+          />
+          <p className="text-[10px] opacity-40 italic mt-2 uppercase tracking-widest">Image Source: Unsplash.com — Collaborative Space Content</p>
+          <h3 className="text-3xl font-black underline">The Three-Level Approach</h3>
+          <p>
+            1. **Level One**: Usually your headline. This must be the most dominant element, often achieved through massive scale or heavy weights. 
+            <br/><br/>
+            2. **Level Two**: Subheaders and quotes. These help scan the content and provide context to the main title. 
+            <br/><br/>
+            3. **Level Three**: Body text. The core information. Here, legibility is the only priority.
+          </p>
+        </div>
+      )
+    },
+    "02": {
+      category: "Technical / Precision",
+      title: "Optical Kerning: Why Your Eyes Beat Algorithms",
+      date: "JANUARY 28, 2026",
+      readTime: "5 MIN READ",
+      content: (
+        <div className="space-y-8">
+          <p className="text-xl md:text-2xl font-medium">
+            Kerning is the process of adjusting the spacing between characters in a proportional font, usually to achieve a visually pleasing result.
+          </p>
+          <img 
+            src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop" 
+            alt="Letter Spacing" 
+            className="w-full border border-black grayscale"
+          />
+          <p className="text-[10px] opacity-40 italic mt-2 uppercase tracking-widest">Image Source: Unsplash.com — Abstract Geometrics</p>
+          <p>
+            Most modern software uses **Metric Kerning**, which relies on the built-in tables provided by the font creator. However, when working with large headlines, these tables can fail. **Optical Kerning** calculates the space between characters based on their visual shapes. For "trouble" combinations like 'AV', 'Te', or 'Wa', trusting your eyes (or the software's optical engine) is essential for professional results.
+          </p>
+        </div>
+      )
+    },
+    "03": {
+      category: "Trend / Technology",
+      title: "The Variable Revolution: Fluid Type for the Web",
+      date: "DECEMBER 12, 2025",
+      readTime: "8 MIN READ",
+      content: (
+        <div className="space-y-12">
+          <p className="text-xl md:text-3xl font-medium leading-tight">
+            Variable fonts are an evolution of the OpenType font specification that enables many variations of a typeface to be incorporated into a single file.
+          </p>
+          <img 
+            src="https://images.unsplash.com/photo-1626785774573-4b799315345d?q=80&w=2071&auto=format&fit=crop" 
+            alt="Digital Typography axes" 
+            className="w-full border border-black grayscale"
+          />
+          <p className="text-[10px] opacity-40 italic mt-2 uppercase tracking-widest">Image Source: Unsplash.com — Neon Data Visualization</p>
+          <p>
+            Instead of loading separate files for Light, Regular, Bold, and Black, a **Variable Font (VF)** uses "Axes" (Weight, Width, Slant) to generate any variation along a spectrum. This dramatically reduces HTTP requests, improves site speed, and gives designers unprecedented control over responsive typography—allowing the font to "flex" perfectly across different screen sizes.
+          </p>
+        </div>
+      )
+    }
   };
 
   const article = id ? INSIGHTS_CONTENT[id] : null;
