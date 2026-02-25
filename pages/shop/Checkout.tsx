@@ -322,7 +322,7 @@ if (subscribe) {
                   <input 
                     type="text" 
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => setName(e.target.value.replace(/\b\w/g, l => l.toUpperCase()))}
                     className="w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30"
                     placeholder="FULL NAME"
                     required
@@ -330,14 +330,14 @@ if (subscribe) {
                   <input 
                     type="email" 
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => setEmail(e.target.value.toLowerCase())}
                     className="w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30"
                     placeholder="EMAIL@DOMAIN.COM WILL BE YOUR USERNAME TO YOUR ACCOUNT DASHBOARD"
                     required
                   />
                   <textarea 
                     value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    onChange={(e) => setAddress(e.target.value.replace(/\b\w/g, l => l.toUpperCase()))}
                     className="w-full p-4 font-mono font-bold outline-none text-sm placeholder:text-black/30 min-h-[80px] resize-none"
                     placeholder="COMPLETE ADDRESS (STREET, CITY, ZIP CODE)"
                     required
