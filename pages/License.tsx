@@ -35,10 +35,10 @@ const License: React.FC = () => {
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-[#F5F5F0] overflow-x-hidden uppercase">
       
-      {/* 1. BACKGROUND ORBS - Posisi sesuai request (Top Right, Middle Left, Bottom Right) */}
-      <div className="grain-orb-base orb-top-right" />
-      <div className="grain-orb-base orb-bottom-left" />
-      <div className="grain-orb-base orb-top-right !top-auto !bottom-0 !-right-[10%] !bg-red-600/20" />
+      {/* VIBRANT BACKGROUND ORBS - Fixed Back-Layering & Pointer-Events */}
+      <div className="grain-orb-base orb-top-right !-z-10 pointer-events-none" />
+      <div className="grain-orb-base orb-bottom-left !-z-10 pointer-events-none" />
+      <div className="grain-orb-base orb-top-right !top-auto !bottom-0 !-right-[10%] !bg-red-600/20 !-z-10 pointer-events-none" />
 
       <div className="w-full relative z-10">
         {/* HEADER SECTION */}

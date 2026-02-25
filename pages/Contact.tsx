@@ -66,10 +66,10 @@ const Contact: React.FC = () => {
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent overflow-x-hidden uppercase">
       
-      {/* VIBRANT BACKGROUND ORBS */}
-      <div className="grain-orb-base orb-top-right" />
-      <div className="grain-orb-base orb-bottom-left !top-[40%] !-left-[15%] !opacity-40" />
-      <div className="grain-orb-base orb-top-right !top-auto !bottom-0 !-right-[10%] !bg-red-600/20" />
+      {/* VIBRANT BACKGROUND ORBS - Fixed Back-Layering & Pointer-Events */}
+      <div className="grain-orb-base orb-top-right !-z-10 pointer-events-none" />
+      <div className="grain-orb-base orb-bottom-left !-z-10 pointer-events-none" />
+      <div className="grain-orb-base orb-top-right !top-auto !bottom-0 !-right-[10%] !bg-red-600/20 !-z-10 pointer-events-none" />
 
       <div className="max-w-full mx-auto relative z-10">
         {/* HEADER SECTION - Konsisten dengan License/Policy/FAQ */}
