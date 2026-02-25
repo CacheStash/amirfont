@@ -12,6 +12,41 @@ const UserDashboard = () => {
   const [userEmail, setUserEmail] = useState('');
   const [fullName, setFullName] = useState('');
 
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Fetch data profil user
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email || '');
+        const { data } = await supabase
+          .from('fontbuyer')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        if (data?.full_name) setFullName(data.full_name);
+
+        // Fetch Unread Messages (Direct + Broadcast)
+        const [{ data: readData }, { data: hiddenData }, { data: messages }] = await Promise.all([
+          supabase.from('font_message_reads').select('message_id').eq('user_id', user.id),
+          supabase.from('font_message_hides').select('message_id').eq('user_id', user.id),
+          supabase.from('font_messages').select('id, recipient_id, is_read').or(`recipient_id.eq.${user.id},recipient_id.is.null`)
+        ]);
+
+        const rIds = readData?.map(r => r.message_id) || [];
+        const hIds = hiddenData?.map(h => h.message_id) || [];
+        const count = messages?.filter(m => 
+          !hIds.includes(m.id) && 
+          (m.recipient_id === null ? !rIds.includes(m.id) : !m.is_read)
+        ).length || 0;
+
+        setUnreadCount(count);
+      }
+    };
+    fetchProfile();
+  }, []);
+
   // Sinkronisasi Sidebar & Content
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -85,11 +120,19 @@ const UserDashboard = () => {
           </button>
           
           <button 
-            onClick={() => handleTabChange('inbox')} 
-            className={`w-full flex items-center gap-3 px-4 py-3 font-bold text-xs transition-all ${activeTab === 'inbox' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
-          >
-            <Mail size={18} /> Inbox & Support
-          </button>
+            onClick={() => handleTabChange('inbox')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 font-bold text-xs transition-all relative ${activeTab === 'inbox' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+          >
+            <div className="relative">
+              <Mail size={18} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 -left-2.5 bg-red-600 text-white text-[7px] font-black px-1 py-0 border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] animate-pulse">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+            Inbox & Support
+          </button>
 
           <button 
             onClick={() => handleTabChange('settings')} 
