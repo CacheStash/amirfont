@@ -30,6 +30,8 @@ const UserMessages = () => {
     if (!user) return;
 
     try {
+      const userJoinedAt = user.created_at;
+
       // 1. Ambil ID Pesan yang SUDAH DIBACA (untuk Broadcast)
       const { data: readData } = await supabase
         .from('font_message_reads')
@@ -44,29 +46,27 @@ const UserMessages = () => {
         .eq('user_id', user.id);
       const hiddenIds = hiddenData?.map(h => h.message_id) || [];
 
-      // 3. Hitung Unread Count (Direct + Broadcast)
+      // 3. Hitung Unread Count (Direct + Broadcast Filtered by Date)
       const { data: unreadData } = await supabase
         .from('font_messages')
-        .select('id, recipient_id, is_read')
-        .or(`recipient_id.eq.${user.id},recipient_id.is.null`);
+        .select('id, recipient_id, is_read, created_at')
+        .or(`recipient_id.eq.${user.id},and(recipient_id.is.null,created_at.gte.${userJoinedAt})`);
 
       const actualUnread = unreadData?.filter(m => {
-        const isHidden = hiddenIds.includes(m.id);
-        if (isHidden) return false;
-
+        if (hiddenIds.includes(m.id)) return false;
         if (m.recipient_id === null) {
-          return !readIds.includes(m.id); // Unread jika broadcast tidak ada di font_message_reads
+          return !readIds.includes(m.id);
         } else {
-          return !m.is_read; // Unread jika direct is_read false
+          return !m.is_read;
         }
       }).length || 0;
       
       setUnreadCount(actualUnread);
 
-      // 4. Main Query Data
+      // 4. Main Query Data dengan filter tanggal untuk Broadcast
       let query = supabase.from('font_messages').select('*', { count: 'exact' });
       if (tab === 'inbox') {
-        query = query.or(`recipient_id.eq.${user.id},recipient_id.is.null`);
+        query = query.or(`recipient_id.eq.${user.id},and(recipient_id.is.null,created_at.gte.${userJoinedAt})`);
       } else {
         query = query.eq('sender_id', user.id);
       }
