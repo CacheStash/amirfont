@@ -19,6 +19,7 @@ import Policy from './pages/Policy';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Insights from './pages/Insights';
+import InsightDetail from './pages/InsightDetail';
 import UserAuth from './pages/user/UserAuth';
 import UserDashboard from './pages/user/Dashboard';
 import { CartProvider, useCart } from './context/CartContext';
@@ -126,6 +127,7 @@ const App: React.FC = () => {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/insights" element={<Insights />} />
+            <Route path="/insight/:id" element={<InsightDetail />} />
 
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<Checkout />} />

@@ -43,12 +43,12 @@ const Insights: React.FC = () => {
             {children}
             
             {/* Brutalist Action Link */}
-            <Link to="#" className="inline-flex items-center gap-6 group/link pt-4">
-              <span className="text-2xl md:text-4xl font-normal tracking-tighter uppercase border-b-4 border-black group-hover/link:border-orange-600 transition-colors">
-                {linkText}
-              </span>
-              <ArrowRight size={32} strokeWidth={1.5} className="group-hover/link:translate-x-4 transition-transform duration-300" />
-            </Link>
+            <Link to={`/insight/${number}`} className="inline-flex items-center gap-6 group/link pt-4">
+              <span className="text-2xl md:text-4xl font-normal tracking-tighter uppercase border-b-4 border-black group-hover/link:border-orange-600 transition-colors">
+                {linkText}
+              </span>
+              <ArrowRight size={32} strokeWidth={1.5} className="group-hover/link:translate-x-4 transition-transform duration-300" />
+            </Link>
           </div>
         </div>
       </div>
