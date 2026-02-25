@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { MoveRight, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 
 // --- PARTIAL FIX ---
 /** * 1. GUNAKAN PUBLIC DEVELOPMENT URL DARI SCREENSHOT R2 ANDA
@@ -97,6 +99,8 @@ const Fonts: React.FC = () => {
   const [promos, setPromos] = useState<any[]>([]);
   const navigate = useNavigate();
   const [activePromoId, setActivePromoId] = useState<string | null>(null);
+
+  const { openConfigurator } = useCart();
 
   // FIXED: Logika filter promo sebelum pagination
   const filteredFonts = fonts.filter(font => {
@@ -267,8 +271,9 @@ const Fonts: React.FC = () => {
               const fontFamilyStyle = `"${font.name}-0"`;
 
               return (
-                <section key={font.id || idx} className="relative grid grid-cols-1 md:grid-cols-[380px_1fr_100px] border-b border-black group transition-colors hover:bg-white/50 overflow-hidden">
-                  
+                <section key={font.id || idx} className="relative grid grid-cols-1 lg:grid-cols-[380px_1fr_120px] border-b border-black group transition-colors hover:bg-white/50 overflow-hidden">
+
+
                   {/* DYNAMIC ROW ORB EFFECT */}
                   <div className="absolute z-0 pointer-events-none overflow-visible hidden md:block" 
                        style={{ 
@@ -345,15 +350,35 @@ const Fonts: React.FC = () => {
 
                   {/* d. ACTION COLUMN */}
                   {/* FIXED: Mengubah hover dan ikon menjadi Eye agar selaras dengan Home */}
-                  <div 
-                    onClick={() => navigate(`/font/${font.id}`)} // FIXED: Navigasi ke halaman detail
-                    className="p-4 flex items-center justify-center hover:bg-black hover:text-white transition-all duration-300 cursor-pointer group/view border-black"
-                  >
-                    <Eye 
-                      size={48} 
-                      strokeWidth={1} 
-                      className="text-black group-hover/view:text-white transition-transform duration-500 group-hover/view:scale-125" 
-                    />
+                  <div className="grid grid-cols-2 lg:grid-cols-1 lg:grid-rows-2 border-black">
+                    <button 
+                      onClick={() => {
+                        const promo = getActivePromo(font.id);
+                        const discountPercent = promo ? promo.discount_percent : 0;
+                        openConfigurator({ 
+                          ...font, 
+                          trialFileUrl: font.trial_file_url,
+                          activeDiscount: discountPercent 
+                        });
+                      }}
+                      className="flex items-center justify-center p-4 border-r lg:border-r-0 lg:border-b border-black hover:bg-black hover:text-white transition-all duration-300 group/cart"
+                    >
+                      <Plus 
+                        size={32} 
+                        strokeWidth={1} 
+                        className="text-black group-hover/cart:text-white transition-transform duration-300 group-hover/cart:rotate-90" 
+                      />
+                    </button>
+                    <button 
+                      onClick={() => navigate(`/font/${font.id}`)}
+                      className="flex items-center justify-center p-4 hover:bg-black hover:text-white transition-all duration-300 group/view"
+                    >
+                      <Eye 
+                        size={32} 
+                        strokeWidth={1} 
+                        className="text-black group-hover/view:text-white transition-transform duration-500 group-hover/view:scale-125" 
+                      />
+                    </button>
                   </div>
 
                   {/* 4. MOBILE SPACER */}

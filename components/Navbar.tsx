@@ -181,9 +181,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                   </div>
               </div>
 
-              <div className="p-3 md:px-8 py-10 opacity-30">
-                  <div className="font-bold uppercase text-[10px] tracking-widest">Subqi Studio HQ — Jakarta, ID</div>
-              </div>
+    
           </div>
       </div>
     </nav>
