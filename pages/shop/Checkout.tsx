@@ -263,7 +263,7 @@ if (subscribe) {
             {/* Header Struk */}
             <div className="flex flex-col items-center text-center border-b border-black border-dashed pb-12 mb-12">
               <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-2 italic">SUBQI STUDIO</h1>
-              <p className="text-xs md:text-sm font-bold tracking-widest leading-none">JAKARTA — INDONESIA / TERMINAL 01</p>
+              <p className="text-xs md:text-sm font-bold tracking-widest leading-none">SLEMAN — YOGYAKARTA — INDONESIA</p>
               <div className="mt-8 px-4 py-1 border border-black text-xs font-bold bg-black text-white">
                 OFFICIAL PAYMENT RECEIPT
               </div>
