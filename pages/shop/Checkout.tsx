@@ -429,7 +429,7 @@ if (subscribe) {
                   <span className="text-[10px] font-black tracking-widest text-black/40 px-2">PAYPAL / CREDIT CARD</span>
                   
                   <div className={`relative z-0 transition-all w-full flex justify-center ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
-                    <div className="w-full">
+                    <div className="w-full max-w-[750px]">
                     <PayPalButtons 
                       style={{ layout: "vertical", shape: "rect", label: "pay", height: 55 }}
                       // FIXED: Validasi email sebelum popup PayPal muncul
@@ -473,9 +473,7 @@ if (subscribe) {
                       alert("PAYPAL_GATEWAY_ERROR: COULD NOT INITIALIZE TRANSACTION. CHECK YOUR EMAIL FORMAT OR PAYMENT METHOD.");
                     }}
                     />
-                    <button className="w-full mt-4 bg-red-600 text-white py-4 font-black text-sm tracking-[0.2em] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
-                      TEST_BUTTON_FULL_BLOCK_VALIDATION
-                    </button>
+                   
                   </div>
                 </div>
               </div>
