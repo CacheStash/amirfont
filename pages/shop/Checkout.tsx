@@ -377,8 +377,33 @@ if (subscribe) {
 
                 <p className="text-[9px] mt-4 opacity-60 italic leading-tight">
                   * DATA IS SECURE. YOUR ACCOUNT WILL BE UPDATED AUTOMATICALLY.<br/>
-                  PASSWORD RESET KEY = YOUR ORDER ID.
+                
                 </p>
+              </div>
+            )}
+
+            {/* DELIVERY INFO BOX - UPDATED PROTOCOL */}
+            {!isPaid && (
+              <div className="mb-10 p-6 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex items-start gap-4">
+                  <div className="bg-black text-white p-2 shrink-0">
+                    <Plus size={20} className="rotate-45" />
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-black tracking-widest leading-none underline">DELIVERY_PROTOCOL:</h4>
+                    <p className="text-[10px] font-bold leading-relaxed normal-case text-gray-700">
+                      Files will <span className="underline decoration-red-500">NOT</span> be sent to your email. A <span className="bg-orange-500 text-white px-1">ONE-TIME_DIRECT_DOWNLOAD</span> link will appear on this screen immediately after payment is successful. 
+                      A permanent backup is automatically stored in your <span className="underline decoration-black decoration-2">PERSONAL_DASHBOARD</span> for future access.
+                    </p>
+                    <div className="pt-2 border-t border-black/10">
+                      <p className="text-[9px] font-black opacity-60 italic">
+                        ACCOUNT_CREDENTIALS: <br/>
+                        USER: <span className="text-black not-italic">{email || "REQUIRED_EMAIL"}</span> <br/>
+                        PASS: <span className="text-black not-italic">{orderId} (ORDER_ID / RESET_KEY)</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
