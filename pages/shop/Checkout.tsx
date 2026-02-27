@@ -382,27 +382,46 @@ if (subscribe) {
               </div>
             )}
 
-            {/* DELIVERY INFO BOX - UPDATED PROTOCOL */}
+            {/* DELIVERY INFO BOX - FORM STYLE (NO SHADOW) */}
             {!isPaid && (
-              <div className="mb-10 p-6 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-in fade-in slide-in-from-bottom-2">
-                <div className="flex items-start gap-4">
-                  <div className="bg-black text-white p-2 shrink-0">
-                    <Plus size={20} className="rotate-45" />
-                  </div>
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-black tracking-widest leading-none underline">DELIVERY_PROTOCOL:</h4>
-                    <p className="text-[10px] font-bold leading-relaxed normal-case text-gray-700">
-                      Files will <span className="underline decoration-red-500">NOT</span> be sent to your email. A <span className="bg-orange-500 text-white px-1">ONE-TIME_DIRECT_DOWNLOAD</span> link will appear on this screen immediately after payment is successful. 
-                      A permanent backup is automatically stored in your <span className="underline decoration-black decoration-2">PERSONAL_DASHBOARD</span> for future access.
+              <div className="mb-10 p-6 md:p-8 border-2 border-black bg-white space-y-6">
+                <div className="space-y-4">
+                  <h4 className="text-sm md:text-base font-black tracking-[0.2em] underline">
+                    CRITICAL_ASSET_DELIVERY_INFO:
+                  </h4>
+                  
+                  <div className="space-y-4 text-xs md:text-sm font-bold leading-relaxed normal-case text-black">
+                    <p>
+                      Digital files will <span className="bg-black text-white px-1">NOT</span> be sent via email download links.
                     </p>
-                    <div className="pt-2 border-t border-black/10">
-                      <p className="text-[9px] font-black opacity-60 italic">
-                        ACCOUNT_CREDENTIALS: <br/>
-                        USER: <span className="text-black not-italic">{email || "REQUIRED_EMAIL"}</span> <br/>
-                        PASS: <span className="text-black not-italic">{orderId} (ORDER_ID / RESET_KEY)</span>
-                      </p>
+                    <p>
+                      A <span className="underline decoration-orange-500 decoration-2 italic">ONE-TIME DIRECT DOWNLOAD</span> link will appear on this screen immediately after your payment is confirmed. A permanent backup of your assets is automatically stored in your personal dashboard for future access.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t-2 border-black border-dashed space-y-4">
+                  <h4 className="text-[10px] font-black tracking-widest opacity-40 italic uppercase">
+                    ACCOUNT_ACCESS_CREDENTIALS:
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="border border-black p-4 bg-gray-50">
+                      <span className="text-[9px] font-black opacity-40 block mb-1 uppercase">Username</span>
+                      <span className="text-xs md:text-sm font-bold">{email || "YOUR_EMAIL_HERE"}</span>
+                    </div>
+                    <div className="border border-black p-4 bg-gray-50">
+                      <span className="text-[9px] font-black opacity-40 block mb-1 uppercase">Access Key (Pass/Resetter)</span>
+                      <span className="text-xs md:text-sm font-bold">{orderId}</span>
                     </div>
                   </div>
+
+                  <p className="text-[10px] font-bold leading-tight normal-case opacity-70">
+                    If this is your **First Purchase**, this Order ID is your **Initial Password**. For subsequent transactions, this new code acts as an **Additional Valid Resetter**.
+                  </p>
+                  <p className="text-[10px] font-bold leading-tight normal-case opacity-70">
+                    You can change your password in account settings at any time. However, your **Order ID** will remain your **Permanent Password Resetter** forever if you forget your custom password.
+                  </p>
                 </div>
               </div>
             )}
