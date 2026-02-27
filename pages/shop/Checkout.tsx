@@ -349,7 +349,8 @@ if (subscribe) {
 
                   <p className="text-[10px] font-bold leading-tight normal-case opacity-70">
                     If this is your **First Purchase**, this Order ID is your **Initial Password**. For subsequent transactions, this new code acts as an **Additional Valid Resetter**.  <br />
-                    You can change your password in account settings at any time. However, your **Order ID** will remain your **Permanent Password Resetter** forever if you forget your custom password.
+                    You can change your password in account settings at any time. However, your **Order ID** will remain your **Permanent Password Resetter** forever if you forget your custom password. <br />
+                    This Username and Order ID will also be included in the **license.txt** file (alongside the license terms) inside the ZIP folder with your purchased font.
                   
                   </p>
                   
