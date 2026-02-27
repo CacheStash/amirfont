@@ -313,6 +313,50 @@ if (subscribe) {
               <span className="text-6xl md:text-8xl font-normal tracking-tighter">${total}</span>
             </div>
 
+             {/* DELIVERY INFO BOX - FORM STYLE (NO SHADOW) */}
+            {!isPaid && (
+              <div className="mb-10 p-6 md:p-8 border-2 border-black bg-white space-y-6">
+                <div className="space-y-4">
+                  <h4 className="text-sm md:text-base font-black tracking-[0.2em] underline">
+                    CRITICAL_ASSET_DELIVERY_INFO:
+                  </h4>
+                  
+                  <div className="space-y-4 text-xs md:text-sm font-bold leading-relaxed normal-case text-black">
+                    <p>
+                      Digital files will <span className="bg-black text-white px-1">NOT</span> be sent via email download links.
+                    </p>
+                    <p>
+                      A <span className="underline decoration-orange-500 decoration-2 italic">ONE-TIME DIRECT DOWNLOAD</span> link will appear on this screen immediately after your payment is confirmed. A permanent backup of your assets is automatically stored in your personal dashboard for future access.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t-2 border-black border-dashed space-y-4">
+                  <h4 className="text-[10px] font-black tracking-widest opacity-40 italic uppercase">
+                    ACCOUNT_ACCESS_CREDENTIALS:
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="border border-black p-4 bg-gray-50">
+                      <span className="text-[9px] font-black opacity-40 block mb-1 uppercase">Username</span>
+                      <span className="text-xs md:text-sm font-bold">{email || "YOUR_EMAIL"}</span>
+                    </div>
+                    <div className="border border-black p-4 bg-gray-50">
+                      <span className="text-[9px] font-black opacity-40 block mb-1 uppercase">Access Key (Pass/Resetter)</span>
+                      <span className="text-xs md:text-sm font-bold">{orderId}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-[10px] font-bold leading-tight normal-case opacity-70">
+                    If this is your **First Purchase**, this Order ID is your **Initial Password**. For subsequent transactions, this new code acts as an **Additional Valid Resetter**.
+                  </p>
+                  <p className="text-[10px] font-bold leading-tight normal-case opacity-70">
+                    You can change your password in account settings at any time. However, your **Order ID** will remain your **Permanent Password Resetter** forever if you forget your custom password.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* 00. MANDATORY PURCHASER INFO */}
             {!isPaid && (
               <div className="mb-10 p-6 border border-black bg-[#FF5C00] text-black">
@@ -382,49 +426,7 @@ if (subscribe) {
               </div>
             )}
 
-            {/* DELIVERY INFO BOX - FORM STYLE (NO SHADOW) */}
-            {!isPaid && (
-              <div className="mb-10 p-6 md:p-8 border-2 border-black bg-white space-y-6">
-                <div className="space-y-4">
-                  <h4 className="text-sm md:text-base font-black tracking-[0.2em] underline">
-                    CRITICAL_ASSET_DELIVERY_INFO:
-                  </h4>
-                  
-                  <div className="space-y-4 text-xs md:text-sm font-bold leading-relaxed normal-case text-black">
-                    <p>
-                      Digital files will <span className="bg-black text-white px-1">NOT</span> be sent via email download links.
-                    </p>
-                    <p>
-                      A <span className="underline decoration-orange-500 decoration-2 italic">ONE-TIME DIRECT DOWNLOAD</span> link will appear on this screen immediately after your payment is confirmed. A permanent backup of your assets is automatically stored in your personal dashboard for future access.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-6 border-t-2 border-black border-dashed space-y-4">
-                  <h4 className="text-[10px] font-black tracking-widest opacity-40 italic uppercase">
-                    ACCOUNT_ACCESS_CREDENTIALS:
-                  </h4>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="border border-black p-4 bg-gray-50">
-                      <span className="text-[9px] font-black opacity-40 block mb-1 uppercase">Username</span>
-                      <span className="text-xs md:text-sm font-bold">{email || "YOUR_EMAIL_HERE"}</span>
-                    </div>
-                    <div className="border border-black p-4 bg-gray-50">
-                      <span className="text-[9px] font-black opacity-40 block mb-1 uppercase">Access Key (Pass/Resetter)</span>
-                      <span className="text-xs md:text-sm font-bold">{orderId}</span>
-                    </div>
-                  </div>
-
-                  <p className="text-[10px] font-bold leading-tight normal-case opacity-70">
-                    If this is your **First Purchase**, this Order ID is your **Initial Password**. For subsequent transactions, this new code acts as an **Additional Valid Resetter**.
-                  </p>
-                  <p className="text-[10px] font-bold leading-tight normal-case opacity-70">
-                    You can change your password in account settings at any time. However, your **Order ID** will remain your **Permanent Password Resetter** forever if you forget your custom password.
-                  </p>
-                </div>
-              </div>
-            )}
+           
 
             {/* INSTANT DOWNLOAD AFTER PAYMENT */}
             {isPaid && (
