@@ -53,7 +53,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
       // 1. Cari di tabel Fonts
       const { data: fonts } = await supabase
         .from('fonts')
-        .select('id, name, images')
+        .select('id, name, images, description, tags')
         .or(`name.ilike.%${query}%,description.ilike.%${query}%,tags.ilike.%${query}%`)
         .limit(5);
 
@@ -190,7 +190,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                           {item.type === 'font' ? item.name : item.title}
                         </span>
                         {item.type === 'font' && item.images?.[0] && (
-                          <div className="mt-4 border border-black/10 bg-[#f9f9f9] p-1 w-fit">
+                          <div className="mt-4 border border-black/10 bg-[#f9f9f9] p-1 w-fit group-hover:border-white transition-colors">
                             <img 
                               src={item.images[0]} 
                               alt={item.name} 
