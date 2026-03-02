@@ -54,8 +54,8 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
       const { data: fonts } = await supabase
         .from('fonts')
         .select('id, name')
-        .or(`name.ilike.%${query}%,tags.ilike.%${query}%,description.ilike.%${query}%`)
-        .limit(5);
+        .ilike('name', `%${query}%`) // Pencarian sederhana berdasarkan nama agar lebih stabil
+        .limit(5);
 
       // 2. Cari di tabel Site Content (FAQ, Policy, dll)
       const { data: pages } = await supabase
