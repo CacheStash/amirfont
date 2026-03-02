@@ -60,7 +60,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
       // 2. Cari di tabel Site Content (FAQ, Policy, dll)
       const { data: pages } = await supabase
         .from('site_content')
-        .select('title, page_path, section_id')
+        .select('title, page_path, section_id, category')
         .or(`title.ilike.%${query}%,content.ilike.%${query}%`)
         .limit(5);
 
@@ -175,7 +175,13 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                   {suggestions.map((item, index) => (
                     <Link
                       key={index}
-                      to={item.type === 'font' ? `/font/${item.id}` : `${item.page_path}${item.section_id ? `#${item.section_id}` : ''}`}
+                      to={
+                        item.type === 'font' 
+                          ? `/font/${item.id}` 
+                          : item.category === 'insights'
+                            ? `/insight/${item.section_id}`
+                            : `${item.page_path}${item.section_id ? `#${item.section_id}` : ''}`
+                      }
                       className="flex items-center justify-between p-4 md:px-8 hover:bg-black hover:text-white transition-all group"
                     >
                       <div className="flex flex-col">
