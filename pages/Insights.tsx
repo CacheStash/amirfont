@@ -1,6 +1,16 @@
 import React from 'react';
 import { Plus, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+
+interface ContentItem {
+  id: string;
+  title: string;
+  content: string;
+  section_id: string;
+  category: string;
+}
 
 // Shared Bullet Style
 const PlusBullet = () => (
@@ -15,6 +25,24 @@ const BrutalBox: React.FC<{ children: React.ReactNode, className?: string }> = (
 );
 
 const Insights: React.FC = () => {
+
+  const [insights, setInsights] = useState<ContentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInsights = async () => {
+      const { data } = await supabase
+        .from('site_content')
+        .select('*')
+        .eq('category', 'insights')
+        .order('sort_order', { ascending: true });
+      
+      if (data) setInsights(data);
+      setLoading(false);
+    };
+    fetchInsights();
+  }, []);
+
   // Komponen InsightCard - Mengikuti Style TermCard License.tsx
   const InsightCard: React.FC<{ 
     number: string, 
@@ -82,41 +110,28 @@ const Insights: React.FC = () => {
         {/* CONTENT MAIN */}
         <main className="px-3 md:px-8 max-w-full mx-auto text-left">
           
-          {/* ARTICLE 01 */}
-          <InsightCard 
-            number="01" 
-            category="Design / Hierarchy" 
-            title="Typographic Hierarchy: The Science of Visual Order"
-            linkText="Read the Guide"
-          >
-            <p className="text-lg md:text-2xl">
-              Hierarchy isn't just about font size. It's a strategic system of scale, weight, and white space designed to guide the reader's eye through a layout in a specific order.
-            </p>
-          </InsightCard>
-
-          {/* ARTICLE 02 */}
-          <InsightCard 
-            number="02" 
-            category="Technical / Precision" 
-            title="Optical Kerning: Why Your Eyes Beat Algorithms"
-            linkText="Master Kerning"
-          >
-            <p className="text-lg md:text-2xl">
-              Software uses mathematical metrics, but the human eye perceives space differently. Learn why "Optical" settings often yield better results than "Metric" for display headlines.
-            </p>
-          </InsightCard>
-
-          {/* ARTICLE 03 */}
-          <InsightCard 
-            number="03" 
-            category="Trend / Technology" 
-            title="The Variable Revolution: Fluid Type for the Web"
-            linkText="Explore Trends"
-          >
-            <p className="text-lg md:text-2xl">
-              Variable fonts allow a single file to act as an infinite family of weights and widths. This shift is changing how we approach responsive design and web performance.
-            </p>
-          </InsightCard>
+          {loading ? (
+            <div className="animate-pulse font-bold">SYNCING_LAB_RECORDS...</div>
+          ) : (
+            insights.map((item) => {
+              try {
+                const data = JSON.parse(item.content);
+                return (
+                  <InsightCard 
+                    key={item.id} 
+                    number={item.section_id || ''} 
+                    category={item.category || 'Typographic Insight'} 
+                    title={item.title}
+                    linkText={data.linkText || 'READ_MORE'}
+                  >
+                    <p className="text-lg md:text-2xl">
+                      {data.summary}
+                    </p>
+                  </InsightCard>
+                );
+              } catch (e) { return null; }
+            })
+          )}
 
         </main>
 
