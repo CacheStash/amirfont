@@ -10,6 +10,7 @@ interface ContentItem {
   content: string;
   section_id: string;
   category: string;
+updated_at?: string;
 }
 
 // Shared Bullet Style
@@ -29,6 +30,16 @@ const Insights: React.FC = () => {
   const [insights, setInsights] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+const [lastUpdated, setLastUpdated] = useState<string>('');
+
+  const formatLastUpdated = (items: ContentItem[]) => {
+    const dates = items.map(i => i.updated_at ? new Date(i.updated_at).getTime() : 0).filter(d => d > 0);
+    if (!dates.length) return '';
+    return new Date(Math.max(...dates)).toLocaleDateString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric'
+    }).toUpperCase();
+  };
+
   useEffect(() => {
     const fetchInsights = async () => {
       const { data } = await supabase
@@ -37,7 +48,10 @@ const Insights: React.FC = () => {
         .eq('category', 'insights')
         .order('sort_order', { ascending: true });
       
-      if (data) setInsights(data);
+      if (data) {
+        setInsights(data);
+        setLastUpdated(formatLastUpdated(data));
+      }
       setLoading(false);
     };
     fetchInsights();
@@ -102,7 +116,7 @@ const Insights: React.FC = () => {
               Tips, Tricks, and Typography Trends.
             </p>
             <p className="text-[10px] md:text-xs font-semibold text-black/40 uppercase tracking-widest">
-              — LAST UPDATED: FEBRUARY 21, 2026
+              — LAST UPDATED: {lastUpdated || 'FEBRUARY 21, 2026'}
             </p>
           </div>
         </header>

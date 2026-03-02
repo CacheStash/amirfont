@@ -10,6 +10,7 @@ interface ContentItem {
   section_id: string;
   category: string;
   type: string;
+updated_at?: string;
 }
 // Shared Bullet Style
 const PlusBullet = () => (
@@ -27,7 +28,15 @@ const About: React.FC = () => {
 
   const [aboutSections, setAboutSections] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
+const [lastUpdated, setLastUpdated] = useState<string>('');
 
+  const formatLastUpdated = (items: ContentItem[]) => {
+    const dates = items.map(i => i.updated_at ? new Date(i.updated_at).getTime() : 0).filter(d => d > 0);
+    if (!dates.length) return '';
+    return new Date(Math.max(...dates)).toLocaleDateString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric'
+    }).toUpperCase();
+  };
   useEffect(() => {
     const fetchAbout = async () => {
       const { data } = await supabase
@@ -36,7 +45,10 @@ const About: React.FC = () => {
         .eq('category', 'about')
         .order('sort_order', { ascending: true });
       
-      if (data) setAboutSections(data);
+      if (data) {
+        setAboutSections(data);
+        setLastUpdated(formatLastUpdated(data));
+      }
       setLoading(false);
     };
     fetchAbout();
@@ -86,7 +98,7 @@ const About: React.FC = () => {
               100% Indie. Built Natively. No CMS.
             </p>
             <p className="text-[10px] md:text-xs font-semibold text-black/40 uppercase tracking-widest">
-              — LAST UPDATED: FEBRUARY 21, 2026
+              — LAST UPDATED: {lastUpdated || 'FEBRUARY 21, 2026'}
             </p>
           </div>
         </header>

@@ -9,6 +9,7 @@ interface ContentItem {
   content: string;
   section_id: string;
   type: string;
+updated_at?: string;
 }
 
 // Shared Bullet Style - Menggunakan Icon Plus (Hitam)
@@ -62,7 +63,15 @@ const FAQ: React.FC = () => {
 
   const [faqs, setFaqs] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
+const [lastUpdated, setLastUpdated] = useState<string>('');
 
+  const formatLastUpdated = (items: ContentItem[]) => {
+    const dates = items.map(i => i.updated_at ? new Date(i.updated_at).getTime() : 0).filter(d => d > 0);
+    if (!dates.length) return '';
+    return new Date(Math.max(...dates)).toLocaleDateString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric'
+    }).toUpperCase();
+  };
   useEffect(() => {
     const fetchFaqs = async () => {
       const { data } = await supabase
@@ -71,7 +80,10 @@ const FAQ: React.FC = () => {
         .eq('category', 'faq')
         .order('sort_order', { ascending: true });
       
-      if (data) setFaqs(data);
+      if (data) {
+        setFaqs(data);
+        setLastUpdated(formatLastUpdated(data));
+      }
       setLoading(false);
     };
     fetchFaqs();
@@ -110,7 +122,7 @@ const FAQ: React.FC = () => {
               Clarity for Your Creative Workflow
             </p>
             <p className="text-[10px] md:text-xs font-semibold text-black/40 uppercase tracking-widest">
-              — LAST UPDATED: FEBRUARY 21, 2026
+              — LAST UPDATED: {lastUpdated || 'FEBRUARY 21, 2026'}
             </p>
           </div>
         </header>

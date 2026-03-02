@@ -8,6 +8,7 @@ interface ContentItem {
   title: string;
   content: string;
   section_id: string;
+updated_at?: string;
 }
 const PlusBullet = () => (
   <Plus size={14} className="shrink-0 mt-[0.4em] text-black" strokeWidth={3} />
@@ -23,6 +24,16 @@ const Policy: React.FC = () => {
   const [policies, setPolicies] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+const [lastUpdated, setLastUpdated] = useState<string>('');
+
+  const formatLastUpdated = (items: ContentItem[]) => {
+    const dates = items.map(i => i.updated_at ? new Date(i.updated_at).getTime() : 0).filter(d => d > 0);
+    if (!dates.length) return '';
+    return new Date(Math.max(...dates)).toLocaleDateString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric'
+    }).toUpperCase();
+  };
+
   useEffect(() => {
     const fetchPolicies = async () => {
       const { data } = await supabase
@@ -31,7 +42,10 @@ const Policy: React.FC = () => {
         .eq('category', 'policy')
         .order('sort_order', { ascending: true });
       
-      if (data) setPolicies(data);
+      if (data) {
+        setPolicies(data);
+        setLastUpdated(formatLastUpdated(data));
+      }
       setLoading(false);
     };
     fetchPolicies();
@@ -68,7 +82,7 @@ const Policy: React.FC = () => {
               Software is permanent. Selection should be too.
             </p>
             <p className="text-[10px] md:text-xs font-semibold text-black/40 uppercase tracking-widest">
-              — LAST UPDATED: FEBRUARY 21, 2026
+              — LAST UPDATED: {lastUpdated || 'FEBRUARY 21, 2026'}
             </p>
           </div>
         </header>
