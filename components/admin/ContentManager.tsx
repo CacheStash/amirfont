@@ -16,6 +16,49 @@ const ContentManager = () => {
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
+
+  // Fungsi untuk mengotomatisasi Section ID berdasarkan kategori
+  const generateSectionId = (category: string, index: number) => {
+    const displayIndex = index + 1;
+    if (category === 'faq') return `Q${displayIndex}`;
+    return displayIndex < 10 ? `0${displayIndex}` : `${displayIndex}`;
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedItemIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault(); // Diperlukan agar drop bisa berfungsi
+  };
+
+  const handleDrop = async (index: number) => {
+    if (draggedItemIndex === null || draggedItemIndex === index) return;
+
+    const newItems = [...items];
+    const draggedItem = newItems.splice(draggedItemIndex, 1)[0];
+    newItems.splice(index, 0, draggedItem);
+
+    // Update sort_order dan section_id secara otomatis berdasarkan urutan baru
+    const updatedItems = newItems.map((item, idx) => ({
+      ...item,
+      sort_order: idx,
+      section_id: generateSectionId(currentCategory, idx)
+    }));
+
+    setItems(updatedItems);
+    setDraggedItemIndex(null);
+
+    // Batch update ke Supabase
+    try {
+      const { error } = await supabase.from('site_content').upsert(updatedItems);
+      if (error) throw error;
+    } catch (err) {
+      console.error("Failed to sync sequence:", err);
+      alert("SEQUENCE SYNC FAILED. PLEASE REFRESH.");
+    }
+  };
   const [currentCategory, setCurrentCategory] = useState('faq');
   const [formData, setFormData] = useState<ContentItem>({
     title: '',
@@ -143,8 +186,15 @@ const ContentManager = () => {
         {loading ? (
           <div className="font-black animate-pulse">SYNCING_DATA...</div>
         ) : (
-          items.map((item) => (
-            <div key={item.id} className="border border-black p-4 bg-white flex justify-between items-center group">
+          items.map((item, index) => (
+            <div key={item.id} draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(index)}
+              className={`border border-black p-4 bg-white flex justify-between items-center group cursor-move transition-all ${
+                draggedItemIndex === index ? 'opacity-30 border-dashed bg-gray-50' : 'hover:border-orange-500'
+              }`}
+            >
               <div className="flex items-center gap-6">
                 <span className="font-black text-2xl opacity-10 italic">#{item.sort_order}</span>
                 <div>
