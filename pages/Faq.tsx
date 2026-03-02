@@ -8,7 +8,9 @@ interface ContentItem {
   title: string;
   content: string;
   section_id: string;
+  type: string;
 }
+
 // Shared Bullet Style - Menggunakan Icon Plus (Hitam)
 const PlusBullet = () => (
   <Plus size={14} className="shrink-0 mt-[0.4em] text-black" strokeWidth={3} />
@@ -117,14 +119,38 @@ const FAQ: React.FC = () => {
           {loading ? (
             <div className="animate-pulse font-bold">LOADING_CONTENT...</div>
           ) : (
-            faqs.map((item) => (
-              <TermCard key={item.id} number={item.section_id || ''} title={item.title}>
-                <div 
-                  className="prose max-w-none prose-p:leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: item.content }} 
-                />
-              </TermCard>
-            ))
+            faqs.map((item) => {
+              // Deteksi jika item adalah tabel brutalist
+              if (item.type === 'table') {
+                try {
+                  const tableData = JSON.parse(item.content);
+                  return (
+                    <BrutalTable 
+                      key={item.id}
+                      title={item.title}
+                      headers={tableData.headers}
+                      rows={tableData.rows}
+                    />
+                  );
+                } catch (e) {
+                  return (
+                    <div key={item.id} className="p-4 border border-black text-red-600 font-bold mb-10 uppercase text-xs">
+                      Error_Parsing_Table_Data
+                    </div>
+                  );
+                }
+              }
+
+              // Default render sebagai kartu FAQ
+              return (
+                <TermCard key={item.id} number={item.section_id || ''} title={item.title}>
+                  <div 
+                    className="prose max-w-none prose-p:leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: item.content }} 
+                  />
+                </TermCard>
+              );
+            })
           )}
 
           {/* COMPREHENSIVE TABLES */}
