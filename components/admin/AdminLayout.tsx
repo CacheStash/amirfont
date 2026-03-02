@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { LayoutDashboard, Type, ShoppingCart, LogOut, Tag, Menu, X, Mail } from 'lucide-react';
 import ProductManager from './ProductManager';
+import { FileText } from 'lucide-react'; // Icon baru untuk Content
+import ContentManager from './ContentManager';
 import PromotionsManager from './PromotionsManager'; 
 import Orders from './Orders';
 import Statistics from './Statistics';
@@ -92,6 +94,9 @@ const AdminDashboard = () => {
           <button onClick={() => handleTabChange('orders')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'orders' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <ShoppingCart size={18} /> Orders
           </button>
+          <button onClick={() => handleTabChange('content')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'content' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+            <FileText size={18} /> Content Management
+          </button>
         </nav>
 
         <div className="p-4 border-t border-black">
@@ -105,6 +110,7 @@ const AdminDashboard = () => {
       <main className="flex-grow p-6 md:p-10 overflow-x-hidden overflow-y-auto w-full">
         {activeTab === 'products' && <ProductManager />}
         {activeTab === 'promotions' && <PromotionsManager />}
+        {activeTab === 'content' && <ContentManager />}
         {activeTab === 'stats' && <Statistics />}
         {activeTab === 'inbox' && <AdminMessages />}
         {activeTab === 'orders' && <Orders />}
