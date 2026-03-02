@@ -9,6 +9,7 @@ interface ContentItem {
   content: string;
   section_id: string;
   category: string;
+  type: string;
 }
 // Shared Bullet Style
 const PlusBullet = () => (
@@ -96,40 +97,50 @@ const About: React.FC = () => {
           {loading ? (
             <div className="animate-pulse font-bold">LOADING_MANIFESTO...</div>
           ) : (
-            aboutSections.map((item) => (
-              <AboutCard 
-                key={item.id} 
-                number={item.section_id || ''} 
-                category={item.title.includes('?') ? 'The Core Hypothesis' : 'Technical Identity'} 
-                title={item.title}
-              >
-                <div 
-                  className="prose max-w-none prose-p:leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: item.content }} 
-                />
-              </AboutCard>
-            ))
-          )}
+            aboutSections.map((item) => {
+              // TEMPLATE: Special Footer dengan Orb Dekoratif
+              if (item.type === 'special_footer') {
+                try {
+                  const data = JSON.parse(item.content);
+                  return (
+                    <section key={item.id} className="mt-12 w-full border border-black bg-black text-white p-10 md:p-20 relative z-10 overflow-hidden">
+                       <div className="absolute top-0 right-0 w-64 h-64 bg-orange-600/20 blur-[80px] rounded-full -mr-20 -mt-20 pointer-events-none" />
+                       <div className="relative z-10 space-y-10">
+                          <h3 
+                            className="text-4xl md:text-7xl font-normal tracking-tighter uppercase italic leading-[0.9]"
+                            dangerouslySetInnerHTML={{ __html: data.italic_text }}
+                          />
+                          <p className="text-lg md:text-2xl normal-case text-gray-400 font-normal leading-relaxed max-w-4xl">
+                            {data.body_text}
+                          </p>
+                          <div className="pt-6">
+                             <p className="text-base md:text-lg font-bold uppercase tracking-[0.3em] text-orange-600">
+                               {data.location}
+                             </p>
+                          </div>
+                       </div>
+                    </section>
+                  );
+                } catch (e) { return null; }
+              }
 
-          {/* SECTION 04: CLOSING STATEMENT */}
-          <section className="mt-12 w-full border border-black bg-black text-white p-10 md:p-20 relative z-10 overflow-hidden">
-             {/* Subtle internal decorative orb */}
-             <div className="absolute top-0 right-0 w-64 h-64 bg-orange-600/20 blur-[80px] rounded-full -mr-20 -mt-20 pointer-events-none" />
-             
-             <div className="relative z-10 space-y-10">
-                <h3 className="text-4xl md:text-7xl font-normal tracking-tighter uppercase italic leading-[0.9]">
-                  Born in silence. <br className="hidden md:block" /> Engineered for clarity.
-                </h3>
-                <p className="text-lg md:text-2xl normal-case text-gray-400 font-normal leading-relaxed max-w-4xl">
-                  Whether you are a solo creator or a global agency, I hope these natively-crafted tools bring a sense of soul and precision to your typography. 
-                </p>
-                <div className="pt-6">
-                   <p className="text-base md:text-lg font-bold uppercase tracking-[0.3em] text-orange-600">
-                     Sleman, Yogyakarta — 2026
-                   </p>
-                </div>
-             </div>
-          </section>
+              // TEMPLATE: Kartu About Standar
+              return (
+                <AboutCard 
+                  key={item.id} 
+                  number={item.section_id || ''} 
+                  category={item.title.includes('?') ? 'The Core Hypothesis' : 'Technical Identity'} 
+                  title={item.title}
+                >
+                  <div 
+                    className="prose max-w-none prose-p:leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: item.content }} 
+                  />
+                </AboutCard>
+              );
+            })
+
+          )}
 
         </main>
 
