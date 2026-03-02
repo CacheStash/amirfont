@@ -54,8 +54,8 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
       const { data: fonts } = await supabase
         .from('fonts')
         .select('id, name, images')
-        .or(`name.ilike.%${query}%,description.ilike.%${query}%,tags.ilike.%${query}%`)
-        .limit(5);
+        .or(`name.ilike.%${query}%,description.ilike.%${query}%,tags.ilike.%${query}%`)
+        .limit(5);
 
       // 2. Cari di tabel Site Content (FAQ, Policy, dll)
       const { data: pages } = await supabase
@@ -190,11 +190,11 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                           {item.type === 'font' ? item.name : item.title}
                         </span>
                         {item.type === 'font' && item.images?.[0] && (
-                          <div className="mt-4 border border-black/5 bg-gray-50 p-1 w-fit">
+                          <div className="mt-4 border border-black/10 bg-[#f9f9f9] p-1 w-fit">
                             <img 
                               src={item.images[0]} 
                               alt={item.name} 
-                              className="h-12 md:h-20 w-auto object-contain filter grayscale group-hover:grayscale-0 transition-all duration-500" 
+                              className="h-12 md:h-16 w-auto object-contain grayscale group-hover:grayscale-0 transition-all duration-500" 
                             />
                           </div>
                         )}
