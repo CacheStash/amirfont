@@ -13,6 +13,9 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   
   const location = useLocation();
@@ -34,10 +37,55 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+     await supabase.auth.signOut();
     setIsOpen(false);
   };
 
+    const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // 1. Cari di tabel Fonts
+      const { data: fonts } = await supabase
+        .from('fonts')
+        .select('id, name')
+        .or(`name.ilike.%${query}%,tags.ilike.%${query}%,description.ilike.%${query}%`)
+        .limit(5);
+
+      // 2. Cari di tabel Site Content (FAQ, Policy, dll)
+      const { data: pages } = await supabase
+        .from('site_content')
+        .select('title, page_path, section_id')
+        .or(`title.ilike.%${query}%,content.ilike.%${query}%`)
+        .limit(5);
+
+      const combined = [
+        ...(fonts?.map(f => ({ ...f, type: 'font' })) || []),
+        ...(pages?.map(p => ({ ...p, type: 'page' })) || [])
+      ];
+      
+      setSuggestions(combined);
+    } catch (err) {
+      console.error("Search Fail:", err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Reset search saat overlay ditutup
+  useEffect(() => {
+    if (!isSearchOpen) {
+      setSearchQuery('');
+      setSuggestions([]);
+    }
+  }, [isSearchOpen]);
+
+   
   // OVERLAY LOGIC
   useEffect(() => {
     if (onStateChange) {
@@ -117,7 +165,40 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                   <button className="p-4 px-6 hover:bg-black hover:text-white border-l border-black transition-colors md:text-xl font-bold">
                       SEARCH
                   </button>
+                  <input 
+                    type="text" 
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    placeholder="TYPE TO SEARCH ANYTHING AT THIS SITE..." 
+                    className="w-full p-4 md:text-2xl font-normal uppercase bg-transparent outline-none placeholder:text-gray-400"
+                    autoFocus={isSearchOpen}
+                  />
+                  <button className="p-4 px-6 hover:bg-black hover:text-white border-l border-black transition-colors md:text-xl font-bold">
+                      {isSearching ? '...' : 'SEARCH'}
+                  </button>
               </div>
+
+              {/* AUTO-SUGGESTION DROPDOWN */}
+              {suggestions.length > 0 && (
+                <div className="border-x border-b border-black bg-white divide-y divide-black/10 max-h-[60vh] overflow-y-auto">
+                  {suggestions.map((item, index) => (
+                    <Link
+                      key={index}
+                      to={item.type === 'font' ? `/font/${item.id}` : `${item.page_path}${item.section_id ? `#${item.section_id}` : ''}`}
+                      className="flex items-center justify-between p-4 md:px-8 hover:bg-black hover:text-white transition-all group"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black opacity-40 uppercase tracking-widest">{item.type}</span>
+                        <span className="text-xl md:text-3xl font-normal uppercase tracking-tighter leading-none">
+                          {item.type === 'font' ? item.name : item.title}
+                        </span>
+                      </div>
+                      <ArrowRight size={24} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                    </Link>
+                  ))}
+                </div>
+              )}
+              
           </div>
       </div>
 

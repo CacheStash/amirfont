@@ -21,7 +21,7 @@ const About: React.FC = () => {
     category: string, 
     children: React.ReactNode 
   }> = ({ number, title, category, children }) => (
-    <div className="mb-12 w-full border border-black bg-white relative z-10">
+    <div id={number} className="mb-12 w-full border border-black bg-white relative z-10 scroll-mt-24">
       {/* Title Section: Number on the left with identical font style */}
       <div className="border-b border-black p-6 md:p-10 bg-white">
         <span className="text-[10px] font-black tracking-[0.3em] text-orange-600 block mb-4 uppercase">

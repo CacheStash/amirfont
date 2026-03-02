@@ -13,7 +13,7 @@ const BrutalBox: React.FC<{ children: React.ReactNode, className?: string }> = (
 
 const Policy: React.FC = () => {
   const TermCard: React.FC<{ number: string, title: string, children: React.ReactNode }> = ({ number, title, children }) => (
-    <div className="mb-12 w-full border border-black bg-white relative z-10">
+    <div id={number} className="mb-12 w-full border border-black bg-white relative z-10 scroll-mt-24">
       <div className="border-b border-black p-6 md:p-10 bg-white">
         <h3 className="text-3xl md:text-6xl font-normal tracking-tighter uppercase leading-none">
           <span className="opacity-20 mr-4 md:mr-8">{number}</span>
