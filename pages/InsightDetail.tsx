@@ -24,7 +24,7 @@ const InsightDetail: React.FC = () => {
 
   useEffect(() => {
     const fetchArticle = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('site_content')
         .select('*')
         .eq('category', 'insights')
@@ -48,7 +48,12 @@ const InsightDetail: React.FC = () => {
     fetchArticle();
   }, [id]);
 
-  if (loading) return <div className="min-h-screen bg-[#F5F5F0] p-10 font-bold animate-pulse uppercase">Recalling_Data_Stream...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-[#F5F5F0] flex items-center justify-center">
+      <div className="font-black animate-pulse uppercase tracking-widest text-xs">Recalling_Data_Stream...</div>
+    </div>
+  );
+  
   if (!article) return <Navigate to="/insights" />;
 
   return (
@@ -77,7 +82,10 @@ const InsightDetail: React.FC = () => {
             <div className="p-6 md:p-14 space-y-10 normal-case text-gray-800 leading-relaxed text-base md:text-xl">
               <div className="flex gap-6 items-start">
                 <PlusBullet />
-                <div className="w-full" dangerouslySetInnerHTML={{ __html: article.content }} />
+                <div 
+                  className="w-full space-y-8 text-justify" 
+                  dangerouslySetInnerHTML={{ __html: article.content }} 
+                />
               </div>
             </div>
           </div>
