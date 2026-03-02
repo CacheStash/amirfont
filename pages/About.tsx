@@ -1,6 +1,15 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 
+interface ContentItem {
+  id: string;
+  title: string;
+  content: string;
+  section_id: string;
+  category: string;
+}
 // Shared Bullet Style
 const PlusBullet = () => (
   <Plus size={14} className="shrink-0 mt-[0.4em] text-black" strokeWidth={3} />
@@ -14,6 +23,23 @@ const BrutalBox: React.FC<{ children: React.ReactNode, className?: string }> = (
 );
 
 const About: React.FC = () => {
+
+  const [aboutSections, setAboutSections] = useState<ContentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAbout = async () => {
+      const { data } = await supabase
+        .from('site_content')
+        .select('*')
+        .eq('category', 'about')
+        .order('sort_order', { ascending: true });
+      
+      if (data) setAboutSections(data);
+      setLoading(false);
+    };
+    fetchAbout();
+  }, []);
   // Component AboutCard - Consistent with License.tsx style
   const AboutCard: React.FC<{ 
     number: string, 
@@ -67,71 +93,23 @@ const About: React.FC = () => {
         {/* CONTENT MAIN */}
         <main className="px-3 md:px-8 max-w-full mx-auto text-left">
           
-          {/* SECTION 01: THE ORIGIN */}
-          <AboutCard 
-            number="01" 
-            category="The Core Hypothesis" 
-            title="Is a $0 Overhead Possible?"
-          >
-            <p className="text-lg md:text-2xl italic font-normal text-black">
-              Subqi Studio began as a technical curiosity: Can a professional-grade font commerce platform exist with zero operational infrastructure costs?
-            </p>
-            <div className="flex gap-6 items-start">
-              <PlusBullet />
-              <p className="text-lg md:text-xl text-gray-600 normal-case">
-                This website is the answer. Built from scratch without the bloat of traditional CMS or third-party marketplaces, it serves as proof that lean, native code can outperform expensive, templated systems.
-              </p>
-            </div>
-          </AboutCard>
-
-          {/* SECTION 02: THE NATIVE BADGE */}
-          <AboutCard 
-            number="02" 
-            category="Technical Identity" 
-            title="The workers.dev Manifesto"
-          >
-            <div className="space-y-8">
-              <p className="text-lg md:text-xl text-gray-800 normal-case">
-                You might notice the **workers.dev** domain. It is not a temporary placeholder; it is a badge of technical efficiency.
-              </p>
-              <BrutalBox className="bg-black text-white">
-                 <p className="text-base md:text-xl italic font-normal leading-relaxed">
-                   "By leveraging native cloud technologies, I have achieved a seamless, high-performance shopping experience with zero server maintenance and zero upfront costs."
-                 </p>
-              </BrutalBox>
-              <div className="flex gap-6 items-start pt-4">
-                <PlusBullet />
-                <p className="text-lg md:text-xl text-gray-600 normal-case">
-                  This native approach ensures that every micro-interaction and typographic detail is executed exactly as intended, without the constraints of generic e-commerce plugins.
-                </p>
-              </div>
-            </div>
-          </AboutCard>
-
-          {/* SECTION 03: AUTONOMY BY DESIGN */}
-          <AboutCard 
-            number="03" 
-            category="Creative Freedom" 
-            title="Absolute Native Control"
-          >
-            <p className="text-lg md:text-xl text-gray-800 normal-case">
-              Native development grants me total autonomy over the studio's features and aesthetic. I am not a user of a platform; I am the architect of my own tools.
-            </p>
-            <ul className="space-y-6">
-               <li className="flex gap-4 items-start">
-                 <PlusBullet />
-                 <span className="text-lg normal-case opacity-70">Custom-built licensing engines tailored for modern workflows.</span>
-               </li>
-               <li className="flex gap-4 items-start">
-                 <PlusBullet />
-                 <span className="text-lg normal-case opacity-70">A direct, unmediated link between the type designer and the end user.</span>
-               </li>
-               <li className="flex gap-4 items-start">
-                 <PlusBullet />
-                 <span className="text-lg normal-case opacity-70">Performance-first architecture with zero tracking and zero bloat.</span>
-               </li>
-            </ul>
-          </AboutCard>
+          {loading ? (
+            <div className="animate-pulse font-bold">LOADING_MANIFESTO...</div>
+          ) : (
+            aboutSections.map((item) => (
+              <AboutCard 
+                key={item.id} 
+                number={item.section_id || ''} 
+                category={item.title.includes('?') ? 'The Core Hypothesis' : 'Technical Identity'} 
+                title={item.title}
+              >
+                <div 
+                  className="prose max-w-none prose-p:leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: item.content }} 
+                />
+              </AboutCard>
+            ))
+          )}
 
           {/* SECTION 04: CLOSING STATEMENT */}
           <section className="mt-12 w-full border border-black bg-black text-white p-10 md:p-20 relative z-10 overflow-hidden">

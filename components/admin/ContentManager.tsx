@@ -10,6 +10,7 @@ interface ContentItem {
   section_id: string;
   category: string;
   sort_order: number;
+  type: string;
 }
 
 const ContentManager = () => {
@@ -66,6 +67,7 @@ const ContentManager = () => {
     page_path: '/faq',
     section_id: '',
     category: 'faq',
+    type: 'page',
     sort_order: 0
   });
 
@@ -112,6 +114,7 @@ const ContentManager = () => {
       page_path: `/${currentCategory}`,
       section_id: '',
       category: currentCategory,
+      type: 'page',
       sort_order: items.length
     });
     setIsEditing(false);
@@ -149,16 +152,26 @@ const ContentManager = () => {
             value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
             required
           />
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
+            <select 
+              className="p-3 border border-black font-bold uppercase text-[10px] outline-none bg-white cursor-pointer"
+              value={formData.type}
+              onChange={e => setFormData({...formData, type: e.target.value})}
+            >
+              <option value="page">STANDARD_CARD</option>
+              <option value="table">BRUTAL_TABLE</option>
+              <option value="special_footer">CLOSING_STATEMENT</option>
+              <option value="insight_summary">INSIGHT_SUMMARY</option>
+            </select>
             <input 
-              type="text" placeholder="SECTION_ID (e.g. Q1, 01)" 
-              className="p-3 border border-black font-bold uppercase text-xs outline-none"
+              type="text" placeholder="SECTION_ID" 
+              className="p-3 border border-black font-bold uppercase text-[10px] outline-none"
               value={formData.section_id} onChange={e => setFormData({...formData, section_id: e.target.value})}
               required
             />
             <input 
               type="number" placeholder="ORDER" 
-              className="p-3 border border-black font-bold uppercase text-xs outline-none"
+              className="p-3 border border-black font-bold uppercase text-[10px] outline-none"
               value={formData.sort_order} onChange={e => setFormData({...formData, sort_order: parseInt(e.target.value)})}
             />
           </div>
@@ -169,6 +182,22 @@ const ContentManager = () => {
           value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})}
           required
         />
+        {formData.type === 'table' && (
+          <div className="p-4 bg-gray-100 border border-black text-[10px] font-mono leading-tight">
+            <p className="font-black mb-2 uppercase">Table JSON Format:</p>
+            <p className="text-gray-500">
+              {`{ "headers": ["COL1", "COL2"], "rows": [["DATA1", "DATA2"], ["DATA3", "DATA4"]] }`}
+            </p>
+          </div>
+        )}
+        {formData.type === 'special_footer' && (
+          <div className="p-4 bg-gray-100 border border-black text-[10px] font-mono leading-tight">
+            <p className="font-black mb-2 uppercase">Footer JSON Format:</p>
+            <p className="text-gray-500">
+              {`{ "italic_text": "Born in silence...", "location_info": "Sleman, Yogyakarta — 2026" }`}
+            </p>
+          </div>
+        )}
         <div className="flex gap-2">
           <button type="submit" className="flex items-center gap-2 bg-black text-white px-6 py-3 font-black text-xs uppercase hover:bg-orange-600 transition-all">
             <Save size={16} /> {isEditing ? 'UPDATE_CONTENT' : 'PUBLISH_CONTENT'}
