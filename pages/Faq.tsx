@@ -83,7 +83,7 @@ const FAQ: React.FC = () => {
       <div className="border-b border-black p-6 md:p-10 bg-white">
         <h3 className="text-2xl md:text-5xl font-normal tracking-tighter uppercase leading-tight">
           <span className="opacity-20 mr-4 md:mr-8">{number}</span>
-          {title}
+          <span dangerouslySetInnerHTML={{ __html: title }} />
         </h3>
       </div>
       <div className="p-6 md:p-14 space-y-10 normal-case text-gray-800 leading-relaxed text-base md:text-xl">
