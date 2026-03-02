@@ -53,8 +53,8 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
       // 1. Cari di tabel Fonts
       const { data: fonts } = await supabase
         .from('fonts')
-        .select('id, name')
-        .ilike('name', `%${query}%`) // Pencarian sederhana berdasarkan nama agar lebih stabil
+        .select('id, name, images')
+        .or(`name.ilike.%${query}%,description.ilike.%${query}%,tags.ilike.%${query}%`)
         .limit(5);
 
       // 2. Cari di tabel Site Content (FAQ, Policy, dll)
@@ -189,6 +189,15 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                         <span className="text-xl md:text-3xl font-normal uppercase tracking-tighter leading-none">
                           {item.type === 'font' ? item.name : item.title}
                         </span>
+                        {item.type === 'font' && item.images?.[0] && (
+                          <div className="mt-4 border border-black/5 bg-gray-50 p-1 w-fit">
+                            <img 
+                              src={item.images[0]} 
+                              alt={item.name} 
+                              className="h-12 md:h-20 w-auto object-contain filter grayscale group-hover:grayscale-0 transition-all duration-500" 
+                            />
+                          </div>
+                        )}
                       </div>
                       <ArrowRight size={24} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                     </Link>
