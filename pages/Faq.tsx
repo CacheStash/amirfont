@@ -153,32 +153,7 @@ const FAQ: React.FC = () => {
             })
           )}
 
-          {/* COMPREHENSIVE TABLES */}
-          <BrutalTable 
-            title="1. License Metrics (Industry Scales)"
-            headers={["Category", "Primary Metric", "Tiers / Levels"]}
-            rows={[
-              ["Desktop / Print", "Number of Users", "1 | 30 | 100 | Unlimited"],
-              ["Digital Media", "Monthly Views", "50K | 500K | 2M | Unlimited"],
-              ["Logo & Branding", "Total Employees", "Personal | 10 | 50 | 250 | 251+"],
-              ["App / Game", "Number of Titles", "1 | 10 | 50 | Unlimited"],
-              ["Server", "Number of Servers", "Single | 50 | Unlimited"],
-              ["Broadcast", "Distribution Reach", "Regional | National | Worldwide"]
-            ]}
-          />
-
-          <BrutalTable 
-            title="2. Usage Coverage Comparison"
-            headers={["Usage Rights", "Individual Additive", "Corporate All-In-One"]}
-            rows={[
-              ["Commercial Use", "✅ (Category Specific)", "✅ (Full Access)"],
-              ["Global Scaling", "❌ (Tier Limited)", "✅ (Unlimited)"],
-              ["Internal Sharing", "✅ (User Limited)", "✅ (Organization-Wide)"],
-              ["Embed in Software", "✅ (Category Only)", "✅ (Included)"],
-              ["TV / Cinema", "✅ (Category Only)", "✅ (Included)"]
-            ]}
-          />
-
+          
         </main>
         <div className="h-40 md:h-60 bg-transparent" />
       </div>
