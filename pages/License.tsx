@@ -10,6 +10,7 @@ interface ContentItem {
   title: string;
   content: string;
   section_id: string;
+updated_at?: string;
 }
 const PlusBullet = () => (
   <Plus size={14} className="shrink-0 mt-[0.4em] text-black" strokeWidth={3} />
@@ -27,6 +28,16 @@ const License: React.FC = () => {
   const [licenses, setLicenses] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [lastUpdated, setLastUpdated] = useState<string>('');
+
+  const formatLastUpdated = (items: ContentItem[]) => {
+    const dates = items.map(i => i.updated_at ? new Date(i.updated_at).getTime() : 0).filter(d => d > 0);
+    if (!dates.length) return '';
+    return new Date(Math.max(...dates)).toLocaleDateString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric'
+    }).toUpperCase();
+  };
+
   useEffect(() => {
     const fetchLicenses = async () => {
       const { data } = await supabase
@@ -35,9 +46,13 @@ const License: React.FC = () => {
         .eq('category', 'license')
         .order('sort_order', { ascending: true });
       
-      if (data) setLicenses(data);
+      if (data) {
+        setLicenses(data);
+        setLastUpdated(formatLastUpdated(data));
+      }
       setLoading(false);
     };
+    
     fetchLicenses();
   }, []);
   const TermCard: React.FC<{ number: string, title: string, children: React.ReactNode }> = ({ number, title, children }) => (
@@ -77,7 +92,7 @@ const License: React.FC = () => {
               Clear Additive Terms for Creative Freedom
             </p>
             <p className="text-xs md:text-sm font-normal text-black uppercase tracking-widest">
-            — LAST UPDATED: FEBRUARY 21, 2026
+            — LAST UPDATED: {lastUpdated || 'FEBRUARY 21, 2026'}
             </p>
           </div>
         </header>
