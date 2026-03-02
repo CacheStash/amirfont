@@ -158,15 +158,6 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                   </div>
                   <input 
                     type="text" 
-                    placeholder="TYPE TO SEARCH ANYTHING AT THIS SITE..." 
-                    className="w-full p-4 md:text-2xl font-normal uppercase bg-transparent outline-none placeholder:text-gray-400"
-                    autoFocus={isSearchOpen}
-                  />
-                  <button className="p-4 px-6 hover:bg-black hover:text-white border-l border-black transition-colors md:text-xl font-bold">
-                      SEARCH
-                  </button>
-                  <input 
-                    type="text" 
                     value={searchQuery}
                     onChange={(e) => handleSearch(e.target.value)}
                     placeholder="TYPE TO SEARCH ANYTHING AT THIS SITE..." 

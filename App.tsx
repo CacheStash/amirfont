@@ -2,6 +2,25 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 
+import { useLocation } from 'react-router-dom';
+
+const ScrollToHash = () => {
+  const { hash } = useLocation();
+  React.useEffect(() => {
+    if (hash) {
+      const id = hash.replace('#', '');
+      const element = document.getElementById(id);
+      if (element) {
+        // Timeout 0 diperlukan untuk menunggu komponen target selesai render
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }
+  }, [hash]);
+  return null;
+};
+
 // Layout & Global Components
 import Navbar from './components/Navbar';
 import BackToTop from './components/BackToTop';
@@ -112,6 +131,7 @@ const App: React.FC = () => {
 
     <CartProvider>
     <Router>
+      <ScrollToHash />
       <div className="min-h-screen bg-[#EDEBE6] text-black font-sans selection:bg-black selection:text-white relative flex flex-col uppercase">
         
         {/* Kirim fungsi setIsNavActive ke Navbar */}
