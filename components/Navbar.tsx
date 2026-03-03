@@ -62,6 +62,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
         .from('v_global_search')
         .select('*')
         .ilike('search_text', `%${query}%`)
+        .order('type', { ascending: true }) // 'font' (f) akan muncul sebelum 'page' (p)
         .limit(10);
       
       if (error) throw error;
@@ -182,12 +183,16 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                           {item.title}
                         </span>
                         {item.type === 'font' && item.font_images?.[0] && (
-                          <div className="mt-4 border border-black/10 bg-[#f9f9f9] p-1 w-fit group-hover:border-white transition-colors">
-                            <img 
-                              src={resolvePreviewUrl(item.font_images[0]) || ''} 
-                              alt={item.title} 
-                              className="h-12 md:h-16 w-auto object-contain grayscale group-hover:grayscale-0 transition-all duration-500" 
-                            />
+                          <div className="mt-4 flex gap-2">
+                            {item.font_images.slice(0, 3).map((img: string, i: number) => (
+                              <div key={i} className="border border-black/10 bg-[#f9f9f9] p-1 w-fit group-hover:border-white transition-colors">
+                                <img 
+                                  src={resolvePreviewUrl(img) || ''} 
+                                  alt={`${item.title} preview ${i}`} 
+                                  className="h-12 md:h-16 w-auto object-contain grayscale-0 group-hover:grayscale transition-all duration-500" 
+                                />
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
