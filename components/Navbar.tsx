@@ -9,6 +9,13 @@ interface NavbarProps {
   onStateChange?: (isActive: boolean) => void;
 }
 
+
+const resolvePreviewUrl = (filename: string) => {
+  if (!filename) return null;
+  if (filename.startsWith('http')) return filename;
+  return `/api/images/${filename}`; 
+};
+
 const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -177,7 +184,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                         {item.type === 'font' && item.font_images?.[0] && (
                           <div className="mt-4 border border-black/10 bg-[#f9f9f9] p-1 w-fit group-hover:border-white transition-colors">
                             <img 
-                              src={item.font_images[0]} 
+                              src={resolvePreviewUrl(item.font_images[0]) || ''} 
                               alt={item.title} 
                               className="h-12 md:h-16 w-auto object-contain grayscale group-hover:grayscale-0 transition-all duration-500" 
                             />
