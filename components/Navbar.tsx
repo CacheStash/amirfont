@@ -51,25 +51,14 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
     setIsSearching(true);
     try {
       // 1. Cari di tabel Fonts
-      const { data: fonts } = await supabase
-        .from('fonts')
-        .select('id, name, images, description, tags')
-        .or(`name.ilike.%${query}%,description.ilike.%${query}%,tags.ilike.%${query}%`)
-        .limit(5);
-
-      // 2. Cari di tabel Site Content (FAQ, Policy, dll)
-      const { data: pages } = await supabase
-        .from('site_content')
-        .select('title, page_path, section_id, category')
-        .or(`title.ilike.%${query}%,content.ilike.%${query}%`)
-        .limit(5);
-
-      const combined = [
-        ...(fonts?.map(f => ({ ...f, type: 'font' })) || []),
-        ...(pages?.map(p => ({ ...p, type: 'page' })) || [])
-      ];
+      const { data, error } = await supabase
+        .from('v_global_search')
+        .select('*')
+        .ilike('search_text', `%${query}%`)
+        .limit(10);
       
-      setSuggestions(combined);
+      if (error) throw error;
+      setSuggestions(data || []);
     } catch (err) {
       console.error("Search Fail:", err);
     } finally {
@@ -175,25 +164,21 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                   {suggestions.map((item, index) => (
                     <Link
                       key={index}
-                      to={
-                        item.type === 'font' 
-                          ? `/font/${item.id}` 
-                          : item.category === 'insights'
-                            ? `/insight/${item.section_id}`
-                            : `${item.page_path}${item.section_id ? `#${item.section_id}` : ''}`
-                      }
+                      to={item.path}
                       className="flex items-center justify-between p-4 md:px-8 hover:bg-black hover:text-white transition-all group"
                     >
                       <div className="flex flex-col">
-                        <span className="text-[10px] font-black opacity-40 uppercase tracking-widest">{item.type}</span>
-                        <span className="text-xl md:text-3xl font-normal uppercase tracking-tighter leading-none">
-                          {item.type === 'font' ? item.name : item.title}
+                        <span className="text-[10px] font-black opacity-40 uppercase tracking-widest">
+                          {item.type === 'page' ? item.category : item.type}
                         </span>
-                        {item.type === 'font' && item.images?.[0] && (
+                        <span className="text-xl md:text-3xl font-normal uppercase tracking-tighter leading-none">
+                          {item.title}
+                        </span>
+                        {item.type === 'font' && item.font_images?.[0] && (
                           <div className="mt-4 border border-black/10 bg-[#f9f9f9] p-1 w-fit group-hover:border-white transition-colors">
                             <img 
-                              src={item.images[0]} 
-                              alt={item.name} 
+                              src={item.font_images[0]} 
+                              alt={item.title} 
                               className="h-12 md:h-16 w-auto object-contain grayscale group-hover:grayscale-0 transition-all duration-500" 
                             />
                           </div>
