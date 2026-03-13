@@ -312,6 +312,48 @@ export default {
       }
     }
 
+
+    // --- 6.1 API PayPal Webhook (Konfirmasi Pembayaran Otomatis) ---
+    if (url.pathname === '/api/webhook/paypal' && request.method === 'POST') {
+      try {
+        const signature = request.headers.get('paypal-transmission-sig');
+        const authAlgo = request.headers.get('paypal-auth-algo');
+        const certUrl = request.headers.get('paypal-cert-url');
+        const transmissionId = request.headers.get('paypal-transmission-id');
+        const transmissionTime = request.headers.get('paypal-transmission-time');
+        const webhookId = env.PAYPAL_WEBHOOK_ID; // Diambil dari secret yang kamu buat
+
+        const bodyText = await request.text();
+        const event = JSON.parse(bodyText);
+
+        // LOGIKA: Hanya proses jika pembayaran benar-benar sukses (Captured)
+        if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
+          const resource = event.resource;
+          const transactionId = resource.custom_id || resource.id; // ID Order kita
+
+          const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+          const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+
+          // UPDATE DATABASE: Ubah status di font_history menjadi 'full' (Berbayar)
+          await fetch(`${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${transactionId}`, {
+            method: 'PATCH',
+            headers: { 
+              'apikey': serviceRoleKey, 
+              'Authorization': `Bearer ${serviceRoleKey}`, 
+              'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify({ download_type: 'full' })
+          });
+
+          console.log(`PAYPAL_WEBHOOK_SUCCESS: Order ${transactionId} is now PAID.`);
+        }
+
+        return new Response("WEBHOOK_RECEIVED", { status: 200 });
+      } catch (e) {
+        return new Response("WEBHOOK_ERROR", { status: 500 });
+      }
+    }
+    
     // --- 7. API Secure ZIP Download (For Buyers) ---
     if (url.pathname.startsWith('/api/download-zip')) {
       const rawFile = url.searchParams.get('file') || ''; // AMBIL PARAM MENTAH
@@ -481,7 +523,7 @@ export default {
         licenseBody += `1. This license is non-transferable and belongs strictly to the buyer.\n`;
         licenseBody += `2. You may not sell, rent, sublicense, or redistribute the font files.\n`;
         licenseBody += `3. The font software remains the sole property of Subqi Studio.\n\n`;
-        licenseBody += `FULL DIGITAL RECEIPT:\nhttps://subqi-studio.fontshop.workers.dev/user/receipt/${transactionId} *LOGIN FIRST TO ACCESS*\n`;
+        licenseBody += `FULL DIGITAL RECEIPT:\nhttps://font.subqi.workers.dev/user/receipt/${transactionId} *LOGIN FIRST TO ACCESS*\n`;
 
         const licenseData = new TextEncoder().encode(licenseBody.trim());
 
