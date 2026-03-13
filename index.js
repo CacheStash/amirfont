@@ -316,13 +316,6 @@ export default {
     // --- 6.1 API PayPal Webhook (Konfirmasi Pembayaran Otomatis) ---
     if (url.pathname === '/api/webhook/paypal' && request.method === 'POST') {
       try {
-        const signature = request.headers.get('paypal-transmission-sig');
-        const authAlgo = request.headers.get('paypal-auth-algo');
-        const certUrl = request.headers.get('paypal-cert-url');
-        const transmissionId = request.headers.get('paypal-transmission-id');
-        const transmissionTime = request.headers.get('paypal-transmission-time');
-        const webhookId = env.PAYPAL_WEBHOOK_ID; // Diambil dari secret yang kamu buat
-
         const bodyText = await request.text();
         const event = JSON.parse(bodyText);
 
@@ -353,7 +346,7 @@ export default {
         return new Response("WEBHOOK_ERROR", { status: 500 });
       }
     }
-    
+
     // --- 7. API Secure ZIP Download (For Buyers) ---
     if (url.pathname.startsWith('/api/download-zip')) {
       const rawFile = url.searchParams.get('file') || ''; // AMBIL PARAM MENTAH

@@ -1,16 +1,20 @@
-name: Supabase Keep Alive
-
+// --- Context Anchor (Above) --- 
 on:
   schedule:
-    # Berjalan setiap hari Senin dan Kamis jam 00:00 UTC (07:00 WIB)
+    # Berjalan setiap hari jam 00:00 UTC (07:00 WIB) agar database tetap aktif
     - cron: '0 0 * * *'
   workflow_dispatch: # Memungkinkan kamu menjalankan manual untuk test
 
+// --- PARTIAL FIX ---
 jobs:
   ping_supabase:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Database via REST API
         run: |
-          curl -I "${{ secrets.SUPABASE_URL }}/rest/v1/" \
-          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}"
+          curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/site_content?select=id&limit=1" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+// --- END FIX ---
+
+// --- Context Anchor (Below) ---
