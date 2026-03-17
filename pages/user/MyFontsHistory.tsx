@@ -58,13 +58,15 @@ const MyFontsHistory = () => {
       const a = document.createElement('a');
       a.href = url;
       const contentDisposition = res.headers.get('Content-Disposition');
-      let downloadName = `SQ_Font_Asset.zip`; // Fallback jika header tidak terbaca
+      console.log("DEBUG_HEADER_DISPOSITION:", contentDisposition); // CEK DI CONSOLE F12
+
+      let downloadName = `DEBUG_FALLBACK_NAME.zip`; // Ubah fallback agar ketahuan jika gagal
       
       if (contentDisposition && contentDisposition.includes('filename=')) {
-        // Ekstrak string di dalam filename="..."
         downloadName = contentDisposition.split('filename=')[1].split(';')[0].replace(/["']/g, '').trim();
       }
 
+      console.log("DEBUG_FINAL_NAME:", downloadName); // CEK DI CONSOLE F12
       a.download = downloadName;
     
       document.body.appendChild(a);
