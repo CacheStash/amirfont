@@ -210,56 +210,53 @@ export default {
 
         // 1. Cari/Update User (Logic Resetter)
         const userCheckRes = await fetch(`${supabaseUrl}/rest/v1/fontbuyer?email=eq.${email}&select=id`, {
-          headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}` }
+          headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` }
         });
         const userCheckData = await userCheckRes.json();
-        let targetUserId;
+        let targetUserId = userCheckData?.[0]?.id;
 
-        if (userCheckData && userCheckData.length > 0) {
-          targetUserId = userCheckData[0].id;
-          
-          // A. Reset Password via Admin Auth
-          await fetch(`${supabaseUrl}/rest/v1/fontbuyer?id=eq.${targetUserId}`, {
-            method: 'PATCH',
-            headers: { 
-              'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 
-              'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 
-              'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify({ 
-              full_name: name || null, 
-              address: address || null 
-            })
-          });
-
-        } else {
-          // Hanya user BARU yang dibuatkan password otomatis menggunakan Order ID
+        if (!targetUserId) {
+          // Jika tidak ada di fontbuyer, coba buat di Auth (Mungkin user baru)
           const createRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
             method: 'POST',
-            headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password: transactionId, email_confirm: true })
+            headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password: transactionId, email_confirm: true, user_metadata: { full_name: name } })
           });
           const createData = await createRes.json();
+          
+          // Jika email sudah ada di Auth tapi tidak di fontbuyer, ambil ID-nya dari error atau abaikan create
           targetUserId = createData.id;
-
-          if (targetUserId) {
-            await fetch(`${supabaseUrl}/rest/v1/fontbuyer`, {
-              method: 'POST',
-              headers: { 
-                'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 
-                'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 
-                'Content-Type': 'application/json',
-                'Prefer': 'resolution=merge-duplicates'
-              },
-              body: JSON.stringify({ 
-                id: targetUserId, 
-                email: email, 
-                full_name: name || null, 
-                address: address || null 
-              })
-            });
+          
+          if (!createRes.ok && createRes.status !== 422) {
+             throw new Error(`AUTH_FAILED: ${createData.msg || JSON.stringify(createData)}`);
+          }
+          
+          // Fallback: Jika ID masih tidak ada (kasus email taken), kita butuh lookup ke auth atau pastikan upsert berjalan
+          if (!targetUserId && createRes.status === 422) {
+             // Opsional: Anda bisa tambahkan fetch lookup auth by email di sini jika service role mengizinkan
+             throw new Error("USER_EXISTS_IN_AUTH_BUT_NOT_PROFILED. Please use existing ID.");
           }
         }
+
+        // FIX UTAMA: Gunakan POST dengan Upsert (merge-duplicates) menggantikan PATCH
+        // Ini memastikan baris di fontbuyer PASTI ADA sebelum masuk ke font_history
+        const profileRes = await fetch(`${supabaseUrl}/rest/v1/fontbuyer`, {
+          method: 'POST',
+          headers: { 
+            'apikey': serviceRoleKey, 
+            'Authorization': `Bearer ${serviceRoleKey}`, 
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify({ 
+            id: targetUserId, 
+            email: email, 
+            full_name: name || null, 
+            address: address || null 
+          })
+        });
+
+        if (!profileRes.ok) throw new Error(`PROFILING_FAILED: ${await profileRes.text()}`);
 
         // 2. Masukkan ke font_history (Sinkronisasi Granular Tier)
         let historyEntries = [];
