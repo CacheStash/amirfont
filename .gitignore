@@ -15,7 +15,6 @@ dist-ssr
 # Environment and Config (SENSITIVE)
 .env
 .env.local
-wrangler.toml
 
 # Editor directories and files
 .vscode/*
