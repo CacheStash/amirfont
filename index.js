@@ -412,20 +412,16 @@ export default {
         const typeStr = (injectedType || txData.download_type || '').toLowerCase();
         const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
 
-        // 1. Prioritaskan Nama Murni dari Kolom 'name' Database (Sesuai SQL: Axettac, Kovanov, Raitons)
-        // 2. Jika DB Gagal, lakukan pembersihan String fisik secara agresif
-        let baseName = txData.actual_name;
-
-        if (!baseName) {
-          // Fallback: Ambil teks sebelum '-' atau '_' pertama dari nama file fisik (Kovanov-Medium -> Kovanov)
-          baseName = cleanFontName.split('.')[0].split('-')[0].split('_')[0];
-        }
-
-        // 3. Final Polish: Hapus kata 'demo' secara universal dan ganti spasi dengan underscore
-        baseName = baseName.replace(/demo/gi, '').replace(/\s+/g, '_').trim();
+        // FIXED 3: Naming ZIP Murni - Selalu bersihkan Suffix (Medium, Bold, Demo, dll)
+        // Kita paksa pembersihan agresif menggunakan regex agar tidak ada varian yang lolos
+        const rawNameSource = txData.actual_name || cleanFontName.split('.')[0];
+        const baseName = rawNameSource
+          .split(/[-_\s]/)[0] // Potong di dash (-), underscore (_), atau spasi ( ) pertama
+          .replace(/demo/gi, '') // Hapus kata demo (case-insensitive)
+          .replace(/\s+/g, '_') // Ganti spasi tersisa dengan underscore
+          .trim();
         
         const zipName = `SQ_${baseName}${isTrial ? '_Trial' : ''}.zip`;
-
      
 
        // 3. MASTER TIER MAPPING (Sinkronisasi Frontend CartCard.tsx)
