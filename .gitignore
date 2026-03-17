@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Environment and Config (SENSITIVE)
+.env
+.env.local
+wrangler.toml
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
