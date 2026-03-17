@@ -110,28 +110,43 @@ async function isUserAdmin(userId, env) {
 }
 
 async function triggerGasEmail(buyerEmail, buyerName, orderId, items, env) {
-  const gasUrl = env.GAS_WEBAPP_URL;
-  if (!gasUrl) return;
+  const gasUrls = (env.GAS_WEBAPP_URL || "").split(',').map(u => u.trim()).filter(u => u);
+  if (gasUrls.length === 0) return;
 
   const fontAssets = items.map(item => ({
     name: item.name,
-    file: item.font_files?.[0] || item.name // Mengambil path fisik file di R2
+    file: item.font_files?.[0] || item.name 
   }));
 
-  try {
-    await fetch(gasUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: "$emogaAm4n_", 
-        email: buyerEmail,
-        name: buyerName,
-        orderId: orderId,
-        font_assets: fontAssets
-      })
-    });
-  } catch (e) {
-    console.error("GAS_TRIGGER_ERROR:", e.message);
+  const payload = {
+    token: "$emogaAm4n_", 
+    email: buyerEmail,
+    name: buyerName,
+    orderId: orderId,
+    font_assets: fontAssets
+  };
+
+  // SELANG-SELING: Acak urutan akun agar distribusi beban merata (Load Balancing)
+  const rotatedUrls = gasUrls.sort(() => Math.random() - 0.5);
+
+  // FAILOVER: Coba satu per satu akun sampai ada yang berhasil mengirim (SUCCESS)
+  for (const url of rotatedUrls) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      
+      const statusText = await res.text();
+      if (statusText === "SUCCESS") {
+        console.log(`GAS_DELIVERY_SUCCESS: Account ${url.substring(0, 45)}...`);
+        return; // Berhenti jika salah satu akun sukses mengirim
+      }
+      console.warn(`GAS_LIMIT_REACHED: Account ${url.substring(0, 45)}... returned ${statusText}`);
+    } catch (e) {
+      console.error(`GAS_FETCH_FAILED: ${e.message}`);
+    }
   }
 }
 
