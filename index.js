@@ -109,6 +109,33 @@ async function isUserAdmin(userId, env) {
   } catch (e) { return false; }
 }
 
+async function triggerGasEmail(buyerEmail, buyerName, orderId, items, env) {
+  const gasUrl = env.GAS_WEBAPP_URL;
+  if (!gasUrl) return;
+
+  const fontAssets = items.map(item => ({
+    name: item.name,
+    file: item.font_files?.[0] || item.name // Mengambil path fisik file di R2
+  }));
+
+  try {
+    await fetch(gasUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token: "$emogaAm4n_", 
+        email: buyerEmail,
+        name: buyerName,
+        orderId: orderId,
+        font_assets: fontAssets
+      })
+    });
+  } catch (e) {
+    console.error("GAS_TRIGGER_ERROR:", e.message);
+  }
+}
+
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -319,6 +346,10 @@ export default {
         });
 
         if (!historyRes.ok) throw new Error(`DB_INSERT_FAILED: ${await historyRes.text()}`);
+
+        if (type !== 'trial' && items.length > 0) {
+          ctx.waitUntil(triggerGasEmail(email, name, transactionId, items, env));
+        }
 
         return new Response(JSON.stringify({ success: true, transactionId, userId: targetUserId }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
