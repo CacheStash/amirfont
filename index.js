@@ -414,13 +414,14 @@ export default {
 
         // FIXED 3: Naming ZIP Murni - Selalu bersihkan Suffix (Medium, Bold, Demo, dll)
         // Kita paksa pembersihan agresif menggunakan regex agar tidak ada varian yang lolos
-        const rawNameSource = txData.actual_name || cleanFontName.split('.')[0];
-        const baseName = rawNameSource
-          .split(/[-_\s]/)[0] // Potong di dash (-), underscore (_), atau spasi ( ) pertama
-          .replace(/demo/gi, '') // Hapus kata demo (case-insensitive)
+        const rawSource = txData.actual_name || cleanFontName.split('.')[0];
+        
+        const baseName = rawSource
+          .split(/[-_\s]/)[0] // PAKSA POTONG di tanda hubung (-), underscore (_), atau spasi ( ) pertama
+          .replace(/demo/gi, '') // Hapus kata 'demo' jika masih tersisa
           .replace(/\s+/g, '_') // Ganti spasi tersisa dengan underscore
           .trim();
-        
+
         const zipName = `SQ_${baseName}${isTrial ? '_Trial' : ''}.zip`;
      
 
