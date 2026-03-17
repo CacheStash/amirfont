@@ -379,17 +379,30 @@ export default {
         const cleanFontName = fontFile.replace(/^\d+-/, ''); 
         // FIXED 1: Pindahkan pengambilan data DB ke sini agar isTrial tidak Reference Error
         let txData = {};
+        let fontFilesToFetch = [fontFile];
         try {
-          // Gunakan serviceRoleKey agar verifikasi guest/pembeli lama tetap jalan tanpa token user
+          // Ambil font_id untuk mencari daftar file lengkap di family tersebut
           const txRes = await fetch(
-            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&select=tier,usages,download_type,metadata`,
-            { headers: { 
-              'apikey': serviceRoleKey, 
-              'Authorization': `Bearer ${serviceRoleKey}` 
-            } }
+            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&select=font_id,tier,usages,download_type,metadata`,
+            { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
           );
           const txRows = txRes.ok ? await txRes.json() : [];
           txData = txRows[0] || {};
+
+          // Jika Full Version (Bukan Trial), tarik daftar font_files lengkap dari tabel fonts
+          const typeStr = (injectedType || txData.download_type || '').toLowerCase();
+          const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
+
+          if (!isTrial && txData.font_id) {
+            const fontRes = await fetch(
+              `${supabaseUrl}/rest/v1/fonts?id=eq.${txData.font_id}&select=font_files`,
+              { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
+            );
+            const fontInfo = await fontRes.json();
+            if (fontInfo?.[0]?.font_files?.length > 0) {
+              fontFilesToFetch = fontInfo[0].font_files;
+            }
+          }
         } catch (e) { console.log("DB_SILENT_ERROR"); }
 
         // FIXED 2: Tentukan status trial sebelum membuat zipName
@@ -400,11 +413,7 @@ export default {
         const baseName = cleanFontName.split('.')[0];
         const zipName = `SQ_${baseName}${isTrial ? '_Trial' : ''}.zip`;
 
-        const object = await env.R2_BUCKET.get(fontFile);
-        if (!object) return new Response(`File Not Found: ${fontFile}`, { status: 404 });
-
-        // 3. Ambil data biner font asli
-        const fontData = await object.arrayBuffer();
+     
 
        // 3. MASTER TIER MAPPING (Sinkronisasi Frontend CartCard.tsx)
         const MASTER_TIER_LABELS = {
@@ -486,10 +495,20 @@ export default {
         const licenseData = new TextEncoder().encode(licenseBody.trim());
 
         // 5. Gabungkan Font + LICENSE.txt ke dalam ZIP
-        const zipData = createMultiZip([
-          { name: cleanFontName, content: fontData },
-          { name: 'LICENSE.txt', content: licenseData }
-        ]);
+        const zipFiles = await Promise.all(fontFilesToFetch.map(async (fName) => {
+          const obj = await env.R2_BUCKET.get(fName);
+          if (!obj) return null;
+          return {
+            name: fName.replace(/^\d+-/, ''), // Bersihkan timestamp di dalam ZIP
+            content: await obj.arrayBuffer()
+          };
+        }));
+
+        // Gabungkan seluruh font family + LICENSE.txt
+        const validFiles = zipFiles.filter(f => f !== null);
+        validFiles.push({ name: 'LICENSE.txt', content: licenseData });
+
+        const zipData = createMultiZip(validFiles);
 
         const headers = new Headers();
         headers.set('Content-Type', 'application/zip');
