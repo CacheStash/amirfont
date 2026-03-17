@@ -1,14 +1,18 @@
 import React from 'react';
 import { useCart } from '../../context/CartContext';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Check } from 'lucide-react';
+import { ArrowLeft, Plus, Check , Copy } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { supabase } from '../../lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 const Checkout: React.FC = () => {
 
-  
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    alert(`${label} COPIED TO CLIPBOARD`);
+  };
+
   const { cart, clearCart } = useCart();
   const [user, setUser] = React.useState<User | null>(null);
   const orderId = React.useMemo(() => `SQ-${Math.floor(100000 + Math.random() * 900000)}`, []);
@@ -323,51 +327,7 @@ if (subscribe) {
               <span className="text-6xl md:text-8xl font-normal tracking-tighter">${total}</span>
             </div>
 
-             {/* DELIVERY INFO BOX - FORM STYLE (NO SHADOW) */}
-            {!isPaid && (
-              <div className="mb-10 p-6 md:p-8 border-2 border-black bg-white space-y-6">
-                <div className="space-y-4">
-                  <h4 className="text-sm md:text-base font-black tracking-[0.2em] underline">
-                    CRITICAL_ASSET_DELIVERY_INFO:
-                  </h4>
-                  
-                  <div className="space-y-4 text-xs md:text-sm font-bold leading-relaxed normal-case text-black">
-                    <p>
-                      Digital files will <span className="bg-black text-white px-1">NOT</span> be sent via email download links.
-                    </p>
-                    <p>
-                      A <span className="underline decoration-orange-500 decoration-2 italic">ONE-TIME DIRECT DOWNLOAD</span> link will appear on this screen immediately after your payment is confirmed. A permanent backup of your assets is automatically stored in your personal dashboard for future access.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-6 border-t-2 border-black border-dashed space-y-4">
-                  <h4 className="text-[10px] font-black tracking-widest opacity-40 italic uppercase">
-                    ACCOUNT_ACCESS_CREDENTIALS:
-                  </h4>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="border border-black p-4 bg-gray-50">
-                      <span className="text-[9px] font-black opacity-40 block mb-1 uppercase">Username</span>
-                      <span className="text-xs md:text-sm font-bold">{email || "YOUR_EMAIL"}</span>
-                    </div>
-                    <div className="border border-black p-4 bg-gray-50">
-                      <span className="text-[9px] font-black opacity-40 block mb-1 uppercase">Access Key (Pass/Resetter)</span>
-                      <span className="text-xs md:text-sm font-bold">{orderId}</span>
-                    </div>
-                  </div>
-
-                  <p className="text-[10px] font-bold leading-tight normal-case opacity-70">
-                    If this is your **First Purchase**, this Order ID is your **Initial Password**. For subsequent transactions, this new code acts as an **Additional Valid Resetter**.  <br />
-                    You can change your password in account settings at any time. However, your **Order ID** will remain your **Permanent Password Resetter** forever if you forget your custom password. <br />
-                    This Username and Order ID will also be included in the **license.txt** file (alongside the license terms) inside the ZIP folder with your purchased font.
-                  
-                  </p>
-                  
-                </div>
-              </div>
-            )}
-
+             
             {/* 00. MANDATORY PURCHASER INFO */}
             {!isPaid && (
               <div className="mb-10 p-6 border border-black bg-[#FF5C00] text-black">
@@ -437,7 +397,69 @@ if (subscribe) {
               </div>
             )}
 
-           
+          
+            {/* DELIVERY INFO BOX - FORM STYLE (NO SHADOW) */}
+            {!isPaid && (
+              <div className="mb-10 p-6 md:p-8 border-2 border-black bg-white space-y-6">
+                <div className="space-y-4">
+                  <h4 className="text-sm md:text-base font-black tracking-[0.2em] underline">
+                    ASSET_DELIVERY_PROTOCOL:
+                  </h4>
+                  
+                  <div className="space-y-4 text-xs md:text-sm font-bold leading-relaxed normal-case text-black">
+                    <p>
+                      For maximum reliability, digital files for <span className="bg-black text-white px-1">PAID PURCHASES</span> will now be delivered via email links through our backup Gmail server (this bypasses strict corporate spam filters that often block domain-based emails).
+                    </p>
+                    <p>
+                      <span className="italic opacity-60">Note: Trial/Demo assets do not include email delivery.</span> 
+                      In the event of an automated delivery delay or technical error, your <span className="underline decoration-orange-500 decoration-2 font-black">USER DASHBOARD VAULT</span> remains the ultimate secure fortress to access your files 24/7.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t-2 border-black border-dashed space-y-4">
+                  <h4 className="text-[10px] font-black tracking-widest opacity-40 italic uppercase">
+                    ACCOUNT_ACCESS_CREDENTIALS:
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="border border-black p-4 bg-gray-50 flex justify-between items-center group">
+                      <div>
+                        <span className="text-[9px] font-black opacity-40 block mb-1 uppercase">Username</span>
+                        <span className="text-xs md:text-sm font-bold">{email || "YOUR_EMAIL"}</span>
+                      </div>
+                      <button 
+                        onClick={() => handleCopy(email, "USERNAME")}
+                        className="p-2 hover:bg-black hover:text-white transition-all border border-transparent hover:border-black"
+                        title="Copy Username"
+                      >
+                        <Copy size={14} />
+                      </button>
+                    </div>
+                    <div className="border border-black p-4 bg-gray-50 flex justify-between items-center group">
+                      <div>
+                        <span className="text-[9px] font-black opacity-40 block mb-1 uppercase">Access Key (Pass/Resetter)</span>
+                        <span className="text-xs md:text-sm font-bold">{orderId}</span>
+                      </div>
+                      <button 
+                        onClick={() => handleCopy(orderId, "ACCESS KEY")}
+                        className="p-2 hover:bg-black hover:text-white transition-all border border-transparent hover:border-black"
+                        title="Copy Access Key"
+                      >
+                        <Copy size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[10px] font-bold leading-tight normal-case opacity-70">
+                    If this is your **First Purchase**, this Order ID is your **Initial Password**. For subsequent transactions, this new code acts as an **Additional Valid Resetter**. <br />
+                    You can change your password in account settings at any time. However, your **Order ID** will remain your **Permanent Password Resetter** forever if you forget your custom password.
+                  </p>
+                </div>
+              </div>
+            )}
+
+
 
             {/* INSTANT DOWNLOAD AFTER PAYMENT */}
             {isPaid && (
