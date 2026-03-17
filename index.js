@@ -412,14 +412,18 @@ export default {
         const typeStr = (injectedType || txData.download_type || '').toLowerCase();
         const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
 
-        // FIXED 3: Gunakan branding SQ_ dan tambahkan -Trial jika isTrial bernilai true
-        const rawBase = txData.actual_name || cleanFontName.split('.')[0];
-        const baseName = rawBase
-          .split(/[-_]/)[0] // Ambil kata pertama sebelum dash/underscore (E.g. Kovanov, Axettac)
-          .replace(/demo/gi, '') // Hapus kata demo jika masih tersisa
-          .replace(/\s+/g, '_') // Ganti spasi dengan underscore
-          .trim();
+        // 1. Prioritaskan Nama Murni dari Kolom 'name' Database (Sesuai SQL: Axettac, Kovanov, Raitons)
+        // 2. Jika DB Gagal, lakukan pembersihan String fisik secara agresif
+        let baseName = txData.actual_name;
 
+        if (!baseName) {
+          // Fallback: Ambil teks sebelum '-' atau '_' pertama dari nama file fisik (Kovanov-Medium -> Kovanov)
+          baseName = cleanFontName.split('.')[0].split('-')[0].split('_')[0];
+        }
+
+        // 3. Final Polish: Hapus kata 'demo' secara universal dan ganti spasi dengan underscore
+        baseName = baseName.replace(/demo/gi, '').replace(/\s+/g, '_').trim();
+        
         const zipName = `SQ_${baseName}${isTrial ? '_Trial' : ''}.zip`;
 
      
