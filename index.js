@@ -381,39 +381,41 @@ export default {
         let txData = {};
         let fontFilesToFetch = [fontFile];
         try {
-          // Ambil font_id untuk mencari daftar file lengkap di family tersebut
-          const txRes = await fetch(
-            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&select=font_id,tier,usages,download_type,metadata`,
+          // 1. Identifikasi font_id berdasarkan file yang diminta agar item tidak tertukar
+          const fontLookupRes = await fetch(
+            `${supabaseUrl}/rest/v1/fonts?or=(font_files.cs.{${fontFile}},trial_file_url.eq.${fontFile})&select=id,name,font_files`,
             { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
           );
-          const txRows = txRes.ok ? await txRes.json() : [];
-          txData = txRows[0] || {};
+          const foundFonts = await fontLookupRes.json();
+          const targetFont = foundFonts?.[0];
 
-          const typeStr = (injectedType || txData.download_type || '').toLowerCase();
-          const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
-
-          // Ambil NAMA ASLI produk dan daftar file lengkap
-          if (txData.font_id) {
-            const fontRes = await fetch(
-              `${supabaseUrl}/rest/v1/fonts?id=eq.${txData.font_id}&select=name,font_files`,
+          if (targetFont) {
+            txData.actual_name = targetFont.name;
+            // 2. Ambil detail transaksi KHUSUS untuk font_id ini dalam Order ID tersebut
+            const txRes = await fetch(
+              `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&font_id=eq.${targetFont.id}&select=tier,usages,download_type,metadata`,
               { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
             );
-            const fontInfo = await fontRes.json();
-            if (fontInfo?.[0]) {
-              txData.actual_name = fontInfo[0].name; // Misal: "Kovanov"
-              if (!isTrial && fontInfo[0].font_files?.length > 0) {
-                fontFilesToFetch = fontInfo[0].font_files;
-              }
+            const txRows = txRes.ok ? await txRes.json() : [];
+            txData = { ...txData, ...(txRows[0] || {}) };
+
+            const typeStr = (injectedType || txData.download_type || '').toLowerCase();
+            const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
+
+            if (!isTrial && targetFont.font_files?.length > 0) {
+              fontFilesToFetch = targetFont.font_files;
             }
           }
-        } catch (e) { console.log("DB_SILENT_ERROR"); }
+        } catch (e) { console.log("DB_LOOKUP_ERROR", e.message); }
 
         // FIXED 2: Tentukan status trial sebelum membuat zipName
         const typeStr = (injectedType || txData.download_type || '').toLowerCase();
         const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
 
         // FIXED 3: Gunakan branding SQ_ dan tambahkan -Trial jika isTrial bernilai true
-        const baseName = (txData.actual_name || cleanFontName.split('-')[0].split('.')[0]).replace(/\s+/g, '_');
+        const baseName = (txData.actual_name || cleanFontName.split('-')[0].split('_')[0].split('.')[0])
+          .replace(/(_|-)?demo/gi, '')
+          .replace(/\s+/g, '_');
         const zipName = `SQ_${baseName}${isTrial ? '_Trial' : ''}.zip`;
 
      
