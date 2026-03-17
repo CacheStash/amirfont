@@ -148,9 +148,15 @@ const [name, setName] = React.useState('');
       a.href = urlBlob;
       
       // FIXED: Bersihkan nama file dari timestamp agar sama dengan format Dashboard
-     const cleanName = fileName.replace(/^\d+-/, '').split('.')[0];
-      const nameSuffix = type === 'trial' ? '_Trial' : '';
-      a.download = `SQ_${cleanName}${nameSuffix}.zip`;
+     const contentDisposition = res.headers.get('Content-Disposition');
+      let downloadName = `SQ_Font_Asset.zip`; // Fallback jika header tidak terbaca
+      
+      if (contentDisposition && contentDisposition.includes('filename=')) {
+        // Ekstrak: attachment; filename="SQ_Kovanov.zip" -> SQ_Kovanov.zip
+        downloadName = contentDisposition.split('filename=')[1].split(';')[0].replace(/["']/g, '').trim();
+      }
+
+      a.download = downloadName;
       
       document.body.appendChild(a); // Tambahkan ke body untuk kompabilitas browser
       a.click();
