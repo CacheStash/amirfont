@@ -13,7 +13,9 @@ const Checkout: React.FC = () => {
     alert(`${label} COPIED TO CLIPBOARD`);
   };
 
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, checkExistingTrials } = useCart();
+  const [trialConflicts, setTrialConflicts] = React.useState<string[]>([]);
+  
   const [user, setUser] = React.useState<User | null>(null);
   const orderId = React.useMemo(() => `SQ-${Math.floor(100000 + Math.random() * 900000)}`, []);
   const [loading, setLoading] = React.useState(false);
@@ -64,6 +66,22 @@ const [name, setName] = React.useState('');
     return () => subscription.unsubscribe();
   }, []);
   
+  React.useEffect(() => {
+    const validateTrials = async () => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailRegex.test(email) && cart.some(item => item.price === 0)) {
+        const claimedIds = await checkExistingTrials(email);
+        const conflicts = cart
+          .filter(item => item.price === 0 && claimedIds.includes(item.id))
+          .map(item => item.name);
+        setTrialConflicts(conflicts);
+      } else {
+        setTrialConflicts([]);
+      }
+    };
+    validateTrials();
+  }, [email, cart, checkExistingTrials]);
+
   const total = cart.reduce((acc, curr) => acc + curr.price, 0);
  
 
@@ -359,6 +377,18 @@ if (subscribe) {
                   />
                 </div>
 
+                {/* ALERT: DETEKSI TRIAL GANDA */}
+                {trialConflicts.length > 0 && (
+                  <div className="mb-4 p-4 bg-black text-white border-2 border-white animate-pulse">
+                    <p className="text-[10px] font-black underline mb-1 italic">DUPLICATE_TRIAL_DETECTED:</p>
+                    <p className="text-[10px] leading-tight font-bold">
+                      YOU HAVE ALREADY CLAIMED THE DEMO FOR: <span className="text-orange-500 font-black">{trialConflicts.join(', ')}</span>. 
+                      PLEASE REMOVE THEM FROM YOUR CART TO PROCEED.
+                    </p>
+                  </div>
+                )}
+
+
                 {/* CUSTOM CHECKBOX SUBSCRIBE */}
                 <label className="flex items-center gap-3 cursor-pointer group select-none">
                   <div className="relative flex items-center">
@@ -380,7 +410,7 @@ if (subscribe) {
                 </label>
 
                 {/* CLAIM BUTTON FOR TRIAL */}
-                {total === 0 && name && address && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
+                {total === 0 && name && address && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && trialConflicts.length === 0 && (
                   <button 
                     onClick={handleFreeTrial}
                     disabled={loading}
@@ -507,7 +537,7 @@ if (subscribe) {
                   </div>
                   <span className="text-[10px] font-black tracking-widest text-black/40 px-2">PAYPAL / CREDIT CARD</span>
                   
-                  <div className={`relative z-0 transition-all w-full flex justify-center ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
+                  <div className={`relative z-0 transition-all w-full flex justify-center ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || trialConflicts.length > 0) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
                     <div className="w-full max-w-[750px]">
                     <PayPalButtons 
                       style={{ layout: "vertical", shape: "rect", label: "pay", height: 55 }}
