@@ -206,6 +206,10 @@ export default {
         const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
         const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
+        if (!supabaseUrl || !serviceRoleKey) {
+          throw new Error("SUPABASE_CONFIG_MISSING: Check Cloudflare Environment Variables");
+        }
+
         const transactionId = metadata?.order_id || `TX-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
         // 1. Cari/Update User (Logic Resetter)
@@ -293,7 +297,11 @@ export default {
 
         const historyRes = await fetch(`${supabaseUrl}/rest/v1/font_history`, {
           method: 'POST',
-          headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
+          headers: { 
+            'apikey': serviceRoleKey, 
+            'Authorization': `Bearer ${serviceRoleKey}`, 
+            'Content-Type': 'application/json' 
+          },
           body: JSON.stringify(historyEntries)
         });
 
