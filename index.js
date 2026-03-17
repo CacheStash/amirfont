@@ -413,9 +413,13 @@ export default {
         const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
 
         // FIXED 3: Gunakan branding SQ_ dan tambahkan -Trial jika isTrial bernilai true
-        const baseName = (txData.actual_name || cleanFontName.split('-')[0].split('_')[0].split('.')[0])
-          .replace(/(_|-)?demo/gi, '')
-          .replace(/\s+/g, '_');
+        const rawBase = txData.actual_name || cleanFontName.split('.')[0];
+        const baseName = rawBase
+          .split(/[-_]/)[0] // Ambil kata pertama sebelum dash/underscore (E.g. Kovanov, Axettac)
+          .replace(/demo/gi, '') // Hapus kata demo jika masih tersisa
+          .replace(/\s+/g, '_') // Ganti spasi dengan underscore
+          .trim();
+
         const zipName = `SQ_${baseName}${isTrial ? '_Trial' : ''}.zip`;
 
      
