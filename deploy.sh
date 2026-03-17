@@ -20,7 +20,7 @@ else
 fi
 
 # 2. Build & Deploy
-# FIXED: Cek keberadaan file .env dan load variabel ke shell session
+# ANTI-ERROR: Cek keberadaan file .env sebelum build
 if [ -f .env ]; then
     echo "✅ File .env ditemukan. Memuat variabel..."
     export $(grep -v '^#' .env | xargs)
@@ -35,20 +35,17 @@ npm run build
 echo "🚀 Deploy ke Cloudflare..."
 npx wrangler deploy
 
-# 3. Git Push (Hanya jika ada file yang berubah)
+# 3. Git Push (Otomatis tanpa input komen)
 if [[ -n $(git status -s) ]]; then
     echo "📤 Push perubahan ke GitHub..."
     git add .
-    # Opsi A: Meminta input pesan secara manual agar lebih akurat
-    echo "📝 Masukkan pesan commit (kosongkan untuk default):"
-    read -r commit_msg
-    if [ -z "$commit_msg" ]; then
-        commit_msg="update $TIMESTAMP: maintenance and config update"
-    fi
+    
+    # ANTI-ERROR: Menggunakan pesan otomatis dengan timestamp agar tidak berhenti meminta input
+    # Pesan commit sekarang langsung dibuat secara sistematis
+    commit_msg="update $TIMESTAMP: system auto-deploy & config sync"
     
     git commit -m "$commit_msg"
     git push origin main
 else
     echo "✅ Kode sudah sinkron dengan GitHub."
 fi
-
