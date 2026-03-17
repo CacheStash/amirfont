@@ -57,9 +57,15 @@ const MyFontsHistory = () => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const cleanName = fileName.replace(/^\d+-/, '').split('.')[0];
-      const suffix = downloadType === 'trial' ? '_Trial' : '';
-      a.download = `SQ_${cleanName}${suffix}.zip`;
+      const contentDisposition = res.headers.get('Content-Disposition');
+      let downloadName = `SQ_Font_Asset.zip`; // Fallback jika header tidak terbaca
+      
+      if (contentDisposition && contentDisposition.includes('filename=')) {
+        // Ekstrak string di dalam filename="..."
+        downloadName = contentDisposition.split('filename=')[1].split(';')[0].replace(/["']/g, '').trim();
+      }
+
+      a.download = downloadName;
     
       document.body.appendChild(a);
       a.click();
