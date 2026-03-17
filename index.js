@@ -389,18 +389,21 @@ export default {
           const txRows = txRes.ok ? await txRes.json() : [];
           txData = txRows[0] || {};
 
-          // Jika Full Version (Bukan Trial), tarik daftar font_files lengkap dari tabel fonts
           const typeStr = (injectedType || txData.download_type || '').toLowerCase();
           const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
 
-          if (!isTrial && txData.font_id) {
+          // Ambil NAMA ASLI produk dan daftar file lengkap
+          if (txData.font_id) {
             const fontRes = await fetch(
-              `${supabaseUrl}/rest/v1/fonts?id=eq.${txData.font_id}&select=font_files`,
+              `${supabaseUrl}/rest/v1/fonts?id=eq.${txData.font_id}&select=name,font_files`,
               { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
             );
             const fontInfo = await fontRes.json();
-            if (fontInfo?.[0]?.font_files?.length > 0) {
-              fontFilesToFetch = fontInfo[0].font_files;
+            if (fontInfo?.[0]) {
+              txData.actual_name = fontInfo[0].name; // Misal: "Kovanov"
+              if (!isTrial && fontInfo[0].font_files?.length > 0) {
+                fontFilesToFetch = fontInfo[0].font_files;
+              }
             }
           }
         } catch (e) { console.log("DB_SILENT_ERROR"); }
@@ -410,7 +413,7 @@ export default {
         const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
 
         // FIXED 3: Gunakan branding SQ_ dan tambahkan -Trial jika isTrial bernilai true
-        const baseName = cleanFontName.split('.')[0];
+        const baseName = (txData.actual_name || cleanFontName.split('-')[0].split('.')[0]).replace(/\s+/g, '_');
         const zipName = `SQ_${baseName}${isTrial ? '_Trial' : ''}.zip`;
 
      
