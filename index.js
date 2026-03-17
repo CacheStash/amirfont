@@ -206,61 +206,60 @@ export default {
         const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
         const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
-        if (!supabaseUrl || !serviceRoleKey) {
-          throw new Error("SUPABASE_CONFIG_MISSING: Check Cloudflare Environment Variables");
-        }
-
         const transactionId = metadata?.order_id || `TX-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
         // 1. Cari/Update User (Logic Resetter)
         const userCheckRes = await fetch(`${supabaseUrl}/rest/v1/fontbuyer?email=eq.${email}&select=id`, {
-          headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` }
+          headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}` }
         });
         const userCheckData = await userCheckRes.json();
-        let targetUserId = userCheckData?.[0]?.id;
+        let targetUserId;
 
-        if (!targetUserId) {
-          // Jika tidak ada di fontbuyer, coba buat di Auth (Mungkin user baru)
+        if (userCheckData && userCheckData.length > 0) {
+          targetUserId = userCheckData[0].id;
+          
+          // A. Reset Password via Admin Auth
+          await fetch(`${supabaseUrl}/rest/v1/fontbuyer?id=eq.${targetUserId}`, {
+            method: 'PATCH',
+            headers: { 
+              'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 
+              'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 
+              'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify({ 
+              full_name: name || null, 
+              address: address || null 
+            })
+          });
+
+        } else {
+          // Hanya user BARU yang dibuatkan password otomatis menggunakan Order ID
           const createRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
             method: 'POST',
-            headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password: transactionId, email_confirm: true, user_metadata: { full_name: name } })
+            headers: { 'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password: transactionId, email_confirm: true })
           });
           const createData = await createRes.json();
-          
-          // Jika email sudah ada di Auth tapi tidak di fontbuyer, ambil ID-nya dari error atau abaikan create
           targetUserId = createData.id;
-          
-          if (!createRes.ok && createRes.status !== 422) {
-             throw new Error(`AUTH_FAILED: ${createData.msg || JSON.stringify(createData)}`);
-          }
-          
-          // Fallback: Jika ID masih tidak ada (kasus email taken), kita butuh lookup ke auth atau pastikan upsert berjalan
-          if (!targetUserId && createRes.status === 422) {
-             // Opsional: Anda bisa tambahkan fetch lookup auth by email di sini jika service role mengizinkan
-             throw new Error("USER_EXISTS_IN_AUTH_BUT_NOT_PROFILED. Please use existing ID.");
+
+          if (targetUserId) {
+            await fetch(`${supabaseUrl}/rest/v1/fontbuyer`, {
+              method: 'POST',
+              headers: { 
+                'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 
+                'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 
+                'Content-Type': 'application/json',
+                'Prefer': 'resolution=merge-duplicates'
+              },
+              body: JSON.stringify({ 
+                id: targetUserId, 
+                email: email, 
+                full_name: name || null, 
+                address: address || null 
+              })
+            });
           }
         }
-
-        // FIX UTAMA: Gunakan POST dengan Upsert (merge-duplicates) menggantikan PATCH
-        // Ini memastikan baris di fontbuyer PASTI ADA sebelum masuk ke font_history
-        const profileRes = await fetch(`${supabaseUrl}/rest/v1/fontbuyer`, {
-          method: 'POST',
-          headers: { 
-            'apikey': serviceRoleKey, 
-            'Authorization': `Bearer ${serviceRoleKey}`, 
-            'Content-Type': 'application/json',
-            'Prefer': 'resolution=merge-duplicates'
-          },
-          body: JSON.stringify({ 
-            id: targetUserId, 
-            email: email, 
-            full_name: name || null, 
-            address: address || null 
-          })
-        });
-
-        if (!profileRes.ok) throw new Error(`PROFILING_FAILED: ${await profileRes.text()}`);
 
         // 2. Masukkan ke font_history (Sinkronisasi Granular Tier)
         let historyEntries = [];
@@ -297,11 +296,7 @@ export default {
 
         const historyRes = await fetch(`${supabaseUrl}/rest/v1/font_history`, {
           method: 'POST',
-          headers: { 
-            'apikey': serviceRoleKey, 
-            'Authorization': `Bearer ${serviceRoleKey}`, 
-            'Content-Type': 'application/json' 
-          },
+          headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(historyEntries)
         });
 
@@ -314,41 +309,6 @@ export default {
         return new Response(JSON.stringify({ error: e.message }), { 
           status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
-      }
-    }
-
-
-    // --- 6.1 API PayPal Webhook (Konfirmasi Pembayaran Otomatis) ---
-    if (url.pathname === '/api/webhook/paypal' && request.method === 'POST') {
-      try {
-        const bodyText = await request.text();
-        const event = JSON.parse(bodyText);
-
-        // LOGIKA: Hanya proses jika pembayaran benar-benar sukses (Captured)
-        if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
-          const resource = event.resource;
-          const transactionId = resource.custom_id || resource.id; // ID Order kita
-
-          const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
-          const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
-
-          // UPDATE DATABASE: Ubah status di font_history menjadi 'full' (Berbayar)
-          await fetch(`${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${transactionId}`, {
-            method: 'PATCH',
-            headers: { 
-              'apikey': serviceRoleKey, 
-              'Authorization': `Bearer ${serviceRoleKey}`, 
-              'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify({ download_type: 'full' })
-          });
-
-          console.log(`PAYPAL_WEBHOOK_SUCCESS: Order ${transactionId} is now PAID.`);
-        }
-
-        return new Response("WEBHOOK_RECEIVED", { status: 200 });
-      } catch (e) {
-        return new Response("WEBHOOK_ERROR", { status: 500 });
       }
     }
 
