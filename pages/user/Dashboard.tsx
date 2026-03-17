@@ -25,7 +25,7 @@ const UserDashboard = () => {
           .from('fontbuyer')
           .select('full_name')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
         if (data?.full_name) setFullName(data.full_name);
 
         // Fetch Unread Messages (Direct + Broadcast Filtered)

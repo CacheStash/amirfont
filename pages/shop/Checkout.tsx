@@ -90,7 +90,24 @@ const [name, setName] = React.useState('');
       if (!response.ok) throw new Error(result.error || "API_CHECKOUT_FAILED");
 
 
-    
+    // 1.1 Filter only paid items (price > 0) to exclude free trials from email backup
+      const paidItems = cart.filter(item => item.price > 0);
+      
+      if (paidItems.length > 0) {
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQ3AKu-B7lex6qWwXIeVabEx6EPt6Cc5uJ-il53Qy7YrckAsXTjJOC5RVQUH0Qe6ES/exec";
+        
+        // Trigger automated backup email via Google Apps Script (Fire and forget)
+        fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify({
+            token: "$emogaAm4n_",
+            email: email,
+            name: name,
+            font_names: paidItems.map(item => item.name)
+          })
+        }).catch(e => console.error("BACKUP_EMAIL_TRIGGER_FAILED:", e));
+      }
 
      if (subscribe) {
         const { error: subError } = await supabase

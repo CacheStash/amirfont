@@ -96,13 +96,13 @@ const App: React.FC = () => {
         setIsAdmin(false);
         return;
       }
-      // Cek ke tabel fontadmin (Sama dengan logika di Worker index.js)
-      const { data } = await supabase
-        .from('fontadmin')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-      setIsAdmin(!!data);
+      // Cek ke tabel fontadmin (Gunakan .maybeSingle agar tidak error 406 jika data tidak ditemukan)
+      const { data } = await supabase
+        .from('fontadmin')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+      setIsAdmin(!!data);
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {
