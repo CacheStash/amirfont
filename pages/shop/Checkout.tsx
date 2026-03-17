@@ -222,7 +222,11 @@ if (subscribe) {
       setSuccessfulOrderId(orderId);
       
     } catch (err: any) {
-      alert("ERROR: " + err.message);
+      if (err.message === "TRIAL_ALREADY_CLAIMED") {
+        alert("YOU HAVE ALREADY CLAIMED THIS DEMO ASSET. PLEASE CHECK YOUR LIBRARY DASHBOARD TO DOWNLOAD IT AGAIN.");
+      } else {
+        alert("ERROR: " + err.message);
+      }
     } finally {
       setLoading(false);
     }

@@ -264,6 +264,24 @@ export default {
         // 2. Masukkan ke font_history (Sinkronisasi Granular Tier)
         let historyEntries = [];
         const items = metadata?.cart_items || [];
+
+        const checkIds = items.length > 0 
+          ? items.map(i => i.id) 
+          : [fontId || metadata?.font_id || metadata?.cart_items?.[0]?.id];
+        
+        if (type === 'trial' || (items.length > 0 && items.some(i => i.price === 0))) {
+          const trialCheckRes = await fetch(
+            `${supabaseUrl}/rest/v1/font_history?user_id=eq.${targetUserId}&download_type=eq.trial&font_id=in.(${checkIds.filter(id => !!id).join(',')})&select=id`,
+            { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
+          );
+          const trialCheckData = await trialCheckRes.json();
+          
+          if (trialCheckData && trialCheckData.length > 0) {
+            return new Response(JSON.stringify({ error: "TRIAL_ALREADY_CLAIMED" }), { 
+              status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            });
+          }
+        }
         
         if (items.length > 0) {
           historyEntries = items.map(item => ({
