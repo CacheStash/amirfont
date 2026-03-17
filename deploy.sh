@@ -39,7 +39,14 @@ npx wrangler deploy
 if [[ -n $(git status -s) ]]; then
     echo "📤 Push perubahan ke GitHub..."
     git add .
-    git commit -m "update $TIMESTAMP: fix spa routing and add image caching"
+    # Opsi A: Meminta input pesan secara manual agar lebih akurat
+    echo "📝 Masukkan pesan commit (kosongkan untuk default):"
+    read -r commit_msg
+    if [ -z "$commit_msg" ]; then
+        commit_msg="update $TIMESTAMP: maintenance and config update"
+    fi
+    
+    git commit -m "$commit_msg"
     git push origin main
 else
     echo "✅ Kode sudah sinkron dengan GitHub."
