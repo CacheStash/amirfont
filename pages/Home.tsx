@@ -132,7 +132,7 @@ const Home: React.FC = () => {
   const [fonts, setFonts] = useState<any[]>([]);
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<'recent' | 'popularity' | 'cheapest'>('recent');
+  const [sortBy, setSortBy] = useState<'recent' | 'oldest' | 'popular' | 'hipster' | 'cheapest' | 'priciest'>('recent');
   // PAGINATION STATES
   const [currentPage, setCurrentPage] = useState(1);
   const fontsPerPage = 4;
@@ -225,16 +225,12 @@ const Home: React.FC = () => {
     : fonts;
 
     const sortedFonts = [...filteredFonts].sort((a, b) => {
-    if (sortBy === 'recent') {
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    }
-    if (sortBy === 'cheapest') {
-      return (a.price || 0) - (b.price || 0);
-    }
-    if (sortBy === 'popularity') {
-      // Mengasumsikan ada kolom 'popularity' atau 'sales_count' di database
-      return (b.popularity || 0) - (a.popularity || 0);
-    }
+    if (sortBy === 'recent') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    if (sortBy === 'oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    if (sortBy === 'cheapest') return (a.price || 0) - (b.price || 0);
+    if (sortBy === 'priciest') return (b.price || 0) - (a.price || 0);
+    if (sortBy === 'popular') return (b.popularity || 0) - (a.popularity || 0);
+    if (sortBy === 'hipster') return (a.popularity || 0) - (b.popularity || 0);
     return 0;
   });
 
@@ -313,23 +309,36 @@ const Home: React.FC = () => {
           <div className="max-w-full px-6 py-6 md:py-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 md:gap-x-16">
               {[
-                { id: 'recent', label: 'Recent' },
-                { id: 'popularity', label: 'Popularity' },
-                { id: 'cheapest', label: 'Cheapest' }
-              ].map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => {
-                    setSortBy(option.id as any);
-                    setCurrentPage(1);
-                  }}
-                  className={`text-[11px] md:text-[14px] font-bold uppercase tracking-[0.2em] transition-colors duration-200 ${
-                    sortBy === option.id ? 'text-black' : 'text-gray-400 hover:text-black'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+                { group: ['recent', 'oldest'], labels: { recent: 'Recent', oldest: 'Oldest' } },
+                { group: ['popular', 'hipster'], labels: { popular: 'Popular', hipster: 'Hipster' } },
+                { group: ['cheapest', 'priciest'], labels: { cheapest: 'Cheapest', priciest: 'Priciest' } }
+              ].map((option) => {
+                const isActive = option.group.includes(sortBy);
+                // Tentukan label berdasarkan state aktif, atau default ke opsi pertama grup
+                const currentLabel = isActive ? option.labels[sortBy as keyof typeof option.labels] : option.labels[option.group[0] as keyof typeof option.labels];
+                
+                return (
+                  <button
+                    key={option.group[0]}
+                    onClick={() => {
+                      if (isActive) {
+                        // Toggle antar anggota grup (misal: recent -> oldest)
+                        const nextSort = sortBy === option.group[0] ? option.group[1] : option.group[0];
+                        setSortBy(nextSort as any);
+                      } else {
+                        // Pilih anggota pertama grup jika grup belum aktif
+                        setSortBy(option.group[0] as any);
+                      }
+                      setCurrentPage(1);
+                    }}
+                    className={`text-[11px] md:text-[14px] font-bold uppercase tracking-[0.2em] transition-colors duration-200 ${
+                      isActive ? 'text-black' : 'text-gray-400 hover:text-black'
+                    }`}
+                  >
+                    {currentLabel}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
