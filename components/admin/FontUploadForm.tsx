@@ -377,7 +377,16 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
                 </span>
               ))}
               {fontFiles.map((f, i) => (
-                <span key={`new-f-${i}`} className="bg-black text-white text-[9px] px-2 py-1 uppercase">{f.name}</span>
+                <span key={`new-f-${i}`} className="bg-black text-white text-[9px] px-2 py-1 uppercase flex items-center gap-2">
+                  {f.name}
+                  <button 
+                    type="button" 
+                    onClick={() => setFontFiles(prev => prev.filter((_, idx) => idx !== i))} 
+                    className="text-red-400 font-bold hover:text-red-200 transition-colors"
+                  >
+                    ×
+                  </button>
+                </span>
               ))}
             </div>
           )}
@@ -400,7 +409,17 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
               <p className="text-[9px] font-bold uppercase text-black">
                 STATUS: {trialFile ? `NEW: ${trialFile.name}` : `EXISTING: ${existingTrialFile}`}
               </p>
-              {/* FIXED: Tombol hapus trial file yang sudah ada di database */}
+              {/* Tombol hapus untuk file trial baru yang baru dipilih */}
+              {trialFile && (
+                <button 
+                  type="button" 
+                  onClick={() => setTrialFile(null)}
+                  className="text-red-500 font-bold text-[10px] hover:underline"
+                >
+                  CANCEL NEW ×
+                </button>
+              )}
+              {/* Tombol hapus trial file yang sudah ada di database */}
               {existingTrialFile && !trialFile && (
                 <button 
                   type="button" 
