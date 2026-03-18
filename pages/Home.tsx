@@ -132,6 +132,7 @@ const Home: React.FC = () => {
   const [fonts, setFonts] = useState<any[]>([]);
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<'recent' | 'popularity' | 'cheapest'>('recent');
   // PAGINATION STATES
   const [currentPage, setCurrentPage] = useState(1);
   const fontsPerPage = 4;
@@ -223,7 +224,21 @@ const Home: React.FC = () => {
       })
     : fonts;
 
-    const displayedFonts = filteredFonts.filter(font => {
+    const sortedFonts = [...filteredFonts].sort((a, b) => {
+    if (sortBy === 'recent') {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+    if (sortBy === 'cheapest') {
+      return (a.price || 0) - (b.price || 0);
+    }
+    if (sortBy === 'popularity') {
+      // Mengasumsikan ada kolom 'popularity' atau 'sales_count' di database
+      return (b.popularity || 0) - (a.popularity || 0);
+    }
+    return 0;
+  });
+
+  const displayedFonts = sortedFonts.filter(font => {
     if (!activePromoId) return true;
     const promo = promos.find(p => p.id === activePromoId);
     if (!promo) return true;
@@ -294,10 +309,31 @@ const Home: React.FC = () => {
 
 
         {/* 0. TITLE BAR COLUMN */}
-        <div className="w-full border-b border-black py-6 flex justify-center items-center bg-transparent">
-          <h2 className="text-[10px] md:text-[18px] font-regular uppercase tracking-[0.4em] text-black">
-            Recent Fonts
-          </h2>
+        <div className="w-full border-b border-black py-6 flex flex-col md:flex-row justify-center items-center gap-4 md:gap-8 bg-transparent">
+          <span className="text-[10px] font-black tracking-widest opacity-30 uppercase">Sort By:</span>
+          <div className="flex gap-6 md:gap-10">
+            {[
+              { id: 'recent', label: 'Recent Fonts' },
+              { id: 'popularity', label: 'Popularity' },
+              { id: 'cheapest', label: 'Cheapest' }
+            ].map((option) => (
+              <button
+                key={option.id}
+                onClick={() => {
+                  setSortBy(option.id as any);
+                  setCurrentPage(1); // Reset ke halaman 1 saat sorting berubah
+                }}
+                className={`text-[10px] md:text-[14px] font-bold uppercase tracking-[0.2em] transition-all relative ${
+                  sortBy === option.id ? 'text-black' : 'text-black/30 hover:text-black'
+                }`}
+              >
+                {option.label}
+                {sortBy === option.id && (
+                  <div className="absolute -bottom-1 left-0 w-full h-[2px] bg-black" />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
 {/* FIXED: Menambahkan Toggle Promo yang muncul hanya jika ada promo aktif */}
