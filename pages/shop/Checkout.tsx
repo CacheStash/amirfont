@@ -511,7 +511,7 @@ if (subscribe) {
                       )}
                       className="bg-black text-white px-8 py-5 font-black tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-4"
                     >
-                      DOWNLOAD_{item.name.replace(/\s+/g, '_')}_ZIP
+                      DOWNLOAD_{item.name.replace(/\s+/g, '_')}{item.price === 0 ? '_TRIAL' : ''}_ZIP
                     </button>
                   ))}
 
