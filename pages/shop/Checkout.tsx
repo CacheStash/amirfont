@@ -441,7 +441,7 @@ if (subscribe) {
                       For maximum reliability, digital files for <span className="bg-black text-white px-1">PAID PURCHASES</span> will now be delivered via email links through our backup Gmail server (this bypasses strict corporate spam filters that often block domain-based emails).
                     </p>
                     <p>
-                      <span className="italic opacity-60">Note: Trial/Demo assets do not include email delivery.</span> 
+                      <span className="italic opacity-60">Note: Trial/Demo assets are only included in email delivery if purchased in a "Mixed Cart" alongside a Paid Font.</span> 
                       In the event of an automated delivery delay or technical error, your <span className="underline decoration-orange-500 decoration-2 font-black">USER DASHBOARD VAULT</span> remains the ultimate secure fortress to access your files 24/7.
                     </p>
                   </div>
