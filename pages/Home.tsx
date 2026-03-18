@@ -308,31 +308,31 @@ const Home: React.FC = () => {
 
 
 
-        {/* 0. TITLE BAR COLUMN */}
-        <div className="w-full border-b border-black py-6 flex flex-col md:flex-row justify-center items-center gap-4 md:gap-8 bg-transparent">
-          <span className="text-[10px] font-black tracking-widest opacity-30 uppercase">Sort By:</span>
-          <div className="flex gap-6 md:gap-10">
-            {[
-              { id: 'recent', label: 'Recent Fonts' },
-              { id: 'popularity', label: 'Popularity' },
-              { id: 'cheapest', label: 'Cheapest' }
-            ].map((option) => (
-              <button
-                key={option.id}
-                onClick={() => {
-                  setSortBy(option.id as any);
-                  setCurrentPage(1); // Reset ke halaman 1 saat sorting berubah
-                }}
-                className={`text-[10px] md:text-[14px] font-bold uppercase tracking-[0.2em] transition-all relative ${
-                  sortBy === option.id ? 'text-black' : 'text-black/30 hover:text-black'
-                }`}
-              >
-                {option.label}
-                {sortBy === option.id && (
-                  <div className="absolute -bottom-1 left-0 w-full h-[2px] bg-black" />
-                )}
-              </button>
-            ))}
+        {/* 0. TITLE BAR COLUMN - RESPONSIVE SORTING */}
+        <div className="w-full border-b border-black bg-transparent">
+          <div className="max-w-full px-6 py-6 md:py-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+            <span className="text-[10px] font-black tracking-[0.3em] text-gray-400 uppercase">SORT_BY:</span>
+            
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 md:gap-x-12">
+              {[
+                { id: 'recent', label: 'Recent' },
+                { id: 'popularity', label: 'Popularity' },
+                { id: 'cheapest', label: 'Cheapest' }
+              ].map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => {
+                    setSortBy(option.id as any);
+                    setCurrentPage(1);
+                  }}
+                  className={`text-[11px] md:text-[14px] font-bold uppercase tracking-[0.2em] transition-colors duration-200 ${
+                    sortBy === option.id ? 'text-black' : 'text-gray-400 hover:text-black'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
