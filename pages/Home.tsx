@@ -311,9 +311,7 @@ const Home: React.FC = () => {
         {/* 0. TITLE BAR COLUMN - RESPONSIVE SORTING */}
         <div className="w-full border-b border-black bg-transparent">
           <div className="max-w-full px-6 py-6 md:py-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-            <span className="text-[10px] font-black tracking-[0.3em] text-gray-400 uppercase">SORT_BY:</span>
-            
-            <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 md:gap-x-12">
+            <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 md:gap-x-16">
               {[
                 { id: 'recent', label: 'Recent' },
                 { id: 'popularity', label: 'Popularity' },
