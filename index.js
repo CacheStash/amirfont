@@ -491,10 +491,11 @@ export default {
         const rawSource = txData.actual_name || cleanFontName.split('.')[0];
         
         const baseName = rawSource
-          .split(/[-_\s]/)[0] // PAKSA POTONG di tanda hubung (-), underscore (_), atau spasi ( ) pertama
-          .replace(/demo/gi, '') // Hapus kata 'demo' jika masih tersisa
-          .replace(/\s+/g, '_') // Ganti spasi tersisa dengan underscore
-          .trim();
+          .replace(/(demo|regular|bold|italic|medium|light|thin|black|extrabold|semibold)/gi, '') // Hanya hapus kata gaya teknis
+          .trim() // Hilangkan spasi di ujung setelah penghapusan kata di atas
+          .replace(/\s+/g, '_') // Ganti spasi antar kata dengan underscore (Wicked Destiny -> Wicked_Destiny)
+          .replace(/_+/g, '_') // Cegah underscore ganda
+          .replace(/^_|_$/g, ''); // Bersihkan underscore di paling depan atau belakang
 
         const zipName = `SQ_${baseName}${isTrial ? '_Trial' : ''}.zip`;
      
