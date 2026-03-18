@@ -110,7 +110,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       const filtered = files.filter(f => f.name.endsWith('.ttf') || f.name.endsWith('.otf') || f.name.endsWith('.woff2'));
       setFontFiles(prev => [...prev, ...filtered]);
     } else {
-      if (previewImages.length + files.length > 12) return alert("Maksimal 12 gambar!");
+      if (previewImages.length + files.length > 20) return alert("Maksimal 20 gambar!");
       setPreviewImages(prev => [...prev, ...files]);
     }
   };
@@ -416,7 +416,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       </div>
 
       <div className="space-y-2">
-        <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Preview Images (Max 12)</label>
+        <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Preview Images (Max 20)</label>
         <div 
           onDragOver={handleDragOver}
           onDrop={(e) => handleDropFiles(e, 'previews')}
@@ -448,14 +448,14 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
             </div>
           ))}
 
-          {previewImages.length + existingPreviewImages.length < 12 && (
+          {previewImages.length + existingPreviewImages.length < 20 && (
             <label className="aspect-square border border-dashed border-black flex items-center justify-center cursor-pointer hover:bg-white transition-colors">
               <input 
                 type="file" multiple accept="image/*" className="hidden" 
                 onChange={(e) => {
                   const files = Array.from(e.target.files || []);
-                  if (previewImages.length + existingPreviewImages.length + files.length > 12) {
-                    alert("Maksimal 12 gambar!");
+                  if (previewImages.length + existingPreviewImages.length + files.length > 20) {
+                    alert("Maksimal 20 gambar!");
                     return;
                   }
                   setPreviewImages(prev => [...prev, ...files]);
