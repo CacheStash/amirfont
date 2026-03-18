@@ -113,10 +113,15 @@ async function triggerGasEmail(buyerEmail, buyerName, orderId, items, env) {
   const gasUrls = (env.GAS_WEBAPP_URL || "").split(',').map(u => u.trim()).filter(u => u);
   if (gasUrls.length === 0) return;
 
-  const fontAssets = items.map(item => ({
-    name: item.name,
-    file: item.font_files?.[0] || item.name 
-  }));
+  const fontAssets = items
+    .filter(item => item.price > 0)
+    .map(item => ({
+      name: item.name,
+      file: item.font_files?.[0] || item.name 
+    }));
+
+  // Batalkan eksekusi jika tidak ada item berbayar (misal: hanya trial di cart)
+  if (fontAssets.length === 0) return;
 
   const payload = {
     token: "$emogaAm4n_", 
