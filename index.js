@@ -113,15 +113,20 @@ async function triggerGasEmail(buyerEmail, buyerName, orderId, items, env) {
   const gasUrls = (env.GAS_WEBAPP_URL || "").split(',').map(u => u.trim()).filter(u => u);
   if (gasUrls.length === 0) return;
 
-  const fontAssets = items
-    .filter(item => item.price > 0)
-    .map(item => ({
-      name: item.name,
-      file: item.font_files?.[0] || item.name 
-    }));
+  const hasPaidItem = items.some(item => item.price > 0);
+  
+  // Jika hanya berisi trial font (total $0), batalkan seluruh proses pengiriman email
+  if (!hasPaidItem) return; 
 
-  // Batalkan eksekusi jika tidak ada item berbayar (misal: hanya trial di cart)
-  if (fontAssets.length === 0) return;
+  // Jika ada item berbayar, kirimkan semua item (Paid + Trial) dengan label berbeda
+  const fontAssets = items.map(item => {
+    const isTrial = item.price === 0;
+    return {
+      name: isTrial ? `${item.name} (Trial Version)` : item.name,
+      file: isTrial ? (item.trialFileUrl || item.name) : (item.font_files?.[0] || item.name),
+      type: isTrial ? 'trial' : 'full' // Menyertakan tipe untuk dikonsumsi GAS
+    };
+  });
 
   const payload = {
     token: "$emogaAm4n_", 
