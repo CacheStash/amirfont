@@ -201,7 +201,9 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     // Jika mode baru, fontFiles wajib. Jika mode edit, boleh kosong (menggunakan file lama).
-    if (!initialData && fontFiles.length === 0) return alert("Upload file font dulu!");
+    if (!initialData && fontFiles.length === 0 && existingFontFiles.length === 0) {
+      return alert("Upload file font dulu (Local atau Drive)!");
+    }
     if (!fontName || !price) return alert("Lengkapi data!");
 
     setIsUploading(true);

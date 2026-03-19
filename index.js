@@ -24,6 +24,21 @@ function calculateCRC32(data) {
   return (crc ^ 0xFFFFFFFF) >>> 0;
 }
 
+
+async function fetchFileBuffer(fileName, env) {
+  // 1. Coba ambil dari R2
+  const object = await env.R2_BUCKET.get(fileName);
+  if (object) return { body: await object.arrayBuffer(), contentType: object.httpMetadata?.contentType };
+
+  // 2. Jika tidak ada di R2, asumsikan ini adalah Google Drive ID
+  // Gunakan Google Drive Thumbnail/Download Link (File harus 'Anyone with link')
+  const driveUrl = `https://drive.google.com/uc?export=download&id=${fileName}`;
+  const res = await fetch(driveUrl);
+  if (res.ok) return { body: await res.arrayBuffer(), contentType: res.headers.get('content-type') };
+
+  return null;
+}
+
 function createMultiZip(files) {
   const date = new Date();
   const time = ((date.getHours() << 11) | (date.getMinutes() << 5) | (date.getSeconds() >> 1));
@@ -189,16 +204,15 @@ export default {
     if (url.pathname.startsWith('/api/fonts/')) {
       const fontName = decodeURIComponent(url.pathname.split('/').pop());
       try {
-        const object = await env.R2_BUCKET.get(fontName);
-        if (!object) return new Response(`Font not found`, { status: 404 });
+        const fileData = await fetchFileBuffer(fontName, env);
+        if (!fileData) return new Response(`Font not found`, { status: 404 });
+
         const headers = new Headers();
-        object.writeHttpMetadata(headers);
         headers.set('Access-Control-Allow-Origin', '*');
-        
-        // Ubah dari 1 tahun menjadi 'no-cache' atau durasi pendek agar browser selalu validasi ke server
+        headers.set('Content-Type', fileData.contentType || 'font/otf');
         headers.set('Cache-Control', 'no-cache, no-store, must-revalidate'); 
         
-        return new Response(object.body, { headers });
+        return new Response(fileData.body, { headers });
       } catch (e) { return new Response('Error fetching font', { status: 500 }); }
     }
 
@@ -629,11 +643,14 @@ export default {
 
         // 5. Gabungkan Font + LICENSE.txt ke dalam ZIP
         const zipFiles = await Promise.all(fontFilesToFetch.map(async (fName) => {
-          const obj = await env.R2_BUCKET.get(fName);
-          if (!obj) return null;
+          // Gunakan fungsi helper fetchFileBuffer agar bisa ambil dari R2 atau Drive
+          const fileData = await fetchFileBuffer(fName, env);
+          if (!fileData) return null;
+          
           return {
-            name: fName.replace(/^\d+-/, ''), // Bersihkan timestamp di dalam ZIP
-            content: await obj.arrayBuffer()
+            // Jika ID Drive, beri nama generic; jika file R2, bersihkan timestamp
+            name: fName.includes('-') ? fName.replace(/^\d+-/, '') : `font_${fName.substring(0, 6)}.otf`,
+            content: fileData.body
           };
         }));
 
