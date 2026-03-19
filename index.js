@@ -30,11 +30,21 @@ async function fetchFileBuffer(fileName, env) {
   const object = await env.R2_BUCKET.get(fileName);
   if (object) return { body: await object.arrayBuffer(), contentType: object.httpMetadata?.contentType };
 
-  // 2. Jika tidak ada di R2, asumsikan ini adalah Google Drive ID
-  // Gunakan Google Drive Thumbnail/Download Link (File harus 'Anyone with link')
-  const driveUrl = `https://drive.google.com/uc?export=download&id=${fileName}`;
+ // 2. Jika tidak ada di R2, asumsikan ini adalah Google Drive ID
+  // Tambahkan confirm=t untuk meminimalkan hambatan pada file yang lebih besar
+  const driveUrl = `https://drive.google.com/uc?export=download&id=${fileName}&confirm=t`;
   const res = await fetch(driveUrl);
-  if (res.ok) return { body: await res.arrayBuffer(), contentType: res.headers.get('content-type') };
+  
+  if (res.ok) {
+    const contentType = res.headers.get('content-type') || '';
+    // Proteksi: Jika Google memberikan HTML (halaman peringatan virus), return null
+    // Karena Opentype.js tidak bisa memproses HTML sebagai Font
+    if (contentType.includes('text/html')) {
+      console.error(`DRIVE_REJECTED_BINARY_FETCH: ${fileName} - Size likely too large`);
+      return null;
+    }
+    return { body: await res.arrayBuffer(), contentType: contentType };
+  }
 
   return null;
 }
@@ -647,7 +657,7 @@ export default {
         const licenseData = new TextEncoder().encode(licenseBody.trim());
 
         // 5. Gabungkan Font + LICENSE.txt ke dalam ZIP
-        const zipFiles = await Promise.all(fontFilesToFetch.map(async (fName) => {
+        const zipFiles = await Promise.all(fontFilesToFetch.map(async (fName, index) => {
           // Gunakan fungsi helper fetchFileBuffer agar bisa ambil dari R2 atau Drive
           const fileData = await fetchFileBuffer(fName, env);
           if (!fileData) return null;
@@ -657,13 +667,13 @@ export default {
           let finalFileName = "";
 
           if (isR2File) {
-            // Bersihkan timestamp: 1712345678-Roboto.otf -> Roboto.otf
             finalFileName = fName.replace(/^\d+-/, '');
           } else {
-            // JIKA DRIVE ID: Gunakan nama Typeface asli + Indeks agar rapi
+            // JIKA DRIVE ID: Gunakan nama Typeface asli + Indeks
+            // Paksa extension .ttf jika tipe generic untuk mendukung Variable Font di OS
             const ext = fileData.contentType?.includes('ttf') ? 'ttf' : 'otf';
             const cleanBase = (txData.actual_name || "Font").replace(/\s+/g, '_');
-            // Hasil: Royal_Grande_1.otf
+            
             finalFileName = fontFilesToFetch.length > 1 
               ? `${cleanBase}_${index + 1}.${ext}` 
               : `${cleanBase}.${ext}`;

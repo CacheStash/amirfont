@@ -439,9 +439,10 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
             <div className="mt-4 flex flex-wrap gap-2 justify-center">
               {existingFontFiles.map((f, i) => (
                 <span key={`ex-f-${i}`} className="bg-gray-100 border border-black text-[9px] px-2 py-1 uppercase flex items-center gap-2">
-                  {/* Mencari nama asli dari driveResults agar ID Drive tidak tampil mentah */}
+                  {/* Pemetaan ID ke Nama agar tidak tampil aneh di UI */}
                   {driveResults?.fonts?.find(df => df.id === f)?.name || 
-                   driveResults?.trial?.find(df => df.id === f)?.name || f} 
+                   driveResults?.trial?.find(df => df.id === f)?.name || 
+                   (f.length > 20 ? "Cloud Asset..." : f)} 
                   <button type="button" onClick={() => removeExistingFont(i)} className="text-red-500 font-bold hover:scale-125 transition-transform">×</button>
                 </span>
               ))}
