@@ -263,9 +263,15 @@ export default {
 
         if (!gasUrl) throw new Error("GAS_URL_NOT_CONFIGURED");
 
-        // Menggunakan URLSearchParams untuk encoding parameter yang lebih aman dan robust
-        const params = new URLSearchParams({ q, token });
-        const finalGasUrl = `${gasUrl}?${params.toString()}`;
+        // Membersihkan q dari spasi berlebih di ujung dan memastikan encoding karakter khusus
+        const cleanQuery = q.trim();
+        const params = new URLSearchParams();
+        params.append('q', cleanQuery);
+        params.append('token', token);
+
+        // Pastikan gasUrl tidak memiliki trailing slash atau tanda tanya sebelum digabung
+        const baseGasUrl = gasUrl.endsWith('/') ? gasUrl.slice(0, -1) : gasUrl;
+        const finalGasUrl = `${baseGasUrl}?${params.toString()}`;
 
         const res = await fetch(finalGasUrl);
         const contentType = res.headers.get('content-type') || '';
