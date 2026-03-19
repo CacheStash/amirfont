@@ -518,8 +518,16 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           onDrop={(e) => handleDropFiles(e, 'previews')}
           className="grid grid-cols-4 md:grid-cols-6 gap-2 border-2 border-black p-4 bg-gray-100"
         >
-          {/* Hasil dari Google Drive */}
-          {Array.isArray(driveResults?.images) && driveResults.images.map((img, i) => (
+          {/* Header Select All untuk Images */}
+          {Array.isArray(driveResults?.images) && driveResults.images.filter(img => !existingPreviewImages.includes(img.id)).length > 0 && (
+             <div className="col-span-full flex justify-between items-center bg-blue-100 p-1 px-2 border border-blue-300">
+               <span className="text-[8px] font-bold text-blue-700 uppercase">Drive Images</span>
+               <button type="button" onClick={() => handleSelectAllDrive('previews')} className="text-[7px] bg-blue-600 text-white px-2 py-0.5 font-bold uppercase hover:bg-black transition-colors">Select All</button>
+             </div>
+          )}
+
+          {/* Hasil dari Google Drive (Filtered) */}
+          {Array.isArray(driveResults?.images) && driveResults.images.filter(img => !existingPreviewImages.includes(img.id)).map((img, i) => (
             <div key={`dr-p-${i}`} className="aspect-square bg-blue-50 border border-blue-200 relative group overflow-hidden">
               <img src={img.url} className="w-full h-full object-cover" alt="drive" />
               <button
