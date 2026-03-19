@@ -4,7 +4,11 @@ import { FontConfig } from '../types';
 import opentype from 'opentype.js';
 
 interface TypeTesterProps {
-  config: FontConfig;
+  config: FontConfig & { 
+    metadata?: { 
+      primary_font_index?: number 
+    } 
+  };
   defaultText?: string;
   isEven?: boolean;
 }
@@ -25,7 +29,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [detectedAxes, setDetectedAxes] = useState<any[]>([]);
   const [axesValues, setAxesValues] = useState<Record<string, number>>({});
   
-  const [activeStyleIndex, setActiveStyleIndex] = useState(0);
+  const [activeStyleIndex, setActiveStyleIndex] = useState(config.metadata?.primary_font_index || 0);
   const [detectedStyleNames, setDetectedStyleNames] = useState<Record<number, string>>({});
 
   useEffect(() => {
