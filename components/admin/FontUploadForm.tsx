@@ -72,8 +72,20 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   const [existingPreviewImages, setExistingPreviewImages] = useState<string[]>(initialData?.preview_images || []);
   const [existingTrialFile, setExistingTrialFile] = useState<string>(initialData?.trial_file_url || '');
   const [isUploading, setIsUploading] = useState(false);
-  const [driveResults, setDriveResults] = useState<{images: any[], fonts: any[]} | null>(null);
+  const [driveResults, setDriveResults] = useState<{images: any[], fonts: any[], trial: any[]} | null>(null);
   const [isSearchingDrive, setIsSearchingDrive] = useState(false);
+
+  const handleSelectAllDrive = (type: 'fonts' | 'previews') => {
+    if (!driveResults) return;
+    if (type === 'fonts') {
+      const unselected = driveResults.fonts.filter(f => !existingFontFiles.includes(f.id));
+      setExistingFontFiles(prev => [...prev, ...unselected.map(f => f.id)]);
+    } else {
+      const unselected = driveResults.images.filter(img => !existingPreviewImages.includes(img.id));
+      if (existingPreviewImages.length + previewImages.length + unselected.length > 20) return alert("Maksimal 20 gambar!");
+      setExistingPreviewImages(prev => [...prev, ...unselected.map(img => img.id)]);
+    }
+  };
 
   const fetchFromDrive = async () => {
     if (!fontName) return alert("Isi nama font dulu!");
@@ -83,11 +95,11 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       const res = await fetch(`/api/admin/drive-search?q=${encodeURIComponent(fontName)}`, {
         headers: { 'Authorization': `Bearer ${session?.access_token}` }
       });
-      const data = (await res.json()) as { images: any[]; fonts: any[]; error?: string };
+      const data = (await res.json()) as { images: any[]; fonts: any[]; trial: any[]; error?: string };
       
       if (data.error) {
         alert("Drive Error: " + data.error);
-        setDriveResults({ images: [], fonts: [] });
+        setDriveResults({ images: [], fonts: [], trial: [] });
       } else {
         setDriveResults(data);
       }
@@ -392,11 +404,14 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           onDrop={(e) => handleDropFiles(e, 'fonts')}
           className="border-2 border-dashed border-black p-6 text-center hover:bg-gray-50 transition-colors cursor-pointer group bg-white"
         >
-          {/* Aset Font dari Google Drive */}
-          {Array.isArray(driveResults?.fonts) && driveResults.fonts.length > 0 && (
+          {/* Aset Font dari Google Drive (Hanya tampil yang belum dipilih) */}
+          {Array.isArray(driveResults?.fonts) && driveResults.fonts.filter(f => !existingFontFiles.includes(f.id)).length > 0 && (
             <div className="mb-6 pb-4 border-b border-black border-dotted flex flex-wrap gap-2 justify-center">
-              <p className="w-full text-[8px] font-bold text-blue-600 uppercase mb-1">Found in Google Drive:</p>
-              {driveResults.fonts.map((f, i) => (
+              <div className="w-full flex justify-between items-center mb-1">
+                <p className="text-[8px] font-bold text-blue-600 uppercase">Found in Drive:</p>
+                <button type="button" onClick={() => handleSelectAllDrive('fonts')} className="text-[7px] bg-blue-600 text-white px-2 py-0.5 font-bold uppercase hover:bg-black transition-colors">Select All</button>
+              </div>
+              {driveResults.fonts.filter(f => !existingFontFiles.includes(f.id)).map((f, i) => (
                 <button
                   key={`dr-f-${i}`}
                   type="button"
@@ -454,6 +469,18 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
             onChange={(e) => setTrialFile(e.target.files?.[0] || null)}
             className="w-full text-[10px] font-mono cursor-pointer"
           />
+          {/* Opsi Trial khusus dari subfolder "Trial" di Drive */}
+          {Array.isArray(driveResults?.trial) && driveResults.trial.length > 0 && !existingTrialFile && !trialFile && (
+            <div className="mt-3 p-2 border border-yellow-400 bg-white flex flex-wrap gap-2">
+              <p className="w-full text-[8px] font-bold text-yellow-600 uppercase">Trial Found in Drive:</p>
+              {driveResults.trial.map((t, i) => (
+                <button key={`dr-t-${i}`} type="button" onClick={() => setExistingTrialFile(t.id)}
+                  className="bg-yellow-50 border border-yellow-600 text-yellow-700 text-[9px] px-2 py-1 uppercase font-bold hover:bg-yellow-600 hover:text-white transition-all">
+                  USE {t.name}
+                </button>
+              ))}
+            </div>
+          )}
           {(existingTrialFile || trialFile) && (
             <div className="flex justify-between items-center mt-2">
               <p className="text-[9px] font-bold uppercase text-black">
