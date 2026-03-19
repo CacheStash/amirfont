@@ -146,7 +146,7 @@ const Fonts: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     const [fontsRes, promosRes] = await Promise.all([
-      supabase.from('fonts').select('*').order('created_at', { ascending: false }),
+      supabase.from('fonts').select('*').order('display_order', { ascending: true }),
       supabase.from('promotions').select('*').eq('is_active', true)
     ]);
     
@@ -268,7 +268,8 @@ const Fonts: React.FC = () => {
               const promo = getActivePromo(font.id);
               const basePrice = font.price || 25;
               const randomText = DUMMY_LIBRARY[idx % DUMMY_LIBRARY.length];
-              const fontFamilyStyle = `"${font.name}-0"`;
+              const primaryIdx = font.metadata?.primary_font_index || 0;
+              const fontFamilyStyle = `"${font.name}-${primaryIdx}"`;
 
               return (
                 <section key={font.id || idx} className="relative grid grid-cols-1 lg:grid-cols-[380px_1fr_120px] border-b border-black group transition-colors hover:bg-white/50 overflow-hidden">
