@@ -76,17 +76,26 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   const [isSearchingDrive, setIsSearchingDrive] = useState(false);
 
   const fetchFromDrive = async () => {
-    if (!fontName) return alert("Tulis nama font dulu!");
+    if (!fontName) return alert("Isi nama font dulu!");
     setIsSearchingDrive(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(`/api/admin/drive-search?q=${fontName}`, {
+      const res = await fetch(`/api/admin/drive-search?q=${encodeURIComponent(fontName)}`, {
         headers: { 'Authorization': `Bearer ${session?.access_token}` }
       });
-      const data = (await res.json()) as { images: any[]; fonts: any[] };
-      setDriveResults(data);
-    } catch (err) { alert("Drive Search Error"); }
-    finally { setIsSearchingDrive(false); }
+      const data = (await res.json()) as { images: any[]; fonts: any[]; error?: string };
+      
+      if (data.error) {
+        alert("Drive Error: " + data.error);
+        setDriveResults({ images: [], fonts: [] });
+      } else {
+        setDriveResults(data);
+      }
+    } catch (err) { 
+      alert("Gagal koneksi ke Worker"); 
+    } finally { 
+      setIsSearchingDrive(false); 
+    }
   };
 
   React.useEffect(() => {

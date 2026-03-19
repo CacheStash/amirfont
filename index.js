@@ -249,42 +249,40 @@ export default {
       } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500 }); }
     }
 
-    // --- 5b. API Drive Search Proxy ---
     if (url.pathname.startsWith('/api/admin/drive-search') && request.method === 'GET') {
       try {
         const authHeader = request.headers.get('Authorization');
-       const user = await getSupabaseUser(authHeader, env);
+        const user = await getSupabaseUser(authHeader, env);
         if (!user || !(await isUserAdmin(user.id, env))) {
           return new Response("UNAUTHORIZED", { status: 403 });
         }
 
-        const q = url.searchParams.get('q');
+        const q = url.searchParams.get('q') || "";
         const gasUrl = env.GAS_DRIVE_SEARCH_URL; 
         const token = env.GAS_TOKEN || "$uperAm4n"; 
 
-        if (!gasUrl || gasUrl.includes("/edit")) {
-          return new Response(JSON.stringify({ error: "URL_GAS_SALAH_ATAU_BELUM_SET", images: [], fonts: [] }), { 
-            status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
-          });
-        }
+        if (!gasUrl) throw new Error("GAS_URL_NOT_CONFIGURED");
 
         const res = await fetch(`${gasUrl}?q=${encodeURIComponent(q)}&token=${token}`);
         const contentType = res.headers.get('content-type') || '';
 
-        if (!res.ok || !contentType.includes('application/json')) {
-          const errorText = await res.text();
-          console.error("GAS_ERROR_RESPONSE:", errorText);
-          return new Response(JSON.stringify({ error: "GAS_NOT_RETURNING_JSON", detail: errorText.substring(0, 100), images: [], fonts: [] }), { 
+        // Jika Google tidak mengembalikan JSON (berarti ada error internal Google)
+        if (!contentType.includes('application/json')) {
+          const rawError = await res.text();
+          return new Response(JSON.stringify({ error: "GOOGLE_API_ERROR", detail: rawError.substring(0, 100) }), { 
             status: 502, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
           });
         }
-        
+
         const data = await res.json();
-        
         return new Response(JSON.stringify(data), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
-      } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500 }); }
+      } catch (e) { 
+        return new Response(JSON.stringify({ error: e.message, images: [], fonts: [] }), { 
+          status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
+        }); 
+      }
     }
 
     // --- 6. API Checkout & Trial (The Resetter Logic) ---
