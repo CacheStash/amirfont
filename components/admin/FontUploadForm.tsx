@@ -72,6 +72,22 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   const [existingPreviewImages, setExistingPreviewImages] = useState<string[]>(initialData?.preview_images || []);
   const [existingTrialFile, setExistingTrialFile] = useState<string>(initialData?.trial_file_url || '');
   const [isUploading, setIsUploading] = useState(false);
+  const [driveResults, setDriveResults] = useState<{images: any[], fonts: any[]} | null>(null);
+  const [isSearchingDrive, setIsSearchingDrive] = useState(false);
+
+  const fetchFromDrive = async () => {
+    if (!fontName) return alert("Tulis nama font dulu!");
+    setIsSearchingDrive(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`/api/admin/drive-search?q=${fontName}`, {
+        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+      });
+      const data = (await res.json()) as { images: any[]; fonts: any[] };
+      setDriveResults(data);
+    } catch (err) { alert("Drive Search Error"); }
+    finally { setIsSearchingDrive(false); }
+  };
 
   React.useEffect(() => {
     if (initialData) {
@@ -226,6 +242,14 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
             placeholder="E.G. ROYAL GRANDE"
             required
           />
+          <button 
+            type="button" 
+            onClick={fetchFromDrive}
+            disabled={isSearchingDrive}
+            className="text-[9px] bg-blue-600 text-white px-3 py-1 font-bold uppercase hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            {isSearchingDrive ? "Searching..." : "⚡ Sync Drive"}
+          </button>
         </div>
         <div className="space-y-2">
           <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Basic Price ($)</label>
@@ -441,6 +465,21 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           onDrop={(e) => handleDropFiles(e, 'previews')}
           className="grid grid-cols-4 md:grid-cols-6 gap-2 border-2 border-black p-4 bg-gray-100"
         >
+          {/* Hasil dari Google Drive */}
+          {driveResults?.images.map((img, i) => (
+            <div key={`dr-p-${i}`} className="aspect-square bg-blue-50 border border-blue-200 relative group overflow-hidden">
+              <img src={img.url} className="w-full h-full object-cover" alt="drive" />
+              <button 
+                type="button"
+                onClick={() => setExistingPreviewImages(prev => [...prev, img.id])}
+                className="absolute inset-0 bg-blue-600/90 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-bold text-[8px]"
+              >
+                USE DRIVE FILE
+              </button>
+              <div className="absolute top-0 left-0 bg-blue-600 text-white text-[7px] px-1">DRIVE</div>
+            </div>
+          ))}
+
           {existingPreviewImages.map((url, i) => (
             <div key={`ex-p-${i}`} className="aspect-square bg-white border border-black relative group overflow-hidden">
               {/* GUNAKAN /api/images/ agar mendukung format .webp & caching */}

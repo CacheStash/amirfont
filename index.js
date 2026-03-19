@@ -249,6 +249,28 @@ export default {
       } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500 }); }
     }
 
+    // --- 5b. API Drive Search Proxy ---
+    if (url.pathname.startsWith('/api/admin/drive-search') && request.method === 'GET') {
+      try {
+        const authHeader = request.headers.get('Authorization');
+       const user = await getSupabaseUser(authHeader, env);
+        if (!user || !(await isUserAdmin(user.id, env))) {
+          return new Response("UNAUTHORIZED", { status: 403 });
+        }
+
+        const q = url.searchParams.get('q');
+        const gasUrl = env.GAS_DRIVE_SEARCH_URL; 
+        const token = env.GAS_TOKEN || "$uperAm4n"; 
+
+        const res = await fetch(`${gasUrl}?q=${encodeURIComponent(q)}&token=${token}`);
+        const data = await res.json();
+        
+        return new Response(JSON.stringify(data), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500 }); }
+    }
+
     // --- 6. API Checkout & Trial (The Resetter Logic) ---
     if ((url.pathname.startsWith('/api/checkout') || url.pathname.startsWith('/api/claim-trial')) && request.method === 'POST') {
       try {
