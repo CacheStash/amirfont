@@ -263,14 +263,23 @@ export default {
 
         if (!gasUrl) throw new Error("GAS_URL_NOT_CONFIGURED");
 
-        const res = await fetch(`${gasUrl}?q=${encodeURIComponent(q)}&token=${token}`);
+        // Menggunakan URLSearchParams untuk encoding parameter yang lebih aman dan robust
+        const params = new URLSearchParams({ q, token });
+        const finalGasUrl = `${gasUrl}?${params.toString()}`;
+
+        const res = await fetch(finalGasUrl);
         const contentType = res.headers.get('content-type') || '';
 
-        // Jika Google tidak mengembalikan JSON (berarti ada error internal Google)
-        if (!contentType.includes('application/json')) {
+        // Validasi respon: Jika Google mengirimkan HTML (Error Page), jangan paksa parse JSON
+        if (!res.ok || !contentType.includes('application/json')) {
           const rawError = await res.text();
-          return new Response(JSON.stringify({ error: "GOOGLE_API_ERROR", detail: rawError.substring(0, 100) }), { 
-            status: 502, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
+          console.error("GAS_RAW_ERROR:", rawError);
+          return new Response(JSON.stringify({ 
+            error: "GOOGLE_API_ERROR", 
+            detail: rawError.substring(0, 150) 
+          }), { 
+            status: 502, 
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
           });
         }
 
