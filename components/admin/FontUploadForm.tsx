@@ -74,6 +74,16 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   const [isUploading, setIsUploading] = useState(false);
   const [driveResults, setDriveResults] = useState<{images: any[], fonts: any[], trial: any[]} | null>(null);
   const [isSearchingDrive, setIsSearchingDrive] = useState(false);
+  const [primaryFontIndex, setPrimaryFontIndex] = useState<number>(initialData?.metadata?.primary_font_index || 0);
+
+  // Fungsi helper untuk merubah urutan item dalam array (Move Up/Down)
+  const moveItem = (array: any[], setArray: React.Dispatch<React.SetStateAction<any[]>>, index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= array.length) return;
+    const newArray = [...array];
+    [newArray[index], newArray[newIndex]] = [newArray[newIndex], newArray[index]];
+    setArray(newArray);
+  };
 
   const handleSelectAllDrive = (type: 'fonts' | 'previews') => {
     if (!driveResults) return;
@@ -228,7 +238,11 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         font_files: [...existingFontFiles, ...uploadedFontUrls],
         preview_images: [...existingPreviewImages, ...uploadedPreviewUrls],
         trial_file_url: uploadedTrialUrl,
-        has_trial: uploadedTrialUrl !== ''
+        has_trial: uploadedTrialUrl !== '',
+        metadata: {
+          ...initialData?.metadata,
+          primary_font_index: primaryFontIndex
+        }
       };
 
 
@@ -260,7 +274,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
          <input 
             type="text" 
             value={fontName}
-            onChange={(e) => setFontName(e.target.value)}
+            onChange={(e) => setFontName(e.target.value.toUpperCase())}
             className="w-full border border-black p-3 outline-none font-normal uppercase text-xl focus:bg-yellow-50 transition-colors" 
             placeholder="E.G. ROYAL GRANDE"
             required
@@ -406,26 +420,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           onDrop={(e) => handleDropFiles(e, 'fonts')}
           className="border-2 border-dashed border-black p-6 text-center hover:bg-gray-50 transition-colors cursor-pointer group bg-white"
         >
-          {/* Aset Font dari Google Drive (Hanya tampil yang belum dipilih) */}
-          {Array.isArray(driveResults?.fonts) && driveResults.fonts.filter(f => !existingFontFiles.includes(f.id)).length > 0 && (
-            <div className="mb-6 pb-4 border-b border-black border-dotted flex flex-wrap gap-2 justify-center">
-              <div className="w-full flex justify-between items-center mb-1">
-                <p className="text-[8px] font-bold text-blue-600 uppercase">Found in Drive:</p>
-                <button type="button" onClick={() => handleSelectAllDrive('fonts')} className="text-[7px] bg-blue-600 text-white px-2 py-0.5 font-bold uppercase hover:bg-black transition-colors">Select All</button>
-              </div>
-              {driveResults.fonts.filter(f => !existingFontFiles.includes(f.id)).map((f, i) => (
-                <button
-                  key={`dr-f-${i}`}
-                  type="button"
-                  onClick={() => setExistingFontFiles(prev => [...prev, f.id])}
-                  className="bg-blue-50 border border-blue-400 text-blue-700 text-[9px] px-2 py-1 uppercase font-bold hover:bg-blue-600 hover:text-white transition-all flex items-center gap-1"
-                >
-                  <Plus size={10} /> {f.name}
-                </button>
-              ))}
-            </div>
-          )}
-
+          {/* Sinkronisasi Drive untuk font dihapus (Hanya upload lokal ke R2) */}
           <input
             type="file" multiple accept=".ttf,.otf,.woff2" className="hidden" id="fontFiles" 
             onChange={(e) => setFontFiles(prev => [...prev, ...Array.from(e.target.files || [])])}
@@ -438,12 +433,15 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           {(existingFontFiles.length > 0 || fontFiles.length > 0) && (
             <div className="mt-4 flex flex-wrap gap-2 justify-center">
               {existingFontFiles.map((f, i) => (
-                <span key={`ex-f-${i}`} className="bg-gray-100 border border-black text-[9px] px-2 py-1 uppercase flex items-center gap-2">
-                  {/* Pemetaan ID ke Nama agar tidak tampil aneh di UI */}
-                  {driveResults?.fonts?.find(df => df.id === f)?.name || 
-                   driveResults?.trial?.find(df => df.id === f)?.name || 
-                   (f.length > 20 ? "Cloud Asset..." : f)} 
-                  <button type="button" onClick={() => removeExistingFont(i)} className="text-red-500 font-bold hover:scale-125 transition-transform">×</button>
+                <span 
+                  key={`ex-f-${i}`} 
+                  onClick={() => setPrimaryFontIndex(i)}
+                  className={`border text-[9px] px-2 py-1 uppercase flex items-center gap-2 cursor-pointer transition-all ${primaryFontIndex === i ? 'bg-black text-white border-black' : 'bg-gray-100 border-black'}`}
+                  title="Click to set as Primary Style"
+                >
+                  {primaryFontIndex === i && <span className="text-yellow-400">★</span>}
+                  {f.includes('-') ? f.replace(/^\d{10,}-/, '') : f} 
+                  <button type="button" onClick={(e) => { e.stopPropagation(); removeExistingFont(i); }} className="text-red-500 font-bold hover:scale-125 transition-transform">×</button>
                 </span>
               ))}
               {fontFiles.map((f, i) => (
@@ -474,18 +472,6 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
             onChange={(e) => setTrialFile(e.target.files?.[0] || null)}
             className="w-full text-[10px] font-mono cursor-pointer"
           />
-          {/* Opsi Trial khusus dari subfolder "Trial" di Drive */}
-          {Array.isArray(driveResults?.trial) && driveResults.trial.length > 0 && !existingTrialFile && !trialFile && (
-            <div className="mt-3 p-2 border border-yellow-400 bg-white flex flex-wrap gap-2">
-              <p className="w-full text-[8px] font-bold text-yellow-600 uppercase">Trial Found in Drive:</p>
-              {driveResults.trial.map((t, i) => (
-                <button key={`dr-t-${i}`} type="button" onClick={() => setExistingTrialFile(t.id)}
-                  className="bg-yellow-50 border border-yellow-600 text-yellow-700 text-[9px] px-2 py-1 uppercase font-bold hover:bg-yellow-600 hover:text-white transition-all">
-                  USE {t.name}
-                </button>
-              ))}
-            </div>
-          )}
           {(existingTrialFile || trialFile) && (
             <div className="flex justify-between items-center mt-2">
               <p className="text-[9px] font-bold uppercase text-black">

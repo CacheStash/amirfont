@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Copy } from 'lucide-react';
 import FontUploadForm from './FontUploadForm';
 import { supabase } from '../../lib/supabase';
 
@@ -34,6 +34,28 @@ const ProductManager = () => {
     }
   };
 
+  // FUNGSI BARU: Duplikasi Produk
+  const handleDuplicate = async (font: any) => {
+    if (!confirm(`Duplicate "${font.name}"?`)) return;
+    try {
+      // Destruktur untuk membuang ID dan metadata lama agar Supabase membuat row baru
+      const { id, created_at, ...duplicateData } = font;
+      const { error } = await supabase
+        .from('fonts')
+        .insert([{ 
+          ...duplicateData, 
+          name: `${font.name} COPY`,
+          created_at: new Date().toISOString() 
+        }]);
+
+      if (error) throw error;
+      fetchFonts();
+      alert("Font berhasil diduplikasi.");
+    } catch (err: any) {
+      alert("Gagal menduplikasi: " + err.message);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-end">
@@ -64,8 +86,15 @@ const ProductManager = () => {
               <tr key={f.id} className="border-b border-black hover:bg-yellow-50 transition-colors">
                 <td className="p-4 font-bold uppercase">{f.name}</td>
                 <td className="p-4 text-right space-x-4">
-                  <button onClick={() => handleEdit(f)} className="text-blue-600 font-bold uppercase text-xs hover:underline">Edit</button>
-                  <button onClick={() => handleDelete(f.id)} className="text-red-500 font-bold uppercase text-xs hover:underline">Delete</button>
+                  <button onClick={() => handleEdit(f)} className="text-blue-600 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1">
+                    <Edit2 size={12} /> Edit
+                  </button>
+                  <button onClick={() => handleDuplicate(f)} className="text-green-600 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1">
+                    <Copy size={12} /> Duplicate
+                  </button>
+                  <button onClick={() => handleDelete(f.id)} className="text-red-500 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1">
+                    <Trash2 size={12} /> Delete
+                  </button>
                 </td>
               </tr>
             ))}
