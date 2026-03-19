@@ -456,18 +456,27 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
                   <button type="button" onClick={(e) => { e.stopPropagation(); removeExistingFont(i); }} className="text-red-500 font-bold hover:scale-125 transition-transform">×</button>
                 </span>
               ))}
-              {fontFiles.map((f, i) => (
-                <span key={`new-f-${i}`} className="bg-black text-white text-[9px] px-2 py-1 uppercase flex items-center gap-2">
-                  {f.name}
-                  <button 
-                    type="button" 
-                    onClick={() => setFontFiles(prev => prev.filter((_, idx) => idx !== i))} 
-                    className="text-red-400 font-bold hover:text-red-200 transition-colors"
+              {fontFiles.map((f, i) => {
+                const combinedIdx = existingFontFiles.length + i;
+                return (
+                  <span 
+                    key={`new-f-${i}`} 
+                    onClick={() => setPrimaryFontIndex(combinedIdx)}
+                    className={`text-[9px] px-2 py-1 uppercase flex items-center gap-2 cursor-pointer transition-all ${primaryFontIndex === combinedIdx ? 'bg-black text-white border border-black' : 'bg-gray-800 text-gray-300 border border-transparent'}`}
+                    title="Click to set as Primary Style"
                   >
-                    ×
-                  </button>
-                </span>
-              ))}
+                    {primaryFontIndex === combinedIdx && <span className="text-yellow-400">★</span>}
+                    {f.name}
+                    <button 
+                      type="button" 
+                      onClick={(e) => { e.stopPropagation(); setFontFiles(prev => prev.filter((_, idx) => idx !== i)); }} 
+                      className="text-red-400 font-bold hover:text-red-200 transition-colors"
+                    >
+                      ×
+                    </button>
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>
