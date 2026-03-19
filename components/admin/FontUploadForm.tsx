@@ -390,9 +390,26 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         <div 
           onDragOver={handleDragOver}
           onDrop={(e) => handleDropFiles(e, 'fonts')}
-          className="border-2 border-dashed border-black p-6 text-center hover:bg-gray-50 transition-colors cursor-pointer group"
+          className="border-2 border-dashed border-black p-6 text-center hover:bg-gray-50 transition-colors cursor-pointer group bg-white"
         >
-          <input 
+          {/* Aset Font dari Google Drive */}
+          {Array.isArray(driveResults?.fonts) && driveResults.fonts.length > 0 && (
+            <div className="mb-6 pb-4 border-b border-black border-dotted flex flex-wrap gap-2 justify-center">
+              <p className="w-full text-[8px] font-bold text-blue-600 uppercase mb-1">Found in Google Drive:</p>
+              {driveResults.fonts.map((f, i) => (
+                <button
+                  key={`dr-f-${i}`}
+                  type="button"
+                  onClick={() => setExistingFontFiles(prev => [...prev, f.id])}
+                  className="bg-blue-50 border border-blue-400 text-blue-700 text-[9px] px-2 py-1 uppercase font-bold hover:bg-blue-600 hover:text-white transition-all flex items-center gap-1"
+                >
+                  <Plus size={10} /> {f.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <input
             type="file" multiple accept=".ttf,.otf,.woff2" className="hidden" id="fontFiles" 
             onChange={(e) => setFontFiles(prev => [...prev, ...Array.from(e.target.files || [])])}
           />
