@@ -8,6 +8,7 @@ const ProductManager = () => {
   const [editingFont, setEditingFont] = useState<any>(null);
   const [fonts, setFonts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   useEffect(() => { fetchFonts(); }, []);
 
@@ -27,10 +28,33 @@ const ProductManager = () => {
     };
   }, [showForm]);
 
-  const fetchFonts = async () => {
-    const { data } = await supabase.from('fonts').select('*').order('created_at', { ascending: false });
+ const fetchFonts = async () => {
+    const { data } = await supabase.from('fonts').select('*').order('display_order', { ascending: true });
     if (data) setFonts(data);
     setLoading(false);
+  };
+
+  const handleDragStart = (idx: number) => setDraggedIdx(idx);
+  const handleDragOver = (e: React.DragEvent) => e.preventDefault();
+
+  const handleDrop = async (idx: number) => {
+    if (draggedIdx === null || draggedIdx === idx) return;
+    
+    const newFonts = [...fonts];
+    const draggedItem = newFonts[draggedIdx];
+    newFonts.splice(draggedIdx, 1);
+    newFonts.splice(idx, 0, draggedItem);
+    
+    // Optimistik Update di UI
+    const updatedFonts = newFonts.map((f, i) => ({ ...f, display_order: i }));
+    setFonts(updatedFonts);
+    setDraggedIdx(null);
+
+    // Simpan urutan baru ke database secara massal
+    const updates = updatedFonts.map(f => 
+      supabase.from('fonts').update({ display_order: f.display_order }).eq('id', f.id)
+    );
+    await Promise.all(updates);
   };
 
   const handleEdit = (font: any) => {
@@ -96,8 +120,16 @@ const ProductManager = () => {
             </tr>
           </thead>
           <tbody>
-            {fonts.map((f) => (
-              <tr key={f.id} className="border-b border-black hover:bg-yellow-50 transition-colors">
+            {fonts.map((f, i) => (
+              <tr 
+                key={f.id} 
+                draggable
+                onDragStart={() => handleDragStart(i)}
+                onDragOver={handleDragOver}
+                onDrop={() => handleDrop(i)}
+                className={`border-b border-black hover:bg-yellow-50 transition-colors cursor-move ${draggedIdx === i ? 'opacity-20' : ''}`}
+              >
+                
                 <td className="p-4 font-bold uppercase">{f.name}</td>
                 <td className="p-4 text-right space-x-4">
                   <button onClick={() => handleEdit(f)} className="text-blue-600 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1">

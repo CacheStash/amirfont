@@ -164,12 +164,27 @@ const Home: React.FC = () => {
   }, []);
 
   const fetchData = async () => {
-    const [fontsRes, promosRes] = await Promise.all([
-      supabase.from('fonts').select('*').order('created_at', { ascending: false }),
-      supabase.from('promotions').select('*').eq('is_active', true)
+    const [fontsRes, promosRes, historyRes] = await Promise.all([
+      // Ambil berdasarkan display_order (Stacking)
+      supabase.from('fonts').select('*').order('display_order', { ascending: true }),
+      supabase.from('promotions').select('*').eq('is_active', true),
+      // Ambil data history untuk hitung sales/popularity
+      supabase.from('font_history').select('font_id')
     ]);
     
-    if (fontsRes.data) setFonts(fontsRes.data);
+    if (fontsRes.data) {
+      // Hitung total sales (Trial + Paid) per Font ID
+      const salesCounts = (historyRes.data || []).reduce((acc: Record<string, number>, curr: any) => {
+        acc[curr.font_id] = (acc[curr.font_id] || 0) + 1;
+        return acc;
+      }, {});
+
+      const enrichedFonts = fontsRes.data.map(f => ({
+        ...f,
+        dynamic_sales: salesCounts[f.id] || 0
+      }));
+      setFonts(enrichedFonts);
+    }
     if (promosRes.data) setPromos(promosRes.data);
     setLoading(false);
   };
@@ -225,12 +240,14 @@ const Home: React.FC = () => {
     : fonts;
 
     const sortedFonts = [...filteredFonts].sort((a, b) => {
-    if (sortBy === 'recent') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    if (sortBy === 'oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    // Recent & Oldest sekarang mengikuti Display Order (Stacking manual)
+    if (sortBy === 'recent') return (a.display_order || 0) - (b.display_order || 0);
+    if (sortBy === 'oldest') return (b.display_order || 0) - (a.display_order || 0);
     if (sortBy === 'cheapest') return (a.price || 0) - (b.price || 0);
     if (sortBy === 'priciest') return (b.price || 0) - (a.price || 0);
-    if (sortBy === 'popular') return (b.popularity || 0) - (a.popularity || 0);
-    if (sortBy === 'hipster') return (a.popularity || 0) - (b.popularity || 0);
+    // Popularitas dihitung dari total baris di font_history
+    if (sortBy === 'popular') return (b.dynamic_sales || 0) - (a.dynamic_sales || 0);
+    if (sortBy === 'hipster') return (a.dynamic_sales || 0) - (b.dynamic_sales || 0);
     return 0;
   });
 
