@@ -11,6 +11,22 @@ const ProductManager = () => {
 
   useEffect(() => { fetchFonts(); }, []);
 
+  // FUNGSI: Mengunci scroll background saat modal aktif
+  useEffect(() => {
+    if (showForm) {
+      // Nonaktifkan scroll pada body
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Kembalikan scroll ke kondisi semula
+      document.body.style.overflow = 'unset';
+    }
+    
+    // Cleanup: Pastikan scroll kembali normal saat komponen unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showForm]);
+
   const fetchFonts = async () => {
     const { data } = await supabase.from('fonts').select('*').order('created_at', { ascending: false });
     if (data) setFonts(data);
@@ -34,11 +50,9 @@ const ProductManager = () => {
     }
   };
 
-  // FUNGSI BARU: Duplikasi Produk
   const handleDuplicate = async (font: any) => {
     if (!confirm(`Duplicate "${font.name}"?`)) return;
     try {
-      // Destruktur untuk membuang ID dan metadata lama agar Supabase membuat row baru
       const { id, created_at, ...duplicateData } = font;
       const { error } = await supabase
         .from('fonts')
