@@ -45,7 +45,8 @@ const ContentManager = () => {
     const updatedItems = newItems.map((item, idx) => ({
       ...item,
       sort_order: idx,
-      section_id: generateSectionId(currentCategory, idx)
+      section_id: generateSectionId(currentCategory, idx),
+      updated_at: new Date().toISOString()
     }));
 
     setItems(updatedItems);
@@ -92,7 +93,13 @@ const ContentManager = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.id) {
-      await supabase.from('site_content').update(formData).eq('id', formData.id);
+      await supabase
+        .from('site_content')
+        .update({ 
+          ...formData, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', formData.id);
     } else {
       await supabase.from('site_content').insert([formData]);
     }
