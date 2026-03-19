@@ -262,7 +262,15 @@ export default {
         const gasUrl = env.GAS_DRIVE_SEARCH_URL; 
         const token = env.GAS_TOKEN || "$uperAm4n"; 
 
+        if (!gasUrl) {
+          return new Response(JSON.stringify({ error: "GAS_URL_NOT_CONFIGURED", images: [], fonts: [] }), { 
+            status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
+          });
+        }
+
         const res = await fetch(`${gasUrl}?q=${encodeURIComponent(q)}&token=${token}`);
+        if (!res.ok) throw new Error("GAS_SCRIPT_REJECTED_OR_TIMEOUT");
+        
         const data = await res.json();
         
         return new Response(JSON.stringify(data), {

@@ -466,10 +466,10 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           className="grid grid-cols-4 md:grid-cols-6 gap-2 border-2 border-black p-4 bg-gray-100"
         >
           {/* Hasil dari Google Drive */}
-          {driveResults?.images.map((img, i) => (
+          {Array.isArray(driveResults?.images) && driveResults.images.map((img, i) => (
             <div key={`dr-p-${i}`} className="aspect-square bg-blue-50 border border-blue-200 relative group overflow-hidden">
               <img src={img.url} className="w-full h-full object-cover" alt="drive" />
-              <button 
+              <button
                 type="button"
                 onClick={() => setExistingPreviewImages(prev => [...prev, img.id])}
                 className="absolute inset-0 bg-blue-600/90 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-bold text-[8px]"
