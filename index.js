@@ -223,18 +223,23 @@ export default {
         let response = await cache.match(request);
         if (response) return response;
         const imageName = decodeURIComponent(url.pathname.split('/').pop());
-        const object = await env.R2_BUCKET.get(imageName);
-        if (!object) return new Response(`Image not found`, { status: 404 });
+        const fileData = await fetchFileBuffer(imageName, env);
+        if (!fileData) return new Response(`Image not found`, { status: 404 });
+
         const headers = new Headers();
-        object.writeHttpMetadata(headers);
         headers.set('Access-Control-Allow-Origin', '*');
         headers.set('Cache-Control', 'public, max-age=604800, s-maxage=604800');
+        
+        // Tentukan Content-Type: prioritaskan hasil fetch atau fallback ke ekstensi
+        let contentType = fileData.contentType || 'image/jpeg';
         const lowerName = imageName.toLowerCase();
-        if (lowerName.endsWith('.png')) headers.set('Content-Type', 'image/png');
-        else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) headers.set('Content-Type', 'image/jpeg');
-        else if (lowerName.endsWith('.webp')) headers.set('Content-Type', 'image/webp');
-        else if (lowerName.endsWith('.svg')) headers.set('Content-Type', 'image/svg+xml');
-        response = new Response(object.body, { headers });
+        if (lowerName.endsWith('.png')) contentType = 'image/png';
+        else if (lowerName.endsWith('.webp')) contentType = 'image/webp';
+        else if (lowerName.endsWith('.svg')) contentType = 'image/svg+xml';
+        
+        headers.set('Content-Type', contentType);
+        
+        response = new Response(fileData.body, { headers });
         ctx.waitUntil(cache.put(request, response.clone()));
         return response;
       } catch (e) { return new Response('Error fetching image', { status: 500 }); }
