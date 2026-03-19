@@ -9,15 +9,18 @@ const ProductManager = () => {
   const [fonts, setFonts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  
+  // LOGIK SEARCH & PAGINATION
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
-  // Filter & Pagination Logic
+  // Filter data berdasarkan input search
   const filteredFonts = fonts.filter(f => 
     f.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Potong data untuk pagination
   const totalPages = Math.ceil(filteredFonts.length / itemsPerPage);
   const paginatedFonts = filteredFonts.slice(
     (currentPage - 1) * itemsPerPage, 
@@ -26,16 +29,14 @@ const ProductManager = () => {
 
   useEffect(() => { fetchFonts(); }, []);
 
+  // Scroll Lock saat Modal Aktif
   useEffect(() => {
-    if (showForm) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    document.body.style.overflow = showForm ? 'hidden' : 'unset';
     return () => { document.body.style.overflow = 'unset'; };
   }, [showForm]);
 
   const fetchFonts = async () => {
+    // Ambil data berdasarkan display_order (Stacking)
     const { data } = await supabase.from('fonts').select('*').order('display_order', { ascending: true });
     if (data) setFonts(data);
     setLoading(false);
@@ -50,9 +51,11 @@ const ProductManager = () => {
     const draggedItem = newFonts[draggedIdx];
     newFonts.splice(draggedIdx, 1);
     newFonts.splice(idx, 0, draggedItem);
+    
     const updatedFonts = newFonts.map((f, i) => ({ ...f, display_order: i }));
     setFonts(updatedFonts);
     setDraggedIdx(null);
+
     const updates = updatedFonts.map(f => 
       supabase.from('fonts').update({ display_order: f.display_order }).eq('id', f.id)
     );
@@ -71,7 +74,7 @@ const ProductManager = () => {
       if (error) throw error;
       setFonts(fonts.filter(f => f.id !== id));
       alert("Font berhasil dihapus.");
-    } catch (err: any) { alert("Gagal menghapus: " + err.message); }
+    } catch (err: any) { alert("Error: " + err.message); }
   };
 
   const handleDuplicate = async (font: any) => {
@@ -80,25 +83,23 @@ const ProductManager = () => {
       const { id, created_at, ...duplicateData } = font;
       const { error } = await supabase
         .from('fonts')
-        .insert([{ 
-          ...duplicateData, 
-          name: `${font.name} COPY`,
-          created_at: new Date().toISOString() 
-        }]);
+        .insert([{ ...duplicateData, name: `${font.name} COPY`, created_at: new Date().toISOString() }]);
       if (error) throw error;
       fetchFonts();
-      alert("Font berhasil diduplikasi.");
-    } catch (err: any) { alert("Gagal menduplikasi: " + err.message); }
+      alert("Berhasil diduplikasi.");
+    } catch (err: any) { alert("Error: " + err.message); }
   };
 
   return (
     <div className="space-y-8">
+      {/* HEADER SECTION */}
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-4xl font-normal uppercase tracking-tight">Inventory</h2>
           <p className="text-xs font-bold text-gray-400 uppercase mt-1 tracking-wider">Manage Typefaces</p>
         </div>
         <div className="flex items-center gap-4">
+          {/* SEARCH BAR */}
           <input 
             type="text"
             placeholder="Search fonts..."
@@ -115,6 +116,7 @@ const ProductManager = () => {
         </div>
       </div>
 
+      {/* TABLE SECTION */}
       <div className="border-2 border-black bg-white overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -137,15 +139,9 @@ const ProductManager = () => {
                 >
                   <td className="p-4 font-bold uppercase">{f.name}</td>
                   <td className="p-4 text-right space-x-4">
-                    <button onClick={() => handleEdit(f)} className="text-blue-600 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1">
-                      <Edit2 size={12} /> Edit
-                    </button>
-                    <button onClick={() => handleDuplicate(f)} className="text-green-600 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1">
-                      <Copy size={12} /> Duplicate
-                    </button>
-                    <button onClick={() => handleDelete(f.id)} className="text-red-500 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1">
-                      <Trash2 size={12} /> Delete
-                    </button>
+                    <button onClick={() => handleEdit(f)} className="text-blue-600 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1"><Edit2 size={12} /> Edit</button>
+                    <button onClick={() => handleDuplicate(f)} className="text-green-600 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1"><Copy size={12} /> Duplicate</button>
+                    <button onClick={() => handleDelete(f.id)} className="text-red-500 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1"><Trash2 size={12} /> Delete</button>
                   </td>
                 </tr>
               );
@@ -154,6 +150,7 @@ const ProductManager = () => {
         </table>
       </div>
 
+      {/* PAGINATION CONTROLS */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 mt-6">
           <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)} className="border-2 border-black px-4 py-2 font-bold uppercase text-[10px] disabled:opacity-30 hover:bg-black hover:text-white transition-colors">Prev</button>
@@ -162,6 +159,7 @@ const ProductManager = () => {
         </div>
       )}
 
+      {/* MODAL FORM */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white border-2 border-black p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
