@@ -553,17 +553,17 @@ export default {
         const typeStr = (injectedType || txData.download_type || '').toLowerCase();
         const isTrial = typeStr.includes('trial') || typeStr.includes('demo') || fontFile.toLowerCase().includes('trial');
 
-        // FIXED 3: Naming ZIP Murni - Selalu bersihkan Suffix (Medium, Bold, Demo, dll)
-        // Kita paksa pembersihan agresif menggunakan regex agar tidak ada varian yang lolos
+        // FIXED 3: Naming ZIP Murni - Pertahankan Huruf Besar/Kecil dari Database
         const rawSource = txData.actual_name || cleanFontName.split('.')[0];
         
         const baseName = rawSource
-          .replace(/(demo|regular|bold|italic|medium|light|thin|black|extrabold|semibold)/gi, '') // Hanya hapus kata gaya teknis
-          .trim() // Hilangkan spasi di ujung setelah penghapusan kata di atas
-          .replace(/\s+/g, '_') // Ganti spasi antar kata dengan underscore (Wicked Destiny -> Wicked_Destiny)
-          .replace(/_+/g, '_') // Cegah underscore ganda
-          .replace(/^_|_$/g, ''); // Bersihkan underscore di paling depan atau belakang
+          .replace(/(demo|regular|bold|italic|medium|light|thin|black|extrabold|semibold)/gi, '')
+          .trim()
+          .replace(/\s+/g, '_')
+          .replace(/_+/g, '_')
+          .replace(/^_|_$/g, '');
 
+        // Hapus .toLowerCase() agar Case Sensitive (Royal_Grande.zip)
         const zipName = `SQ_${baseName}${isTrial ? '_Trial' : ''}.zip`;
      
 
@@ -652,11 +652,24 @@ export default {
           const fileData = await fetchFileBuffer(fName, env);
           if (!fileData) return null;
           
-          return {
-            // Jika ID Drive, beri nama generic; jika file R2, bersihkan timestamp
-            name: fName.includes('-') ? fName.replace(/^\d+-/, '') : `font_${fName.substring(0, 6)}.otf`,
-            content: fileData.body
-          };
+          // DETEKSI R2: Harus diawali timestamp (10+ angka) diikuti tanda hubung
+          const isR2File = /^\d{10,}-/.test(fName);
+          let finalFileName = "";
+
+          if (isR2File) {
+            // Bersihkan timestamp: 1712345678-Roboto.otf -> Roboto.otf
+            finalFileName = fName.replace(/^\d+-/, '');
+          } else {
+            // JIKA DRIVE ID: Gunakan nama Typeface asli + Indeks agar rapi
+            const ext = fileData.contentType?.includes('ttf') ? 'ttf' : 'otf';
+            const cleanBase = (txData.actual_name || "Font").replace(/\s+/g, '_');
+            // Hasil: Royal_Grande_1.otf
+            finalFileName = fontFilesToFetch.length > 1 
+              ? `${cleanBase}_${index + 1}.${ext}` 
+              : `${cleanBase}.${ext}`;
+          }
+
+          return { name: finalFileName, content: fileData.body };
         }));
 
         // Gabungkan seluruh font family + LICENSE.txt
