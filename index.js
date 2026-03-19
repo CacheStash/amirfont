@@ -264,14 +264,11 @@ export default {
         if (!gasUrl) throw new Error("GAS_URL_NOT_CONFIGURED");
 
         // Membersihkan q dari spasi berlebih di ujung dan memastikan encoding karakter khusus
-        const cleanQuery = q.trim();
-        const params = new URLSearchParams();
-        params.append('q', cleanQuery);
-        params.append('token', token);
+        const searchParams = new URLSearchParams();
+        searchParams.set('q', q.trim());
+        searchParams.set('token', token);
 
-        // Pastikan gasUrl tidak memiliki trailing slash atau tanda tanya sebelum digabung
-        const baseGasUrl = gasUrl.endsWith('/') ? gasUrl.slice(0, -1) : gasUrl;
-        const finalGasUrl = `${baseGasUrl}?${params.toString()}`;
+        const finalGasUrl = `${gasUrl}${gasUrl.includes('?') ? '&' : '?'}${searchParams.toString()}`;
 
         const res = await fetch(finalGasUrl);
         const contentType = res.headers.get('content-type') || '';
