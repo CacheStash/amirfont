@@ -76,6 +76,23 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   const [isSearchingDrive, setIsSearchingDrive] = useState(false);
   const [primaryFontIndex, setPrimaryFontIndex] = useState<number>(initialData?.metadata?.primary_font_index || 0);
 
+  const [draggedImgIndex, setDraggedImgIndex] = useState<number | null>(null);
+
+  const handleDragStart = (index: number) => setDraggedImgIndex(index);
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  const handleDrop = (index: number) => {
+    if (draggedImgIndex === null) return;
+    const newArray = [...existingPreviewImages];
+    const draggedItem = newArray[draggedImgIndex];
+    newArray.splice(draggedImgIndex, 1);
+    newArray.splice(index, 0, draggedItem);
+    setExistingPreviewImages(newArray);
+    setDraggedImgIndex(null);
+  };
+
   // Fungsi helper untuk merubah urutan item dalam array (Move Up/Down)
   const moveItem = (array: any[], setArray: React.Dispatch<React.SetStateAction<any[]>>, index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
@@ -142,12 +159,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   const removeExistingPreview = (index: number) => {
     setExistingPreviewImages(prev => prev.filter((_, i) => i !== index));
   };
-  // Helper untuk handle drag events
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
+ 
   const handleDropFiles = (e: React.DragEvent, type: 'fonts' | 'previews') => {
     e.preventDefault();
     e.stopPropagation();
@@ -533,7 +545,14 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           ))}
 
           {existingPreviewImages.map((url, i) => (
-            <div key={`ex-p-${i}`} className="aspect-square bg-white border border-black relative group overflow-hidden">
+            <div 
+              key={`ex-p-${i}`} 
+              draggable
+              onDragStart={() => handleDragStart(i)}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(i)}
+              className={`aspect-square bg-white border border-black relative group overflow-hidden cursor-move transition-opacity ${draggedImgIndex === i ? 'opacity-30' : 'opacity-100'}`}
+            >
               {/* GUNAKAN /api/images/ agar mendukung format .webp & caching */}
               <img src={`/api/images/${url}`} className="w-full h-full object-cover" alt="preview" />
               <button 
