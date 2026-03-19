@@ -262,14 +262,22 @@ export default {
         const gasUrl = env.GAS_DRIVE_SEARCH_URL; 
         const token = env.GAS_TOKEN || "$uperAm4n"; 
 
-        if (!gasUrl) {
-          return new Response(JSON.stringify({ error: "GAS_URL_NOT_CONFIGURED", images: [], fonts: [] }), { 
-            status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
+        if (!gasUrl || gasUrl.includes("/edit")) {
+          return new Response(JSON.stringify({ error: "URL_GAS_SALAH_ATAU_BELUM_SET", images: [], fonts: [] }), { 
+            status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
           });
         }
 
         const res = await fetch(`${gasUrl}?q=${encodeURIComponent(q)}&token=${token}`);
-        if (!res.ok) throw new Error("GAS_SCRIPT_REJECTED_OR_TIMEOUT");
+        const contentType = res.headers.get('content-type') || '';
+
+        if (!res.ok || !contentType.includes('application/json')) {
+          const errorText = await res.text();
+          console.error("GAS_ERROR_RESPONSE:", errorText);
+          return new Response(JSON.stringify({ error: "GAS_NOT_RETURNING_JSON", detail: errorText.substring(0, 100), images: [], fonts: [] }), { 
+            status: 502, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
+          });
+        }
         
         const data = await res.json();
         
