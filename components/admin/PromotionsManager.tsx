@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 const PromotionsManager = () => {
   const [promos, setPromos] = useState<any[]>([]);
   const [fonts, setFonts] = useState<any[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -36,6 +37,7 @@ const PromotionsManager = () => {
   // Form State
   const [promoName, setPromoName] = useState('');
   const [discount, setDiscount] = useState('');
+  const [fontSearch, setFontSearch] = useState('');
   const [targetType, setTargetType] = useState<'all' | 'specific'>('specific');
   const [selectedFonts, setSelectedFonts] = useState<string[]>([]);
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -187,7 +189,18 @@ const PromotionsManager = () => {
 
                 {targetType === 'specific' && (
                   <div className="max-h-32 overflow-y-auto border border-black p-2 space-y-1 bg-gray-50">
-                    {fonts.map(f => (
+                    <div className="sticky top-0 bg-gray-50 pb-2 mb-2 border-b border-black/10 z-10">
+                      <input 
+                        type="text"
+                        placeholder="Search font..."
+                        className="w-full p-2 text-[10px] font-bold uppercase border border-black outline-none focus:bg-yellow-50"
+                        value={fontSearch}
+                        onChange={(e) => setFontSearch(e.target.value)}
+                      />
+                    </div>
+                    {fonts
+                      .filter(f => f.name.toLowerCase().includes(fontSearch.toLowerCase()))
+                      .map(f => (
                       <label key={f.id} className="flex items-center gap-2 text-[10px] font-bold uppercase cursor-pointer hover:bg-white p-1">
                         <input 
                           type="checkbox" 
