@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search, Plus, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Menu, X, Search, Plus, ArrowRight, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -134,11 +134,22 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
             </button>
 
             <Link 
-              to="/cart" 
-              className="flex items-center gap-2 font-bold text-xs md:text-sm border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-all whitespace-nowrap uppercase group"
+              to={user ? "/user/dashboard" : "/user/auth"} 
+              className="font-bold text-xs md:text-sm border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-all whitespace-nowrap uppercase"
             >
-               <Plus size={16} className="shrink-0 group-hover:rotate-90 transition-transform duration-300" />
-               <span>CART ({cartCount})</span>
+               {user ? 'ACCOUNT' : 'LOGIN'}
+            </Link>
+
+            <Link 
+              to="/cart" 
+              className="relative p-1.5 border border-black hover:bg-black hover:text-white transition-all group shrink-0"
+            >
+               <ShoppingCart size={20} className="shrink-0" />
+               {cartCount > 0 && (
+                 <span className="absolute -top-2.5 -right-2.5 bg-black text-[#EDEBE6] text-[10px] w-5 h-5 flex items-center justify-center border border-[#EDEBE6] font-bold">
+                   {cartCount}
+                 </span>
+               )}
             </Link>
         </div>
       </div>
