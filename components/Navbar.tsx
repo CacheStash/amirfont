@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search, Plus, ArrowRight, ArrowLeft, ShoppingCart } from 'lucide-react';
+import { Menu, X, Search, ArrowRight, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -133,24 +133,49 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                {isSearchOpen ? <X size={20} /> : <Search size={20} />}
             </button>
 
-            <Link 
-              to={user ? "/user/dashboard" : "/user/auth"} 
-              className="font-bold text-xs md:text-sm border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-all whitespace-nowrap uppercase"
-            >
-               {user ? 'ACCOUNT' : 'LOGIN'}
-            </Link>
+            <div className="flex items-center border border-black h-9 md:h-10 font-bold text-xs md:text-sm uppercase bg-transparent overflow-visible">
+              {/* Part 1: Account / Login Trigger */}
+              <div className="relative h-full group/acc border-r border-black">
+                {user ? (
+                  <>
+                    <button className="h-full px-3 md:px-4 hover:bg-black hover:text-white transition-colors">
+                      ACCOUNT
+                    </button>
+                    {/* Account Dropdown Menu (Appears on Hover) */}
+                    <div className="absolute top-full right-[-1px] w-48 bg-[#EDEBE6] border-x border-b border-black hidden group-hover/acc:block z-[140] animate-in slide-in-from-top-1 duration-200">
+                      <Link 
+                        to="/user/dashboard" 
+                        className="flex items-center justify-between p-4 border-b border-black hover:bg-black hover:text-white transition-all group/item"
+                      >
+                        <span>DASHBOARD</span>
+                        <ArrowRight size={16} className="opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all" />
+                      </Link>
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full flex items-center justify-between p-4 hover:bg-black hover:text-white transition-all group/item text-left"
+                      >
+                        <span>LOGOUT</span>
+                        <ArrowRight size={16} className="opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all" />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <Link to="/user/auth" className="h-full px-3 md:px-4 flex items-center hover:bg-black hover:text-white transition-colors">
+                    LOGIN
+                  </Link>
+                )}
+              </div>
 
-            <Link 
-              to="/cart" 
-              className="relative p-1.5 border border-black hover:bg-black hover:text-white transition-all group shrink-0"
-            >
-               <ShoppingCart size={20} className="shrink-0" />
-               {cartCount > 0 && (
-                 <span className="absolute -top-2.5 -right-2.5 bg-black text-[#EDEBE6] text-[10px] w-5 h-5 flex items-center justify-center border border-[#EDEBE6] font-bold">
-                   {cartCount}
-                 </span>
-               )}
-            </Link>
+              {/* Part 2: Cart Icon Section */}
+              <Link to="/cart" className="h-full px-3 flex items-center relative hover:bg-black hover:text-white transition-colors group">
+                <ShoppingCart size={20} className="shrink-0" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-black text-[#EDEBE6] text-[10px] w-5 h-5 flex items-center justify-center border border-[#EDEBE6] font-bold">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            </div>
         </div>
       </div>
 
@@ -253,24 +278,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                         </Link>
                       ))}
 
-                      {/* Baris ke-4 Kolom Kanan: Login/Logout */}
-                      {user ? (
-                        <Link 
-                          to="/user/dashboard"
-                         className="text-3xl lg:text-6xl font-normal uppercase tracking-tighter px-3 lg:px-8 py-6 lg:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
-                        >
-                          <span>DASHBOARD</span>
-                          <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                        </Link>
-                      ) : (
-                        <Link 
-                          to="/user/auth"
-                          className="text-3xl lg:text-6xl font-normal uppercase tracking-tighter px-3 lg:px-8 py-6 lg:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
-                        >
-                          <span>LOGIN</span>
-                          <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                        </Link>
-                      )}
+                      
                       
                       <div className="flex-1 border-b border-black md:border-b-0"></div>
                   </div>
