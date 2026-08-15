@@ -572,12 +572,17 @@ if (subscribe) {
               </div>
             )}
 
-{/* COUPON / PROMO CODE SECTION */}
+{/* COUPON / PROMO CODE SECTION (HIGH-CONTRAST BRUTALIST STYLE) */}
             {!isPaid && total > 0 && (
-              <div className="mb-10 p-6 md:p-8 border-2 border-black border-dashed bg-white">
-                <h4 className="text-[10px] font-black tracking-widest opacity-40 italic uppercase mb-4">
-                  HAVE A BARGAIN / PROMO CODE?
-                </h4>
+              <div className="mb-10 p-6 md:p-8 border-2 border-black bg-[#FFE500] text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="bg-black text-white px-2 py-1 text-[10px] font-black tracking-[0.2em] uppercase">
+                    BARGAIN / PROMO CODE
+                  </span>
+                  <span className="text-[10px] font-black italic tracking-widest opacity-70">
+                    CLAIM NEGOTIATED DEAL*
+                  </span>
+                </div>
                 
                 <div className="flex gap-2">
                   <input 
@@ -585,21 +590,21 @@ if (subscribe) {
                     value={couponCodeInput}
                     onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase().replace(/\s/g, ''))}
                     disabled={!!appliedCoupon || isApplyingCoupon}
-                    className="flex-1 border border-black p-4 font-bold uppercase text-sm outline-none disabled:bg-gray-100 disabled:opacity-50"
-                    placeholder="ENTER CODE HERE"
+                    className="flex-1 border-2 border-black p-4 font-mono font-bold uppercase text-sm outline-none bg-white placeholder:text-black/40 disabled:bg-gray-200"
+                    placeholder="PASTE COUPON CODE HERE"
                   />
                   {!appliedCoupon ? (
                     <button 
                       onClick={handleApplyCoupon}
                       disabled={isApplyingCoupon || !couponCodeInput.trim()}
-                      className="bg-black text-white px-6 font-bold uppercase tracking-widest text-xs hover:bg-gray-800 disabled:opacity-50 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                      className="bg-black text-white px-6 md:px-8 font-black uppercase tracking-widest text-xs hover:bg-white hover:text-black border-2 border-black disabled:opacity-50 transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
                     >
                       {isApplyingCoupon ? 'VERIFYING...' : 'APPLY'}
                     </button>
                   ) : (
                     <button 
                       onClick={handleRemoveCoupon}
-                      className="bg-red-600 text-white px-6 font-bold uppercase tracking-widest text-xs hover:bg-red-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                      className="bg-red-600 text-white px-6 md:px-8 font-black uppercase tracking-widest text-xs hover:bg-black border-2 border-black transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
                     >
                       REMOVE
                     </button>
@@ -607,9 +612,10 @@ if (subscribe) {
                 </div>
                 
                 {couponMessage && (
-                  <p className={`mt-4 text-[10px] font-black tracking-widest uppercase ${couponMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                    {couponMessage.type === 'error' ? '❌ ' : '✅ '}{couponMessage.text}
-                  </p>
+                  <div className={`mt-4 p-3 border-2 border-black font-black text-[10px] tracking-widest uppercase flex items-center gap-2 ${couponMessage.type === 'success' ? 'bg-green-400 text-black' : 'bg-red-500 text-white'}`}>
+                    <span>{couponMessage.type === 'success' ? '🎉' : '⚠️'}</span>
+                    <span>{couponMessage.text}</span>
+                  </div>
                 )}
               </div>
             )}
