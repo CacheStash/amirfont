@@ -379,7 +379,7 @@ const handleAdd = (redirect: boolean = false) => {
             <span className="text-[10px] font-bold tracking-[0.2em] text-black/40 mb-2">INVESTMENT TOTAL</span>
             <div className="flex items-start justify-center md:justify-start">
               <span className="text-2xl font-bold mt-2 mr-1 tracking-tighter">$</span>
-              <span className="text-8xl font-normal tracking-tighter leading-[0.7]">{totalPrice}</span>
+              <span className="text-8xl font-normal tracking-tighter leading-[0.7]">{Number(totalPrice).toFixed(2)}</span>
             </div>
             {/* FIXED: Menampilkan info penghematan di bawah Investment Total */}
             {savingsInfo && (
