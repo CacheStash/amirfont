@@ -26,6 +26,10 @@ const [name, setName] = React.useState('');
   const [subscribe, setSubscribe] = React.useState(true);
   const [purchasedItems, setPurchasedItems] = React.useState<any[]>([]);
   const [successfulOrderId, setSuccessfulOrderId] = React.useState<string | null>(null);
+const [couponCodeInput, setCouponCodeInput] = React.useState('');
+  const [appliedCoupon, setAppliedCoupon] = React.useState<any | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = React.useState(false);
+  const [couponMessage, setCouponMessage] = React.useState<{type: 'error' | 'success', text: string} | null>(null);
 
   // AUTH & PRE-FILL: Menggunakan getSession agar lebih instan dibanding getUser
   React.useEffect(() => {
@@ -84,7 +88,63 @@ const [name, setName] = React.useState('');
 
   const total = cart.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0);
  
+const finalTotal = React.useMemo(() => {
+    if (!appliedCoupon) return total;
+    let discountAmount = 0;
+    if (appliedCoupon.discount_type === 'percentage') {
+      discountAmount = total * (appliedCoupon.discount_value / 100);
+    } else {
+      discountAmount = appliedCoupon.discount_value;
+    }
+    const calculatedTotal = total - discountAmount;
+    return calculatedTotal > 0 ? calculatedTotal : 0;
+  }, [total, appliedCoupon]);
 
+  const handleApplyCoupon = async () => {
+    if (!couponCodeInput.trim()) return;
+    setIsApplyingCoupon(true);
+    setCouponMessage(null);
+    
+    try {
+      const { data: coupon, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .ilike('code', couponCodeInput.trim())
+        .eq('is_active', true)
+        .single();
+
+      if (error || !coupon) throw new Error("INVALID_OR_INACTIVE_COUPON");
+
+      // Validate Dates
+      const now = new Date();
+      const startDate = new Date(coupon.start_date);
+      const endDate = new Date(coupon.end_date);
+      endDate.setHours(23, 59, 59, 999);
+      if (now < startDate || now > endDate) throw new Error("COUPON_EXPIRED");
+
+      // Validate Usage Limits
+      if (coupon.max_uses !== null && coupon.used_count >= coupon.max_uses) {
+        throw new Error("COUPON_USAGE_LIMIT_REACHED");
+      }
+
+      setAppliedCoupon(coupon);
+      setCouponMessage({ type: 'success', text: `COUPON APPLIED: ${coupon.discount_type === 'percentage' ? coupon.discount_value + '% OFF' : '$' + coupon.discount_value + ' OFF'}` });
+    } catch (err: any) {
+      setAppliedCoupon(null);
+      let msg = "INVALID COUPON CODE";
+      if (err.message === "COUPON_EXPIRED") msg = "THIS COUPON HAS EXPIRED OR NOT YET ACTIVE";
+      if (err.message === "COUPON_USAGE_LIMIT_REACHED") msg = "COUPON USAGE LIMIT HAS BEEN REACHED";
+      setCouponMessage({ type: 'error', text: msg });
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCodeInput('');
+    setCouponMessage(null);
+  };
 
 
   const handlePurchaseSuccess = async (finalOrderId: string) => {
@@ -136,6 +196,16 @@ const [name, setName] = React.useState('');
       setPurchasedItems([...cart]);
       clearCart();
       setSuccessfulOrderId(finalOrderId);
+
+      // INCREMENT COUPON USAGE IF APPLIED
+      if (appliedCoupon) {
+        const { error: couponUpdateError } = await supabase
+          .from('coupons')
+          .update({ used_count: appliedCoupon.used_count + 1 })
+          .eq('id', appliedCoupon.id);
+        
+        if (couponUpdateError) console.error("COUPON_UPDATE_ERROR:", couponUpdateError);
+      }
       
     } catch (err: any) {
       alert("ERROR: " + err.message);
@@ -338,13 +408,26 @@ if (subscribe) {
                 </div>
               ))}
             </div>
+{/* Discount Row (If Any) */}
+            {appliedCoupon && (
+              <div className="flex justify-between items-center mb-6 text-orange-600 font-bold text-lg md:text-xl border-b border-black border-dashed pb-6">
+                <span>DISCOUNT ({appliedCoupon.code})</span>
+                <span>-${(total - finalTotal).toFixed(2)}</span>
+              </div>
+            )}
 
             {/* Final Total */}
             <div className="border-y-4 border-double border-black py-8 flex justify-between items-center mb-12">
               <span className="text-xl md:text-2xl font-black tracking-[0.2em]">GRAND TOTAL</span>
-              <span className="text-6xl md:text-8xl font-normal tracking-tighter">${total.toFixed(2)}</span>
+              <div className="text-right">
+                {appliedCoupon && (
+                  <span className="text-lg md:text-2xl font-bold tracking-tighter line-through opacity-40 block -mb-2 text-black">
+                    ${total.toFixed(2)}
+                  </span>
+                )}
+                <span className="text-6xl md:text-8xl font-normal tracking-tighter">${finalTotal.toFixed(2)}</span>
+              </div>
             </div>
-
              
             {/* 00. MANDATORY PURCHASER INFO */}
             {!isPaid && (
@@ -489,7 +572,47 @@ if (subscribe) {
               </div>
             )}
 
-
+{/* COUPON / PROMO CODE SECTION */}
+            {!isPaid && total > 0 && (
+              <div className="mb-10 p-6 md:p-8 border-2 border-black border-dashed bg-white">
+                <h4 className="text-[10px] font-black tracking-widest opacity-40 italic uppercase mb-4">
+                  HAVE A BARGAIN / PROMO CODE?
+                </h4>
+                
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={couponCodeInput}
+                    onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase().replace(/\s/g, ''))}
+                    disabled={!!appliedCoupon || isApplyingCoupon}
+                    className="flex-1 border border-black p-4 font-bold uppercase text-sm outline-none disabled:bg-gray-100 disabled:opacity-50"
+                    placeholder="ENTER CODE HERE"
+                  />
+                  {!appliedCoupon ? (
+                    <button 
+                      onClick={handleApplyCoupon}
+                      disabled={isApplyingCoupon || !couponCodeInput.trim()}
+                      className="bg-black text-white px-6 font-bold uppercase tracking-widest text-xs hover:bg-gray-800 disabled:opacity-50 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                    >
+                      {isApplyingCoupon ? 'VERIFYING...' : 'APPLY'}
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={handleRemoveCoupon}
+                      className="bg-red-600 text-white px-6 font-bold uppercase tracking-widest text-xs hover:bg-red-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                    >
+                      REMOVE
+                    </button>
+                  )}
+                </div>
+                
+                {couponMessage && (
+                  <p className={`mt-4 text-[10px] font-black tracking-widest uppercase ${couponMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                    {couponMessage.type === 'error' ? '❌ ' : '✅ '}{couponMessage.text}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* INSTANT DOWNLOAD AFTER PAYMENT */}
             {isPaid && (
@@ -531,17 +654,16 @@ if (subscribe) {
             <div className="w-full flex flex-col gap-10 print:hidden">
               <div className="w-full">
                 {/* GLOBAL PAYMENT (PAYPAL) - FULL WIDTH */}
-                <div className={`flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative ${total <= 0 ? 'opacity-20 pointer-events-none' : ''}`}>
+                <div className={`flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative ${finalTotal <= 0 ? 'opacity-20 pointer-events-none hidden' : ''}`}>
                   <div className="absolute -top-3 left-4 bg-[#EDEBE6] px-2 text-[10px] font-black tracking-widest border border-black">
-                    PAYMENT GATEWAY (USD)
-                  </div>
-                  <span className="text-[10px] font-black tracking-widest text-black/40 px-2">PAYPAL / CREDIT CARD</span>
-                  
-                  <div className={`relative z-0 transition-all w-full flex justify-center ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || trialConflicts.length > 0) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
-                    <div className="w-full max-w-[750px]">
-                    <PayPalButtons 
-                      style={{ layout: "vertical", shape: "rect", label: "pay", height: 55 }}
-                      // FIXED: Validasi email sebelum popup PayPal muncul
+                    PAYMENT GATEWAY (USD)
+                  </div>
+                  <span className="text-[10px] font-black tracking-widest text-black/40 px-2">PAYPAL / CREDIT CARD</span>
+                  
+                  <div className={`relative z-0 transition-all w-full flex justify-center ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || trialConflicts.length > 0) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
+                    <div className="w-full max-w-[750px]">
+                    <PayPalButtons 
+                      style={{ layout: "vertical", shape: "rect", label: "pay", height: 55 }}
                     onClick={(data, actions) => {
                       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                       if (!emailRegex.test(email)) {
@@ -556,8 +678,7 @@ if (subscribe) {
                         purchase_units: [{
                           amount: { 
                             currency_code: "USD",
-                            // FIXED: PayPal API mewajibkan string dengan 2 digit desimal (misal: "25.00")
-                            value: total.toFixed(2) 
+                            value: finalTotal.toFixed(2) 
                           },
                           description: `Subqi Studio Font Purchase - Order ${orderId}`
                         }]
@@ -586,7 +707,22 @@ if (subscribe) {
                   </div>
                 </div>
               </div>
-
+{/* BUTTON UNTUK DISKON 100% / CART JADI GRATIS KARENA KUPON */}
+              {!isPaid && total > 0 && finalTotal === 0 && (
+                <div className="w-full p-6 border-2 border-black border-dashed bg-green-50 text-center animate-in zoom-in-95">
+                  <h4 className="text-xl font-black text-green-600 mb-2 italic">100% DISCOUNT GRANTED</h4>
+                  <p className="text-[10px] font-bold mb-4 text-black/60 uppercase tracking-widest">
+                    NO PAYMENT GATEWAY REQUIRED. PROCEED TO CLAIM YOUR ASSETS.
+                  </p>
+                  <button 
+                    onClick={() => handlePurchaseSuccess(orderId)}
+                    disabled={loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || trialConflicts.length > 0}
+                    className="w-full bg-black text-white py-5 text-sm font-black tracking-[0.2em] hover:bg-green-600 transition-all disabled:opacity-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                  >
+                    {loading ? "PROCESSING..." : "COMPLETE FREE PURCHASE"}
+                  </button>
+                </div>
+              )}
               
             </div>
           </div>
