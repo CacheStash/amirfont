@@ -126,11 +126,10 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, font_file
 
   const totalPrice = useMemo(() => {
     if (!prices || isTrial) return 0;
-   if (isCorporate) {
-
-      const baseCorporatePrice = prices.corporate_full_suite || 0;
+    if (isCorporate) {
+      const baseCorporatePrice = Number(prices.corporate_full_suite) || 0;
       return discount > 0 
-        ? Math.round(baseCorporatePrice * (1 - discount / 100)) 
+        ? Number((baseCorporatePrice * (1 - discount / 100)).toFixed(2)) 
         : baseCorporatePrice;
     }
     
@@ -141,7 +140,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, font_file
       const tierKey = selectedTiers[usage];
       const categoryData = (prices as any)[usage];
       if (categoryData && typeof categoryData === 'object') {
-        const itemPrice = categoryData[tierKey] || 0;
+        const itemPrice = Number(categoryData[tierKey]) || 0;
         total += itemPrice;
         // Hanya lisensi seharga $250 ke atas yang dihitung masuk ke kuota bundling
         if (itemPrice >= 250) qualifyingCount++;
@@ -155,7 +154,9 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, font_file
     else if (qualifyingCount >= 5) bundleDiscount = 0.25;
 
     const baseAfterBundle = total * (1 - bundleDiscount);
-    return discount > 0 ? Math.round(baseAfterBundle * (1 - discount / 100)) : Math.round(baseAfterBundle);
+    return discount > 0 
+      ? Number((baseAfterBundle * (1 - discount / 100)).toFixed(2)) 
+      : Number(baseAfterBundle.toFixed(2));
   }, [selectedUsages, selectedTiers, isCorporate, isTrial, prices, discount]);
 
   
@@ -169,7 +170,7 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, font_file
       Object.keys(tierMap).forEach(u => {
         const tiers = (prices as any)[u];
         if (tiers) {
-          const values = Object.values(tiers) as number[];
+          const values = Object.values(tiers).map(v => Number(v) || 0);
           originalPrice += Math.max(...values);
         }
       });
@@ -177,15 +178,16 @@ const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, font_file
       if (selectedUsages.length === 0) return null;
       // Bandingkan total eceran terpilih SEBELUM diskon bundling & promo
       selectedUsages.forEach(u => {
-        originalPrice += (prices as any)[u]?.[selectedTiers[u]] || 0;
+        originalPrice += Number((prices as any)[u]?.[selectedTiers[u]]) || 0;
       });
     }
 
-    const savedAmount = originalPrice - totalPrice;
+    const savedAmount = Number((originalPrice - totalPrice).toFixed(2));
     const savedPercent = originalPrice > 0 ? Math.round((savedAmount / originalPrice) * 100) : 0;
 
-    return savedAmount > 0 ? { amount: savedAmount, percent: savedPercent } : null;
+    return savedAmount > 0 ? { amount: savedAmount.toFixed(2), percent: savedPercent } : null;
 }, [prices, isCorporate, isTrial, selectedUsages, selectedTiers, totalPrice, tierMap]);
+// --- END FIX ---
 
     const finalUsages = [...selectedUsages];
     if (hasHigherTier && !finalUsages.includes('desktop')) {
