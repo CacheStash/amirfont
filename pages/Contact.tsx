@@ -56,8 +56,8 @@ const Contact: React.FC = () => {
       return;
     }
 
-    const mailtoUrl = `mailto:amirsubqisetiaji@gmail.com?subject=${encodeURIComponent(`[SUBQI STUDIO INQUIRY] ${subject}`)}&body=${encodeURIComponent(`FROM: ${email}\n\nMESSAGE:\n${message}`)}`;
-    
+    const mailtoUrl = `mailto:subqistudio@gmail.com?subject=${encodeURIComponent(`[SUBQI STUDIO INQUIRY] ${subject}`)}&body=${encodeURIComponent(`FROM: ${email}\n\nMESSAGE:\n${message}`)}`;
+
     window.location.href = mailtoUrl;
   };
 
@@ -89,6 +89,25 @@ const Contact: React.FC = () => {
 
         {/* CONTENT MAIN */}
         <main className="px-3 md:px-8 max-w-full mx-auto text-left">
+          
+          {/* DIRECT EMAIL NOTICE BANNER */}
+          <div className="mb-12 w-full border-2 border-black bg-[#FFE500] p-6 md:p-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-black">
+            <span className="bg-black text-white px-2 py-1 text-[10px] font-black tracking-[0.2em] uppercase inline-block mb-3">
+              DIRECT DISPATCH PROTOCOL
+            </span>
+            <h3 className="text-2xl md:text-4xl font-normal tracking-tighter uppercase mb-3">
+              Prefer Direct Mail?
+            </h3>
+            <p className="text-sm md:text-base font-bold leading-relaxed normal-case mb-6 max-w-3xl">
+              To bypass domain-based spam filters and keep communication simple, all studio correspondence is managed directly via our official Gmail. Feel free to shoot an email straight to my inbox:
+            </p>
+            <a 
+              href="mailto:subqistudio@gmail.com" 
+              className="inline-flex items-center gap-3 bg-black text-white px-6 py-4 text-xs md:text-sm font-black tracking-widest uppercase hover:bg-white hover:text-black border-2 border-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+            >
+              <Send size={16} /> SUBQISTUDIO@GMAIL.COM
+            </a>
+          </div>
           
           {/* SECTION 01: PERSONAL CONNECTION */}
           <ContactCard 
