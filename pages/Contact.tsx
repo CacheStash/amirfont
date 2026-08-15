@@ -90,25 +90,43 @@ const Contact: React.FC = () => {
         {/* CONTENT MAIN */}
         <main className="px-3 md:px-8 max-w-full mx-auto text-left">
           
-          {/* DIRECT EMAIL NOTICE BANNER */}
-          <div className="mb-12 w-full border-2 border-black bg-[#FFE500] p-6 md:p-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-black">
-            <span className="bg-black text-white px-2 py-1 text-[10px] font-black tracking-[0.2em] uppercase inline-block mb-3">
-              DIRECT DISPATCH PROTOCOL
-            </span>
-            <h3 className="text-2xl md:text-4xl font-normal tracking-tighter uppercase mb-3">
-              Prefer Direct Mail?
-            </h3>
-            <p className="text-sm md:text-base font-bold leading-relaxed normal-case mb-6 max-w-3xl">
-              To bypass domain-based spam filters and keep communication simple, all studio correspondence is managed directly via our official Gmail. Feel free to shoot an email straight to my inbox:
-            </p>
-            <a 
-              href="mailto:subqistudio@gmail.com" 
-              className="inline-flex items-center gap-3 bg-black text-white px-6 py-4 text-xs md:text-sm font-black tracking-widest uppercase hover:bg-white hover:text-black border-2 border-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
-            >
-              <Send size={16} /> SUBQISTUDIO@GMAIL.COM
-            </a>
+          {/* SECTION 00: DIRECT DISPATCH */}
+          <div className="mb-12 w-full border border-black bg-[#FEF9C3]/70 relative z-10">
+            {/* Title Section */}
+            <div className="border-b border-black p-6 md:p-10 bg-transparent">
+              <span className="text-[10px] font-black tracking-[0.3em] text-orange-600 block mb-4 uppercase">
+                Direct Dispatch Protocol
+              </span>
+              <h3 className="text-3xl md:text-6xl font-normal tracking-tighter uppercase leading-none">
+                <span className="opacity-20 mr-4 md:mr-8">00</span>
+                Prefer Direct Mail?
+              </h3>
+            </div>
+
+            {/* Content Section */}
+            <div className="p-6 md:p-14 space-y-8 normal-case text-gray-800 leading-relaxed">
+              <div className="flex gap-6 items-start">
+                <PlusBullet />
+                <div className="space-y-6">
+                  <p className="text-xl md:text-2xl italic font-normal text-black">
+                    To bypass domain spam filters and keep communication simple, all studio correspondence is managed directly via official Gmail.
+                  </p>
+                  <p className="text-lg md:text-xl text-gray-600 normal-case">
+                    If you prefer not using the form below, feel free to shoot an email straight to my inbox:
+                  </p>
+                  <div className="pt-2">
+                    <a 
+                      href="mailto:subqistudio@gmail.com" 
+                      className="inline-flex items-center gap-4 bg-black text-white px-8 py-5 text-sm md:text-base font-black tracking-widest uppercase hover:bg-orange-600 border border-black transition-all"
+                    >
+                      <Send size={18} /> SUBQISTUDIO@GMAIL.COM
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          
+
           {/* SECTION 01: PERSONAL CONNECTION */}
           <ContactCard 
             number="01" 
@@ -156,6 +174,7 @@ const Contact: React.FC = () => {
                   className="w-full bg-transparent border-none outline-none text-xl md:text-3xl font-normal tracking-tighter p-0 appearance-none cursor-pointer uppercase"
                 >
                   <option value="" disabled>Select an option...</option>
+                  <option value="bargain">Custom Deal / Price Negotiation: Propose a budget for custom coupons.</option>
                   <option value="support">Font Support: Technical issues or glyph help.</option>
                   <option value="upgrade">License Upgrades: Expanding your scale.</option>
                   <option value="custom">Custom Projects: Unique brand collaborations.</option>
@@ -163,6 +182,7 @@ const Contact: React.FC = () => {
                 </select>
                 <div className="mt-4 min-h-[1.5em]">
                    <p className="text-xs normal-case italic text-orange-600 font-bold">
+                    {subject === "bargain" && "Got a specific project budget? Let’s negotiate and create a custom coupon for you."}
                     {subject === "support" && "Having trouble with installation? Let’s fix it together."}
                     {subject === "upgrade" && "Need more seats or views for your team? I’ve got you covered."}
                     {subject === "custom" && "Want a unique voice for your brand? Let’s discuss a collaboration."}
