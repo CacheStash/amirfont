@@ -82,7 +82,7 @@ const [name, setName] = React.useState('');
     validateTrials();
   }, [email, cart, checkExistingTrials]);
 
-  const total = cart.reduce((acc, curr) => acc + curr.price, 0);
+  const total = cart.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0);
  
 
 
@@ -315,7 +315,7 @@ if (subscribe) {
                   <span>STATUS</span> 
   {/* Mengubah UNPAID menjadi FREE jika total 0 */}
                   <span className={isPaid ? "text-green-600 font-black" : "text-red-600 font-black animate-pulse"}>
-                    {isPaid ? "PAID" : (total === 0 ? "FREE" : "UNPAID")}
+                    {isPaid ? "PAID" : (total <= 0 ? "FREE" : "UNPAID")}
                   </span>
 
                 </div>
@@ -328,7 +328,7 @@ if (subscribe) {
                 <div key={item.cartId} className="flex flex-col gap-2">
                   <div className="flex justify-between text-lg md:text-2xl font-black">
                     <span>{item.name}</span>
-                    <span>${item.price}</span>
+                    <span>${Number(item.price).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-[9px] md:text-[11px] opacity-60 italic">
                     <span>{item.tier} • {item.usages.join(', ')}</span>
@@ -342,7 +342,7 @@ if (subscribe) {
             {/* Final Total */}
             <div className="border-y-4 border-double border-black py-8 flex justify-between items-center mb-12">
               <span className="text-xl md:text-2xl font-black tracking-[0.2em]">GRAND TOTAL</span>
-              <span className="text-6xl md:text-8xl font-normal tracking-tighter">${total}</span>
+              <span className="text-6xl md:text-8xl font-normal tracking-tighter">${total.toFixed(2)}</span>
             </div>
 
              
@@ -410,7 +410,7 @@ if (subscribe) {
                 </label>
 
                 {/* CLAIM BUTTON FOR TRIAL */}
-                {total === 0 && name && address && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && trialConflicts.length === 0 && (
+                {total <= 0 && name && address && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && trialConflicts.length === 0 && (
                   <button 
                     onClick={handleFreeTrial}
                     disabled={loading}
@@ -531,8 +531,8 @@ if (subscribe) {
             <div className="w-full flex flex-col gap-10 print:hidden">
               <div className="w-full">
                 {/* GLOBAL PAYMENT (PAYPAL) - FULL WIDTH */}
-                <div className={`flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative ${total === 0 ? 'opacity-20 pointer-events-none' : ''}`}>
-                  <div className="absolute -top-3 left-4 bg-[#EDEBE6] px-2 text-[10px] font-black tracking-widest border border-black">
+                <div className={`flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative ${total <= 0 ? 'opacity-20 pointer-events-none' : ''}`}>
+                  <div className="absolute -top-3 left-4 bg-[#EDEBE6] px-2 text-[10px] font-black tracking-widest border border-black">
                     PAYMENT GATEWAY (USD)
                   </div>
                   <span className="text-[10px] font-black tracking-widest text-black/40 px-2">PAYPAL / CREDIT CARD</span>

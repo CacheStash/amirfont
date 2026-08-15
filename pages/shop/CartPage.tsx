@@ -9,7 +9,7 @@ import { X } from 'lucide-react'; // FIXED: Tambahkan icon X
 const CartPage: React.FC = () => {
   const { cart, removeFromCart } = useCart();
   const navigate = useNavigate(); // FIXED: Inisialisasi navigate
-  const total = cart.reduce((acc, curr) => acc + curr.price, 0);
+  const total = cart.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0);
 
   // FIX: Lubang karcis dengan border hitam agar outline tersambung
   const TicketEdges = () => (
@@ -55,7 +55,7 @@ const CartPage: React.FC = () => {
               
               <div className="border-t-4 border-double border-black pt-6 flex justify-between items-end mb-12">
                 <span className="text-sm font-black tracking-widest uppercase">Total Investment</span>
-                <span className="text-5xl font-normal tracking-tighter">${total}</span>
+                <span className="text-5xl font-normal tracking-tighter">${total.toFixed(2)}</span>
               </div>
 
               <Link to="/checkout" className="w-full bg-black text-white py-6 flex items-center justify-center gap-4 hover:invert transition-all group">
