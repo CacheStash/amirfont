@@ -77,7 +77,21 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
   const PRESET_SIZES = [12, 14, 16, 18, 20, 24, 32, 36, 48, 64, 72, 96, 120, 144, 200];
+const styleDropdownRef = useRef<HTMLDivElement>(null);
+  const sizeDropdownRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (styleDropdownRef.current && !styleDropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+      if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target as Node)) {
+        setIsSizeDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   // Alternates State Cache
   const [loadedFontObj, setLoadedFontObj] = useState<opentype.Font | null>(null);
   const [loadedFontsMap, setLoadedFontsMap] = useState<Record<number, opentype.Font>>({});
@@ -309,13 +323,18 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
           lookup.subtables.forEach((subtable: any) => {
             try {
-              if (!subtable.coverage) return;
-              
               let covIdx = -1;
-              if (Array.isArray(subtable.coverage.glyphs)) {
-                covIdx = subtable.coverage.glyphs.indexOf(glyphIndex);
-              } else if (Array.isArray(subtable.coverage)) {
-                covIdx = subtable.coverage.indexOf(glyphIndex);
+              const cov = subtable.coverage;
+              if (!cov) return;
+
+              // SUPER DETECTOR: Membaca Coverage Format 1 (Array) maupun Format 2 (Ranges)
+              if (cov.format === 2 && Array.isArray(cov.ranges)) {
+                const range = cov.ranges.find((r: any) => glyphIndex >= r.start && glyphIndex <= r.end);
+                if (range) covIdx = range.index + (glyphIndex - range.start);
+              } else if (Array.isArray(cov.glyphs)) {
+                covIdx = cov.glyphs.indexOf(glyphIndex);
+              } else if (Array.isArray(cov)) {
+                covIdx = cov.indexOf(glyphIndex);
               }
               
               if (covIdx === -1) return;
@@ -323,21 +342,23 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               let extractedIndices: number[] = [];
 
               if (lookup.lookupType === 1) {
-                if (Array.isArray(subtable.substitute)) {
-                  extractedIndices.push(subtable.substitute[covIdx]);
-                } else if (subtable.deltaGlyphId !== undefined) {
+                if (subtable.deltaGlyphId !== undefined) {
                   extractedIndices.push((glyphIndex + subtable.deltaGlyphId) % 65536);
+                } else if (Array.isArray(subtable.substitute)) {
+                  extractedIndices.push(subtable.substitute[covIdx]);
                 }
               } else if (lookup.lookupType === 3) {
-                const altSets = subtable.alternateSets || subtable.alternateSet || [];
+                const altSets = subtable.alternateSets || subtable.alternates || [];
                 const targetSet = altSets[covIdx];
                 if (targetSet) {
-                  if (Array.isArray(targetSet.alternates)) {
-                    extractedIndices.push(...targetSet.alternates);
-                  } else if (Array.isArray(targetSet)) {
+                  if (Array.isArray(targetSet)) {
                     extractedIndices.push(...targetSet);
                   } else if (Array.isArray(targetSet.alternateGlyphs)) {
                     extractedIndices.push(...targetSet.alternateGlyphs);
+                  } else if (Array.isArray(targetSet.alternates)) {
+                    extractedIndices.push(...targetSet.alternates);
+                  } else if (Array.isArray(targetSet.glyphs)) {
+                    extractedIndices.push(...targetSet.glyphs);
                   }
                 }
               }
@@ -599,7 +620,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   return (
     <div className="w-full h-full relative group bg-transparent">
       <div className="relative z-10 h-full flex flex-col">
-        <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-40">
+        <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-50">
 
           <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
               <button 
@@ -626,7 +647,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               {!isLayeredMode && (
                 <div className="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-start">
                   <span className="font-bold text-xs text-gray-400 uppercase lg:hidden">Style</span>
-                  <div className="relative z-[100]">
+                  <div className="relative z-[100]" ref={styleDropdownRef}>
                     <button 
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[80px] justify-between relative z-10"
@@ -681,7 +702,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 <>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-xs text-gray-400 uppercase lg:hidden">Size</span>
-                    <div className="relative z-[110]">
+                    <div className="relative z-[110]" ref={sizeDropdownRef}>
                        <button 
                           onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
                           className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[65px] justify-between relative z-10"
