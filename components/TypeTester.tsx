@@ -102,7 +102,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const rowsPerPage = mapGridSize === 10 ? 3 : mapGridSize === 20 ? 5 : 7;
   const glyphsPerPage = mapGridSize * rowsPerPage;
 
-  // Filter font layer yang valid (mengecualikan font pairing dari tumpukan layer)
   const availableLayerIndices: number[] = React.useMemo(() => {
     if (!Array.isArray(config.font_files)) return [];
     if (config.metadata?.layer_font_indices && config.metadata.layer_font_indices.length > 0) {
@@ -181,7 +180,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         setDetectedStyleNames(prev => ({ ...prev, [activeStyleIndex]: rawStyleName }));
       }
 
-      // Deteksi SEMUA glyph (termasuk alternate tanpa unicode via engine vektor)
       const glyphs = [];
       for (let i = 0; i < font.glyphs.length && i < 2500; i++) { 
         const glyph = font.glyphs.get(i);
@@ -243,7 +241,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, [viewMode]);
 
-  // Reset scroll & sync saat mode layered berubah
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.scrollTop = 0;
@@ -446,7 +443,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     }
   };
 
-  // Render SVG Inline per-Layer Font tanpa merusak baseline dan line-height
   const renderInlineGlyphSvg = (glyphIdx: number, targetSize: number, fontIdx: number) => {
     const targetFontObj = loadedFontsMap[fontIdx] || loadedFontObj;
     if (!targetFontObj) return null;
@@ -597,7 +593,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     const styleFontFamily = `"${config.name}-${fontIdx}"`;
     const hasOverrides = Object.keys(glyphOverrides).length > 0 || Object.keys(charOverrides).length > 0;
 
-    // Jika tidak ada alternate yang dipilih, render teks utuh agar contextual OpenType & lowercase tetap normal
+    // JIKA TIDAK ADA ALTERNATE KHUSUS: Render text utuh tanpa text.split('') agar tidak merusak case/contextual glyphs
     if (!hasOverrides) {
       return (
         <span
@@ -644,18 +640,17 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     });
   };
 
-  const activeTextareaFontIndex = isLayeredMode 
-    ? (layers[0]?.fontIndex ?? config.metadata?.primary_font_index ?? 0)
-    : activeStyleIndex;
+  const hasAnyOverride = Object.keys(glyphOverrides).length > 0 || Object.keys(charOverrides).length > 0;
+  const isMultiLayerActive = isLayeredMode || hasAnyOverride;
 
+  const currentFontFamily = `"${config.name}-${activeStyleIndex}"`;
+  const fontFeatureSettings = Object.entries(activeFeatures).map(([t, on]) => `"${t}" ${on ? 'on' : 'off'}`).join(', ') || 'normal';
   const fontVariationSettings = Object.entries(axesValues).map(([t, v]) => `"${t}" ${v}`).join(', ');
 
-  const commonFontStyle: React.CSSProperties = {
-    fontFamily: `"${config.name}-${activeTextareaFontIndex}"`,
+  const commonFontStyle = {
+    fontFamily: currentFontFamily,
     fontVariationSettings,
-    boxSizing: 'border-box',
-    wordBreak: 'break-word',
-    overflowWrap: 'break-word'
+    fontFeatureSettings,
   };
 
   const activeAxes = detectedAxes.length > 0 ? detectedAxes : config.axes;
@@ -665,9 +660,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   return (
     <div className="w-full h-full relative group bg-transparent">
       <div className="relative z-10 h-full flex flex-col">
-        {/* SUBQI TOP TOOLBAR (ORIGINAL GRID & RESPONSIVE BREAKPOINT) */}
-        <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-50">
-        
+        {/* SUBQI TOP TOOLBAR (Z-Index diset z-40 agar dropdown berada di atas textarea) */}
+        <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-40">
+          
           {/* GRID 1: View Mode Toggle & Layered Mode Toggle (Hidden on Mobile) */}
           <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
               <button 
@@ -714,7 +709,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                      {isDropdownOpen && (
                        <>
                         <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                        <div className="absolute right-0 top-full mt-2 w-48 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-hidden shadow-none">
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-y-auto max-h-64 shadow-none">
                             {Array.isArray(config.font_files) && config.font_files.length > 0 ? (
                               config.font_files.map((_, i) => (
                                 <button
@@ -833,76 +828,85 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         <div className="min-h-[300px] mb-8 relative">
           {viewMode === 'type' ? (
               <div className="relative w-full min-h-[300px]">
-                {!isLayeredMode ? (
-                  <div 
-                    ref={(el) => { layerContainerRefs.current['single'] = el; }}
-                    className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 pointer-events-none whitespace-pre-wrap overflow-hidden select-none"
+                {/* 
+                  KUNCI UTAMA: 
+                  Jika Single Style Biasa -> Render Textarea MURNI bawaan backup Subqi (100% huruf kecil aman & responsif).
+                  Jika Layered Mode / Ada Alternate -> Render Overlay Layer Stacking.
+                */}
+                {!isMultiLayerActive ? (
+                  <textarea 
+                    ref={textareaRef}
+                    value={text} 
+                    onChange={handleTextChange} 
+                    onSelect={handleTextSelect}
+                    onKeyUp={handleTextSelect}
+                    onMouseUp={handleTextSelect}
+                    className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-10 text-black caret-black" 
                     style={{ 
-                      ...commonFontStyle,
-                      fontSize: `${fontSize}px`, 
-                      textAlign: align,
-                      lineHeight: lineHeight,
-                      letterSpacing: `${letterSpacing}em`
+                        ...commonFontStyle,
+                        fontSize: `${fontSize}px`, 
+                        textAlign: align,
+                        lineHeight: lineHeight,
+                        letterSpacing: `${letterSpacing}em`
                     }} 
-                    aria-hidden="true"
-                  >
-                    {renderTextSpans(activeStyleIndex)}
-                  </div>
+                    spellCheck={false} 
+                  />
                 ) : (
-                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                    {layers.map((layer, stackIdx) => {
-                      if (!layer.isVisible) return null;
-                      const calculatedZIndex = layers.length - stackIdx;
-                      return (
-                        <div 
-                          key={layer.id}
-                          ref={(el) => { layerContainerRefs.current[layer.id] = el; }}
-                          className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap select-none overflow-hidden"
-                          style={{ 
-                            ...commonFontStyle,
-                            fontFamily: `"${config.name}-${layer.fontIndex}"`,
-                            fontSize: `${fontSize}px`, 
-                            textAlign: align, 
-                            lineHeight: lineHeight, 
-                            letterSpacing: `${letterSpacing}em`,
-                            zIndex: calculatedZIndex,
-                            color: layer.color || '#000000'
-                          }}
-                          aria-hidden="true"
-                        >
-                          {renderTextSpans(layer.fontIndex)}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <>
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                      {layers.map((layer, stackIdx) => {
+                        if (!layer.isVisible) return null;
+                        const calculatedZIndex = layers.length - stackIdx;
+                        return (
+                          <div 
+                            key={layer.id}
+                            ref={(el) => { layerContainerRefs.current[layer.id] = el; }}
+                            className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap select-none overflow-hidden"
+                            style={{ 
+                              ...commonFontStyle,
+                              fontFamily: `"${config.name}-${layer.fontIndex}"`,
+                              fontSize: `${fontSize}px`, 
+                              textAlign: align, 
+                              lineHeight: lineHeight, 
+                              letterSpacing: `${letterSpacing}em`,
+                              zIndex: calculatedZIndex,
+                              color: layer.color || '#000000'
+                            }}
+                            aria-hidden="true"
+                          >
+                            {renderTextSpans(layer.fontIndex)}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <textarea 
+                      ref={textareaRef}
+                      value={text} 
+                      onChange={handleTextChange} 
+                      onSelect={handleTextSelect}
+                      onKeyUp={handleTextSelect}
+                      onMouseUp={handleTextSelect}
+                      onScroll={handleScrollSync}
+                      className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-10 text-transparent caret-black selection:bg-black/20 selection:text-transparent" 
+                      style={{ 
+                          ...commonFontStyle,
+                          fontSize: `${fontSize}px`, 
+                          textAlign: align,
+                          lineHeight: lineHeight,
+                          letterSpacing: `${letterSpacing}em`,
+                          fontFeatureSettings: globalActiveFeatureString,
+                          WebkitFontFeatureSettings: globalActiveFeatureString
+                      }} 
+                      spellCheck={false} 
+                    />
+                  </>
                 )}
 
-                {/* Textarea Transparan */}
-                <textarea 
-                  ref={textareaRef}
-                  value={text} 
-                  onChange={handleTextChange} 
-                  onSelect={handleTextSelect}
-                  onKeyUp={handleTextSelect}
-                  onMouseUp={handleTextSelect}
-                  onScroll={handleScrollSync}
-                  className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-30 text-transparent caret-black selection:bg-black/20 selection:text-transparent" 
-                  style={{ 
-                      ...commonFontStyle,
-                      fontSize: `${fontSize}px`, 
-                      textAlign: align,
-                      lineHeight: lineHeight,
-                      letterSpacing: `${letterSpacing}em`,
-                      fontFeatureSettings: globalActiveFeatureString,
-                      WebkitFontFeatureSettings: globalActiveFeatureString
-                  }} 
-                  spellCheck={false} 
-                />
-
-                {/* ALTERNATES POPOVER (Menempel otomatis di dekat karakter yang diseleksi) */}
+                {/* ALTERNATES POPOVER */}
                 {popoverPos && alternateGlyphs.length > 0 && selectedCharIndex !== null && (
                   <div 
-                    className="absolute z-60 bg-white border border-black shadow-lg p-2 flex items-center gap-2 pointer-events-auto"
+                    className="absolute z-50 bg-white border border-black shadow-lg p-2 flex items-center gap-2 pointer-events-auto"
                     style={{
                       left: `${Math.max(16, Math.min(popoverPos.x - 20, (textareaRef.current?.clientWidth || 600) - 280))}px`,
                       top: `${popoverPos.y > 70 ? popoverPos.y - 65 : popoverPos.y + fontSize + 15}px`
@@ -989,7 +993,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           )}
         </div>
 
-        {/* LAYER STACKING MANAGER PANEL (SUBQI MONOCHROME THEME) */}
+        {/* LAYER STACKING MANAGER PANEL */}
         {isLayeredMode && viewMode === 'type' && (
           <div className="p-4 md:p-6 border-t border-black bg-gray-50/50">
             <div className="flex items-center justify-between mb-3">
@@ -1009,8 +1013,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
                 {isAddLayerOpen && (
                   <>
-                    <div className="fixed inset-0 z-60" onClick={() => setIsAddLayerOpen(false)} />
-                    <div className="absolute right-0 bottom-full mb-1 w-48 bg-white border border-black z-70 shadow-none overflow-hidden">
+                    <div className="fixed inset-0 z-40" onClick={() => setIsAddLayerOpen(false)} />
+                    <div className="absolute right-0 bottom-full mb-1 w-48 bg-white border border-black z-50 shadow-none overflow-hidden">
                       <div className="px-3 py-1.5 text-[9px] font-bold uppercase text-gray-500 border-b border-black/10 tracking-widest bg-gray-50">
                         Select Layer Font
                       </div>
@@ -1066,7 +1070,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-auto">
-                    {/* Native Hex Color Picker */}
                     <div className="flex items-center gap-1.5 border border-black px-2 py-1 relative cursor-pointer hover:bg-gray-100 transition-colors">
                       <input 
                         type="color"
@@ -1131,7 +1134,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           </div>
         )}
 
-        {/* SETTINGS PANEL (SUBQI ORIGINAL) */}
+        {/* SETTINGS PANEL */}
         <div className="bg-transparent border-t border-black">
           <div className={`grid grid-cols-1 md:grid-cols-2 ${(hasAxes || hasFeatures) ? 'border-b border-black' : ''}`}>
               <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-b md:border-b-0 md:border-r border-black">
