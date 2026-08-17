@@ -300,9 +300,10 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
     if (gsub && gsub.features && gsub.lookups) {
       // aalt di hilangkan dari deteksi alternate
-      const altFeatureTags = [
-        'aalt', 'salt', 'swsh', 'titl', 'calt', 'dlig',
-        ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`)
+     const altFeatureTags = [
+        'aalt', 'salt', 'swsh', 'titl', 'calt', 'dlig', 'nalt', 'ornm',
+        ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`),
+        ...Array.from({ length: 99 }, (_, i) => `cv${String(i + 1).padStart(2, '0')}`)
       ];
       
       gsub.features.forEach((featureRecord: any) => {
@@ -313,49 +314,51 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           if (!lookup || !lookup.subtables) return;
 
           lookup.subtables.forEach((subtable: any) => {
+            if (!subtable.coverage || !subtable.coverage.glyphs) return;
+            
+            const covIdx = subtable.coverage.glyphs.indexOf(glyphIndex);
+            if (covIdx === -1) return;
+
+            let extractedIndices: number[] = [];
+
             if (lookup.lookupType === 1) {
-              if (subtable.coverage && subtable.coverage.glyphs) {
-                const covIdx = subtable.coverage.glyphs.indexOf(glyphIndex);
-                if (covIdx !== -1) {
-                  const targetGlyphIdx = Array.isArray(subtable.substitute) 
-                    ? subtable.substitute[covIdx] 
-                    : (glyphIndex + subtable.deltaGlyphId) % 65536;
-                  
-                  const targetGlyph = loadedFontObj.glyphs.get(targetGlyphIdx);
-                  const charStr = (targetGlyph && targetGlyph.unicode) 
-                    ? String.fromCharCode(targetGlyph.unicode) 
-                    : targetChar;
-
-                  if (!alternates.some(a => a.glyphIndex === targetGlyphIdx)) {
-                    alternates.push({ char: charStr, glyphIndex: targetGlyphIdx, featureTag: featureRecord.tag });
-                  }
+              const targetGlyphIdx = Array.isArray(subtable.substitute) 
+                ? subtable.substitute[covIdx] 
+                : (glyphIndex + (subtable.deltaGlyphId || 0)) % 65536;
+              extractedIndices.push(targetGlyphIdx);
+            } 
+            else if (lookup.lookupType === 3) {
+              const altSets = subtable.alternateSets || subtable.alternateSet || subtable.alternates || [];
+              const targetSet = altSets[covIdx];
+              if (targetSet) {
+                // Ekstraksi agresif untuk Array maupun TypedArray
+                if (Array.isArray(targetSet) || targetSet.length !== undefined) {
+                  extractedIndices = Array.from(targetSet as any);
+                } else if (targetSet.alternateGlyphs || targetSet.alternates || targetSet.glyphs) {
+                  extractedIndices = Array.from((targetSet.alternateGlyphs || targetSet.alternates || targetSet.glyphs) as any);
                 }
               }
-            } else if (lookup.lookupType === 3) {
-              if (subtable.coverage && subtable.coverage.glyphs) {
-                const covIdx = subtable.coverage.glyphs.indexOf(glyphIndex);
-                if (covIdx !== -1) {
-                  const altSets = subtable.alternateSets || subtable.alternateSet || [];
-                  const targetSet = altSets[covIdx];
-                  if (targetSet) {
-                    const glyphIndices: number[] = Array.isArray(targetSet)
-                      ? targetSet
-                      : (targetSet.alternateGlyphs || targetSet.glyphs || targetSet.alternateSet || []);
-
-                    glyphIndices.forEach((altIdx: number) => {
-                      const targetGlyph = loadedFontObj.glyphs.get(altIdx);
-                      const charStr = (targetGlyph && targetGlyph.unicode) 
-                        ? String.fromCharCode(targetGlyph.unicode) 
-                        : targetChar;
-
-                      if (!alternates.some(a => a.glyphIndex === altIdx)) {
-                        alternates.push({ char: charStr, glyphIndex: altIdx, featureTag: featureRecord.tag });
-                      }
-                    });
-                  }
-                }
-              }
+            } 
+            else {
+               // Fallback buta jika font di-compile dengan struktur Lookup yang aneh
+               const potentialSets = subtable.substitute || subtable.alternateSets || [];
+               const pSet = potentialSets[covIdx];
+               if (Array.isArray(pSet)) extractedIndices = Array.from(pSet);
+               else if (typeof pSet === 'number') extractedIndices.push(pSet);
             }
+
+            extractedIndices.forEach((altIdx: number) => {
+              if (altIdx === undefined || altIdx === null || altIdx === glyphIndex) return;
+              
+              const targetGlyph = loadedFontObj.glyphs.get(altIdx);
+              const charStr = (targetGlyph && targetGlyph.unicode) 
+                ? String.fromCharCode(targetGlyph.unicode) 
+                : targetChar;
+
+              if (!alternates.some(a => a.glyphIndex === altIdx)) {
+                alternates.push({ char: charStr, glyphIndex: altIdx, featureTag: featureRecord.tag });
+              }
+            });
           });
         });
       });
