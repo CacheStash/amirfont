@@ -133,7 +133,7 @@ const FontDetail: React.FC = () => {
       {/* 2. MAIN CONTENT GRID */}
       <main className="w-full">
         {/* FIXED: Mengubah grid menjadi 2 kolom (450px untuk info dan sisa untuk tester) */}
-        <section className="relative border-b border-black grid grid-cols-1 lg:grid-cols-[450px_1fr]">
+        <section className="relative border-b border-black grid grid-cols-1 lg:grid-cols-[450px_1fr] overflow-hidden">
           
           {/* CONTENT ORB EFFECT (Tengah Kiri) - Identik dengan posisi ganjil di Home */}
           <div className="absolute z-0 pointer-events-none overflow-visible hidden md:block" 
@@ -199,7 +199,7 @@ const FontDetail: React.FC = () => {
           </div>
 
                 {/* COLUMN C: FULL TYPE TESTER */}
-         <div className="relative flex items-stretch bg-transparent overflow-hidden">
+         <div className="relative z-10 flex items-stretch bg-transparent overflow-hidden">
             <TypeTester 
               config={{
                 ...font,
@@ -213,11 +213,11 @@ const FontDetail: React.FC = () => {
         </section>
 
         {/* 3. SPACER: Muncul di semua ukuran layar (Mobile, Tablet, & Desktop) */}
-        <div className="h-12 border-b border-black w-full bg-orange-500/10" />
+        <div className="relative z-20 h-12 border-b border-black w-full bg-orange-500/10" />
 
         {/* 4. PREVIEW IMAGES GALLERY */}
         {/* FIXED: Grid full width tanpa padding. 1 kolom di < 1024px (lg), 2 kolom di >= 1024px */}
-        <section className="w-full grid grid-cols-1 lg:grid-cols-2 border-black border-t-0">
+        <section className="relative z-20 w-full grid grid-cols-1 lg:grid-cols-2 border-black border-t-0 bg-white">
           {fontPreviews.map((img: string, idx: number) => {
             const imageUrl = resolvePreviewUrl(img);
             if (!imageUrl) return null;
