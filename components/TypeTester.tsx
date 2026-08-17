@@ -300,77 +300,73 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
     if (gsub && gsub.features && gsub.lookups) {
       // aalt di hilangkan dari deteksi alternate
-     const altFeatureTags = [
-        'aalt', 'salt', 'swsh', 'titl', 'nalt', 'ornm',
-        ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`),
-        ...Array.from({ length: 99 }, (_, i) => `cv${String(i + 1).padStart(2, '0')}`)
-      ];
-
-      gsub.features.forEach((featureRecord: any) => {
-        if (!altFeatureTags.includes(featureRecord.tag)) return;
-
+     gsub.features.forEach((featureRecord: any) => {
         featureRecord.feature.lookupListIndexes.forEach((lookupIndex: number) => {
           const lookup = gsub.lookups[lookupIndex];
           if (!lookup || !lookup.subtables) return;
+          
+          // HANYA proses Type 1 (Single) dan Type 3 (Alternate) agar tidak crash dari Ligature/Contextual
+          if (lookup.lookupType !== 1 && lookup.lookupType !== 3) return;
 
           lookup.subtables.forEach((subtable: any) => {
-            try { // Proteksi anti-crash
-              if (!subtable.coverage || !subtable.coverage.glyphs) return;
+            try {
+              if (!subtable.coverage) return;
               
-              const covIdx = subtable.coverage.glyphs.indexOf(glyphIndex);
+              let covIdx = -1;
+              if (Array.isArray(subtable.coverage.glyphs)) {
+                covIdx = subtable.coverage.glyphs.indexOf(glyphIndex);
+              } else if (Array.isArray(subtable.coverage)) {
+                covIdx = subtable.coverage.indexOf(glyphIndex);
+              }
+              
               if (covIdx === -1) return;
 
               let extractedIndices: number[] = [];
 
-              // Type 1: Single Substitution
-              if (lookup.lookupType === 1) {
-                const targetGlyphIdx = Array.isArray(subtable.substitute) 
-                  ? subtable.substitute[covIdx] 
-                  : (glyphIndex + (subtable.deltaGlyphId || 0)) % 65536;
-                extractedIndices.push(targetGlyphIdx);
-              } 
-              // Type 3: Alternate Substitution (1 to many)
-              else if (lookup.lookupType === 3) {
-                const altSets = subtable.alternateSets || subtable.alternateSet || subtable.alternates || [];
-                const targetSet = altSets[covIdx];
-                if (targetSet) {
-                  if (Array.isArray(targetSet) || targetSet.length !== undefined) {
-                    extractedIndices = Array.from(targetSet as any);
-                  } else if (typeof targetSet === 'object') {
-                    const arr = targetSet.alternateGlyphs || targetSet.alternates || targetSet.glyphs || targetSet.alternateSet;
-                    if (arr && (Array.isArray(arr) || arr.length !== undefined)) {
-                      extractedIndices = Array.from(arr as any);
-                    }
-                  }
-                }
+              // Deteksi Type 1 Format 1 (deltaGlyphId)
+              if (subtable.deltaGlyphId !== undefined) {
+                extractedIndices.push((glyphIndex + subtable.deltaGlyphId) % 65536);
               }
 
-              // Fallback Ekstraksi Buta 
-              if (extractedIndices.length === 0) {
-                 const pSet = (subtable.substitute || subtable.alternateSets || [])[covIdx];
-                 if (pSet && (Array.isArray(pSet) || pSet.length !== undefined)) {
-                    extractedIndices = Array.from(pSet as any);
-                 } else if (typeof pSet === 'number') {
-                    extractedIndices.push(pSet);
-                 }
-              }
+              // Scraping ekstrim: ekstrak paksa dari SEMUA property berbentuk Array (substitute, alternateSets, dll)
+              Object.keys(subtable).forEach((key) => {
+                if (key === 'coverage') return;
+                const arr = subtable[key];
+                if (Array.isArray(arr) && arr.length > covIdx) {
+                  const target = arr[covIdx];
+                  // Ekstraksi angka rekursif untuk membongkar TypedArray / nested object
+                  const extractNums = (obj: any): number[] => {
+                    if (typeof obj === 'number') return [obj];
+                    if (Array.isArray(obj) || (obj && obj.length !== undefined && typeof obj !== 'string')) {
+                      return Array.from(obj as any).flatMap(extractNums);
+                    }
+                    if (obj && typeof obj === 'object') {
+                      return extractNums(Object.values(obj));
+                    }
+                    return [];
+                  };
+                  extractedIndices.push(...extractNums(target));
+                }
+              });
 
               extractedIndices.forEach((altIdx: any) => {
                 const numIdx = Number(altIdx);
-                if (isNaN(numIdx) || numIdx === glyphIndex) return;
+                if (isNaN(numIdx) || numIdx === glyphIndex || numIdx === 0) return;
                 
                 const targetGlyph = loadedFontObj.glyphs.get(numIdx);
-                const charStr = (targetGlyph && targetGlyph.unicode) 
+                if (!targetGlyph) return;
+
+                const charStr = targetGlyph.unicode 
                   ? String.fromCharCode(targetGlyph.unicode) 
                   : targetChar;
 
-                // Longgarkan deduplikasi: glyph index boleh sama asal featureTag beda
+                // Masukkan asalkan beda tag (memungkinkan K.ss05 muncul di 'salt' dan 'ss05' sekaligus)
                 if (!alternates.some(a => a.glyphIndex === numIdx && a.featureTag === featureRecord.tag)) {
                   alternates.push({ char: charStr, glyphIndex: numIdx, featureTag: featureRecord.tag });
                 }
               });
             } catch (e) {
-              console.warn('Silent skip GSUB parsing error:', e);
+              // Silent fail aman
             }
           });
         });
