@@ -577,9 +577,10 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   const renderTextSpans = (fontIdx: number) => {
     const styleFontFamily = `"${config.name}-${fontIdx}"`;
-    const hasOverrides = Object.keys(glyphOverrides).length > 0;
+    const overrideIndices = Object.keys(glyphOverrides).map(Number).sort((a, b) => a - b);
 
-    if (!hasOverrides) {
+    // JIKA TIDAK ADA ALTERNATE: Render teks utuh tanpa pemotongan
+    if (overrideIndices.length === 0) {
       return (
         <span
           style={{
@@ -593,31 +594,55 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       );
     }
 
-    return text.split('').map((char, i) => {
-      const overrideGlyphIdx = glyphOverrides[i];
+    // JIKA ADA ALTERNATE: Potong hanya pada karakter yang diganti (Segment/Chunk Rendering)
+    const elements: React.ReactNode[] = [];
+    let lastIndex = 0;
 
-      if (overrideGlyphIdx !== undefined) {
-        return (
-          <React.Fragment key={i}>
-            {renderInlineGlyphSvg(overrideGlyphIdx, fontSize, fontIdx) || char}
-          </React.Fragment>
+    overrideIndices.forEach((idx) => {
+      // 1. Teks utuh sebelum huruf alternate agar lowercase & contextual kerning tidak pecah
+      if (idx > lastIndex) {
+        elements.push(
+          <span
+            key={`chunk-${lastIndex}-${idx}`}
+            style={{
+              fontFamily: styleFontFamily,
+              fontFeatureSettings: globalActiveFeatureString,
+              WebkitFontFeatureSettings: globalActiveFeatureString
+            }}
+          >
+            {text.slice(lastIndex, idx)}
+          </span>
         );
       }
 
-      return (
-        <span 
-          key={i}
-          id={fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex) ? `char-span-${i}` : undefined}
+      // 2. Karakter alternate spesifik
+      const overrideGlyphIdx = glyphOverrides[idx];
+      elements.push(
+        <React.Fragment key={`alt-${idx}`}>
+          {renderInlineGlyphSvg(overrideGlyphIdx, fontSize, fontIdx) || text[idx]}
+        </React.Fragment>
+      );
+
+      lastIndex = idx + 1;
+    });
+
+    // 3. Sisa teks utuh sampai akhir kalimat
+    if (lastIndex < text.length) {
+      elements.push(
+        <span
+          key={`chunk-${lastIndex}-end`}
           style={{
             fontFamily: styleFontFamily,
             fontFeatureSettings: globalActiveFeatureString,
             WebkitFontFeatureSettings: globalActiveFeatureString
           }}
         >
-          {char}
+          {text.slice(lastIndex)}
         </span>
       );
-    });
+    }
+
+    return elements;
   };
 
   const hasAnyOverride = Object.keys(glyphOverrides).length > 0;
