@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { AlignLeft, AlignCenter, AlignRight, Grid, Keyboard, ChevronDown, ChevronLeft, ChevronRight, Layers, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Type, Grid, Keyboard, ChevronDown, ChevronLeft, ChevronRight, Layers, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { FontConfig } from '../types';
 import opentype from 'opentype.js';
 
@@ -35,23 +35,26 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   isEven = true 
 }) => {
   const [text, setText] = useState(config.randomText || defaultText);
+  const [charOverrides, setCharOverrides] = useState<Record<number, string>>({});
+  const [glyphOverrides, setGlyphOverrides] = useState<Record<number, number>>({});
   const [fontSize, setFontSize] = useState(64);
   const [align, setAlign] = useState<'left' | 'center' | 'right'>('left');
   const [viewMode, setViewMode] = useState<'type' | 'glyphs'>('type');
   
-  // Layered Mode States
+  // Fitur Layered
   const isLayeredSupported = !!config.metadata?.is_layered && Array.isArray(config.font_files) && config.font_files.length > 1;
   const [isLayeredMode, setIsLayeredMode] = useState<boolean>(false);
-
   const [layers, setLayers] = useState<FontLayerItem[]>([
     { id: 'layer-top', fontIndex: config.metadata?.primary_font_index || 0, isInverted: false, isVisible: true, color: '#000000' },
     ...(Array.isArray(config.font_files) && config.font_files.length > 1
-      ? [{ id: 'layer-bottom', fontIndex: (config.metadata?.primary_font_index || 0) === 0 ? 1 : 0, isInverted: false, isVisible: true, color: '#666666' }]
+      ? [{ id: 'layer-bottom', fontIndex: (config.metadata?.primary_font_index || 0) === 0 ? 1 : 0, isInverted: false, isVisible: true, color: '#888888' }]
       : [])
   ]);
-
   const [draggedLayerIdx, setDraggedLayerIdx] = useState<number | null>(null);
+  const [isAddLayerOpen, setIsAddLayerOpen] = useState(false);
+
   const layerContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const [detectedGlyphs, setDetectedGlyphs] = useState<any[]>([]); 
   const [filteredGlyphs, setFilteredGlyphs] = useState<any[]>([]); 
@@ -73,29 +76,28 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
-  const [isAddLayerOpen, setIsAddLayerOpen] = useState(false);
   const PRESET_SIZES = [12, 14, 16, 18, 20, 24, 32, 36, 48, 64, 72, 96, 120, 144, 200];
 
-  // Alternates State
+  // Alternates State Cache
   const [loadedFontObj, setLoadedFontObj] = useState<opentype.Font | null>(null);
   const [loadedFontsMap, setLoadedFontsMap] = useState<Record<number, opentype.Font>>({});
   const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
   const [alternateGlyphs, setAlternateGlyphs] = useState<AlternateGlyph[]>([]);
   const [selectedCharIndex, setSelectedCharIndex] = useState<number | null>(null);
-  const [glyphOverrides, setGlyphOverrides] = useState<Record<number, number>>({});
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const FEATURE_NAMES: Record<string, string> = {
     liga: 'Standard Ligatures',
     dlig: 'Discretionary Lig',
     calt: 'Contextual Alt',
-    aalt: 'Access All Alt',
     salt: 'Stylistic Alt',
+    swsh: 'Swash',
+    titl: 'Titling Alt'
   };
 
+  // DI-DISABLE: 'aalt' sudah dicabut dari list ALLOWED_TAGS
   const ALLOWED_TAGS = new Set([
-    'liga', 'dlig', 'calt', 'aalt', 'salt', 'swsh', 'titl',
-    ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`) 
+      'liga', 'dlig', 'calt', 'salt', 'swsh', 'titl',
+      ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`) 
   ]);
 
   const rowsPerPage = mapGridSize === 10 ? 3 : mapGridSize === 20 ? 5 : 7;
@@ -109,6 +111,33 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     return config.font_files.map((_, idx) => idx);
   }, [config.font_files, config.metadata?.layer_font_indices]);
 
+  // Sync scroll on Layer mode switch
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.scrollTop = 0;
+      textareaRef.current.scrollLeft = 0;
+    }
+    Object.values(layerContainerRefs.current).forEach((el) => {
+      if (el) {
+        el.scrollTop = 0;
+        el.scrollLeft = 0;
+      }
+    });
+  }, [isLayeredMode]);
+
+  useLayoutEffect(() => {
+    if (!textareaRef.current) return;
+    const currentTop = textareaRef.current.scrollTop;
+    const currentLeft = textareaRef.current.scrollLeft;
+
+    Object.values(layerContainerRefs.current).forEach((el) => {
+      if (el) {
+        el.scrollTop = currentTop;
+        el.scrollLeft = currentLeft;
+      }
+    });
+  }, [layers]);
+
   useEffect(() => {
     const files = Array.isArray(config.font_files) ? config.font_files : [];
     if (files.length === 0) return;
@@ -117,7 +146,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     const version = new Date(configAny.updated_at || configAny.created_at || Date.now()).getTime();
 
     files.forEach((file, index) => {
-      if (!file) return;
       const url = file.startsWith('http') || file.startsWith('/') ? file : `/api/fonts/${file}?v=${version}`;
       const fontNameIdentifier = `${config.name}-${index}`;
 
@@ -125,12 +153,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         const fontFace = new FontFace(fontNameIdentifier, `url("${url}")`);
         fontFace.load().then((loadedFace) => {
           document.fonts.add(loadedFace);
-        }).catch((err) => {
-          console.error(`Failed to register FontFace ${fontNameIdentifier}:`, err);
-        });
+        }).catch((err) => console.error(err));
       } catch (e) {
         console.error("FontFace API error:", e);
       }
+
+      if (detectedStyleNames[index] && loadedFontsMap[index]) return;
 
       opentype.load(url, (err, font) => {
         if (!err && font) {
@@ -141,12 +169,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
           if (styleName) {
             setDetectedStyleNames(prev => ({ ...prev, [index]: styleName }));
-            setLoadedFontsMap(prev => ({ ...prev, [index]: font }));
           }
+          setLoadedFontsMap(prev => ({ ...prev, [index]: font }));
         }
       });
     });
-  }, [config.font_files]);
+  }, [config.font_files])
 
   useEffect(() => {
     let targetFile = '';
@@ -169,7 +197,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       if (err || !font) return;
 
       setLoadedFontObj(font);
-
       const names = font.names as any;
       const isVariable = font.tables.fvar?.axes?.length > 0;
       const detectedName = names.preferredSubfamily?.en || names.fontSubfamily?.en;
@@ -186,10 +213,10 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         if (glyph.name === '.notdef' && (!glyph.path || glyph.path.commands.length === 0)) continue;
 
         glyphs.push({ 
-          index: i,
-          name: glyph.name || `glyph_${i}`,
-          char: glyph.unicode ? String.fromCharCode(glyph.unicode) : '',
-          unicode: glyph.unicode 
+            index: i, 
+            char: glyph.unicode ? String.fromCharCode(glyph.unicode) : '', 
+            unicode: glyph.unicode,
+            name: glyph.name || `glyph_${i}`
         });
       }
       setDetectedGlyphs(glyphs);
@@ -228,7 +255,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   useEffect(() => {
     setFilteredGlyphs(detectedGlyphs); 
-  }, [activeFeatures, detectedGlyphs]);
+  }, [detectedGlyphs]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -240,32 +267,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, [viewMode]);
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.scrollTop = 0;
-      textareaRef.current.scrollLeft = 0;
-    }
-    Object.values(layerContainerRefs.current).forEach((el) => {
-      if (el) {
-        el.scrollTop = 0;
-        el.scrollLeft = 0;
-      }
-    });
-  }, [isLayeredMode]);
-
-  useLayoutEffect(() => {
-    if (!textareaRef.current) return;
-    const currentTop = textareaRef.current.scrollTop;
-    const currentLeft = textareaRef.current.scrollLeft;
-
-    Object.values(layerContainerRefs.current).forEach((el) => {
-      if (el) {
-        el.scrollTop = currentTop;
-        el.scrollLeft = currentLeft;
-      }
-    });
-  }, [layers]);
-
+  // Alternate Selection Logic
   const handleTextSelect = () => {
     if (!textareaRef.current || !loadedFontObj) {
       setPopoverPos(null);
@@ -291,18 +293,15 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     }
 
     const glyphIndex = loadedFontObj.charToGlyphIndex(targetChar);
-    if (!glyphIndex) {
-      setPopoverPos(null);
-      setSelectedCharIndex(null);
-      return;
-    }
+    if (!glyphIndex) return;
 
     const alternates: AlternateGlyph[] = [];
     const gsub = loadedFontObj.tables.gsub;
 
     if (gsub && gsub.features && gsub.lookups) {
+      // aalt di hilangkan dari deteksi alternate
       const altFeatureTags = [
-        'aalt', 'salt', 'swsh', 'titl', 'calt', 'dlig',
+        'salt', 'swsh', 'titl', 'calt', 'dlig',
         ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`)
       ];
       
@@ -338,7 +337,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 if (covIdx !== -1) {
                   const altSets = subtable.alternateSets || subtable.alternateSet || [];
                   const targetSet = altSets[covIdx];
-
                   if (targetSet) {
                     const glyphIndices: number[] = Array.isArray(targetSet)
                       ? targetSet
@@ -374,7 +372,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         posX = charRect.left - containerRect.left;
         posY = charRect.top - containerRect.top;
       }
-
       setPopoverPos({ x: posX, y: posY });
       setAlternateGlyphs(alternates);
     } else {
@@ -403,10 +400,22 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       setText(newText);
     }
 
+    const effectiveTag = alt.featureTag;
+    setCharOverrides(prev => {
+      const next = { ...prev };
+      if (!effectiveTag || next[selectedCharIndex] === effectiveTag) {
+        delete next[selectedCharIndex];
+      } else {
+        next[selectedCharIndex] = effectiveTag;
+      }
+      return next;
+    });
+
     setPopoverPos(null);
     setSelectedCharIndex(null);
   };
 
+  // SVGs Builder & Helper
   const renderGlyphSvg = (glyphIdx: number, size: number = 24) => {
     if (!loadedFontObj) return null;
     const glyph = loadedFontObj.glyphs.get(glyphIdx);
@@ -481,21 +490,35 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     }
   };
 
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setText(e.target.value);
-    setGlyphOverrides({});
-    setPopoverPos(null);
-    setSelectedCharIndex(null);
-  };
-
   const toggleFeature = (tag: string) => {
     setActiveFeatures(prev => ({ ...prev, [tag]: !prev[tag] }));
   };
 
-  const addSpecificLayer = (fontIndex: number) => {
-    const MONO_COLOR_PALETTE = ['#000000', '#555555', '#888888', '#B33939', '#2C3A47', '#D6A2E8'];
-    const assignedColor = MONO_COLOR_PALETTE[layers.length % MONO_COLOR_PALETTE.length];
+  // Setup Styles and Typography Settings
+  const globalActiveFeatureString = Object.entries(activeFeatures)
+    .filter(([_, on]) => on)
+    .map(([t]) => `"${t}" 1`)
+    .join(', ') || 'normal';
 
+  const fontVariationSettings = Object.entries(axesValues).map(([t, v]) => `"${t}" ${v}`).join(', ');
+
+  const activeTextareaFontIndex = isLayeredMode 
+    ? (layers[0]?.fontIndex ?? config.metadata?.primary_font_index ?? 0)
+    : activeStyleIndex;
+
+  const commonFontStyle = {
+    fontFamily: `"${config.name}-${activeTextareaFontIndex}"`,
+    fontVariationSettings,
+  };
+
+  const activeAxes = detectedAxes.length > 0 ? detectedAxes : config.axes;
+  const hasAxes = activeAxes && activeAxes.length > 0;
+  const hasFeatures = dynamicFeatures.length > 0;
+
+  // Layer Helpers
+  const addSpecificLayer = (fontIndex: number) => {
+    const COLOR_PALETTE = ['#000000', '#555555', '#888888', '#aaaaaa'];
+    const assignedColor = COLOR_PALETTE[layers.length % COLOR_PALETTE.length];
     const newLayer: FontLayerItem = {
       id: `layer-${Date.now()}`,
       fontIndex: fontIndex,
@@ -503,24 +526,13 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       isVisible: true,
       color: assignedColor
     };
-    setLayers(prev => {
-      const next = [...prev, newLayer];
-      requestAnimationFrame(() => {
-        if (textareaRef.current && layerContainerRefs.current[newLayer.id]) {
-          layerContainerRefs.current[newLayer.id]!.scrollTop = textareaRef.current.scrollTop;
-          layerContainerRefs.current[newLayer.id]!.scrollLeft = textareaRef.current.scrollLeft;
-        }
-      });
-      return next;
-    });
+    setLayers(prev => [...prev, newLayer]);
     setIsAddLayerOpen(false);
   };
-
   const removeLayer = (id: string) => {
     if (layers.length <= 1) return;
     setLayers(prev => prev.filter(l => l.id !== id));
   };
-
   const moveLayer = (index: number, direction: 'up' | 'down') => {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= layers.length) return;
@@ -530,15 +542,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     next[targetIndex] = item;
     setLayers(next);
   };
-
   const toggleLayerVisibility = (id: string) => {
     setLayers(prev => prev.map(l => l.id === id ? { ...l, isVisible: !l.isVisible } : l));
   };
-
   const changeLayerFont = (id: string, fontIndex: number) => {
     setLayers(prev => prev.map(l => l.id === id ? { ...l, fontIndex } : l));
   };
-
   const changeLayerColor = (id: string, color: string) => {
     setLayers(prev => prev.map(l => l.id === id ? { ...l, color } : l));
   };
@@ -553,122 +562,47 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     });
   };
 
-  const handleLayerDragStart = (idx: number) => {
-    setDraggedLayerIdx(idx);
-  };
-
-  const handleLayerDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleLayerDrop = (targetIdx: number) => {
-    if (draggedLayerIdx === null || draggedLayerIdx === targetIdx) return;
-    const updated = [...layers];
-    const item = updated.splice(draggedLayerIdx, 1)[0];
-    updated.splice(targetIdx, 0, item);
-    setLayers(updated);
-    setDraggedLayerIdx(null);
-  };
-
-  const globalActiveFeatureString = Object.entries(activeFeatures)
-    .filter(([_, on]) => on)
-    .map(([t]) => `"${t}" 1`)
-    .join(', ') || 'normal';
-
+  // Rendering Helper for Overlays
   const renderTextSpans = (fontIdx: number) => {
     const styleFontFamily = `"${config.name}-${fontIdx}"`;
-    const overrideIndices = Object.keys(glyphOverrides).map(Number).sort((a, b) => a - b);
+    return text.split('').map((char, i) => {
+      const overrideGlyphIdx = glyphOverrides[i];
+      const overrideFeature = charOverrides[i];
 
-    // JIKA TIDAK ADA ALTERNATE: Render teks utuh tanpa pemotongan
-    if (overrideIndices.length === 0) {
-      return (
-        <span
-          style={{
-            fontFamily: styleFontFamily,
-            fontFeatureSettings: globalActiveFeatureString,
-            WebkitFontFeatureSettings: globalActiveFeatureString
-          }}
-        >
-          {text}
-        </span>
-      );
-    }
-
-    // JIKA ADA ALTERNATE: Potong hanya pada karakter yang diganti (Segment/Chunk Rendering)
-    const elements: React.ReactNode[] = [];
-    let lastIndex = 0;
-
-    overrideIndices.forEach((idx) => {
-      // 1. Teks utuh sebelum huruf alternate agar lowercase & contextual kerning tidak pecah
-      if (idx > lastIndex) {
-        elements.push(
-          <span
-            key={`chunk-${lastIndex}-${idx}`}
-            style={{
-              fontFamily: styleFontFamily,
-              fontFeatureSettings: globalActiveFeatureString,
-              WebkitFontFeatureSettings: globalActiveFeatureString
-            }}
-          >
-            {text.slice(lastIndex, idx)}
-          </span>
+      if (overrideGlyphIdx !== undefined) {
+        return (
+          <React.Fragment key={i}>
+            {renderInlineGlyphSvg(overrideGlyphIdx, fontSize, fontIdx) || char}
+          </React.Fragment>
         );
       }
 
-      // 2. Karakter alternate spesifik
-      const overrideGlyphIdx = glyphOverrides[idx];
-      elements.push(
-        <React.Fragment key={`alt-${idx}`}>
-          {renderInlineGlyphSvg(overrideGlyphIdx, fontSize, fontIdx) || text[idx]}
-        </React.Fragment>
-      );
+      const activeCharFeatures = overrideFeature 
+        ? (globalActiveFeatureString === 'normal' ? `"${overrideFeature}" 1` : `"${overrideFeature}" 1, ${globalActiveFeatureString}`)
+        : globalActiveFeatureString;
 
-      lastIndex = idx + 1;
-    });
-
-    // 3. Sisa teks utuh sampai akhir kalimat
-    if (lastIndex < text.length) {
-      elements.push(
-        <span
-          key={`chunk-${lastIndex}-end`}
+      return (
+        <span 
+          key={i}
+          id={fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex) ? `char-span-${i}` : undefined}
           style={{
             fontFamily: styleFontFamily,
-            fontFeatureSettings: globalActiveFeatureString,
-            WebkitFontFeatureSettings: globalActiveFeatureString
+            fontFeatureSettings: activeCharFeatures,
+            WebkitFontFeatureSettings: activeCharFeatures
           }}
         >
-          {text.slice(lastIndex)}
+          {char}
         </span>
       );
-    }
-
-    return elements;
+    });
   };
 
-  const hasAnyOverride = Object.keys(glyphOverrides).length > 0;
-  const isMultiLayerActive = isLayeredMode || hasAnyOverride;
-
-  const currentFontFamily = `"${config.name}-${activeStyleIndex}"`;
-  const fontFeatureSettings = Object.entries(activeFeatures).map(([t, on]) => `"${t}" ${on ? 'on' : 'off'}`).join(', ') || 'normal';
-  const fontVariationSettings = Object.entries(axesValues).map(([t, v]) => `"${t}" ${v}`).join(', ');
-
-  const commonFontStyle = {
-    fontFamily: currentFontFamily,
-    fontVariationSettings,
-    fontFeatureSettings,
-  };
-
-  const activeAxes = detectedAxes.length > 0 ? detectedAxes : config.axes;
-  const hasAxes = activeAxes && activeAxes.length > 0;
-  const hasFeatures = dynamicFeatures.length > 0;
 
   return (
-    <div className="w-full h-full relative group bg-transparent normal-case" style={{ textTransform: 'none' }}>
-      <div className="relative z-10 h-full flex flex-col normal-case" style={{ textTransform: 'none' }}>
-        {/* SUBQI TOP TOOLBAR */}
-        <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-40">
+    <div className="w-full h-full relative group bg-transparent">
+      <div className="relative z-10 h-full flex flex-col">
+        <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
           
-          {/* GRID 1: View Mode Toggle & Layered Mode Toggle (Hidden on Mobile) */}
           <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
               <button 
                 onClick={() => setViewMode(viewMode === 'type' ? 'glyphs' : 'type')} 
@@ -677,44 +611,42 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 {viewMode === 'type' ? <Grid size={14}/> : <Keyboard size={14}/>}
                 <span>{viewMode === 'type' ? 'Map View' : 'Type View'}</span>
               </button>
-
+              
+              {/* Layered mode trigger ditambahkan pada view mode standar style 1 */}
               {isLayeredSupported && viewMode === 'type' && (
-                <button 
+                <button
                   onClick={() => setIsLayeredMode(!isLayeredMode)}
-                  className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors border border-black ${
-                    isLayeredMode ? 'bg-black text-white' : 'bg-transparent text-black hover:bg-black/5'
-                  }`}
+                  className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors border ${isLayeredMode ? 'bg-black text-white border-black' : 'bg-transparent text-black border-black hover:bg-gray-200'}`}
                 >
-                  <Layers size={14} />
-                  <span>Layered: {isLayeredMode ? 'ON' : 'OFF'}</span>
+                  <Layers size={14}/>
+                  <span>Layer Mode {isLayeredMode ? 'ON' : 'OFF'}</span>
                 </button>
               )}
           </div>
 
-          {/* GRID 2: Style Dropdown */}
           <div className="col-span-2 lg:col-span-1 lg:ml-auto flex items-center gap-6 px-4 lg:px-8 py-4 lg:py-8 border-b lg:border-b-0 lg:border-l border-black justify-between lg:justify-end lg:order-last">
-              {!isLayeredMode ? (
+              {!isLayeredMode && (
                 <div className="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-start">
                   <span className="font-bold text-xs text-gray-400 uppercase lg:hidden">Style</span>
                   <div className="relative z-[100]">
-                     <button 
+                    <button 
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[80px] justify-between relative z-10"
-                     >
+                    >
                         <span>
                           {detectedStyleNames[activeStyleIndex] || (
                             Array.isArray(config.font_files) && config.font_files.length > 0 
                               ? `Style ${String(activeStyleIndex + 1).padStart(2, '0')}`
                               : 'Style 01'
                           )}
-                       </span>
+                      </span>
                         <ChevronDown size={14} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                     </button>
+                    </button>
 
-                     {isDropdownOpen && (
-                       <>
+                    {isDropdownOpen && (
+                      <>
                         <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                        <div className="absolute right-0 top-full mt-2 w-48 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-y-auto max-h-64 shadow-none">
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-hidden shadow-none">
                             {Array.isArray(config.font_files) && config.font_files.length > 0 ? (
                               config.font_files.map((_, i) => (
                                 <button
@@ -734,23 +666,18 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                                 </button>
                               ))
                             ) : (
-                               <button className="w-full text-left px-4 py-3 text-xs font-bold uppercase text-black cursor-default">
-                                 Style 01
-                               </button>
+                              <button className="w-full text-left px-4 py-3 text-xs font-bold uppercase text-black cursor-default">
+                                Style 01
+                              </button>
                             )}
                         </div>
-                       </>
-                     )}
+                      </>
+                    )}
                   </div>
-                </div>
-              ) : (
-                <div className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                  Stacked Layer Controls Active Below
                 </div>
               )}
           </div>
 
-          {/* GRID 3: Size (Type) / Map Grid (Map) - LEFT COLUMN */}
           <div className="flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-center lg:justify-start">
              {viewMode === 'type' ? (
                 <>
@@ -799,7 +726,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
              )}
           </div>
 
-          {/* GRID 4: Align (Type) / Pagination (Map) - RIGHT COLUMN */}
           <div className="flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 justify-center xl:border-r xl:border-black lg:justify-start">
              {viewMode === 'type' ? (
                 <>
@@ -829,142 +755,130 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
         </div>
 
-        {/* MAIN DISPLAY AREA */}
         <div className="min-h-[300px] mb-8 relative">
           {viewMode === 'type' ? (
               <div className="relative w-full min-h-[300px]">
-                {!isMultiLayerActive ? (
-                  <textarea 
-                    ref={textareaRef}
-                    value={text} 
-                    onChange={handleTextChange} 
-                    onSelect={handleTextSelect}
-                    onKeyUp={handleTextSelect}
-                    onMouseUp={handleTextSelect}
-                    className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-10 text-black caret-black" 
+                
+                {/* RENDER LAYER/SINGLE OVERLAYS (Visual Text Area) */}
+                {!isLayeredMode ? (
+                  <div 
+                    ref={(el) => { layerContainerRefs.current['single'] = el; }}
+                    className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 pointer-events-none whitespace-pre-wrap wrap-break-word overflow-hidden select-none"
                     style={{ 
-                        ...commonFontStyle,
-                        fontSize: `${fontSize}px`, 
-                        textAlign: align,
-                        lineHeight: lineHeight,
-                        letterSpacing: `${letterSpacing}em`
-                    }} 
-                    spellCheck={false} 
-                  />
+                      ...commonFontStyle, 
+                      fontSize: `${fontSize}px`, 
+                      textAlign: align, 
+                      lineHeight: lineHeight, 
+                      letterSpacing: `${letterSpacing}em` 
+                    }}
+                    aria-hidden="true"
+                  >
+                    {renderTextSpans(activeStyleIndex)}
+                  </div>
                 ) : (
-                  <>
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                      {layers.map((layer, stackIdx) => {
-                        if (!layer.isVisible) return null;
-                        const calculatedZIndex = layers.length - stackIdx;
-                        return (
-                          <div 
-                            key={layer.id}
-                            ref={(el) => { layerContainerRefs.current[layer.id] = el; }}
-                            className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap select-none overflow-hidden"
-                            style={{ 
-                              ...commonFontStyle,
-                              fontFamily: `"${config.name}-${layer.fontIndex}"`,
-                              fontSize: `${fontSize}px`, 
-                              textAlign: align, 
-                              lineHeight: lineHeight, 
-                              letterSpacing: `${letterSpacing}em`,
-                              zIndex: calculatedZIndex,
-                              color: layer.color || '#000000'
-                            }}
-                            aria-hidden="true"
-                          >
-                            {renderTextSpans(layer.fontIndex)}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <textarea 
-                      ref={textareaRef}
-                      value={text} 
-                      onChange={handleTextChange} 
-                      onSelect={handleTextSelect}
-                      onKeyUp={handleTextSelect}
-                      onMouseUp={handleTextSelect}
-                      onScroll={handleScrollSync}
-                      className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-10 text-transparent caret-black selection:bg-black/20 selection:text-transparent" 
-                      style={{ 
-                          ...commonFontStyle,
-                          fontSize: `${fontSize}px`, 
-                          textAlign: align,
-                          lineHeight: lineHeight,
-                          letterSpacing: `${letterSpacing}em`,
-                          fontFeatureSettings: globalActiveFeatureString,
-                          WebkitFontFeatureSettings: globalActiveFeatureString
-                      }} 
-                      spellCheck={false} 
-                    />
-                  </>
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    {layers.map((layer, stackIdx) => {
+                      if (!layer.isVisible) return null;
+                      const calculatedZIndex = layers.length - stackIdx;
+                      return (
+                        <div 
+                          key={layer.id}
+                          ref={(el) => { layerContainerRefs.current[layer.id] = el; }}
+                          className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word select-none overflow-hidden"
+                          style={{ 
+                            ...commonFontStyle,
+                            fontFamily: `"${config.name}-${layer.fontIndex}"`,
+                            fontSize: `${fontSize}px`, 
+                            textAlign: align, 
+                            lineHeight: lineHeight, 
+                            letterSpacing: `${letterSpacing}em`,
+                            zIndex: calculatedZIndex,
+                            color: layer.color
+                          }}
+                          aria-hidden="true"
+                        >
+                          {renderTextSpans(layer.fontIndex)}
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
+                
+                {/* INVISIBLE INTERACTIVE TEXTAREA */}
+                <textarea 
+                  ref={textareaRef}
+                  value={text} 
+                  onChange={(e) => { setText(e.target.value); setCharOverrides({}); setPopoverPos(null); setSelectedCharIndex(null); }} 
+                  onSelect={handleTextSelect}
+                  onKeyUp={handleTextSelect}
+                  onMouseUp={handleTextSelect}
+                  onScroll={handleScrollSync}
+                  className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-30 text-transparent caret-black selection:bg-black/30 selection:text-transparent" 
+                  style={{ 
+                      ...commonFontStyle,
+                      fontSize: `${fontSize}px`, 
+                      textAlign: align,
+                      lineHeight: lineHeight,
+                      letterSpacing: `${letterSpacing}em`,
+                      fontFeatureSettings: globalActiveFeatureString,
+                      WebkitFontFeatureSettings: globalActiveFeatureString
+                  }} 
+                  spellCheck={false} 
+                />
 
-                {/* ALTERNATES POPOVER */}
+                {/* POPOVER ALTERNATE GLYPHS */}
                 {popoverPos && alternateGlyphs.length > 0 && selectedCharIndex !== null && (
                   <div 
-                    className="absolute z-50 bg-white border border-black shadow-lg p-2 flex items-center gap-2 pointer-events-auto"
+                    className="absolute z-[60] bg-white border border-black shadow-xl p-2 flex items-center gap-2 pointer-events-auto"
                     style={{
                       left: `${Math.max(16, Math.min(popoverPos.x - 20, (textareaRef.current?.clientWidth || 600) - 280))}px`,
                       top: `${popoverPos.y > 70 ? popoverPos.y - 65 : popoverPos.y + fontSize + 15}px`
                     }}
                   >
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 border-r border-black/10 pr-2">
-                      Alts
-                    </span>
-                    <div className="flex items-center gap-1 overflow-x-auto max-w-xs">
+                    <span className="text-[10px] font-bold uppercase text-gray-400 border-r border-black pr-2">Alts</span>
+                    <div className="flex items-center gap-1 overflow-x-auto max-w-[300px] custom-scrollbar">
                       <button
-                        type="button"
-                        onClick={() => applyAlternate({ char: text.charAt(selectedCharIndex), glyphIndex: 0, featureTag: '' })}
-                        className={`h-10 min-w-10 px-1.5 flex flex-col items-center justify-center border transition-all ${
-                          !glyphOverrides[selectedCharIndex] 
-                            ? 'bg-black text-white border-black' 
-                            : 'border-black/20 hover:bg-black hover:text-white bg-transparent text-black'
-                        }`}
-                        title="Default Style"
-                      >
-                        <div className="h-5 flex items-center justify-center">
-                          {renderGlyphSvg(loadedFontObj ? loadedFontObj.charToGlyphIndex(text.charAt(selectedCharIndex)) : 0, 20) || (
-                            <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: 'normal' }}>
-                              {text.charAt(selectedCharIndex)}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[6px] opacity-40 uppercase mt-0.5">DEFAULT</span>
+                          type="button"
+                          onClick={() => applyAlternate({ char: text.charAt(selectedCharIndex), glyphIndex: 0, featureTag: '' })}
+                          className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all ${
+                            !charOverrides[selectedCharIndex] 
+                              ? 'bg-black text-white border-black' 
+                              : 'border-transparent hover:bg-black hover:text-white bg-transparent text-black'
+                          }`}
+                          title="Default Style"
+                        >
+                          <div className="h-6 flex items-center justify-center">
+                            {renderGlyphSvg(loadedFontObj ? loadedFontObj.charToGlyphIndex(text.charAt(selectedCharIndex)) : 0, 20) || (
+                              <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: 'normal' }}>
+                                {text.charAt(selectedCharIndex)}
+                              </span>
+                            )}
+                          </div>
                       </button>
 
                       {alternateGlyphs.map((alt, idx) => {
-                        const isSelected = glyphOverrides[selectedCharIndex] === alt.glyphIndex;
+                        const isSelected = glyphOverrides[selectedCharIndex] === alt.glyphIndex || (!glyphOverrides[selectedCharIndex] && charOverrides[selectedCharIndex] === alt.featureTag && idx === 0);
                         return (
                           <button
                             key={idx}
                             type="button"
                             onClick={() => applyAlternate(alt)}
-                            className={`h-10 min-w-10 px-1.5 flex flex-col items-center justify-center border transition-all ${
+                            className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all shrink-0 ${
                               isSelected 
                                 ? 'bg-black text-white border-black' 
-                                : 'border-black/20 hover:bg-black hover:text-white bg-transparent text-black'
+                                : 'border-transparent hover:bg-black hover:text-white bg-transparent text-black'
                             }`}
-                            title={`Glyph #${alt.glyphIndex} (${alt.featureTag.toUpperCase()})`}
+                            title={`Glyph #${alt.glyphIndex}`}
                           >
-                            <div className="h-5 flex items-center justify-center">
+                            <div className="h-6 flex items-center justify-center">
                               {renderGlyphSvg(alt.glyphIndex, 20) || (
-                                <span 
-                                  style={{ 
-                                    ...commonFontStyle, 
-                                    fontSize: '16px', 
-                                    fontFeatureSettings: `"${alt.featureTag}" 1` 
-                                  }}
-                                >
+                                <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: `"${alt.featureTag}" 1` }}>
                                   {alt.char}
                                 </span>
                               )}
                             </div>
-                            <span className="text-[6px] opacity-40 uppercase mt-0.5">
-                              {alt.featureTag === 'aalt' ? 'SALT' : alt.featureTag.toUpperCase()}
+                            <span className="text-[7px] uppercase font-sans mt-0.5 opacity-60">
+                              {alt.featureTag}
                             </span>
                           </button>
                         );
@@ -976,166 +890,161 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           ) : (
               <div className="w-full grid content-start" style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}>
                 {filteredGlyphs.slice(mapPage * glyphsPerPage, (mapPage + 1) * glyphsPerPage).map((item, idx) => (
-                  <div key={item.index ?? idx} className="aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default border-none p-2">
-                    <div className="w-12 h-12 flex items-center justify-center pointer-events-none">
-                      {renderGlyphSvg(item.index, mapGridSize === 10 ? 44 : mapGridSize === 20 ? 28 : 18) || (
-                        <span style={{ 
-                          ...commonFontStyle,
-                          fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' 
-                        }}>
-                          {item.char}
-                        </span>
-                      )}
+                  <div key={idx} className="aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default border border-transparent hover:border-black" title={item.name}>
+                        <div className="flex items-center justify-center pointer-events-none">
+                            {/* Update fitur Map View perender SVG otomatis */}
+                            {renderGlyphSvg(item.index, mapGridSize === 10 ? 60 : mapGridSize === 20 ? 32 : 20) || (
+                              item.char ? (
+                                <span style={{ 
+                                  ...commonFontStyle,
+                                  fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' 
+                                }}>
+                                  {item.char}
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-mono opacity-30">#{item.index}</span>
+                              )
+                            )}
+                        </div>
                     </div>
-                  </div>
                 ))}
               </div>
           )}
         </div>
 
-        {/* LAYER STACKING MANAGER PANEL */}
-        {isLayeredMode && viewMode === 'type' && (
-          <div className="p-4 md:p-6 border-t border-black bg-gray-50/50">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Layers size={14} className="text-black" />
-                <span className="text-xs font-bold uppercase tracking-widest text-black">Layer Stacking Order (Top to Bottom)</span>
-              </div>
-
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsAddLayerOpen(!isAddLayerOpen)}
-                  className="px-3 py-1 text-xs font-bold uppercase tracking-wider bg-black text-white hover:bg-gray-800 transition-all flex items-center gap-1.5"
-                >
-                  <Plus size={12} /> ADD LAYER
-                </button>
-
-                {isAddLayerOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setIsAddLayerOpen(false)} />
-                    <div className="absolute right-0 bottom-full mb-1 w-48 bg-white border border-black z-50 shadow-none overflow-hidden">
-                      <div className="px-3 py-1.5 text-[9px] font-bold uppercase text-gray-500 border-b border-black/10 tracking-widest bg-gray-50">
-                        Select Layer Font
-                      </div>
-                      {availableLayerIndices.map((fIdx) => (
-                        <button
-                          key={fIdx}
-                          type="button"
-                          onClick={() => addSpecificLayer(fIdx)}
-                          className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase border-b border-black/5 last:border-0 hover:bg-black hover:text-white transition-colors"
-                        >
-                          {detectedStyleNames[fIdx] || `Style ${fIdx + 1}`}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              {layers.map((layer, idx) => (
-                <div 
-                  key={layer.id} 
-                  onDragOver={handleLayerDragOver}
-                  onDrop={() => handleLayerDrop(idx)}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-2.5 border transition-all gap-2 bg-white ${
-                    draggedLayerIdx === idx ? 'opacity-30 border-dashed border-black' : 'border-black'
-                  } ${!layer.isVisible ? 'opacity-40' : ''}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      draggable
-                      onDragStart={() => handleLayerDragStart(idx)}
-                      onDragEnd={() => setDraggedLayerIdx(null)}
-                      className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-black p-1 -m-1"
-                      title="Drag to Reorder Layer"
-                    >
-                      <GripVertical size={14} />
-                    </div>
-                    <span className="text-[10px] font-mono font-bold text-gray-400 w-4">#{idx + 1}</span>
-                    
-                    <select 
-                      value={layer.fontIndex}
-                      onChange={(e) => changeLayerFont(layer.id, parseInt(e.target.value))}
-                      className="bg-transparent border border-black px-2 py-1 text-xs font-bold uppercase outline-none cursor-pointer"
-                    >
-                      {availableLayerIndices.map((fIdx) => (
-                        <option key={fIdx} value={fIdx}>
-                          {detectedStyleNames[fIdx] || `Style ${fIdx + 1}`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-2 self-end sm:self-auto">
-                    <div className="flex items-center gap-1.5 border border-black px-2 py-1 relative cursor-pointer hover:bg-gray-100 transition-colors">
-                      <input 
-                        type="color"
-                        value={layer.color || '#000000'}
-                        onChange={(e) => changeLayerColor(layer.id, e.target.value)}
-                        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                        title="Pick Layer Color"
-                      />
-                      <div 
-                        className="w-3.5 h-3.5 border border-black/30" 
-                        style={{ backgroundColor: layer.color || '#000000' }} 
-                      />
-                      <span className="text-[9px] font-mono font-bold uppercase text-black">
-                        {layer.color || '#000000'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => toggleLayerVisibility(layer.id)}
-                        className="p-1 border border-black text-black hover:bg-black hover:text-white transition-colors"
-                        title={layer.isVisible ? "Hide Layer" : "Show Layer"}
-                      >
-                        {layer.isVisible ? <Eye size={13} /> : <EyeOff size={13} />}
-                      </button>
-
-                      <button
-                        type="button"
-                        disabled={idx === 0}
-                        onClick={() => moveLayer(idx, 'up')}
-                        className="p-1 border border-black text-black hover:bg-black hover:text-white disabled:opacity-20 transition-colors"
-                        title="Move Up in Stack"
-                      >
-                        <ArrowUp size={13} />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={idx === layers.length - 1}
-                        onClick={() => moveLayer(idx, 'down')}
-                        className="p-1 border border-black text-black hover:bg-black hover:text-white disabled:opacity-20 transition-colors"
-                        title="Move Down in Stack"
-                      >
-                        <ArrowDown size={13} />
-                      </button>
-
-                      {layers.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeLayer(layer.id)}
-                          className="p-1 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
-                          title="Remove Layer"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* SETTINGS PANEL */}
         <div className="bg-transparent border-t border-black">
+          
+          {/* PANEL LAYERED MODE SETTINGS (Muncul saat dipicu) */}
+          {isLayeredMode && viewMode === 'type' && (
+             <div className="px-4 md:px-8 py-6 border-b border-black bg-gray-50/50">
+               <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Layers size={14} />
+                    <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Layer Settings</span>
+                  </div>
+
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsAddLayerOpen(!isAddLayerOpen)}
+                      className="px-3 py-1 text-[10px] font-bold uppercase border border-black hover:bg-black hover:text-white transition-all flex items-center gap-1.5 relative z-10"
+                    >
+                      <Plus size={12} /> ADD LAYER
+                    </button>
+                    {isAddLayerOpen && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setIsAddLayerOpen(false)} />
+                          <div className="absolute right-0 bottom-full mb-1 w-48 bg-white border border-black z-50 shadow-xl overflow-hidden">
+                            <div className="px-3 py-2 text-[9px] font-bold uppercase text-gray-500 border-b border-gray-200 bg-gray-100">
+                              Select Font
+                            </div>
+                            {availableLayerIndices.map((fIdx) => (
+                              <button
+                                key={fIdx}
+                                onClick={() => addSpecificLayer(fIdx)}
+                                className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase border-b border-gray-100 hover:bg-black hover:text-white transition-colors"
+                              >
+                                {detectedStyleNames[fIdx] || `Style ${fIdx + 1}`}
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                  </div>
+               </div>
+
+               <div className="flex flex-col gap-2">
+                {layers.map((layer, idx) => (
+                  <div 
+                    key={layer.id}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => {
+                        if (draggedLayerIdx === null || draggedLayerIdx === idx) return;
+                        const updated = [...layers];
+                        const item = updated.splice(draggedLayerIdx, 1)[0];
+                        updated.splice(idx, 0, item);
+                        setLayers(updated);
+                        setDraggedLayerIdx(null);
+                    }}
+                    className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 border transition-all gap-3 ${
+                      !layer.isVisible ? 'opacity-50 border-gray-200 bg-transparent' : 'border-black bg-white'
+                    } ${draggedLayerIdx === idx ? 'border-dashed opacity-30' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        draggable
+                        onDragStart={() => setDraggedLayerIdx(idx)}
+                        onDragEnd={() => setDraggedLayerIdx(null)}
+                        className="cursor-grab text-gray-400 hover:text-black p-1 -m-1"
+                      >
+                        <GripVertical size={14} />
+                      </div>
+                      <span className="text-[10px] font-mono font-bold opacity-40 w-4">#{idx + 1}</span>
+                      
+                      <select 
+                        value={layer.fontIndex}
+                        onChange={(e) => changeLayerFont(layer.id, parseInt(e.target.value))}
+                        className="bg-transparent border border-gray-300 px-2 py-1 text-xs font-bold uppercase outline-none cursor-pointer"
+                      >
+                        {availableLayerIndices.map((fIdx) => (
+                          <option key={fIdx} value={fIdx}>
+                            {detectedStyleNames[fIdx] || `Style ${fIdx + 1}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                      <div className="flex items-center gap-1.5 border border-gray-300 px-2 py-1 relative cursor-pointer hover:border-black transition-colors">
+                        <input 
+                          type="color"
+                          value={layer.color || '#000000'}
+                          onChange={(e) => changeLayerColor(layer.id, e.target.value)}
+                          className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+                        />
+                        <div className="w-3 h-3 border border-gray-400" style={{ backgroundColor: layer.color || '#000000' }} />
+                        <span className="text-[9px] font-mono font-bold uppercase text-black">
+                          {layer.color || '#000000'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => toggleLayerVisibility(layer.id)}
+                          className="p-1.5 border border-gray-300 text-gray-600 hover:border-black hover:text-black transition-colors"
+                        >
+                          {layer.isVisible ? <Eye size={13} /> : <EyeOff size={13} />}
+                        </button>
+                        <button
+                          disabled={idx === 0}
+                          onClick={() => moveLayer(idx, 'up')}
+                          className="p-1.5 border border-gray-300 text-gray-600 hover:border-black hover:text-black disabled:opacity-20 transition-colors"
+                        >
+                          <ArrowUp size={13} />
+                        </button>
+                        <button
+                          disabled={idx === layers.length - 1}
+                          onClick={() => moveLayer(idx, 'down')}
+                          className="p-1.5 border border-gray-300 text-gray-600 hover:border-black hover:text-black disabled:opacity-20 transition-colors"
+                        >
+                          <ArrowDown size={13} />
+                        </button>
+                        {layers.length > 1 && (
+                          <button
+                            onClick={() => removeLayer(layer.id)}
+                            className="p-1.5 border border-red-300 text-red-600 hover:bg-red-600 hover:text-white transition-colors"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+             </div>
+          )}
+
           <div className={`grid grid-cols-1 md:grid-cols-2 ${(hasAxes || hasFeatures) ? 'border-b border-black' : ''}`}>
               <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-b md:border-b-0 md:border-r border-black">
                <label className="w-24 font-bold text-xs uppercase">Leading</label>
@@ -1146,7 +1055,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   <label className="w-24 font-bold text-xs uppercase">Tracking</label>
                   <input type="range" min="-0.1" max="0.5" step="0.01" value={letterSpacing} onChange={(e) => setLetterSpacing(parseFloat(e.target.value))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
                   <span className="w-12 text-right font-bold text-xs">{letterSpacing.toFixed(2)}</span>
-                  </div>
+              </div>
           </div>
 
           {(hasAxes || hasFeatures) && (
