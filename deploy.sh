@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Hentikan eksekusi script jika ada perintah yang gagal
 set -e
 
 PROJECT_NAME=$(basename "$PWD")
@@ -8,7 +7,7 @@ TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 TARGET_DIR="../backups/$PROJECT_NAME"
 BACKUP_FILE="$TARGET_DIR/${PROJECT_NAME}_$TIMESTAMP.tar.gz"
 
-# 1. Konfirmasi Backup (Agar 5 slot backup tidak cepat habis)
+# 1. Konfirmasi Backup
 echo "❓ Buat backup baru? (y/n)"
 read -r answer
 if [[ "$answer" =~ ^[Yy]$ ]]; then
@@ -22,15 +21,9 @@ else
     echo "⏭️  Skip backup..."
 fi
 
-# 2. Build & Deploy
-# ANTI-ERROR: Cek keberadaan file .env sebelum build
-if [ -f .env ]; then
-    echo "✅ File .env ditemukan. Memuat variabel..."
-    set -a
-    [ -f .env ] && . .env
-    set +a
-else
-    echo "❌ ERROR: File .env tidak ditemukan! Build dibatalkan."
+# 2. Cek File .env & Build
+if [ ! -f .env ]; then
+    echo "❌ ERROR: File .env tidak ditemukan di root folder!"
     exit 1
 fi
 
@@ -38,16 +31,13 @@ echo "🔨 Memulai Build..."
 npm run build
 
 echo "🚀 Deploy ke Cloudflare..."
-# Otomatis kirim input 'y' jika muncul dialog konfirmasi tanpa merusak CLI argument
 echo "y" | npx wrangler deploy
 
-# 3. Git Push (Otomatis tanpa input komen)
+# 3. Git Push
 if [[ -n $(git status -s) ]]; then
     echo "📤 Push perubahan ke GitHub..."
     git add .
-    
     commit_msg="update $TIMESTAMP: system auto-deploy & config sync"
-    
     git commit -m "$commit_msg"
     git push origin main
 else
