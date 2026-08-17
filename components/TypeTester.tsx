@@ -82,7 +82,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
   const [alternateGlyphs, setAlternateGlyphs] = useState<AlternateGlyph[]>([]);
   const [selectedCharIndex, setSelectedCharIndex] = useState<number | null>(null);
-  const [charOverrides, setCharOverrides] = useState<Record<number, string>>({});
   const [glyphOverrides, setGlyphOverrides] = useState<Record<number, number>>({});
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -404,18 +403,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       setText(newText);
     }
 
-    const effectiveTag = alt.featureTag === 'aalt' ? 'salt' : alt.featureTag;
-
-    setCharOverrides(prev => {
-      const next = { ...prev };
-      if (!effectiveTag || next[selectedCharIndex] === effectiveTag) {
-        delete next[selectedCharIndex];
-      } else {
-        next[selectedCharIndex] = effectiveTag;
-      }
-      return next;
-    });
-
     setPopoverPos(null);
     setSelectedCharIndex(null);
   };
@@ -496,7 +483,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
-    setCharOverrides({});
     setGlyphOverrides({});
     setPopoverPos(null);
     setSelectedCharIndex(null);
@@ -591,9 +577,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   const renderTextSpans = (fontIdx: number) => {
     const styleFontFamily = `"${config.name}-${fontIdx}"`;
-    const hasOverrides = Object.keys(glyphOverrides).length > 0 || Object.keys(charOverrides).length > 0;
+    const hasOverrides = Object.keys(glyphOverrides).length > 0;
 
-    // JIKA TIDAK ADA ALTERNATE KHUSUS: Render text utuh tanpa text.split('') agar tidak merusak case/contextual glyphs
     if (!hasOverrides) {
       return (
         <span
@@ -610,7 +595,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
     return text.split('').map((char, i) => {
       const overrideGlyphIdx = glyphOverrides[i];
-      const overrideFeature = charOverrides[i];
 
       if (overrideGlyphIdx !== undefined) {
         return (
@@ -620,18 +604,14 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         );
       }
 
-      const activeCharFeatures = overrideFeature 
-        ? (globalActiveFeatureString === 'normal' ? `"${overrideFeature}" 1` : `"${overrideFeature}" 1, ${globalActiveFeatureString}`)
-        : globalActiveFeatureString;
-
       return (
         <span 
           key={i}
           id={fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex) ? `char-span-${i}` : undefined}
           style={{
             fontFamily: styleFontFamily,
-            fontFeatureSettings: activeCharFeatures,
-            WebkitFontFeatureSettings: activeCharFeatures
+            fontFeatureSettings: globalActiveFeatureString,
+            WebkitFontFeatureSettings: globalActiveFeatureString
           }}
         >
           {char}
@@ -640,7 +620,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     });
   };
 
-  const hasAnyOverride = Object.keys(glyphOverrides).length > 0 || Object.keys(charOverrides).length > 0;
+  const hasAnyOverride = Object.keys(glyphOverrides).length > 0;
   const isMultiLayerActive = isLayeredMode || hasAnyOverride;
 
   const currentFontFamily = `"${config.name}-${activeStyleIndex}"`;
@@ -660,7 +640,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   return (
     <div className="w-full h-full relative group bg-transparent">
       <div className="relative z-10 h-full flex flex-col">
-        {/* SUBQI TOP TOOLBAR (Z-Index diset z-40 agar dropdown berada di atas textarea) */}
+        {/* SUBQI TOP TOOLBAR */}
         <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-40">
           
           {/* GRID 1: View Mode Toggle & Layered Mode Toggle (Hidden on Mobile) */}
@@ -828,11 +808,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         <div className="min-h-[300px] mb-8 relative">
           {viewMode === 'type' ? (
               <div className="relative w-full min-h-[300px]">
-                {/* 
-                  KUNCI UTAMA: 
-                  Jika Single Style Biasa -> Render Textarea MURNI bawaan backup Subqi (100% huruf kecil aman & responsif).
-                  Jika Layered Mode / Ada Alternate -> Render Overlay Layer Stacking.
-                */}
                 {!isMultiLayerActive ? (
                   <textarea 
                     ref={textareaRef}
@@ -920,7 +895,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                         type="button"
                         onClick={() => applyAlternate({ char: text.charAt(selectedCharIndex), glyphIndex: 0, featureTag: '' })}
                         className={`h-10 min-w-10 px-1.5 flex flex-col items-center justify-center border transition-all ${
-                          !charOverrides[selectedCharIndex] 
+                          !glyphOverrides[selectedCharIndex] 
                             ? 'bg-black text-white border-black' 
                             : 'border-black/20 hover:bg-black hover:text-white bg-transparent text-black'
                         }`}
@@ -937,7 +912,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                       </button>
 
                       {alternateGlyphs.map((alt, idx) => {
-                        const isSelected = glyphOverrides[selectedCharIndex] === alt.glyphIndex || (!glyphOverrides[selectedCharIndex] && charOverrides[selectedCharIndex] === alt.featureTag && idx === 0);
+                        const isSelected = glyphOverrides[selectedCharIndex] === alt.glyphIndex;
                         return (
                           <button
                             key={idx}
