@@ -601,8 +601,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   return (
     <div className="w-full h-full relative group bg-transparent">
       <div className="relative z-10 h-full flex flex-col">
-        <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
-          
+        <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-40">
+
           <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
               <button 
                 onClick={() => setViewMode(viewMode === 'type' ? 'glyphs' : 'type')} 
@@ -913,7 +913,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         </div>
 
         {/* SETTINGS PANEL */}
-        <div className="bg-transparent border-t border-black">
+        <div className="bg-transparent border-t border-black relative z-40">
           
           {/* PANEL LAYERED MODE SETTINGS (Muncul saat dipicu) */}
           {isLayeredMode && viewMode === 'type' && (
