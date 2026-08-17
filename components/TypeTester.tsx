@@ -595,10 +595,10 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   const renderTextSpans = (fontIdx: number) => {
     const styleFontFamily = `"${config.name}-${fontIdx}"`;
-    const hasAnyOverride = Object.keys(glyphOverrides).length > 0 || Object.keys(charOverrides).length > 0;
+    const hasOverrides = Object.keys(glyphOverrides).length > 0 || Object.keys(charOverrides).length > 0;
 
-    // JIKA TIDAK ADA OVERRIDE ALTERNATE: Render text murni utuh agar huruf kecil tidak terpental ke kapital
-    if (!hasAnyOverride) {
+    // Jika tidak ada alternate yang dipilih, render teks utuh agar contextual OpenType & lowercase tetap normal
+    if (!hasOverrides) {
       return (
         <span
           style={{
@@ -612,7 +612,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       );
     }
 
-    // JIKA ADA ALTERNATE KHUSUS: Baru diproses per-karakter
     return text.split('').map((char, i) => {
       const overrideGlyphIdx = glyphOverrides[i];
       const overrideFeature = charOverrides[i];
@@ -667,8 +666,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     <div className="w-full h-full relative group bg-transparent">
       <div className="relative z-10 h-full flex flex-col">
         {/* SUBQI TOP TOOLBAR (ORIGINAL GRID & RESPONSIVE BREAKPOINT) */}
-        <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-20">
-          
+        <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-50">
+        
           {/* GRID 1: View Mode Toggle & Layered Mode Toggle (Hidden on Mobile) */}
           <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
               <button 
