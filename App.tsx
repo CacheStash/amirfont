@@ -132,8 +132,8 @@ const App: React.FC = () => {
     <CartProvider>
     <Router>
       <ScrollToHash />
-      <div className="min-h-screen bg-[#EDEBE6] text-black font-sans selection:bg-black selection:text-white relative flex flex-col uppercase">
-        
+      <div className="min-h-screen bg-[#EDEBE6] text-black font-sans selection:bg-black selection:text-white relative flex flex-col">
+         
         {/* Kirim fungsi setIsNavActive ke Navbar */}
         <Navbar onStateChange={setIsNavActive} />
         

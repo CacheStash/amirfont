@@ -663,8 +663,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const hasFeatures = dynamicFeatures.length > 0;
 
   return (
-    <div className="w-full h-full relative group bg-transparent">
-      <div className="relative z-10 h-full flex flex-col">
+    <div className="w-full h-full relative group bg-transparent normal-case" style={{ textTransform: 'none' }}>
+      <div className="relative z-10 h-full flex flex-col normal-case" style={{ textTransform: 'none' }}>
         {/* SUBQI TOP TOOLBAR */}
         <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-40">
           
