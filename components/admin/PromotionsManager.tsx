@@ -279,7 +279,7 @@ const PromotionsManager: React.FC = () => {
 
       {/* MODAL GENERATOR KUPON & KALKULATOR TAWARAN */}
       {isAddingCoupon && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white border-2 border-black p-8 max-w-lg w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-2xl font-bold uppercase">Bargain Coupon Generator</h3>
@@ -384,7 +384,7 @@ const PromotionsManager: React.FC = () => {
 
       {/* MODAL FORM CAMPAIGN */}
       {isAdding && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white border-2 border-black p-8 max-w-lg w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-2xl font-bold uppercase">Configure Promo</h3>
