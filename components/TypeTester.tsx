@@ -301,7 +301,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     if (gsub && gsub.features && gsub.lookups) {
       // aalt di hilangkan dari deteksi alternate
       const altFeatureTags = [
-        'salt', 'swsh', 'titl', 'calt', 'dlig',
+        'aalt', 'salt', 'swsh', 'titl', 'calt', 'dlig',
         ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`)
       ];
       
