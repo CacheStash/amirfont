@@ -305,7 +305,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           const lookup = gsub.lookups[lookupIndex];
           if (!lookup || !lookup.subtables) return;
           
-          // HANYA proses Type 1 (Single) dan Type 3 (Alternate) agar tidak crash dari Ligature/Contextual
           if (lookup.lookupType !== 1 && lookup.lookupType !== 3) return;
 
           lookup.subtables.forEach((subtable: any) => {
@@ -323,31 +322,25 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
               let extractedIndices: number[] = [];
 
-              // Deteksi Type 1 Format 1 (deltaGlyphId)
-              if (subtable.deltaGlyphId !== undefined) {
-                extractedIndices.push((glyphIndex + subtable.deltaGlyphId) % 65536);
-              }
-
-              // Scraping ekstrim: ekstrak paksa dari SEMUA property berbentuk Array (substitute, alternateSets, dll)
-              Object.keys(subtable).forEach((key) => {
-                if (key === 'coverage') return;
-                const arr = subtable[key];
-                if (Array.isArray(arr) && arr.length > covIdx) {
-                  const target = arr[covIdx];
-                  // Ekstraksi angka rekursif untuk membongkar TypedArray / nested object
-                  const extractNums = (obj: any): number[] => {
-                    if (typeof obj === 'number') return [obj];
-                    if (Array.isArray(obj) || (obj && obj.length !== undefined && typeof obj !== 'string')) {
-                      return Array.from(obj as any).flatMap(extractNums);
-                    }
-                    if (obj && typeof obj === 'object') {
-                      return extractNums(Object.values(obj));
-                    }
-                    return [];
-                  };
-                  extractedIndices.push(...extractNums(target));
+              if (lookup.lookupType === 1) {
+                if (Array.isArray(subtable.substitute)) {
+                  extractedIndices.push(subtable.substitute[covIdx]);
+                } else if (subtable.deltaGlyphId !== undefined) {
+                  extractedIndices.push((glyphIndex + subtable.deltaGlyphId) % 65536);
                 }
-              });
+              } else if (lookup.lookupType === 3) {
+                const altSets = subtable.alternateSets || subtable.alternateSet || [];
+                const targetSet = altSets[covIdx];
+                if (targetSet) {
+                  if (Array.isArray(targetSet.alternates)) {
+                    extractedIndices.push(...targetSet.alternates);
+                  } else if (Array.isArray(targetSet)) {
+                    extractedIndices.push(...targetSet);
+                  } else if (Array.isArray(targetSet.alternateGlyphs)) {
+                    extractedIndices.push(...targetSet.alternateGlyphs);
+                  }
+                }
+              }
 
               extractedIndices.forEach((altIdx: any) => {
                 const numIdx = Number(altIdx);
@@ -360,13 +353,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   ? String.fromCharCode(targetGlyph.unicode) 
                   : targetChar;
 
-                // Masukkan asalkan beda tag (memungkinkan K.ss05 muncul di 'salt' dan 'ss05' sekaligus)
                 if (!alternates.some(a => a.glyphIndex === numIdx && a.featureTag === featureRecord.tag)) {
                   alternates.push({ char: charStr, glyphIndex: numIdx, featureTag: featureRecord.tag });
                 }
               });
             } catch (e) {
-              // Silent fail aman
+              // silent catch untuk mem-bypass subtable yang corrupt dari font
             }
           });
         });
@@ -405,13 +397,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       return next;
     });
 
-    const targetGlyph = loadedFontObj?.glyphs?.get(alt.glyphIndex);
-    if (targetGlyph && targetGlyph.unicode && targetGlyph.unicode !== text.charCodeAt(selectedCharIndex)) {
-      const replacementChar = String.fromCharCode(targetGlyph.unicode);
-      const newText = text.slice(0, selectedCharIndex) + replacementChar + text.slice(selectedCharIndex + 1);
-      setText(newText);
-    }
-
+    
     const effectiveTag = alt.featureTag;
     setCharOverrides(prev => {
       const next = { ...prev };
