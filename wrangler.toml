@@ -3,6 +3,13 @@ main = "index.js"
 compatibility_date = "2024-09-23"
 account_id = "5ce335e05c30bbab4c880244f839836f"
 
+workers_dev = true
+
+routes = [
+  { pattern = "subqi.com", custom_domain = true },
+  { pattern = "www.subqi.com", custom_domain = true }
+]
+
 # --- FORMAT TABEL & EKSPLISIT BINDING ---
 [assets]
 directory = "./dist"
