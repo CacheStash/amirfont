@@ -42,7 +42,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
     broadcast: { solo: 0, team: 0, studio: 0, enterprise: 0 },
     server: { solo: 0, team: 0, studio: 0, enterprise: 0 },
     corporate_full_suite: 0
-  })
+  });
 
   const [price, setPrice] = useState(initialData?.price?.toString() || ''); 
   // Preview sederhana (Tetap dipertahankan sesuai backup)
@@ -74,7 +74,11 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   const [isUploading, setIsUploading] = useState(false);
   const [driveResults, setDriveResults] = useState<{images: any[], fonts: any[], trial: any[]} | null>(null);
   const [isSearchingDrive, setIsSearchingDrive] = useState(false);
+  
+  // Layer & Primary States
   const [primaryFontIndex, setPrimaryFontIndex] = useState<number>(initialData?.metadata?.primary_font_index || 0);
+  const [isLayered, setIsLayered] = useState<boolean>(initialData?.metadata?.is_layered || false);
+  const [layerFontIndices, setLayerFontIndices] = useState<number[]>(initialData?.metadata?.layer_font_indices || []);
 
   const [draggedImgIndex, setDraggedImgIndex] = useState<number | null>(null);
 
@@ -147,6 +151,12 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       setExistingFontFiles(initialData.font_files || []);
       setExistingPreviewImages(initialData.preview_images || []);
       setExistingTrialFile(initialData.trial_file_url || '');
+      setPrimaryFontIndex(initialData?.metadata?.primary_font_index || 0);
+      setIsLayered(initialData?.metadata?.is_layered || false);
+      setLayerFontIndices(
+        initialData?.metadata?.layer_font_indices || 
+        (initialData?.font_files ? initialData.font_files.map((_: any, i: number) => i) : [])
+      );
     }
   }, [initialData]);
 
@@ -154,6 +164,16 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
 
   const removeExistingFont = (index: number) => {
     setExistingFontFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const toggleLayerIndex = (idx: number) => {
+    setLayerFontIndices(prev => {
+      if (prev.includes(idx)) {
+        return prev.filter(i => i !== idx);
+      } else {
+        return [...prev, idx].sort((a, b) => a - b);
+      }
+    });
   };
 
   const removeExistingPreview = (index: number) => {
@@ -177,19 +197,16 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   // Fungsi upload helper ke R2 (Tetap dipertahankan sesuai backup)
   const uploadToR2 = async (files: File[]) => {
     const uploadedUrls = [];
-    // Ambil token sesi admin untuk verifikasi
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error("Akses ditolak. Silakan login kembali.");
 
-    for (const file of files) {
-     try {
-        // Tembak jalur Admin Upload dengan method PUT & Token
-        const timestamp = Date.now();
+    for (const file of files) {
+      try {
+        const timestamp = Date.now();
         const cleanFileName = file.name.replace(/\s+/g, '_');
         const uniqueFileName = `${timestamp}-${cleanFileName}`;
 
-        // 2. Tembak jalur Admin Upload dengan nama file unik
-        const res = await fetch(`/api/admin/upload/${uniqueFileName}`, { 
+        const res = await fetch(`/api/admin/upload/${uniqueFileName}`, { 
           method: 'PUT', 
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
@@ -198,18 +215,17 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           body: file 
         });
 
-        if (!res.ok) {
+        if (!res.ok) {
           const errorData = (await res.json()) as { error?: string };
-          throw new Error(errorData.error || `Server Error: ${res.status}`);
-        }
+          throw new Error(errorData.error || `Server Error: ${res.status}`);
+        }
 
-        // 3. Tangkap fileName dari response Worker (Sinkron dengan index.js)
-        const data = (await res.json()) as UploadResponse;
-        if (data.success && data.fileName) {
-          uploadedUrls.push(data.fileName);
-        } else {
-          throw new Error('Upload gagal tanpa alasan');
-        }
+        const data = (await res.json()) as UploadResponse;
+        if (data.success && data.fileName) {
+          uploadedUrls.push(data.fileName);
+        } else {
+          throw new Error('Upload gagal tanpa alasan');
+        }
 
       } catch (err: any) {
         console.error("Upload error detail:", err);
@@ -222,7 +238,6 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   // 2. Handler Upload & Save (Disesuaikan untuk INSERT & UPDATE)
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Jika mode baru, fontFiles wajib. Jika mode edit, boleh kosong (menggunakan file lama).
     if (!initialData && fontFiles.length === 0 && existingFontFiles.length === 0) {
       return alert("Upload file font dulu (Local atau Drive)!");
     }
@@ -239,6 +254,8 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         uploadedTrialUrl = trialResult[0];
       }
 
+      const totalFontCount = existingFontFiles.length + uploadedFontUrls.length;
+
       const payload = {
         name: fontName,
         price: parseFloat(price),
@@ -253,10 +270,13 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         has_trial: uploadedTrialUrl !== '',
         metadata: {
           ...initialData?.metadata,
-          primary_font_index: primaryFontIndex
+          primary_font_index: primaryFontIndex,
+          is_layered: isLayered,
+          layer_font_indices: isLayered 
+            ? (layerFontIndices.length > 0 ? layerFontIndices : Array.from({ length: totalFontCount }, (_, i) => i))
+            : []
         }
       };
-
 
       if (initialData?.id) {
         // Mode UPDATE
@@ -283,7 +303,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-2">
           <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Font Name</label>
-         <input 
+          <input 
             type="text" 
             value={fontName}
             onChange={(e) => setFontName(e.target.value.toUpperCase())}
@@ -310,27 +330,18 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
               const val = e.target.value;
               setPrice(val);
               const base = parseFloat(val) || 0;
-              // Fungsi pembulatan bawah untuk harga psikologis
               const calc = (m: number) => m > 0 ? (m === 1 ? base : Math.floor(base * m)) : 0;
               
               setLicensePrices({
-                // Desktop: 1x, 3x, 7x, 15x
                 desktop: { solo: calc(1), team: calc(3), studio: calc(7), enterprise: calc(15) },
-                // Social / Web: 1x, 3x, 7x, 15x
                 social_web: { small_50k: calc(1), medium_500k: calc(3), large_5m: calc(7), enterprise_unlimited: calc(15) },
-                // Logo & Branding: 2.5x, 5x, 10x, 20x, 30x
                 logo_branding: { personal: calc(2.5), solo: calc(5), team: calc(10), studio: calc(20), enterprise: calc(30) },
-                // App / Game: 5x, 12x, 25x, 55x
                 app: { solo: calc(5), team: calc(12), studio: calc(25), enterprise: calc(55) },
-                // Server: 5x, 25x, 50x (Mapping: Single, 50, Unlimited)
                 server: { solo: calc(5), team: 0, studio: calc(25), enterprise: calc(50) },
-                // Broadcast: 5x, 25x, 50x (Mapping: Regional, National, Worldwide)
                 broadcast: { solo: calc(5), team: 0, studio: calc(25), enterprise: calc(50) },
-                // Corporate: All-In-One (150x)
                 corporate_full_suite: calc(150.0)
               });
             }}
-            
             className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
             placeholder="25" 
           />
@@ -425,6 +436,25 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         </div>
       </div>
 
+      {/* LAYERED FONT SYSTEM CHECKBOX (SUBQI THEME) */}
+      <div className="p-4 border border-black bg-gray-50 flex items-center justify-between">
+        <div>
+          <label className="font-bold text-xs uppercase tracking-wider text-black block cursor-pointer" htmlFor="isLayeredCheckboxSubqi">
+            Layered Font System
+          </label>
+          <p className="text-[10px] text-gray-500 mt-0.5">
+            Enable chromatic/multi-layer artifact composite stacking in TypeTester.
+          </p>
+        </div>
+        <input 
+          id="isLayeredCheckboxSubqi"
+          type="checkbox" 
+          checked={isLayered} 
+          onChange={(e) => setIsLayered(e.target.checked)} 
+          className="w-5 h-5 accent-black cursor-pointer"
+        />
+      </div>
+
       <div className="space-y-2">
         <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Font Binaries (Multiples .ttf, .otf)</label>
         <div 
@@ -432,7 +462,6 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           onDrop={(e) => handleDropFiles(e, 'fonts')}
           className="border-2 border-dashed border-black p-6 text-center hover:bg-gray-50 transition-colors cursor-pointer group bg-white"
         >
-          {/* Sinkronisasi Drive untuk font dihapus (Hanya upload lokal ke R2) */}
           <input
             type="file" multiple accept=".ttf,.otf,.woff2" className="hidden" id="fontFiles" 
             onChange={(e) => setFontFiles(prev => [...prev, ...Array.from(e.target.files || [])])}
@@ -444,33 +473,83 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
 
           {(existingFontFiles.length > 0 || fontFiles.length > 0) && (
             <div className="mt-4 flex flex-wrap gap-2 justify-center">
-              {existingFontFiles.map((f, i) => (
-                <span 
-                  key={`ex-f-${i}`} 
-                  onClick={() => setPrimaryFontIndex(i)}
-                  className={`border text-[9px] px-2 py-1 uppercase flex items-center gap-2 cursor-pointer transition-all ${primaryFontIndex === i ? 'bg-black text-white border-black' : 'bg-gray-100 border-black'}`}
-                  title="Click to set as Primary Style"
-                >
-                  {primaryFontIndex === i && <span className="text-yellow-400">★</span>}
-                  {f.includes('-') ? f.replace(/^\d{10,}-/, '') : f} 
-                  <button type="button" onClick={(e) => { e.stopPropagation(); removeExistingFont(i); }} className="text-red-500 font-bold hover:scale-125 transition-transform">×</button>
-                </span>
-              ))}
+              {existingFontFiles.map((f, i) => {
+                const isPartOfLayer = !isLayered || layerFontIndices.includes(i);
+                return (
+                  <span 
+                    key={`ex-f-${i}`} 
+                    className={`border text-[9px] px-2.5 py-1.5 uppercase flex items-center gap-2 transition-all select-none ${primaryFontIndex === i ? 'bg-black text-white border-black' : 'bg-gray-100 text-black border-black'}`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setPrimaryFontIndex(i)}
+                      className="hover:scale-110 transition-transform"
+                      title="Set as Primary Font"
+                    >
+                      {primaryFontIndex === i ? <span className="text-yellow-400">★</span> : <span className="opacity-30 hover:opacity-100">☆</span>}
+                    </button>
+
+                    <span>{f.includes('-') ? f.replace(/^\d{10,}-/, '') : f}</span>
+
+                    {/* Toggle Layer vs Pairing */}
+                    {isLayered && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); toggleLayerIndex(i); }}
+                        className={`px-2 py-0.5 text-[8px] font-mono font-bold uppercase transition-all border ${
+                          isPartOfLayer 
+                            ? (primaryFontIndex === i ? 'bg-white text-black border-white' : 'bg-black text-white border-black')
+                            : (primaryFontIndex === i ? 'bg-transparent text-white/70 border-white/40 hover:text-white' : 'bg-white text-gray-700 border-gray-400 hover:text-black hover:border-black')
+                        }`}
+                        title={isPartOfLayer ? "Click to set as Pairing" : "Click to include in Layered Stack"}
+                      >
+                        {isPartOfLayer ? '● LAYER' : '○ PAIRING'}
+                      </button>
+                    )}
+
+                    <button type="button" onClick={(e) => { e.stopPropagation(); removeExistingFont(i); }} className="text-red-500 font-bold hover:scale-125 transition-transform ml-1">×</button>
+                  </span>
+                );
+              })}
+
               {fontFiles.map((f, i) => {
                 const combinedIdx = existingFontFiles.length + i;
+                const isPartOfLayer = !isLayered || layerFontIndices.includes(combinedIdx);
                 return (
                   <span 
                     key={`new-f-${i}`} 
-                    onClick={() => setPrimaryFontIndex(combinedIdx)}
-                    className={`text-[9px] px-2 py-1 uppercase flex items-center gap-2 cursor-pointer transition-all ${primaryFontIndex === combinedIdx ? 'bg-black text-white border border-black' : 'bg-gray-800 text-gray-300 border border-transparent'}`}
-                    title="Click to set as Primary Style"
+                    className={`text-[9px] px-2.5 py-1.5 uppercase flex items-center gap-2 transition-all select-none ${primaryFontIndex === combinedIdx ? 'bg-black text-white border border-black' : 'bg-gray-800 text-gray-300 border border-transparent'}`}
                   >
-                    {primaryFontIndex === combinedIdx && <span className="text-yellow-400">★</span>}
-                    {f.name}
+                    <button
+                      type="button"
+                      onClick={() => setPrimaryFontIndex(combinedIdx)}
+                      className="hover:scale-110 transition-transform"
+                      title="Set as Primary Font"
+                    >
+                      {primaryFontIndex === combinedIdx ? <span className="text-yellow-400">★</span> : <span className="opacity-30 hover:opacity-100">☆</span>}
+                    </button>
+
+                    <span>{f.name}</span>
+
+                    {isLayered && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); toggleLayerIndex(combinedIdx); }}
+                        className={`px-2 py-0.5 text-[8px] font-mono font-bold uppercase transition-all border ${
+                          isPartOfLayer 
+                            ? 'bg-white text-black border-white' 
+                            : 'bg-black text-gray-300 border-gray-600 hover:text-white hover:border-white'
+                        }`}
+                        title={isPartOfLayer ? "Click to set as Pairing" : "Click to include in Layered Stack"}
+                      >
+                        {isPartOfLayer ? '● LAYER' : '○ PAIRING'}
+                      </button>
+                    )}
+
                     <button 
                       type="button" 
                       onClick={(e) => { e.stopPropagation(); setFontFiles(prev => prev.filter((_, idx) => idx !== i)); }} 
-                      className="text-red-400 font-bold hover:text-red-200 transition-colors"
+                      className="text-red-400 font-bold hover:text-red-200 transition-colors ml-1"
                     >
                       ×
                     </button>
@@ -498,7 +577,6 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
               <p className="text-[9px] font-bold uppercase text-black">
                 STATUS: {trialFile ? `NEW: ${trialFile.name}` : `EXISTING: ${existingTrialFile}`}
               </p>
-              {/* Tombol hapus untuk file trial baru yang baru dipilih */}
               {trialFile && (
                 <button 
                   type="button" 
@@ -508,7 +586,6 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
                   CANCEL NEW ×
                 </button>
               )}
-              {/* Tombol hapus trial file yang sudah ada di database */}
               {existingTrialFile && !trialFile && (
                 <button 
                   type="button" 
@@ -530,7 +607,6 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           onDrop={(e) => handleDropFiles(e, 'previews')}
           className="grid grid-cols-4 md:grid-cols-6 gap-2 border-2 border-black p-4 bg-gray-100"
         >
-          {/* Header Select All untuk Images */}
           {Array.isArray(driveResults?.images) && driveResults.images.filter(img => !existingPreviewImages.includes(img.id)).length > 0 && (
              <div className="col-span-full flex justify-between items-center bg-blue-100 p-1 px-2 border border-blue-300">
                <span className="text-[8px] font-bold text-blue-700 uppercase">Drive Images</span>
@@ -538,7 +614,6 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
              </div>
           )}
 
-          {/* Hasil dari Google Drive (Filtered) */}
           {Array.isArray(driveResults?.images) && driveResults.images.filter(img => !existingPreviewImages.includes(img.id)).map((img, i) => (
             <div key={`dr-p-${i}`} className="aspect-square bg-blue-50 border border-blue-200 relative group overflow-hidden">
               <img src={img.url} className="w-full h-full object-cover" alt="drive" />
@@ -562,7 +637,6 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
               onDrop={() => handleDrop(i)}
               className={`aspect-square bg-white border border-black relative group overflow-hidden cursor-move transition-opacity ${draggedImgIndex === i ? 'opacity-30' : 'opacity-100'}`}
             >
-              {/* GUNAKAN /api/images/ agar mendukung format .webp & caching */}
               <img src={`/api/images/${url}`} className="w-full h-full object-cover" alt="preview" />
               <button 
                 type="button"
