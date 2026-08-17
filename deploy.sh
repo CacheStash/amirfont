@@ -21,11 +21,18 @@ else
     echo "⏭️  Skip backup..."
 fi
 
-# 2. Cek File .env & Build
+# 2. Force Export Env & Bersihkan Cache Build
 if [ ! -f .env ]; then
     echo "❌ ERROR: File .env tidak ditemukan di root folder!"
     exit 1
 fi
+
+echo "🧹 Membersihkan cache build lama..."
+rm -rf dist node_modules/.vite
+
+echo "✅ Memuat variabel lingkungan..."
+export VITE_SUPABASE_URL="https://ekyggonipxdjbzgkmxwr.supabase.co"
+export VITE_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreWdnb25pcHhkamJ6Z2tteHdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTExMjUsImV4cCI6MjA4ODk2NzEyNX0.gdt9tT_ndtfUF38IY3FbkMsca4hpP4x0yv5uh1Ud2HY"
 
 echo "🔨 Memulai Build..."
 npm run build
