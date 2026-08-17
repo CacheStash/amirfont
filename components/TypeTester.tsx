@@ -300,15 +300,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
     if (gsub && gsub.features && gsub.lookups) {
       // aalt di hilangkan dari deteksi alternate
-     const altFeatureTags = [
-        'aalt', 'salt', 'swsh', 'titl', 'calt', 'dlig', 'nalt', 'ornm',
-        ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`),
-        ...Array.from({ length: 99 }, (_, i) => `cv${String(i + 1).padStart(2, '0')}`)
-      ];
-      
-      gsub.features.forEach((featureRecord: any) => {
-        if (!altFeatureTags.includes(featureRecord.tag)) return;
-
+     gsub.features.forEach((featureRecord: any) => {
         featureRecord.feature.lookupListIndexes.forEach((lookupIndex: number) => {
           const lookup = gsub.lookups[lookupIndex];
           if (!lookup || !lookup.subtables) return;
@@ -321,29 +313,33 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
             let extractedIndices: number[] = [];
 
+            // Type 1: Single Substitution
             if (lookup.lookupType === 1) {
               const targetGlyphIdx = Array.isArray(subtable.substitute) 
                 ? subtable.substitute[covIdx] 
                 : (glyphIndex + (subtable.deltaGlyphId || 0)) % 65536;
               extractedIndices.push(targetGlyphIdx);
             } 
+            // Type 3: Alternate Substitution (1 to many)
             else if (lookup.lookupType === 3) {
               const altSets = subtable.alternateSets || subtable.alternateSet || subtable.alternates || [];
               const targetSet = altSets[covIdx];
               if (targetSet) {
-                // Ekstraksi agresif untuk Array maupun TypedArray
-                if (Array.isArray(targetSet) || targetSet.length !== undefined) {
-                  extractedIndices = Array.from(targetSet as any);
-                } else if (targetSet.alternateGlyphs || targetSet.alternates || targetSet.glyphs) {
-                  extractedIndices = Array.from((targetSet.alternateGlyphs || targetSet.alternates || targetSet.glyphs) as any);
+                if (Array.isArray(targetSet)) {
+                  extractedIndices.push(...targetSet);
+                } else if (typeof targetSet === 'object') {
+                  const arr = targetSet.alternateGlyphs || targetSet.alternates || targetSet.glyphs || targetSet.alternateSet;
+                  if (Array.isArray(arr)) {
+                    extractedIndices.push(...arr);
+                  }
                 }
               }
-            } 
-            else {
-               // Fallback buta jika font di-compile dengan struktur Lookup yang aneh
-               const potentialSets = subtable.substitute || subtable.alternateSets || [];
-               const pSet = potentialSets[covIdx];
-               if (Array.isArray(pSet)) extractedIndices = Array.from(pSet);
+            }
+
+            // Fallback Ekstraksi Buta (Jika font dicompile dengan struktur aneh)
+            if (extractedIndices.length === 0) {
+               const pSet = (subtable.substitute || subtable.alternateSets || [])[covIdx];
+               if (Array.isArray(pSet)) extractedIndices.push(...pSet);
                else if (typeof pSet === 'number') extractedIndices.push(pSet);
             }
 
@@ -355,7 +351,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 ? String.fromCharCode(targetGlyph.unicode) 
                 : targetChar;
 
-              if (!alternates.some(a => a.glyphIndex === altIdx)) {
+              // Longgarkan deduplikasi: Boleh duplikat glyphIndex asalkan featureTag-nya berbeda
+              if (!alternates.some(a => a.glyphIndex === altIdx && a.featureTag === featureRecord.tag)) {
                 alternates.push({ char: charStr, glyphIndex: altIdx, featureTag: featureRecord.tag });
               }
             });
