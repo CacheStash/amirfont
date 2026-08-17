@@ -633,9 +633,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   const fontVariationSettings = Object.entries(axesValues).map(([t, v]) => `"${t}" ${v}`).join(', ');
 
-  const commonFontStyle = {
+  const commonFontStyle: React.CSSProperties = {
     fontFamily: `"${config.name}-${activeTextareaFontIndex}"`,
     fontVariationSettings,
+    boxSizing: 'border-box',
+    wordBreak: 'break-word',
+    overflowWrap: 'break-word'
   };
 
   const activeAxes = detectedAxes.length > 0 ? detectedAxes : config.axes;
@@ -816,7 +819,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 {!isLayeredMode ? (
                   <div 
                     ref={(el) => { layerContainerRefs.current['single'] = el; }}
-                    className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 pointer-events-none whitespace-pre-wrap wrap-break-word overflow-hidden select-none"
+                    className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 pointer-events-none whitespace-pre-wrap overflow-hidden select-none"
                     style={{ 
                       ...commonFontStyle,
                       fontSize: `${fontSize}px`, 
@@ -837,7 +840,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                         <div 
                           key={layer.id}
                           ref={(el) => { layerContainerRefs.current[layer.id] = el; }}
-                          className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word select-none overflow-hidden"
+                          className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap select-none overflow-hidden"
                           style={{ 
                             ...commonFontStyle,
                             fontFamily: `"${config.name}-${layer.fontIndex}"`,
@@ -866,7 +869,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   onKeyUp={handleTextSelect}
                   onMouseUp={handleTextSelect}
                   onScroll={handleScrollSync}
-                  className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-30 text-transparent caret-black selection:bg-black selection:text-white" 
+                  className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-30 text-transparent caret-black selection:bg-black/20 selection:text-transparent" 
                   style={{ 
                       ...commonFontStyle,
                       fontSize: `${fontSize}px`, 
