@@ -41,9 +41,24 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
     files.forEach((file, index) => {
       // Lewati jika nama style sudah dideteksi agar tidak overload
-      if (detectedStyleNames[index]) return;
-
+     if (!file) return;
       const url = file.startsWith('http') || file.startsWith('/') ? file : `/api/fonts/${file}?v=${version}`;
+      const fontNameIdentifier = `${config.name}-${index}`;
+
+      // Daftarkan font ke CSS browser secara instan
+      try {
+        const fontFace = new FontFace(fontNameIdentifier, `url("${url}")`);
+        fontFace.load().then((loadedFace) => {
+          document.fonts.add(loadedFace);
+        }).catch((err) => {
+          console.error(`Failed to register FontFace ${fontNameIdentifier}:`, err);
+        });
+      } catch (e) {
+        console.error("FontFace API error:", e);
+      }
+
+      // Lewati jika nama style sudah dideteksi agar tidak overload
+      if (detectedStyleNames[index]) return;
 
       opentype.load(url, (err, font) => {
         if (!err && font) {
