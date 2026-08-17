@@ -3,11 +3,14 @@ main = "index.js"
 compatibility_date = "2024-09-23"
 account_id = "5ce335e05c30bbab4c880244f839836f"
 
+# 1. Samakan status Workers Dev & Preview URLs
 workers_dev = true
+preview_urls = true
 
+# 2. Tambahkan zone_name pada custom domain
 routes = [
-  { pattern = "subqi.com", custom_domain = true },
-  { pattern = "www.subqi.com", custom_domain = true }
+  { pattern = "subqi.com", custom_domain = true, zone_name = "subqi.com" },
+  { pattern = "www.subqi.com", custom_domain = true, zone_name = "subqi.com" }
 ]
 
 # --- FORMAT TABEL & EKSPLISIT BINDING ---
