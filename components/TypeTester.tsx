@@ -595,6 +595,24 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   const renderTextSpans = (fontIdx: number) => {
     const styleFontFamily = `"${config.name}-${fontIdx}"`;
+    const hasAnyOverride = Object.keys(glyphOverrides).length > 0 || Object.keys(charOverrides).length > 0;
+
+    // JIKA TIDAK ADA OVERRIDE ALTERNATE: Render text murni utuh agar huruf kecil tidak terpental ke kapital
+    if (!hasAnyOverride) {
+      return (
+        <span
+          style={{
+            fontFamily: styleFontFamily,
+            fontFeatureSettings: globalActiveFeatureString,
+            WebkitFontFeatureSettings: globalActiveFeatureString
+          }}
+        >
+          {text}
+        </span>
+      );
+    }
+
+    // JIKA ADA ALTERNATE KHUSUS: Baru diproses per-karakter
     return text.split('').map((char, i) => {
       const overrideGlyphIdx = glyphOverrides[i];
       const overrideFeature = charOverrides[i];
