@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom'; // FIXED: Tambah useNavigate
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import TypeTester from '../components/TypeTester';
 import { useCart } from '../context/CartContext';
 import { ChevronLeft, ChevronDown } from 'lucide-react';
+
 const resolvePreviewUrl = (filename: string) => {
   if (!filename) return null;
   if (filename.startsWith('http')) return filename;
   return `/api/images/${filename}`; 
 };
-
 
 const FontDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -106,19 +106,19 @@ const FontDetail: React.FC = () => {
               BUY LICENSE
             </button>
             <button 
-          onClick={() => {
-            const discountPercent = activePromo ? activePromo.discount_percent : 0;
-            openConfigurator({ 
-              ...font, 
-              trialFileUrl: font.trial_file_url,
-              activeDiscount: discountPercent,
-              initialOption: 'trial' // Mengaktifkan opsi trial/demo secara otomatis
-            });
-          }}
-          className="w-full md:w-64 border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center justify-center"
-        >
-          Free Trial
-        </button>
+              onClick={() => {
+                const discountPercent = activePromo ? activePromo.discount_percent : 0;
+                openConfigurator({ 
+                  ...font, 
+                  trialFileUrl: font.trial_file_url,
+                  activeDiscount: discountPercent,
+                  initialOption: 'trial' // Mengaktifkan opsi trial/demo secara otomatis
+                });
+              }}
+              className="w-full md:w-64 border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center justify-center"
+            >
+              Free Trial
+            </button>
 
             <button 
               onClick={() => navigate(-1)} 
@@ -153,8 +153,6 @@ const FontDetail: React.FC = () => {
           {/* FIXED: Menambahkan 'relative z-10' agar konten berada di atas orb */}
           <div className="relative z-10 p-6 lg:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-black bg-transparent">
             <div>
-              {/* FIXED: Nama font dan Style info dihapus dari sini karena sudah ada di header */}
-
               <div className="mb-10">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="inline-block border border-black rounded-full px-3 py-1 font-regular italic text-[11px] md:text-[14px] lowercase leading-none">starting at</span>
@@ -198,8 +196,8 @@ const FontDetail: React.FC = () => {
             </div>
           </div>
 
-                {/* COLUMN C: FULL TYPE TESTER */}
-         <div className="relative z-10 flex items-stretch bg-transparent overflow-hidden">
+          {/* COLUMN C: FULL TYPE TESTER */}
+          <div className="relative z-10 flex items-stretch bg-transparent overflow-hidden">
             <TypeTester 
               config={{
                 ...font,
@@ -216,13 +214,12 @@ const FontDetail: React.FC = () => {
         <div className="relative z-20 h-12 border-b border-black w-full bg-orange-500/10" />
 
         {/* 4. PREVIEW IMAGES GALLERY */}
-        {/* FIXED: Grid full width tanpa padding. 1 kolom di < 1024px (lg), 2 kolom di >= 1024px */}
-        <section className="relative z-20 w-full grid grid-cols-1 lg:grid-cols-2 border-black border-t-0 bg-white">
+        <section className="relative z-20 w-full grid grid-cols-1 lg:grid-cols-2 border-black border-t-0 bg-transparent">
           {fontPreviews.map((img: string, idx: number) => {
             const imageUrl = resolvePreviewUrl(img);
             if (!imageUrl) return null;
             return (
-              <div key={idx} className="w-full border-b lg:even:border-l border-black overflow-hidden bg-white">
+              <div key={idx} className="w-full border-b lg:even:border-l border-black overflow-hidden bg-transparent">
                 <img 
                   src={imageUrl} 
                   alt={`${font.name} Preview ${idx + 1}`} 
