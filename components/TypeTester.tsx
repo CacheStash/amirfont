@@ -590,7 +590,12 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
       const overrideGlyphIdx = glyphOverrides[i];
       const overrideFeature = charOverrides[i];
 
-      if (overrideGlyphIdx !== undefined) {
+      const activeCharFeatures = overrideFeature 
+        ? (globalActiveFeatureString === 'normal' ? `"${overrideFeature}" 1` : `"${overrideFeature}" 1, ${globalActiveFeatureString}`)
+        : globalActiveFeatureString;
+
+      // Fallback SVG HANYA dipakai jika alternate benar-benar unencoded (tanpa OT feature tag)
+      if (overrideGlyphIdx !== undefined && !overrideFeature) {
         return (
           <React.Fragment key={i}>
             {renderInlineGlyphSvg(overrideGlyphIdx, fontSize, fontIdx) || char}
@@ -598,16 +603,13 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
         );
       }
 
-      const activeCharFeatures = overrideFeature 
-        ? (globalActiveFeatureString === 'normal' ? `"${overrideFeature}" 1` : `"${overrideFeature}" 1, ${globalActiveFeatureString}`)
-        : globalActiveFeatureString;
-
       return (
         <span 
           key={i}
           id={fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex) ? `char-span-${testerId}-${i}` : undefined}
           style={{
             fontFamily: styleFontFamily,
+            fontVariationSettings: fontVariationSettings || undefined,
             fontFeatureSettings: activeCharFeatures,
             WebkitFontFeatureSettings: activeCharFeatures
           }}
