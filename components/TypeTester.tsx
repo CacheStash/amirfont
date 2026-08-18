@@ -843,7 +843,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 onKeyUp={handleTextSelect}
                 onMouseUp={handleTextSelect}
                 onScroll={handleScrollSync}
-                className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-20 text-transparent caret-black selection:bg-transparent"
+                className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-20 text-transparent caret-black selection:bg-black selection:text-white"
                 style={{ 
                   ...commonFontStyle,
                   fontSize: `${fontSize}px`, 
