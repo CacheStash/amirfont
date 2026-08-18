@@ -618,7 +618,15 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
             fontFeatureSettings: activeCharFeatures,
             WebkitFontFeatureSettings: activeCharFeatures
           }}
-      
+      onClick={(e) => {
+            e.stopPropagation();
+            if (textareaRef.current) {
+              textareaRef.current.focus();
+              textareaRef.current.setSelectionRange(i, i + 1);
+              handleTextSelect();
+            }
+          }}
+          className="pointer-events-auto cursor-text"
         >
           {char}
         </span>
@@ -627,8 +635,8 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
   };
 
   return (
-    <div className="w-full h-full relative group bg-transparent">
-      <div className="relative z-10 h-full flex flex-col">
+<div className="w-full h-full relative group bg-transparent selection:bg-black selection:text-white">
+        <div className="relative z-10 h-full flex flex-col">
         <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-50">
 
           <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
@@ -791,7 +799,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
                 {!isLayeredMode ? (
                   <div 
                     ref={(el) => { layerContainerRefs.current['single'] = el; }}
-                    className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 pointer-events-none whitespace-pre-wrap wrap-break-word overflow-hidden select-none"
+                    className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word overflow-hidden select-text z-35"
                     style={{ 
                       ...commonFontStyle, 
                       fontSize: `${fontSize}px`, 
@@ -841,7 +849,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
                   onKeyUp={handleTextSelect}
                   onMouseUp={handleTextSelect}
                   onScroll={handleScrollSync}
-className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-30 text-transparent caret-black selection:bg-black/30 selection:text-transparent" 
+className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-20 text-transparent caret-black selection:bg-transparent"
                   style={{ 
                       ...commonFontStyle,
                       fontSize: `${fontSize}px`, 
