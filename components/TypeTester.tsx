@@ -1066,14 +1066,70 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 ref={textareaRef}
                 value={text} 
                 onChange={(e) => { 
-                  setText(e.target.value); 
-                  setCharOverrides({}); 
-                  setGlyphOverrides({});
+                  const nextText = e.target.value;
+                  const prevText = text;
+                  setText(nextText); 
+                  
+                  // Sesuaikan index overrides jika teks bertambah/berkurang
+                  const diff = nextText.length - prevText.length;
+                  const changePos = textareaRef.current?.selectionStart ?? nextText.length;
+                  const insertPos = diff > 0 ? changePos - diff : changePos;
+
+                  setGlyphOverrides(prev => {
+                    const next: Record<number, number> = {};
+                    Object.entries(prev).forEach(([k, val]) => {
+                      const idx = Number(k);
+                      if (diff > 0) {
+                        // Teks disisipkan / ditambah
+                        if (idx < insertPos) {
+                          next[idx] = val;
+                        } else {
+                          next[idx + diff] = val;
+                        }
+                      } else if (diff < 0) {
+                        // Teks dihapus (backspace/delete)
+                        const deletedCount = Math.abs(diff);
+                        if (idx < insertPos) {
+                          next[idx] = val;
+                        } else if (idx >= insertPos + deletedCount) {
+                          next[idx - deletedCount] = val;
+                        }
+                      } else {
+                        next[idx] = val;
+                      }
+                    });
+                    return next;
+                  });
+
+                  setCharOverrides(prev => {
+                    const next: Record<number, string> = {};
+                    Object.entries(prev).forEach(([k, val]) => {
+                      const idx = Number(k);
+                      if (diff > 0) {
+                        if (idx < insertPos) {
+                          next[idx] = val;
+                        } else {
+                          next[idx + diff] = val;
+                        }
+                      } else if (diff < 0) {
+                        const deletedCount = Math.abs(diff);
+                        if (idx < insertPos) {
+                          next[idx] = val;
+                        } else if (idx >= insertPos + deletedCount) {
+                          next[idx - deletedCount] = val;
+                        }
+                      } else {
+                        next[idx] = val;
+                      }
+                    });
+                    return next;
+                  });
+
                   setPopoverPos(null); 
                   setSelectedCharIndex(null); 
                   setSelectionRange(null);
                   setTimeout(handleSelectionOrCursorChange, 0);
-                }} 
+                }}
                 onFocus={() => {
                   setIsFocused(true);
                   handleSelectionOrCursorChange();
