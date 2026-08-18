@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { AlignLeft, AlignCenter, AlignRight, Type, Grid, Keyboard, ChevronDown, ChevronLeft, ChevronRight, Layers, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Grid, Keyboard, ChevronDown, ChevronLeft, ChevronRight, Layers, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { FontConfig } from '../types';
 import opentype from 'opentype.js';
 
@@ -77,7 +77,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
   const PRESET_SIZES = [12, 14, 16, 18, 20, 24, 32, 36, 48, 64, 72, 96, 120, 144, 200];
-const styleDropdownRef = useRef<HTMLDivElement>(null);
+  const styleDropdownRef = useRef<HTMLDivElement>(null);
   const sizeDropdownRef = useRef<HTMLDivElement>(null);
 
   const testerId = useRef(`tt-${Math.random().toString(36).substring(2, 9)}`).current;
@@ -94,12 +94,57 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
   // Alternates State Cache
   const [loadedFontObj, setLoadedFontObj] = useState<opentype.Font | null>(null);
   const [loadedFontsMap, setLoadedFontsMap] = useState<Record<number, opentype.Font>>({});
   const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
   const [alternateGlyphs, setAlternateGlyphs] = useState<AlternateGlyph[]>([]);
   const [selectedCharIndex, setSelectedCharIndex] = useState<number | null>(null);
+  const [cursorPos, setCursorPos] = useState<number | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const [caretCoords, setCaretCoords] = useState<{ left: number; top: number; height: number } | null>(null);
+  const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
+  const isDraggingSelection = useRef(false);
+  const dragAnchorIdx = useRef<number | null>(null);
+
+  const updateCaretPosition = (pos: number | null) => {
+    if (pos === null || !textareaRef.current) {
+      setCaretCoords(null);
+      return;
+    }
+    const container = textareaRef.current;
+    const containerRect = container.getBoundingClientRect();
+
+    if (pos >= text.length && text.length > 0) {
+      const lastSpan = document.getElementById(`char-span-${testerId}-${text.length - 1}`);
+      if (lastSpan) {
+        const r = lastSpan.getBoundingClientRect();
+        setCaretCoords({
+          left: r.right - containerRect.left + container.scrollLeft,
+          top: r.top - containerRect.top + container.scrollTop,
+          height: r.height || fontSize * lineHeight
+        });
+        return;
+      }
+    }
+
+    const currentSpan = document.getElementById(`char-span-${testerId}-${pos}`);
+    if (currentSpan) {
+      const r = currentSpan.getBoundingClientRect();
+      setCaretCoords({
+        left: r.left - containerRect.left + container.scrollLeft,
+        top: r.top - containerRect.top + container.scrollTop,
+        height: r.height || fontSize * lineHeight
+      });
+    } else {
+      setCaretCoords({
+        left: 24,
+        top: 16,
+        height: fontSize * lineHeight
+      });
+    }
+  };
 
   const FEATURE_NAMES: Record<string, string> = {
     liga: 'Standard Ligatures',
@@ -110,10 +155,9 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
     titl: 'Titling Alt'
   };
 
-  // DI-DISABLE: 'aalt' sudah dicabut dari list ALLOWED_TAGS
   const ALLOWED_TAGS = new Set([
-      'liga', 'dlig', 'calt', 'salt', 'swsh', 'titl',
-      ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`) 
+    'liga', 'dlig', 'calt', 'salt', 'swsh', 'titl',
+    ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`) 
   ]);
 
   const rowsPerPage = mapGridSize === 10 ? 3 : mapGridSize === 20 ? 5 : 7;
@@ -127,7 +171,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
     return config.font_files.map((_, idx) => idx);
   }, [config.font_files, config.metadata?.layer_font_indices]);
 
-  // Sync scroll on Layer mode switch
+  // Reset scroll sync
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.scrollTop = 0;
@@ -190,7 +234,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
         }
       });
     });
-  }, [config.font_files])
+  }, [config.font_files]);
 
   useEffect(() => {
     let targetFile = '';
@@ -199,10 +243,10 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
       : (config.file_url ? [config.file_url] : (config.file ? [config.file] : []));
 
     if (files[activeStyleIndex]) {
-       const f = files[activeStyleIndex];
-       const configAny = config as any;
-       const version = new Date(configAny.updated_at || configAny.created_at || Date.now()).getTime();
-       targetFile = f.startsWith('http') || f.startsWith('/') ? f : `/api/fonts/${f}?v=${version}`;
+      const f = files[activeStyleIndex];
+      const configAny = config as any;
+      const version = new Date(configAny.updated_at || configAny.created_at || Date.now()).getTime();
+      targetFile = f.startsWith('http') || f.startsWith('/') ? f : `/api/fonts/${f}?v=${version}`;
     }
     if (!targetFile) return;
 
@@ -229,33 +273,33 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
         if (glyph.name === '.notdef' && (!glyph.path || glyph.path.commands.length === 0)) continue;
 
         glyphs.push({ 
-            index: i, 
-            char: glyph.unicode ? String.fromCharCode(glyph.unicode) : '', 
-            unicode: glyph.unicode,
-            name: glyph.name || `glyph_${i}`
+          index: i, 
+          char: glyph.unicode ? String.fromCharCode(glyph.unicode) : '', 
+          unicode: glyph.unicode,
+          name: glyph.name || `glyph_${i}`
         });
       }
       setDetectedGlyphs(glyphs);
       setFilteredGlyphs(glyphs); 
 
       if (font.tables.fvar?.axes?.length > 0) {
-          const autoAxes = font.tables.fvar.axes.map((axis: any) => ({
-              tag: axis.tag,
-              name: axis.name?.en || axis.tag,
-              min: axis.minValue, max: axis.maxValue, default: axis.defaultValue
-          }));
-          setDetectedAxes(autoAxes);
-          const vals: Record<string, number> = {};
-          autoAxes.forEach((axis: any) => vals[axis.tag] = axis.default);
-          setAxesValues(prev => ({ ...prev, ...vals }));
+        const autoAxes = font.tables.fvar.axes.map((axis: any) => ({
+          tag: axis.tag,
+          name: axis.name?.en || axis.tag,
+          min: axis.minValue, max: axis.maxValue, default: axis.defaultValue
+        }));
+        setDetectedAxes(autoAxes);
+        const vals: Record<string, number> = {};
+        autoAxes.forEach((axis: any) => vals[axis.tag] = axis.default);
+        setAxesValues(prev => ({ ...prev, ...vals }));
       } else {
-          setDetectedAxes([]);
+        setDetectedAxes([]);
       }
 
       const foundTags = new Set<string>();
       if (font.tables.gsub?.features) {
         font.tables.gsub.features.forEach((f: any) => {
-           if (f.tag && ALLOWED_TAGS.has(f.tag)) foundTags.add(f.tag);
+          if (f.tag && ALLOWED_TAGS.has(f.tag)) foundTags.add(f.tag);
         });
       }
 
@@ -308,15 +352,18 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
       return;
     }
 
-    const glyphIndex = loadedFontObj.charToGlyphIndex(targetChar);
-    if (!glyphIndex) return;
+    let glyphIndex = loadedFontObj.charToGlyphIndex(targetChar);
+    if (!glyphIndex) {
+      setPopoverPos(null);
+      setSelectedCharIndex(null);
+      return;
+    }
 
     const alternates: AlternateGlyph[] = [];
     const gsub = loadedFontObj.tables.gsub;
 
     if (gsub && gsub.features && gsub.lookups) {
-      // aalt di hilangkan dari deteksi alternate
-     gsub.features.forEach((featureRecord: any) => {
+      gsub.features.forEach((featureRecord: any) => {
         featureRecord.feature.lookupListIndexes.forEach((lookupIndex: number) => {
           const lookup = gsub.lookups[lookupIndex];
           if (!lookup || !lookup.subtables) return;
@@ -329,7 +376,6 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
               const cov = subtable.coverage;
               if (!cov) return;
 
-              // SUPER DETECTOR: Membaca Coverage Format 1 (Array) maupun Format 2 (Ranges)
               if (cov.format === 2 && Array.isArray(cov.ranges)) {
                 const range = cov.ranges.find((r: any) => glyphIndex >= r.start && glyphIndex <= r.end);
                 if (range) covIdx = range.index + (glyphIndex - range.start);
@@ -381,7 +427,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
                 }
               });
             } catch (e) {
-              // silent catch untuk mem-bypass subtable yang corrupt dari font
+              // silent catch
             }
           });
         });
@@ -407,30 +453,31 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
     }
   };
 
+
   const applyAlternate = (alt: AlternateGlyph) => {
     if (selectedCharIndex === null) return;
 
-    setGlyphOverrides(prev => {
-      const next = { ...prev };
-      if (!alt.glyphIndex || next[selectedCharIndex] === alt.glyphIndex) {
+    if (!alt.glyphIndex || alt.glyphIndex === 0) {
+      setGlyphOverrides(prev => {
+        const next = { ...prev };
         delete next[selectedCharIndex];
-      } else {
-        next[selectedCharIndex] = alt.glyphIndex;
-      }
-      return next;
-    });
-
-    
-    const effectiveTag = alt.featureTag;
-    setCharOverrides(prev => {
-      const next = { ...prev };
-      if (!effectiveTag || next[selectedCharIndex] === effectiveTag) {
+        return next;
+      });
+      setCharOverrides(prev => {
+        const next = { ...prev };
         delete next[selectedCharIndex];
-      } else {
-        next[selectedCharIndex] = effectiveTag;
-      }
-      return next;
-    });
+        return next;
+      });
+    } else {
+      setGlyphOverrides(prev => ({
+        ...prev,
+        [selectedCharIndex]: alt.glyphIndex
+      }));
+      setCharOverrides(prev => ({
+        ...prev,
+        [selectedCharIndex]: alt.featureTag || 'alt'
+      }));
+    }
 
     setPopoverPos(null);
     setSelectedCharIndex(null);
@@ -521,11 +568,6 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
     .map(([t]) => `"${t}" 1`)
     .join(', ') || 'normal';
 
-    const allActiveCharFeatures = Object.values(charOverrides).filter(Boolean);
-  const textareaFeatureString = allActiveCharFeatures.length > 0
-    ? Array.from(new Set([...allActiveCharFeatures.map(t => `"${t}" 1`), ...(globalActiveFeatureString !== 'normal' ? [globalActiveFeatureString] : [])])).join(', ')
-    : globalActiveFeatureString;
-
   const fontVariationSettings = Object.entries(axesValues).map(([t, v]) => `"${t}" ${v}`).join(', ');
 
   const activeTextareaFontIndex = isLayeredMode 
@@ -534,7 +576,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
 
   const commonFontStyle = {
     fontFamily: `"${config.name}-${activeTextareaFontIndex}"`,
-    fontVariationSettings,
+    fontVariationSettings: fontVariationSettings || undefined,
   };
 
   const activeAxes = detectedAxes.length > 0 ? detectedAxes : config.axes;
@@ -589,410 +631,667 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
   };
 
   // Rendering Helper for Overlays
+  const checkAlternatesForChar = (index: number) => {
+    if (!loadedFontObj) return;
+    const targetChar = text.charAt(index);
+    if (!targetChar || targetChar === '\n' || targetChar === ' ') {
+      setPopoverPos(null);
+      setSelectedCharIndex(null);
+      return;
+    }
+
+    const glyphIndex = loadedFontObj.charToGlyphIndex(targetChar);
+    if (!glyphIndex) {
+      setPopoverPos(null);
+      setSelectedCharIndex(null);
+      return;
+    }
+
+    const alternates: AlternateGlyph[] = [];
+    const gsub = loadedFontObj.tables.gsub;
+
+    if (gsub && gsub.features && gsub.lookups) {
+      gsub.features.forEach((featureRecord: any) => {
+        featureRecord.feature.lookupListIndexes.forEach((lookupIndex: number) => {
+          const lookup = gsub.lookups[lookupIndex];
+          if (!lookup || !lookup.subtables) return;
+          if (lookup.lookupType !== 1 && lookup.lookupType !== 3) return;
+
+          lookup.subtables.forEach((subtable: any) => {
+            try {
+              let covIdx = -1;
+              const cov = subtable.coverage;
+              if (!cov) return;
+
+              if (cov.format === 2 && Array.isArray(cov.ranges)) {
+                const range = cov.ranges.find((r: any) => glyphIndex >= r.start && glyphIndex <= r.end);
+                if (range) covIdx = range.index + (glyphIndex - range.start);
+              } else if (Array.isArray(cov.glyphs)) {
+                covIdx = cov.glyphs.indexOf(glyphIndex);
+              } else if (Array.isArray(cov)) {
+                covIdx = cov.indexOf(glyphIndex);
+              }
+              
+              if (covIdx === -1) return;
+
+              let extractedIndices: number[] = [];
+              if (lookup.lookupType === 1) {
+                if (subtable.deltaGlyphId !== undefined) {
+                  extractedIndices.push((glyphIndex + subtable.deltaGlyphId) % 65536);
+                } else if (Array.isArray(subtable.substitute)) {
+                  extractedIndices.push(subtable.substitute[covIdx]);
+                }
+              } else if (lookup.lookupType === 3) {
+                const altSets = subtable.alternateSets || subtable.alternates || [];
+                const targetSet = altSets[covIdx];
+                if (targetSet) {
+                  if (Array.isArray(targetSet)) {
+                    extractedIndices.push(...targetSet);
+                  } else if (Array.isArray(targetSet.alternateGlyphs)) {
+                    extractedIndices.push(...targetSet.alternateGlyphs);
+                  } else if (Array.isArray(targetSet.alternates)) {
+                    extractedIndices.push(...targetSet.alternates);
+                  } else if (Array.isArray(targetSet.glyphs)) {
+                    extractedIndices.push(...targetSet.glyphs);
+                  }
+                }
+              }
+
+              extractedIndices.forEach((altIdx: any) => {
+                const numIdx = Number(altIdx);
+                if (isNaN(numIdx) || numIdx === glyphIndex || numIdx === 0) return;
+                
+                const targetGlyph = loadedFontObj.glyphs.get(numIdx);
+                if (!targetGlyph) return;
+
+                const charStr = targetGlyph.unicode 
+                  ? String.fromCharCode(targetGlyph.unicode) 
+                  : targetChar;
+
+                if (!alternates.some(a => a.glyphIndex === numIdx && a.featureTag === featureRecord.tag)) {
+                  alternates.push({ char: charStr, glyphIndex: numIdx, featureTag: featureRecord.tag });
+                }
+              });
+            } catch (e) {}
+          });
+        });
+      });
+    }
+
+    if (alternates.length > 0) {
+      setSelectedCharIndex(index);
+      let posX = 24;
+      let posY = 16;
+      const targetCharEl = document.getElementById(`char-span-${testerId}-${index}`);
+      if (targetCharEl && textareaRef.current) {
+        const containerRect = textareaRef.current.getBoundingClientRect();
+        const charRect = targetCharEl.getBoundingClientRect();
+        posX = charRect.left - containerRect.left;
+        posY = charRect.top - containerRect.top;
+      }
+      setPopoverPos({ x: posX, y: posY });
+      setAlternateGlyphs(alternates);
+    } else {
+      setPopoverPos(null);
+      setSelectedCharIndex(null);
+    }
+  };
+
+  const handleSelectionOrCursorChange = () => {
+    if (!textareaRef.current) return;
+    const { selectionStart, selectionEnd } = textareaRef.current;
+    
+    if (selectionStart === selectionEnd) {
+      setCursorPos(selectionStart);
+      setSelectionRange(null);
+      updateCaretPosition(selectionStart);
+      setPopoverPos(null);
+      setSelectedCharIndex(null);
+    } else {
+      setCursorPos(null);
+      setCaretCoords(null);
+      setSelectionRange({ start: selectionStart, end: selectionEnd });
+      if (selectionEnd - selectionStart === 1) {
+        checkAlternatesForChar(selectionStart);
+      } else {
+        setPopoverPos(null);
+        setSelectedCharIndex(null);
+      }
+    }
+  };
+
+  const handleSpanMouseDown = (index: number) => {
+    isDraggingSelection.current = true;
+    dragAnchorIdx.current = index;
+    setSelectionRange({ start: index, end: index + 1 });
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(index, index + 1);
+    }
+    checkAlternatesForChar(index);
+  };
+
+  const handleSpanMouseEnter = (index: number) => {
+    if (!isDraggingSelection.current || dragAnchorIdx.current === null) return;
+    const anchor = dragAnchorIdx.current;
+    const start = Math.min(anchor, index);
+    const end = Math.max(anchor, index) + 1;
+    setSelectionRange({ start, end });
+    if (textareaRef.current) {
+      textareaRef.current.setSelectionRange(start, end);
+    }
+    if (end - start === 1) {
+      checkAlternatesForChar(start);
+    } else {
+      setPopoverPos(null);
+      setSelectedCharIndex(null);
+    }
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      isDraggingSelection.current = false;
+      dragAnchorIdx.current = null;
+    };
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, []);
+
+  // Rendering Helper for Overlays
   const renderTextSpans = (fontIdx: number) => {
     const styleFontFamily = `"${config.name}-${fontIdx}"`;
     return text.split('').map((char, i) => {
       const overrideGlyphIdx = glyphOverrides[i];
       const overrideFeature = charOverrides[i];
 
-      const activeCharFeatures = overrideFeature 
+      const activeCharFeatures = overrideFeature && overrideFeature !== 'alt'
         ? (globalActiveFeatureString === 'normal' ? `"${overrideFeature}" 1` : `"${overrideFeature}" 1, ${globalActiveFeatureString}`)
         : globalActiveFeatureString;
 
-      // Fallback SVG HANYA dipakai jika alternate benar-benar unencoded (tanpa OT feature tag)
-      if (overrideGlyphIdx !== undefined && !overrideFeature) {
-        return (
-          <React.Fragment key={i}>
-            {renderInlineGlyphSvg(overrideGlyphIdx, fontSize, fontIdx) || char}
-          </React.Fragment>
-        );
-      }
+      const isCurrentActiveLayer = fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex);
+      const isSelected = selectionRange 
+        ? (i >= Math.min(selectionRange.start, selectionRange.end) && i < Math.max(selectionRange.start, selectionRange.end))
+        : (selectedCharIndex === i);
 
       return (
         <span 
           key={i}
-          id={fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex) ? `char-span-${testerId}-${i}` : undefined}
+          id={isCurrentActiveLayer ? `char-span-${testerId}-${i}` : undefined}
+          data-char-idx={i}
           style={{
             fontFamily: styleFontFamily,
             fontVariationSettings: fontVariationSettings || undefined,
             fontFeatureSettings: activeCharFeatures,
             WebkitFontFeatureSettings: activeCharFeatures
           }}
-      
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            handleSpanMouseDown(i);
+          }}
+          onMouseEnter={() => handleSpanMouseEnter(i)}
+          className={`cursor-text select-none transition-colors ${
+            isSelected ? 'bg-black text-white' : ''
+          }`}
         >
-          {char}
+          {overrideGlyphIdx !== undefined ? (
+            renderInlineGlyphSvg(overrideGlyphIdx, fontSize, fontIdx) || char
+          ) : (
+            char
+          )}
         </span>
       );
     });
   };
 
   return (
-    <div className="w-full h-full relative group bg-transparent">
+    <div className="w-full h-full relative group bg-transparent selection:bg-black selection:text-white">
       <div className="relative z-10 h-full flex flex-col">
         <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-50">
 
           <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
-              <button 
-                onClick={() => setViewMode(viewMode === 'type' ? 'glyphs' : 'type')} 
-                className="flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors bg-black text-white hover:bg-gray-800"
+            <button 
+              onClick={() => setViewMode(viewMode === 'type' ? 'glyphs' : 'type')} 
+              className="flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors bg-black text-white hover:bg-gray-800"
+            >
+              {viewMode === 'type' ? <Grid size={14}/> : <Keyboard size={14}/>}
+              <span>{viewMode === 'type' ? 'Map View' : 'Type View'}</span>
+            </button>
+            
+            {isLayeredSupported && viewMode === 'type' && (
+              <button
+                onClick={() => setIsLayeredMode(!isLayeredMode)}
+                className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors border ${isLayeredMode ? 'bg-black text-white border-black' : 'bg-transparent text-black border-black hover:bg-gray-200'}`}
               >
-                {viewMode === 'type' ? <Grid size={14}/> : <Keyboard size={14}/>}
-                <span>{viewMode === 'type' ? 'Map View' : 'Type View'}</span>
+                <Layers size={14}/>
+                <span>Layer Mode {isLayeredMode ? 'ON' : 'OFF'}</span>
               </button>
-              
-              {/* Layered mode trigger ditambahkan pada view mode standar style 1 */}
-              {isLayeredSupported && viewMode === 'type' && (
-                <button
-                  onClick={() => setIsLayeredMode(!isLayeredMode)}
-                  className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors border ${isLayeredMode ? 'bg-black text-white border-black' : 'bg-transparent text-black border-black hover:bg-gray-200'}`}
-                >
-                  <Layers size={14}/>
-                  <span>Layer Mode {isLayeredMode ? 'ON' : 'OFF'}</span>
-                </button>
-              )}
+            )}
           </div>
 
           <div className="col-span-2 lg:col-span-1 lg:ml-auto flex items-center gap-6 px-4 lg:px-8 py-4 lg:py-8 border-b lg:border-b-0 lg:border-l border-black justify-between lg:justify-end lg:order-last">
-              {!isLayeredMode && (
-                <div className="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-start">
-                  <span className="font-bold text-xs text-gray-400 uppercase lg:hidden">Style</span>
-                  <div className="relative z-[100]" ref={styleDropdownRef}>
+            {!isLayeredMode && (
+              <div className="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-start">
+                <span className="font-bold text-xs text-gray-400 uppercase lg:hidden">Style</span>
+                <div className="relative z-[100]" ref={styleDropdownRef}>
+                  <button 
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[80px] justify-between relative z-10"
+                  >
+                    <span>
+                      {detectedStyleNames[activeStyleIndex] || (
+                        Array.isArray(config.font_files) && config.font_files.length > 0 
+                          ? `Style ${String(activeStyleIndex + 1).padStart(2, '0')}`
+                          : 'Style 01'
+                      )}
+                    </span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isDropdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-hidden shadow-none">
+                        {Array.isArray(config.font_files) && config.font_files.length > 0 ? (
+                          config.font_files.map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={(e) => { 
+                                e.stopPropagation();
+                                setActiveStyleIndex(i); 
+                                setIsDropdownOpen(false); 
+                              }}
+                              className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors block ${
+                                activeStyleIndex === i 
+                                  ? 'bg-black text-white' 
+                                  : 'text-black hover:bg-black hover:text-white'
+                              }`}
+                            >
+                              {detectedStyleNames[i] || `Style ${String(i + 1).padStart(2, '0')}`}
+                            </button>
+                          ))
+                        ) : (
+                          <button className="w-full text-left px-4 py-3 text-xs font-bold uppercase text-black cursor-default">
+                            Style 01
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-center lg:justify-start">
+            {viewMode === 'type' ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-xs text-gray-400 uppercase lg:hidden">Size</span>
+                  <div className="relative z-[110]" ref={sizeDropdownRef}>
                     <button 
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[80px] justify-between relative z-10"
+                      onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
+                      className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[65px] justify-between relative z-10"
                     >
-                        <span>
-                          {detectedStyleNames[activeStyleIndex] || (
-                            Array.isArray(config.font_files) && config.font_files.length > 0 
-                              ? `Style ${String(activeStyleIndex + 1).padStart(2, '0')}`
-                              : 'Style 01'
-                          )}
-                      </span>
-                        <ChevronDown size={14} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                      <span>{fontSize} PX</span>
+                      <ChevronDown size={14} className={`transition-transform duration-200 ${isSizeDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
 
-                    {isDropdownOpen && (
+                    {isSizeDropdownOpen && (
                       <>
-                        <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                        <div className="absolute right-0 top-full mt-2 w-48 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-hidden shadow-none">
-                            {Array.isArray(config.font_files) && config.font_files.length > 0 ? (
-                              config.font_files.map((_, i) => (
-                                <button
-                                  key={i}
-                                  onClick={(e) => { 
-                                      e.stopPropagation();
-                                      setActiveStyleIndex(i); 
-                                      setIsDropdownOpen(false); 
-                                  }}
-                                  className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors block ${
-                                    activeStyleIndex === i 
-                                      ? 'bg-black text-white' 
-                                      : 'text-black hover:bg-black hover:text-white'
-                                  }`}
-                                >
-                                  {detectedStyleNames[i] || `Style ${String(i + 1).padStart(2, '0')}`}
-                                </button>
-                              ))
-                            ) : (
-                              <button className="w-full text-left px-4 py-3 text-xs font-bold uppercase text-black cursor-default">
-                                Style 01
-                              </button>
-                            )}
+                        <div className="fixed inset-0 z-40" onClick={() => setIsSizeDropdownOpen(false)} />
+                        <div className="absolute left-0 top-full mt-2 w-32 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-y-auto max-h-[300px] shadow-none custom-scrollbar">
+                          {PRESET_SIZES.map((size) => (
+                            <button
+                              key={size}
+                              onClick={(e) => { 
+                                e.stopPropagation();
+                                setFontSize(size); 
+                                setIsSizeDropdownOpen(false); 
+                              }}
+                              className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors block ${
+                                fontSize === size 
+                                  ? 'bg-black text-white' 
+                                  : 'text-black hover:bg-black hover:text-white'
+                              }`}
+                            >
+                              {size} PX
+                            </button>
+                          ))}
                         </div>
                       </>
                     )}
                   </div>
                 </div>
-              )}
-          </div>
-
-          <div className="flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-center lg:justify-start">
-             {viewMode === 'type' ? (
-                <>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs text-gray-400 uppercase lg:hidden">Size</span>
-                    <div className="relative z-[110]" ref={sizeDropdownRef}>
-                       <button 
-                          onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
-                          className="flex items-center gap-2 appearance-none font-bold text-xs uppercase outline-none cursor-pointer py-1 pl-0 pr-2 bg-transparent hover:text-gray-600 transition-colors border-b border-transparent hover:border-black min-w-[65px] justify-between relative z-10"
-                       >
-                          <span>{fontSize} PX</span>
-                          <ChevronDown size={14} className={`transition-transform duration-200 ${isSizeDropdownOpen ? 'rotate-180' : ''}`} />
-                       </button>
-
-                       {isSizeDropdownOpen && (
-                         <>
-                          <div className="fixed inset-0 z-40" onClick={() => setIsSizeDropdownOpen(false)} />
-                          <div className="absolute left-0 top-full mt-2 w-32 bg-white/95 backdrop-blur-xl border border-black z-50 overflow-y-auto max-h-[300px] shadow-none custom-scrollbar">
-                              {PRESET_SIZES.map((size) => (
-                                <button
-                                  key={size}
-                                  onClick={(e) => { 
-                                      e.stopPropagation();
-                                      setFontSize(size); 
-                                      setIsSizeDropdownOpen(false); 
-                                  }}
-                                  className={`w-full text-left px-4 py-3 text-xs font-bold uppercase transition-colors block ${
-                                    fontSize === size 
-                                      ? 'bg-black text-white' 
-                                      : 'text-black hover:bg-black hover:text-white'
-                                  }`}
-                                >
-                                  {size} PX
-                                </button>
-                              ))}
-                          </div>
-                         </>
-                       )}
-                    </div>
-                  </div>
-                </>
-             ) : (
-               [10, 20, 30].map(size => (
-                  <button key={size} onClick={() => { setMapGridSize(size); setMapPage(0); }} className={`px-3 py-1 text-xs font-bold border border-black ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent hover:bg-gray-200 uppercase'}`}>{size}</button>
-                ))
-             )}
+              </>
+            ) : (
+              [10, 20, 30].map(size => (
+                <button key={size} onClick={() => { setMapGridSize(size); setMapPage(0); }} className={`px-3 py-1 text-xs font-bold border border-black ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent hover:bg-gray-200 uppercase'}`}>{size}</button>
+              ))
+            )}
           </div>
 
           <div className="flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 justify-center xl:border-r xl:border-black lg:justify-start">
-             {viewMode === 'type' ? (
-                <>
-                  <button onClick={() => setAlign('left')} className={`p-2 ${align === 'left' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignLeft size={16}/></button>
-                  <button onClick={() => setAlign('center')} className={`p-2 ${align === 'center' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignCenter size={16}/></button>
-                  <button onClick={() => setAlign('right')} className={`p-2 ${align === 'right' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignRight size={16}/></button>
-                </>
-             ) : (
+            {viewMode === 'type' ? (
+              <>
+                <button onClick={() => setAlign('left')} className={`p-2 ${align === 'left' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignLeft size={16}/></button>
+                <button onClick={() => setAlign('center')} className={`p-2 ${align === 'center' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignCenter size={16}/></button>
+                <button onClick={() => setAlign('right')} className={`p-2 ${align === 'right' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignRight size={16}/></button>
+              </>
+            ) : (
               <div className="flex gap-1 items-center">
-                  <button 
-                    onClick={() => setMapPage(Math.max(0, mapPage - 1))} 
-                    disabled={mapPage === 0} 
-                    className="p-2 border border-black disabled:opacity-20 hover:bg-black hover:text-white transition-colors"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button 
-                    onClick={() => setMapPage(mapPage + 1)} 
-                    disabled={(mapPage + 1) * glyphsPerPage >= filteredGlyphs.length} 
-                    className="p-2 border border-black disabled:opacity-20 hover:bg-black hover:text-white transition-colors"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-               </div>
-             )}
+                <button 
+                  onClick={() => setMapPage(Math.max(0, mapPage - 1))} 
+                  disabled={mapPage === 0} 
+                  className="p-2 border border-black disabled:opacity-20 hover:bg-black hover:text-white transition-colors"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button 
+                  onClick={() => setMapPage(mapPage + 1)} 
+                  disabled={(mapPage + 1) * glyphsPerPage >= filteredGlyphs.length} 
+                  className="p-2 border border-black disabled:opacity-20 hover:bg-black hover:text-white transition-colors"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
           </div>
 
         </div>
 
         <div className="min-h-[300px] mb-8 relative">
           {viewMode === 'type' ? (
-              <div className="relative w-full min-h-[300px]">
-                
-                {/* RENDER LAYER/SINGLE OVERLAYS (Visual Text Area) */}
-                {!isLayeredMode ? (
-                  <div 
-                    ref={(el) => { layerContainerRefs.current['single'] = el; }}
-                    className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 pointer-events-none whitespace-pre-wrap wrap-break-word overflow-hidden select-none"
-                    style={{ 
-                      ...commonFontStyle, 
-                      fontSize: `${fontSize}px`, 
-                      textAlign: align, 
-                      lineHeight: lineHeight, 
-                      letterSpacing: `${letterSpacing}em` 
-                    }}
-                    aria-hidden="true"
-                  >
-                    {renderTextSpans(activeStyleIndex)}
-                  </div>
-                ) : (
-                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                    {layers.map((layer, stackIdx) => {
-                      if (!layer.isVisible) return null;
-                      const calculatedZIndex = layers.length - stackIdx;
-                      return (
-                        <div 
-                          key={layer.id}
-                          ref={(el) => { layerContainerRefs.current[layer.id] = el; }}
-                          className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word select-none overflow-hidden"
-                          style={{ 
-                            ...commonFontStyle,
-                            fontFamily: `"${config.name}-${layer.fontIndex}"`,
-                            fontSize: `${fontSize}px`, 
-                            textAlign: align, 
-                            lineHeight: lineHeight, 
-                            letterSpacing: `${letterSpacing}em`,
-                            zIndex: calculatedZIndex,
-                            color: layer.color
-                          }}
-                          aria-hidden="true"
-                        >
-                          {renderTextSpans(layer.fontIndex)}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                
-                {/* INVISIBLE INTERACTIVE TEXTAREA */}
-                <textarea 
-                  ref={textareaRef}
-                  value={text} 
-                  onChange={(e) => { setText(e.target.value); setCharOverrides({}); setPopoverPos(null); setSelectedCharIndex(null); }} 
-                  onSelect={handleTextSelect}
-                  onKeyUp={handleTextSelect}
-                  onMouseUp={handleTextSelect}
-                  onScroll={handleScrollSync}
-className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-30 text-transparent caret-black selection:bg-black/30 selection:text-transparent" 
+            <div className="relative w-full min-h-[300px]">
+              
+              {/* RENDER LAYER/SINGLE OVERLAYS (Visual Interactive Area) */}
+             {!isLayeredMode ? (
+                <div 
+                  ref={(el) => { layerContainerRefs.current['single'] = el; }}
+                  className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word overflow-hidden z-25 pointer-events-auto select-none"
                   style={{ 
-                      ...commonFontStyle,
-                      fontSize: `${fontSize}px`, 
-                      textAlign: align,
-                      lineHeight: lineHeight,
-                      letterSpacing: `${letterSpacing}em`,
-                      fontFeatureSettings: textareaFeatureString,
-                      WebkitFontFeatureSettings: textareaFeatureString
-                  }} 
-                  spellCheck={false} 
-                />
+                    ...commonFontStyle, 
+                    fontSize: `${fontSize}px`, 
+                    textAlign: align, 
+                    lineHeight: lineHeight, 
+                    letterSpacing: `${letterSpacing}em` 
+                  }}
+                  onClick={() => {
+                    if (textareaRef.current) textareaRef.current.focus();
+                  }}
+                >
+                  {renderTextSpans(activeStyleIndex)}
+                </div>
+              ) : (
+                <div className="absolute inset-0 z-25 pointer-events-auto overflow-hidden select-none">
+                  {layers.map((layer, stackIdx) => {
+                    if (!layer.isVisible) return null;
+                    const calculatedZIndex = layers.length - stackIdx;
+                    return (
+                      <div 
+                        key={layer.id}
+                        ref={(el) => { layerContainerRefs.current[layer.id] = el; }}
+                        className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word select-none overflow-hidden"
+                        style={{ 
+                          ...commonFontStyle,
+                          fontFamily: `"${config.name}-${layer.fontIndex}"`,
+                          fontSize: `${fontSize}px`, 
+                          textAlign: align, 
+                          lineHeight: lineHeight, 
+                          letterSpacing: `${letterSpacing}em`,
+                          zIndex: calculatedZIndex,
+                          color: layer.color
+                        }}
+                      >
+                        {renderTextSpans(layer.fontIndex)}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
-                {/* POPOVER ALTERNATE GLYPHS */}
-                {popoverPos && alternateGlyphs.length > 0 && selectedCharIndex !== null && (
-                  <div 
-                    className="absolute z-[60] bg-white border border-black shadow-xl p-2 flex items-center gap-2 pointer-events-auto"
-                    style={{
-                      left: `${Math.max(16, Math.min(popoverPos.x - 20, (textareaRef.current?.clientWidth || 600) - 280))}px`,
-                      top: `${popoverPos.y > 70 ? popoverPos.y - 65 : popoverPos.y + fontSize + 15}px`
-                    }}
-                  >
-                    <span className="text-[10px] font-bold uppercase text-gray-400 border-r border-black pr-2">Alts</span>
-                    <div className="flex items-center gap-1 overflow-x-auto max-w-[300px] custom-scrollbar">
-                      <button
+              {/* ACCURATE VISUAL CARET */}
+              {isFocused && caretCoords && cursorPos !== null && !selectionRange && (
+                <div 
+                  className="absolute z-35 w-[2px] bg-black pointer-events-none animate-pulse"
+                  style={{
+                    left: `${caretCoords.left}px`,
+                    top: `${caretCoords.top}px`,
+                    height: `${caretCoords.height}px`
+                  }}
+                />
+              )}
+              
+              {/* INTERACTIVE TEXTAREA */}
+              <textarea 
+                ref={textareaRef}
+                value={text} 
+                onChange={(e) => { 
+                  const nextText = e.target.value;
+                  const prevText = text;
+                  setText(nextText); 
+                  
+                  // Sesuaikan index overrides jika teks bertambah/berkurang
+                  const diff = nextText.length - prevText.length;
+                  const changePos = textareaRef.current?.selectionStart ?? nextText.length;
+                  const insertPos = diff > 0 ? changePos - diff : changePos;
+
+                  setGlyphOverrides(prev => {
+                    const next: Record<number, number> = {};
+                    Object.entries(prev).forEach(([k, val]) => {
+                      const idx = Number(k);
+                      if (diff > 0) {
+                        // Teks disisipkan / ditambah
+                        if (idx < insertPos) {
+                          next[idx] = val;
+                        } else {
+                          next[idx + diff] = val;
+                        }
+                      } else if (diff < 0) {
+                        // Teks dihapus (backspace/delete)
+                        const deletedCount = Math.abs(diff);
+                        if (idx < insertPos) {
+                          next[idx] = val;
+                        } else if (idx >= insertPos + deletedCount) {
+                          next[idx - deletedCount] = val;
+                        }
+                      } else {
+                        next[idx] = val;
+                      }
+                    });
+                    return next;
+                  });
+
+                  setCharOverrides(prev => {
+                    const next: Record<number, string> = {};
+                    Object.entries(prev).forEach(([k, val]) => {
+                      const idx = Number(k);
+                      if (diff > 0) {
+                        if (idx < insertPos) {
+                          next[idx] = val;
+                        } else {
+                          next[idx + diff] = val;
+                        }
+                      } else if (diff < 0) {
+                        const deletedCount = Math.abs(diff);
+                        if (idx < insertPos) {
+                          next[idx] = val;
+                        } else if (idx >= insertPos + deletedCount) {
+                          next[idx - deletedCount] = val;
+                        }
+                      } else {
+                        next[idx] = val;
+                      }
+                    });
+                    return next;
+                  });
+
+                  setPopoverPos(null); 
+                  setSelectedCharIndex(null); 
+                  setSelectionRange(null);
+                  setTimeout(handleSelectionOrCursorChange, 0);
+                }}
+                onFocus={() => {
+                  setIsFocused(true);
+                  handleSelectionOrCursorChange();
+                }}
+                onBlur={() => {
+                  setIsFocused(false);
+                  setCaretCoords(null);
+                }}
+                onSelect={handleSelectionOrCursorChange}
+                onKeyUp={handleSelectionOrCursorChange}
+                onKeyDown={handleSelectionOrCursorChange}
+                onMouseUp={handleSelectionOrCursorChange}
+                onMouseDown={handleSelectionOrCursorChange}
+                onScroll={handleScrollSync}
+                className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-10 text-transparent caret-transparent selection:bg-transparent selection:text-transparent pointer-events-none"
+                style={{ 
+                  ...commonFontStyle,
+                  fontSize: `${fontSize}px`, 
+                  textAlign: align,
+                  lineHeight: lineHeight,
+                  letterSpacing: `${letterSpacing}em`
+                }} 
+                spellCheck={false} 
+              />
+
+              {/* POPOVER ALTERNATE GLYPHS */}
+              {popoverPos && alternateGlyphs.length > 0 && selectedCharIndex !== null && (
+                <div 
+                  className="absolute z-[60] bg-white border border-black shadow-xl p-2 flex items-center gap-2 pointer-events-auto"
+                  style={{
+                    left: `${Math.max(16, Math.min(popoverPos.x - 20, (textareaRef.current?.clientWidth || 600) - 280))}px`,
+                    top: `${popoverPos.y > 70 ? popoverPos.y - 65 : popoverPos.y + fontSize + 15}px`
+                  }}
+                >
+                  <span className="text-[10px] font-bold uppercase text-gray-400 border-r border-black pr-2">Alts</span>
+                  <div className="flex items-center gap-1 overflow-x-auto max-w-[300px] custom-scrollbar">
+                    <button
+                      type="button"
+                      onClick={() => applyAlternate({ char: text.charAt(selectedCharIndex), glyphIndex: 0, featureTag: '' })}
+                      className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all ${
+                        !charOverrides[selectedCharIndex] 
+                          ? 'bg-black text-white border-black' 
+                          : 'border-transparent hover:bg-black hover:text-white bg-transparent text-black'
+                      }`}
+                      title="Default Style"
+                    >
+                      <div className="h-6 flex items-center justify-center">
+                        {renderGlyphSvg(loadedFontObj ? loadedFontObj.charToGlyphIndex(text.charAt(selectedCharIndex)) : 0, 20) || (
+                          <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: 'normal' }}>
+                            {text.charAt(selectedCharIndex)}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+
+                    {alternateGlyphs.map((alt, idx) => {
+                      const isSelected = glyphOverrides[selectedCharIndex] === alt.glyphIndex || (!glyphOverrides[selectedCharIndex] && charOverrides[selectedCharIndex] === alt.featureTag && idx === 0);
+                      return (
+                        <button
+                          key={idx}
                           type="button"
-                          onClick={() => applyAlternate({ char: text.charAt(selectedCharIndex), glyphIndex: 0, featureTag: '' })}
-                          className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all ${
-                            !charOverrides[selectedCharIndex] 
+                          onClick={() => applyAlternate(alt)}
+                          className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all shrink-0 ${
+                            isSelected 
                               ? 'bg-black text-white border-black' 
                               : 'border-transparent hover:bg-black hover:text-white bg-transparent text-black'
                           }`}
-                          title="Default Style"
+                          title={`Glyph #${alt.glyphIndex}`}
                         >
                           <div className="h-6 flex items-center justify-center">
-                            {renderGlyphSvg(loadedFontObj ? loadedFontObj.charToGlyphIndex(text.charAt(selectedCharIndex)) : 0, 20) || (
-                              <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: 'normal' }}>
-                                {text.charAt(selectedCharIndex)}
+                            {renderGlyphSvg(alt.glyphIndex, 20) || (
+                              <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: `"${alt.featureTag}" 1` }}>
+                                {alt.char}
                               </span>
                             )}
                           </div>
-                      </button>
-
-                      {alternateGlyphs.map((alt, idx) => {
-                        const isSelected = glyphOverrides[selectedCharIndex] === alt.glyphIndex || (!glyphOverrides[selectedCharIndex] && charOverrides[selectedCharIndex] === alt.featureTag && idx === 0);
-                        return (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => applyAlternate(alt)}
-                            className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all shrink-0 ${
-                              isSelected 
-                                ? 'bg-black text-white border-black' 
-                                : 'border-transparent hover:bg-black hover:text-white bg-transparent text-black'
-                            }`}
-                            title={`Glyph #${alt.glyphIndex}`}
-                          >
-                            <div className="h-6 flex items-center justify-center">
-                              {renderGlyphSvg(alt.glyphIndex, 20) || (
-                                <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: `"${alt.featureTag}" 1` }}>
-                                  {alt.char}
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-[7px] uppercase font-sans mt-0.5 opacity-60">
-                              {alt.featureTag}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                          <span className="text-[7px] uppercase font-sans mt-0.5 opacity-60">
+                            {alt.featureTag}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+            </div>
           ) : (
-              <div className="w-full grid content-start" style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}>
-                {filteredGlyphs.slice(mapPage * glyphsPerPage, (mapPage + 1) * glyphsPerPage).map((item, idx) => (
-                  <div key={idx} className="aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default border border-transparent hover:border-black" title={item.name}>
-                        <div className="flex items-center justify-center pointer-events-none">
-                            {/* Update fitur Map View perender SVG otomatis */}
-                            {renderGlyphSvg(item.index, mapGridSize === 10 ? 60 : mapGridSize === 20 ? 32 : 20) || (
-                              item.char ? (
-                                <span style={{ 
-                                  ...commonFontStyle,
-                                  fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' 
-                                }}>
-                                  {item.char}
-                                </span>
-                              ) : (
-                                <span className="text-[9px] font-mono opacity-30">#{item.index}</span>
-                              )
-                            )}
-                        </div>
-                    </div>
-                ))}
-              </div>
+            <div className="w-full grid content-start" style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}>
+              {filteredGlyphs.slice(mapPage * glyphsPerPage, (mapPage + 1) * glyphsPerPage).map((item, idx) => (
+                <div key={idx} className="aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default border border-transparent hover:border-black" title={item.name}>
+                  <div className="flex items-center justify-center pointer-events-none">
+                    {renderGlyphSvg(item.index, mapGridSize === 10 ? 60 : mapGridSize === 20 ? 32 : 20) || (
+                      item.char ? (
+                        <span style={{ 
+                          ...commonFontStyle,
+                          fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' 
+                        }}>
+                          {item.char}
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-mono opacity-30">#{item.index}</span>
+                      )
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
         {/* SETTINGS PANEL */}
         <div className="bg-transparent border-t border-black relative z-40">
           
-          {/* PANEL LAYERED MODE SETTINGS (Muncul saat dipicu) */}
           {isLayeredMode && viewMode === 'type' && (
-             <div className="px-4 md:px-8 py-6 border-b border-black bg-gray-50/50">
-               <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Layers size={14} />
-                    <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Layer Settings</span>
-                  </div>
+            <div className="px-4 md:px-8 py-6 border-b border-black bg-gray-50/50">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Layers size={14} />
+                  <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Layer Settings</span>
+                </div>
 
-                  <div className="relative">
-                    <button
-                      onClick={() => setIsAddLayerOpen(!isAddLayerOpen)}
-                      className="px-3 py-1 text-[10px] font-bold uppercase border border-black hover:bg-black hover:text-white transition-all flex items-center gap-1.5 relative z-10"
-                    >
-                      <Plus size={12} /> ADD LAYER
-                    </button>
-                    {isAddLayerOpen && (
-                        <>
-                          <div className="fixed inset-0 z-40" onClick={() => setIsAddLayerOpen(false)} />
-                          <div className="absolute right-0 bottom-full mb-1 w-48 bg-white border border-black z-50 shadow-xl overflow-hidden">
-                            <div className="px-3 py-2 text-[9px] font-bold uppercase text-gray-500 border-b border-gray-200 bg-gray-100">
-                              Select Font
-                            </div>
-                            {availableLayerIndices.map((fIdx) => (
-                              <button
-                                key={fIdx}
-                                onClick={() => addSpecificLayer(fIdx)}
-                                className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase border-b border-gray-100 hover:bg-black hover:text-white transition-colors"
-                              >
-                                {detectedStyleNames[fIdx] || `Style ${fIdx + 1}`}
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      )}
-                  </div>
-               </div>
+                <div className="relative">
+                  <button
+                    onClick={() => setIsAddLayerOpen(!isAddLayerOpen)}
+                    className="px-3 py-1 text-[10px] font-bold uppercase border border-black hover:bg-black hover:text-white transition-all flex items-center gap-1.5 relative z-10"
+                  >
+                    <Plus size={12} /> ADD LAYER
+                  </button>
+                  {isAddLayerOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setIsAddLayerOpen(false)} />
+                      <div className="absolute right-0 bottom-full mb-1 w-48 bg-white border border-black z-50 shadow-xl overflow-hidden">
+                        <div className="px-3 py-2 text-[9px] font-bold uppercase text-gray-500 border-b border-gray-200 bg-gray-100">
+                          Select Font
+                        </div>
+                        {availableLayerIndices.map((fIdx) => (
+                          <button
+                            key={fIdx}
+                            onClick={() => addSpecificLayer(fIdx)}
+                            className="w-full text-left px-4 py-2.5 text-xs font-bold uppercase border-b border-gray-100 hover:bg-black hover:text-white transition-colors"
+                          >
+                            {detectedStyleNames[fIdx] || `Style ${fIdx + 1}`}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
 
-               <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2">
                 {layers.map((layer, idx) => (
                   <div 
                     key={layer.id}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={() => {
-                        if (draggedLayerIdx === null || draggedLayerIdx === idx) return;
-                        const updated = [...layers];
-                        const item = updated.splice(draggedLayerIdx, 1)[0];
-                        updated.splice(idx, 0, item);
-                        setLayers(updated);
-                        setDraggedLayerIdx(null);
+                      if (draggedLayerIdx === null || draggedLayerIdx === idx) return;
+                      const updated = [...layers];
+                      const item = updated.splice(draggedLayerIdx, 1)[0];
+                      updated.splice(idx, 0, item);
+                      setLayers(updated);
+                      setDraggedLayerIdx(null);
                     }}
                     className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 border transition-all gap-3 ${
                       !layer.isVisible ? 'opacity-50 border-gray-200 bg-transparent' : 'border-black bg-white'
@@ -1070,55 +1369,55 @@ className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-
                   </div>
                 ))}
               </div>
-             </div>
+            </div>
           )}
 
           <div className={`grid grid-cols-1 md:grid-cols-2 ${(hasAxes || hasFeatures) ? 'border-b border-black' : ''}`}>
-              <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-b md:border-b-0 md:border-r border-black">
-               <label className="w-24 font-bold text-xs uppercase">Leading</label>
-                  <input type="range" min="0.8" max="2.0" step="0.1" value={lineHeight} onChange={(e) => setLineHeight(parseFloat(e.target.value))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
-                  <span className="w-12 text-right font-bold text-xs">{lineHeight.toFixed(1)}</span>
-              </div>
-              <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8">
-                  <label className="w-24 font-bold text-xs uppercase">Tracking</label>
-                  <input type="range" min="-0.1" max="0.5" step="0.01" value={letterSpacing} onChange={(e) => setLetterSpacing(parseFloat(e.target.value))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
-                  <span className="w-12 text-right font-bold text-xs">{letterSpacing.toFixed(2)}</span>
-              </div>
+            <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8 border-b md:border-b-0 md:border-r border-black">
+              <label className="w-24 font-bold text-xs uppercase">Leading</label>
+              <input type="range" min="0.8" max="2.0" step="0.1" value={lineHeight} onChange={(e) => setLineHeight(parseFloat(e.target.value))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
+              <span className="w-12 text-right font-bold text-xs">{lineHeight.toFixed(1)}</span>
+            </div>
+            <div className="flex items-center gap-4 px-4 md:px-8 py-6 md:py-8">
+              <label className="w-24 font-bold text-xs uppercase">Tracking</label>
+              <input type="range" min="-0.1" max="0.5" step="0.01" value={letterSpacing} onChange={(e) => setLetterSpacing(parseFloat(e.target.value))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
+              <span className="w-12 text-right font-bold text-xs">{letterSpacing.toFixed(2)}</span>
+            </div>
           </div>
 
           {(hasAxes || hasFeatures) && (
             <div className={`grid grid-cols-1 ${hasAxes && hasFeatures ? 'md:grid-cols-3' : 'md:grid-cols-1'}`}>
-                {hasAxes && (
-                  <div className={`${hasFeatures ? 'md:col-span-2 border-b md:border-b-0' : 'md:col-span-1'} space-y-4 px-4 md:px-8 py-6 md:py-8 border-black`}>
-                    <h4 className="font-bold text-xs uppercase text-gray-400 mb-4 tracking-widest">Variable Axes</h4>
-                    {activeAxes.map((axis: any) => (
-                      <div key={axis.tag} className="flex items-center gap-4">
-                        <label className="w-16 font-bold text-xs uppercase truncate">{axis.name}</label>
-                        <input type="range" min={axis.min} max={axis.max} step={1} value={axesValues[axis.tag] ?? axis.default} onChange={(e) => setAxesValues(p => ({...p, [axis.tag]: parseFloat(e.target.value)}))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
-                        <span className="w-12 text-right font-bold text-xs">{Math.round(axesValues[axis.tag] ?? axis.default)}</span>
-                      </div>
+              {hasAxes && (
+                <div className={`${hasFeatures ? 'md:col-span-2 border-b md:border-b-0' : 'md:col-span-1'} space-y-4 px-4 md:px-8 py-6 md:py-8 border-black`}>
+                  <h4 className="font-bold text-xs uppercase text-gray-400 mb-4 tracking-widest">Variable Axes</h4>
+                  {activeAxes.map((axis: any) => (
+                    <div key={axis.tag} className="flex items-center gap-4">
+                      <label className="w-16 font-bold text-xs uppercase truncate">{axis.name}</label>
+                      <input type="range" min={axis.min} max={axis.max} step={1} value={axesValues[axis.tag] ?? axis.default} onChange={(e) => setAxesValues(p => ({...p, [axis.tag]: parseFloat(e.target.value)}))} className="flex-grow h-px bg-black appearance-none cursor-pointer accent-black"/>
+                      <span className="w-12 text-right font-bold text-xs">{Math.round(axesValues[axis.tag] ?? axis.default)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {hasFeatures && (
+                <div className={`${hasAxes ? 'md:col-span-1 md:border-l' : 'md:col-span-1'} border-black px-4 md:px-8 py-6 md:py-8`}>
+                  <h4 className="font-bold text-xs uppercase text-gray-400 mb-4 tracking-widest">Features</h4>
+                  <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+                    {dynamicFeatures.map((feat) => (
+                      <label key={feat.tag} className="flex items-center justify-between cursor-pointer group select-none">
+                        <span className="text-sm font-bold uppercase group-hover:text-gray-600 transition-colors">
+                          {feat.name} <span className="text-gray-400 font-bold text-[10px] ml-2">.{feat.tag}</span>
+                        </span>
+                        <div className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" className="sr-only peer" checked={activeFeatures[feat.tag] || false} onChange={() => toggleFeature(feat.tag)} />
+                          <div className="w-9 h-5 rounded-full bg-transparent border border-black peer-checked:bg-black peer-checked:border-black after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-black after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:bg-white"></div>
+                        </div>
+                      </label>
                     ))}
                   </div>
-                )}
-                
-                {hasFeatures && (
-                  <div className={`${hasAxes ? 'md:col-span-1 md:border-l' : 'md:col-span-1'} border-black px-4 md:px-8 py-6 md:py-8`}>
-                    <h4 className="font-bold text-xs uppercase text-gray-400 mb-4 tracking-widest">Features</h4>
-                    <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar">
-                      {dynamicFeatures.map((feat) => (
-                        <label key={feat.tag} className="flex items-center justify-between cursor-pointer group select-none">
-                          <span className="text-sm font-bold uppercase group-hover:text-gray-600 transition-colors">
-                            {feat.name} <span className="text-gray-400 font-bold text-[10px] ml-2">.{feat.tag}</span>
-                          </span>
-                          <div className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" className="sr-only peer" checked={activeFeatures[feat.tag] || false} onChange={() => toggleFeature(feat.tag)} />
-                            <div className="w-9 h-5 rounded-full bg-transparent border border-black peer-checked:bg-black peer-checked:border-black after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-black after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:bg-white"></div>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                </div>
+              )}
             </div>
           )}
         </div>
