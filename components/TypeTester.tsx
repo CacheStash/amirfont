@@ -786,7 +786,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
                 {!isLayeredMode ? (
                   <div 
                     ref={(el) => { layerContainerRefs.current['single'] = el; }}
-                    className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word overflow-hidden select-text z-35"
+                    className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 pointer-events-none whitespace-pre-wrap wrap-break-word overflow-hidden select-none"
                     style={{ 
                       ...commonFontStyle, 
                       fontSize: `${fontSize}px`, 
@@ -836,7 +836,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
                   onKeyUp={handleTextSelect}
                   onMouseUp={handleTextSelect}
                   onScroll={handleScrollSync}
-                  className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-20 text-transparent caret-black selection:bg-transparent"
+          className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-30 text-transparent caret-black selection:bg-black/30 selection:text-transparent"
                   style={{ 
                       ...commonFontStyle,
                       fontSize: `${fontSize}px`, 
