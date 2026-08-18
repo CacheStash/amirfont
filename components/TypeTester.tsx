@@ -412,26 +412,27 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const applyAlternate = (alt: AlternateGlyph) => {
     if (selectedCharIndex === null) return;
 
-    setGlyphOverrides(prev => {
-      const next = { ...prev };
-      if (!alt.glyphIndex || next[selectedCharIndex] === alt.glyphIndex) {
+    if (!alt.glyphIndex || alt.glyphIndex === 0) {
+      setGlyphOverrides(prev => {
+        const next = { ...prev };
         delete next[selectedCharIndex];
-      } else {
-        next[selectedCharIndex] = alt.glyphIndex;
-      }
-      return next;
-    });
-
-    const effectiveTag = alt.featureTag === 'aalt' ? 'salt' : alt.featureTag;
-    setCharOverrides(prev => {
-      const next = { ...prev };
-      if (!effectiveTag || next[selectedCharIndex] === effectiveTag) {
+        return next;
+      });
+      setCharOverrides(prev => {
+        const next = { ...prev };
         delete next[selectedCharIndex];
-      } else {
-        next[selectedCharIndex] = effectiveTag;
-      }
-      return next;
-    });
+        return next;
+      });
+    } else {
+      setGlyphOverrides(prev => ({
+        ...prev,
+        [selectedCharIndex]: alt.glyphIndex
+      }));
+      setCharOverrides(prev => ({
+        ...prev,
+        [selectedCharIndex]: alt.featureTag || 'alt'
+      }));
+    }
 
     setPopoverPos(null);
     setSelectedCharIndex(null);
@@ -591,23 +592,18 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       const overrideGlyphIdx = glyphOverrides[i];
       const overrideFeature = charOverrides[i];
 
-      const activeCharFeatures = overrideFeature 
+      const activeCharFeatures = overrideFeature && overrideFeature !== 'alt'
         ? (globalActiveFeatureString === 'normal' ? `"${overrideFeature}" 1` : `"${overrideFeature}" 1, ${globalActiveFeatureString}`)
         : globalActiveFeatureString;
 
-      if (overrideGlyphIdx !== undefined && !overrideFeature) {
-        return (
-          <React.Fragment key={i}>
-            {renderInlineGlyphSvg(overrideGlyphIdx, fontSize, fontIdx) || char}
-          </React.Fragment>
-        );
-      }
+      const isCurrentActiveLayer = fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex);
 
       return (
         <span 
           key={i}
-          id={fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex) ? `char-span-${testerId}-${i}` : undefined}
+          id={isCurrentActiveLayer ? `char-span-${testerId}-${i}` : undefined}
           style={{
+            display: 'inline-inline',
             fontFamily: styleFontFamily,
             fontVariationSettings: fontVariationSettings || undefined,
             fontFeatureSettings: activeCharFeatures,
@@ -621,9 +617,13 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               handleTextSelect();
             }
           }}
-          className="pointer-events-auto cursor-text"
+          className="pointer-events-auto cursor-text inline-block"
         >
-          {char}
+          {overrideGlyphIdx !== undefined ? (
+            renderInlineGlyphSvg(overrideGlyphIdx, fontSize, fontIdx) || char
+          ) : (
+            char
+          )}
         </span>
       );
     });
