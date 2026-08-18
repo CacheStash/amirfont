@@ -104,6 +104,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [cursorPos, setCursorPos] = useState<number | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [caretCoords, setCaretCoords] = useState<{ left: number; top: number; height: number } | null>(null);
+  const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
+  const isDraggingSelection = useRef(false);
+  const dragAnchorIdx = useRef<number | null>(null);
 
   const updateCaretPosition = (pos: number | null) => {
     if (pos === null || !textareaRef.current) {
@@ -451,22 +454,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   };
 
 
-  const handleSelectionOrCursorChange = () => {
-    if (!textareaRef.current) return;
-    const { selectionStart, selectionEnd } = textareaRef.current;
-    
-    if (selectionStart === selectionEnd) {
-      setCursorPos(selectionStart);
-      updateCaretPosition(selectionStart);
-      setPopoverPos(null);
-      setSelectedCharIndex(null);
-    } else {
-      setCursorPos(null);
-      setCaretCoords(null);
-      handleTextSelect();
-    }
-  };
-
   const applyAlternate = (alt: AlternateGlyph) => {
     if (selectedCharIndex === null) return;
 
@@ -644,12 +631,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   };
 
   // Rendering Helper for Overlays
-  const handleCharClick = (index: number) => {
-    if (!textareaRef.current) return;
-    textareaRef.current.focus();
-    textareaRef.current.setSelectionRange(index, index + 1);
-    
-    // Trigger deteksi alternate langsung untuk karakter ini
+  const checkAlternatesForChar = (index: number) => {
     if (!loadedFontObj) return;
     const targetChar = text.charAt(index);
     if (!targetChar || targetChar === '\n' || targetChar === ' ') {
@@ -755,6 +737,66 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     }
   };
 
+  const handleSelectionOrCursorChange = () => {
+    if (!textareaRef.current) return;
+    const { selectionStart, selectionEnd } = textareaRef.current;
+    
+    if (selectionStart === selectionEnd) {
+      setCursorPos(selectionStart);
+      setSelectionRange(null);
+      updateCaretPosition(selectionStart);
+      setPopoverPos(null);
+      setSelectedCharIndex(null);
+    } else {
+      setCursorPos(null);
+      setCaretCoords(null);
+      setSelectionRange({ start: selectionStart, end: selectionEnd });
+      if (selectionEnd - selectionStart === 1) {
+        checkAlternatesForChar(selectionStart);
+      } else {
+        setPopoverPos(null);
+        setSelectedCharIndex(null);
+      }
+    }
+  };
+
+  const handleSpanMouseDown = (index: number) => {
+    isDraggingSelection.current = true;
+    dragAnchorIdx.current = index;
+    setSelectionRange({ start: index, end: index + 1 });
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(index, index + 1);
+    }
+    checkAlternatesForChar(index);
+  };
+
+  const handleSpanMouseEnter = (index: number) => {
+    if (!isDraggingSelection.current || dragAnchorIdx.current === null) return;
+    const anchor = dragAnchorIdx.current;
+    const start = Math.min(anchor, index);
+    const end = Math.max(anchor, index) + 1;
+    setSelectionRange({ start, end });
+    if (textareaRef.current) {
+      textareaRef.current.setSelectionRange(start, end);
+    }
+    if (end - start === 1) {
+      checkAlternatesForChar(start);
+    } else {
+      setPopoverPos(null);
+      setSelectedCharIndex(null);
+    }
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      isDraggingSelection.current = false;
+      dragAnchorIdx.current = null;
+    };
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, []);
+
   // Rendering Helper for Overlays
   const renderTextSpans = (fontIdx: number) => {
     const styleFontFamily = `"${config.name}-${fontIdx}"`;
@@ -767,7 +809,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         : globalActiveFeatureString;
 
       const isCurrentActiveLayer = fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex);
-      const isSelected = selectedCharIndex === i;
+      const isSelected = selectionRange 
+        ? (i >= Math.min(selectionRange.start, selectionRange.end) && i < Math.max(selectionRange.start, selectionRange.end))
+        : (selectedCharIndex === i);
 
       return (
         <span 
@@ -782,9 +826,10 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           }}
           onMouseDown={(e) => {
             e.stopPropagation();
-            handleCharClick(i);
+            handleSpanMouseDown(i);
           }}
-          className={`cursor-pointer transition-colors ${
+          onMouseEnter={() => handleSpanMouseEnter(i)}
+          className={`cursor-text select-none transition-colors ${
             isSelected ? 'bg-black text-white' : ''
           }`}
         >
@@ -962,7 +1007,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
              {!isLayeredMode ? (
                 <div 
                   ref={(el) => { layerContainerRefs.current['single'] = el; }}
-                  className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word overflow-hidden z-30 pointer-events-none select-none"
+                  className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word overflow-hidden z-25 pointer-events-auto select-none"
                   style={{ 
                     ...commonFontStyle, 
                     fontSize: `${fontSize}px`, 
@@ -970,12 +1015,14 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                     lineHeight: lineHeight, 
                     letterSpacing: `${letterSpacing}em` 
                   }}
-                  aria-hidden="true"
+                  onClick={() => {
+                    if (textareaRef.current) textareaRef.current.focus();
+                  }}
                 >
                   {renderTextSpans(activeStyleIndex)}
                 </div>
               ) : (
-                <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden select-none">
+                <div className="absolute inset-0 z-25 pointer-events-auto overflow-hidden select-none">
                   {layers.map((layer, stackIdx) => {
                     if (!layer.isVisible) return null;
                     const calculatedZIndex = layers.length - stackIdx;
@@ -994,7 +1041,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                           zIndex: calculatedZIndex,
                           color: layer.color
                         }}
-                        aria-hidden="true"
                       >
                         {renderTextSpans(layer.fontIndex)}
                       </div>
@@ -1004,7 +1050,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               )}
 
               {/* ACCURATE VISUAL CARET */}
-              {isFocused && caretCoords && cursorPos !== null && (
+              {isFocused && caretCoords && cursorPos !== null && !selectionRange && (
                 <div 
                   className="absolute z-35 w-[2px] bg-black pointer-events-none animate-pulse"
                   style={{
@@ -1025,6 +1071,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   setGlyphOverrides({});
                   setPopoverPos(null); 
                   setSelectedCharIndex(null); 
+                  setSelectionRange(null);
                   setTimeout(handleSelectionOrCursorChange, 0);
                 }} 
                 onFocus={() => {
@@ -1041,7 +1088,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 onMouseUp={handleSelectionOrCursorChange}
                 onMouseDown={handleSelectionOrCursorChange}
                 onScroll={handleScrollSync}
-                className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-20 text-transparent caret-transparent selection:bg-black selection:text-white pointer-events-auto"
+                className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-10 text-transparent caret-transparent selection:bg-transparent selection:text-transparent pointer-events-none"
                 style={{ 
                   ...commonFontStyle,
                   fontSize: `${fontSize}px`, 
