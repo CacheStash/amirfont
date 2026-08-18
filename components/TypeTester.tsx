@@ -616,8 +616,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
             fontFamily: styleFontFamily,
             fontVariationSettings: fontVariationSettings || undefined,
             fontFeatureSettings: activeCharFeatures,
-            WebkitFontFeatureSettings: activeCharFeatures,
-          color: 'inherit'
+            WebkitFontFeatureSettings: activeCharFeatures
           }}
       onClick={(e) => {
             e.stopPropagation();
