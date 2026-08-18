@@ -101,6 +101,47 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
   const [alternateGlyphs, setAlternateGlyphs] = useState<AlternateGlyph[]>([]);
   const [selectedCharIndex, setSelectedCharIndex] = useState<number | null>(null);
+  const [cursorPos, setCursorPos] = useState<number | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const [caretCoords, setCaretCoords] = useState<{ left: number; top: number; height: number } | null>(null);
+
+  const updateCaretPosition = (pos: number | null) => {
+    if (pos === null || !textareaRef.current) {
+      setCaretCoords(null);
+      return;
+    }
+    const container = textareaRef.current;
+    const containerRect = container.getBoundingClientRect();
+
+    if (pos >= text.length && text.length > 0) {
+      const lastSpan = document.getElementById(`char-span-${testerId}-${text.length - 1}`);
+      if (lastSpan) {
+        const r = lastSpan.getBoundingClientRect();
+        setCaretCoords({
+          left: r.right - containerRect.left + container.scrollLeft,
+          top: r.top - containerRect.top + container.scrollTop,
+          height: r.height || fontSize * lineHeight
+        });
+        return;
+      }
+    }
+
+    const currentSpan = document.getElementById(`char-span-${testerId}-${pos}`);
+    if (currentSpan) {
+      const r = currentSpan.getBoundingClientRect();
+      setCaretCoords({
+        left: r.left - containerRect.left + container.scrollLeft,
+        top: r.top - containerRect.top + container.scrollTop,
+        height: r.height || fontSize * lineHeight
+      });
+    } else {
+      setCaretCoords({
+        left: 24,
+        top: 16,
+        height: fontSize * lineHeight
+      });
+    }
+  };
 
   const FEATURE_NAMES: Record<string, string> = {
     liga: 'Standard Ligatures',
@@ -406,6 +447,23 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     } else {
       setPopoverPos(null);
       setSelectedCharIndex(null);
+    }
+  };
+
+
+  const handleSelectionOrCursorChange = () => {
+    if (!textareaRef.current) return;
+    const { selectionStart, selectionEnd } = textareaRef.current;
+    
+    if (selectionStart === selectionEnd) {
+      setCursorPos(selectionStart);
+      updateCaretPosition(selectionStart);
+      setPopoverPos(null);
+      setSelectedCharIndex(null);
+    } else {
+      setCursorPos(null);
+      setCaretCoords(null);
+      handleTextSelect();
     }
   };
 
@@ -901,10 +959,10 @@ const TypeTester: React.FC<TypeTesterProps> = ({
             <div className="relative w-full min-h-[300px]">
               
               {/* RENDER LAYER/SINGLE OVERLAYS (Visual Interactive Area) */}
-              {!isLayeredMode ? (
+             {!isLayeredMode ? (
                 <div 
                   ref={(el) => { layerContainerRefs.current['single'] = el; }}
-                  className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word overflow-hidden z-30 pointer-events-auto select-none"
+                  className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word overflow-hidden z-30 pointer-events-none select-none"
                   style={{ 
                     ...commonFontStyle, 
                     fontSize: `${fontSize}px`, 
@@ -912,14 +970,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                     lineHeight: lineHeight, 
                     letterSpacing: `${letterSpacing}em` 
                   }}
-                  onClick={() => {
-                    if (textareaRef.current) textareaRef.current.focus();
-                  }}
+                  aria-hidden="true"
                 >
                   {renderTextSpans(activeStyleIndex)}
                 </div>
               ) : (
-                <div className="absolute inset-0 z-30 pointer-events-auto overflow-hidden">
+                <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden select-none">
                   {layers.map((layer, stackIdx) => {
                     if (!layer.isVisible) return null;
                     const calculatedZIndex = layers.length - stackIdx;
@@ -938,6 +994,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                           zIndex: calculatedZIndex,
                           color: layer.color
                         }}
+                        aria-hidden="true"
                       >
                         {renderTextSpans(layer.fontIndex)}
                       </div>
@@ -945,8 +1002,20 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   })}
                 </div>
               )}
+
+              {/* ACCURATE VISUAL CARET */}
+              {isFocused && caretCoords && cursorPos !== null && (
+                <div 
+                  className="absolute z-35 w-[2px] bg-black pointer-events-none animate-pulse"
+                  style={{
+                    left: `${caretCoords.left}px`,
+                    top: `${caretCoords.top}px`,
+                    height: `${caretCoords.height}px`
+                  }}
+                />
+              )}
               
-              {/* INVISIBLE TEXT INPUT (BACKGROUND SYNC) */}
+              {/* INTERACTIVE TEXTAREA */}
               <textarea 
                 ref={textareaRef}
                 value={text} 
@@ -956,9 +1025,23 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   setGlyphOverrides({});
                   setPopoverPos(null); 
                   setSelectedCharIndex(null); 
+                  setTimeout(handleSelectionOrCursorChange, 0);
                 }} 
+                onFocus={() => {
+                  setIsFocused(true);
+                  handleSelectionOrCursorChange();
+                }}
+                onBlur={() => {
+                  setIsFocused(false);
+                  setCaretCoords(null);
+                }}
+                onSelect={handleSelectionOrCursorChange}
+                onKeyUp={handleSelectionOrCursorChange}
+                onKeyDown={handleSelectionOrCursorChange}
+                onMouseUp={handleSelectionOrCursorChange}
+                onMouseDown={handleSelectionOrCursorChange}
                 onScroll={handleScrollSync}
-                className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-10 text-transparent caret-transparent pointer-events-none"
+                className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-20 text-transparent caret-transparent selection:bg-black selection:text-white pointer-events-auto"
                 style={{ 
                   ...commonFontStyle,
                   fontSize: `${fontSize}px`, 
