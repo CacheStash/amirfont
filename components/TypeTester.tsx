@@ -80,6 +80,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 const styleDropdownRef = useRef<HTMLDivElement>(null);
   const sizeDropdownRef = useRef<HTMLDivElement>(null);
 
+  const testerId = useRef(`tt-${Math.random().toString(36).substring(2, 9)}`).current;
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (styleDropdownRef.current && !styleDropdownRef.current.contains(event.target as Node)) {
@@ -390,7 +392,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
       setSelectedCharIndex(start);
       let posX = 24;
       let posY = 16;
-      const targetCharEl = document.getElementById(`char-span-${start}`);
+      const targetCharEl = document.getElementById(`char-span-${testerId}-${start}`);
       if (targetCharEl && textareaRef.current) {
         const containerRect = textareaRef.current.getBoundingClientRect();
         const charRect = targetCharEl.getBoundingClientRect();
@@ -603,7 +605,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
       return (
         <span 
           key={i}
-          id={fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex) ? `char-span-${i}` : undefined}
+          id={fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex) ? `char-span-${testerId}-${i}` : undefined}
           style={{
             fontFamily: styleFontFamily,
             fontFeatureSettings: activeCharFeatures,
