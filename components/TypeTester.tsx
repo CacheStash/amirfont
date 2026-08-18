@@ -608,6 +608,8 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
         );
       }
 
+      const isSelected = selectedCharIndex === i;
+
       return (
         <span 
           key={i}
@@ -616,9 +618,11 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
             fontFamily: styleFontFamily,
             fontVariationSettings: fontVariationSettings || undefined,
             fontFeatureSettings: activeCharFeatures,
-            WebkitFontFeatureSettings: activeCharFeatures
+            WebkitFontFeatureSettings: activeCharFeatures,
+            backgroundColor: isSelected ? '#000000' : 'transparent',
+            color: isSelected ? '#ffffff' : 'inherit'
           }}
-      onClick={(e) => {
+          onClick={(e) => {
             e.stopPropagation();
             if (textareaRef.current) {
               textareaRef.current.focus();
@@ -626,7 +630,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
               handleTextSelect();
             }
           }}
-          className="pointer-events-auto cursor-text selection:bg-black/20 selection:text-black"
+          className="pointer-events-auto cursor-text inline-block"
         >
           {char}
         </span>
