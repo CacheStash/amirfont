@@ -586,6 +586,118 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   };
 
   // Rendering Helper for Overlays
+  const handleCharClick = (index: number) => {
+    if (!textareaRef.current) return;
+    textareaRef.current.focus();
+    textareaRef.current.setSelectionRange(index, index + 1);
+    
+    // Trigger deteksi alternate langsung untuk karakter ini
+    if (!loadedFontObj) return;
+    const targetChar = text.charAt(index);
+    if (!targetChar || targetChar === '\n' || targetChar === ' ') {
+      setPopoverPos(null);
+      setSelectedCharIndex(null);
+      return;
+    }
+
+    const glyphIndex = loadedFontObj.charToGlyphIndex(targetChar);
+    if (!glyphIndex) {
+      setPopoverPos(null);
+      setSelectedCharIndex(null);
+      return;
+    }
+
+    const alternates: AlternateGlyph[] = [];
+    const gsub = loadedFontObj.tables.gsub;
+
+    if (gsub && gsub.features && gsub.lookups) {
+      gsub.features.forEach((featureRecord: any) => {
+        featureRecord.feature.lookupListIndexes.forEach((lookupIndex: number) => {
+          const lookup = gsub.lookups[lookupIndex];
+          if (!lookup || !lookup.subtables) return;
+          if (lookup.lookupType !== 1 && lookup.lookupType !== 3) return;
+
+          lookup.subtables.forEach((subtable: any) => {
+            try {
+              let covIdx = -1;
+              const cov = subtable.coverage;
+              if (!cov) return;
+
+              if (cov.format === 2 && Array.isArray(cov.ranges)) {
+                const range = cov.ranges.find((r: any) => glyphIndex >= r.start && glyphIndex <= r.end);
+                if (range) covIdx = range.index + (glyphIndex - range.start);
+              } else if (Array.isArray(cov.glyphs)) {
+                covIdx = cov.glyphs.indexOf(glyphIndex);
+              } else if (Array.isArray(cov)) {
+                covIdx = cov.indexOf(glyphIndex);
+              }
+              
+              if (covIdx === -1) return;
+
+              let extractedIndices: number[] = [];
+              if (lookup.lookupType === 1) {
+                if (subtable.deltaGlyphId !== undefined) {
+                  extractedIndices.push((glyphIndex + subtable.deltaGlyphId) % 65536);
+                } else if (Array.isArray(subtable.substitute)) {
+                  extractedIndices.push(subtable.substitute[covIdx]);
+                }
+              } else if (lookup.lookupType === 3) {
+                const altSets = subtable.alternateSets || subtable.alternates || [];
+                const targetSet = altSets[covIdx];
+                if (targetSet) {
+                  if (Array.isArray(targetSet)) {
+                    extractedIndices.push(...targetSet);
+                  } else if (Array.isArray(targetSet.alternateGlyphs)) {
+                    extractedIndices.push(...targetSet.alternateGlyphs);
+                  } else if (Array.isArray(targetSet.alternates)) {
+                    extractedIndices.push(...targetSet.alternates);
+                  } else if (Array.isArray(targetSet.glyphs)) {
+                    extractedIndices.push(...targetSet.glyphs);
+                  }
+                }
+              }
+
+              extractedIndices.forEach((altIdx: any) => {
+                const numIdx = Number(altIdx);
+                if (isNaN(numIdx) || numIdx === glyphIndex || numIdx === 0) return;
+                
+                const targetGlyph = loadedFontObj.glyphs.get(numIdx);
+                if (!targetGlyph) return;
+
+                const charStr = targetGlyph.unicode 
+                  ? String.fromCharCode(targetGlyph.unicode) 
+                  : targetChar;
+
+                if (!alternates.some(a => a.glyphIndex === numIdx && a.featureTag === featureRecord.tag)) {
+                  alternates.push({ char: charStr, glyphIndex: numIdx, featureTag: featureRecord.tag });
+                }
+              });
+            } catch (e) {}
+          });
+        });
+      });
+    }
+
+    if (alternates.length > 0) {
+      setSelectedCharIndex(index);
+      let posX = 24;
+      let posY = 16;
+      const targetCharEl = document.getElementById(`char-span-${testerId}-${index}`);
+      if (targetCharEl && textareaRef.current) {
+        const containerRect = textareaRef.current.getBoundingClientRect();
+        const charRect = targetCharEl.getBoundingClientRect();
+        posX = charRect.left - containerRect.left;
+        posY = charRect.top - containerRect.top;
+      }
+      setPopoverPos({ x: posX, y: posY });
+      setAlternateGlyphs(alternates);
+    } else {
+      setPopoverPos(null);
+      setSelectedCharIndex(null);
+    }
+  };
+
+  // Rendering Helper for Overlays
   const renderTextSpans = (fontIdx: number) => {
     const styleFontFamily = `"${config.name}-${fontIdx}"`;
     return text.split('').map((char, i) => {
@@ -597,27 +709,26 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         : globalActiveFeatureString;
 
       const isCurrentActiveLayer = fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex);
+      const isSelected = selectedCharIndex === i;
 
       return (
         <span 
           key={i}
           id={isCurrentActiveLayer ? `char-span-${testerId}-${i}` : undefined}
+          data-char-idx={i}
           style={{
-            display: 'inline-inline',
             fontFamily: styleFontFamily,
             fontVariationSettings: fontVariationSettings || undefined,
             fontFeatureSettings: activeCharFeatures,
             WebkitFontFeatureSettings: activeCharFeatures
           }}
-          onClick={(e) => {
+          onMouseDown={(e) => {
             e.stopPropagation();
-            if (textareaRef.current) {
-              textareaRef.current.focus();
-              textareaRef.current.setSelectionRange(i, i + 1);
-              handleTextSelect();
-            }
+            handleCharClick(i);
           }}
-          className="pointer-events-auto cursor-text inline-block"
+          className={`cursor-pointer transition-colors ${
+            isSelected ? 'bg-black text-white' : ''
+          }`}
         >
           {overrideGlyphIdx !== undefined ? (
             renderInlineGlyphSvg(overrideGlyphIdx, fontSize, fontIdx) || char
@@ -789,11 +900,11 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           {viewMode === 'type' ? (
             <div className="relative w-full min-h-[300px]">
               
-              {/* RENDER LAYER/SINGLE OVERLAYS (Visual Text Area) */}
+              {/* RENDER LAYER/SINGLE OVERLAYS (Visual Interactive Area) */}
               {!isLayeredMode ? (
                 <div 
                   ref={(el) => { layerContainerRefs.current['single'] = el; }}
-                  className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word overflow-hidden select-text z-35"
+                  className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word overflow-hidden z-30 pointer-events-auto select-none"
                   style={{ 
                     ...commonFontStyle, 
                     fontSize: `${fontSize}px`, 
@@ -801,12 +912,14 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                     lineHeight: lineHeight, 
                     letterSpacing: `${letterSpacing}em` 
                   }}
-                  aria-hidden="true"
+                  onClick={() => {
+                    if (textareaRef.current) textareaRef.current.focus();
+                  }}
                 >
                   {renderTextSpans(activeStyleIndex)}
                 </div>
               ) : (
-                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute inset-0 z-30 pointer-events-auto overflow-hidden">
                   {layers.map((layer, stackIdx) => {
                     if (!layer.isVisible) return null;
                     const calculatedZIndex = layers.length - stackIdx;
@@ -825,7 +938,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                           zIndex: calculatedZIndex,
                           color: layer.color
                         }}
-                        aria-hidden="true"
                       >
                         {renderTextSpans(layer.fontIndex)}
                       </div>
@@ -834,24 +946,25 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 </div>
               )}
               
-              {/* INVISIBLE INTERACTIVE TEXTAREA */}
+              {/* INVISIBLE TEXT INPUT (BACKGROUND SYNC) */}
               <textarea 
                 ref={textareaRef}
                 value={text} 
-                onChange={(e) => { setText(e.target.value); setCharOverrides({}); setPopoverPos(null); setSelectedCharIndex(null); }} 
-                onSelect={handleTextSelect}
-                onKeyUp={handleTextSelect}
-                onMouseUp={handleTextSelect}
+                onChange={(e) => { 
+                  setText(e.target.value); 
+                  setCharOverrides({}); 
+                  setGlyphOverrides({});
+                  setPopoverPos(null); 
+                  setSelectedCharIndex(null); 
+                }} 
                 onScroll={handleScrollSync}
-                className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-20 text-transparent caret-black selection:bg-black selection:text-white"
+                className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-10 text-transparent caret-transparent pointer-events-none"
                 style={{ 
                   ...commonFontStyle,
                   fontSize: `${fontSize}px`, 
                   textAlign: align,
                   lineHeight: lineHeight,
-                  letterSpacing: `${letterSpacing}em`,
-                  fontFeatureSettings: globalActiveFeatureString,
-                  WebkitFontFeatureSettings: globalActiveFeatureString
+                  letterSpacing: `${letterSpacing}em`
                 }} 
                 spellCheck={false} 
               />
