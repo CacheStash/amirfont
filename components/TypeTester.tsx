@@ -616,7 +616,8 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
             fontFamily: styleFontFamily,
             fontVariationSettings: fontVariationSettings || undefined,
             fontFeatureSettings: activeCharFeatures,
-            WebkitFontFeatureSettings: activeCharFeatures
+            WebkitFontFeatureSettings: activeCharFeatures,
+          color: 'inherit'
           }}
       onClick={(e) => {
             e.stopPropagation();
@@ -626,7 +627,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
               handleTextSelect();
             }
           }}
-          className="pointer-events-auto cursor-text"
+          className="pointer-events-auto cursor-text selection:bg-black/20 selection:text-black"
         >
           {char}
         </span>
@@ -635,7 +636,7 @@ const styleDropdownRef = useRef<HTMLDivElement>(null);
   };
 
   return (
-<div className="w-full h-full relative group bg-transparent selection:bg-black selection:text-white">
+<div className="w-full h-full relative group bg-transparent selection:bg-black/20 selection:text-black">
         <div className="relative z-10 h-full flex flex-col">
         <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-50">
 
