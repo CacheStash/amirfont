@@ -427,8 +427,11 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   ? String.fromCharCode(targetGlyph.unicode) 
                   : targetChar;
 
-                if (!alternates.some(a => a.glyphIndex === numIdx && a.featureTag === featureRecord.tag)) {
-                  alternates.push({ char: charStr, glyphIndex: numIdx, featureTag: featureRecord.tag });
+                const effectiveTag = featureRecord.tag === 'aalt' ? 'salt' : featureRecord.tag;
+
+                // Cegah duplikasi glyph jika terdaftar di beberapa fitur sekaligus (misal aalt + salt)
+                if (!alternates.some(a => a.glyphIndex === numIdx)) {
+                  alternates.push({ char: charStr, glyphIndex: numIdx, featureTag: effectiveTag });
                 }
               });
             } catch (e) {

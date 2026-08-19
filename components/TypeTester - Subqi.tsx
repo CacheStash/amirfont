@@ -107,13 +107,14 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
   const isDraggingSelection = useRef(false);
   const dragAnchorIdx = useRef<number | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   const updateCaretPosition = (pos: number | null) => {
-    if (pos === null || !textareaRef.current) {
+    if (pos === null || !textareaRef.current || !scrollContainerRef.current) {
       setCaretCoords(null);
       return;
     }
-    const container = textareaRef.current;
+    const container = scrollContainerRef.current;
     const containerRect = container.getBoundingClientRect();
 
     if (pos >= text.length && text.length > 0) {
@@ -138,11 +139,15 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         height: r.height || fontSize * lineHeight
       });
     } else {
-      setCaretCoords({
-        left: 24,
-        top: 16,
-        height: fontSize * lineHeight
-      });
+      const firstSpan = document.getElementById(`char-span-${testerId}-0`);
+      if (firstSpan) {
+        const r = firstSpan.getBoundingClientRect();
+        setCaretCoords({
+          left: r.left - containerRect.left + container.scrollLeft,
+          top: r.top - containerRect.top + container.scrollTop,
+          height: r.height || fontSize * lineHeight
+        });
+      }
     }
   };
 
@@ -630,6 +635,26 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     });
   };
 
+  const handleMasterScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollLeft } = e.currentTarget;
+
+    if (textareaRef.current) {
+      textareaRef.current.scrollTop = scrollTop;
+      textareaRef.current.scrollLeft = scrollLeft;
+    }
+
+    Object.values(layerContainerRefs.current).forEach((el) => {
+      if (el) {
+        el.scrollTop = scrollTop;
+        el.scrollLeft = scrollLeft;
+      }
+    });
+
+    if (cursorPos !== null) {
+      updateCaretPosition(cursorPos);
+    }
+  };
+
   // Rendering Helper for Overlays
   const checkAlternatesForChar = (index: number) => {
     if (!loadedFontObj) return;
@@ -1004,156 +1029,165 @@ const TypeTester: React.FC<TypeTesterProps> = ({
             <div className="relative w-full min-h-[300px]">
               
               {/* RENDER LAYER/SINGLE OVERLAYS (Visual Interactive Area) */}
-             {!isLayeredMode ? (
-                <div 
-                  ref={(el) => { layerContainerRefs.current['single'] = el; }}
-                  className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word overflow-hidden z-25 pointer-events-auto select-none"
+             <div 
+                ref={scrollContainerRef}
+                onScroll={handleMasterScroll}
+                className="relative w-full h-[450px] overflow-y-auto overflow-x-hidden custom-scrollbar"
+              >
+                {!isLayeredMode ? (
+                  /* SINGLE STYLE DISPLAY */
+                  <div 
+                    ref={(el) => { layerContainerRefs.current['single'] = el; }}
+                    className="relative w-full pt-4 pr-4 pb-8 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word z-25 pointer-events-auto select-none min-h-full"
+                    style={{ 
+                      ...commonFontStyle, 
+                      fontSize: `${fontSize}px`, 
+                      textAlign: align, 
+                      lineHeight: lineHeight, 
+                      letterSpacing: `${letterSpacing}em` 
+                    }}
+                    onClick={() => {
+                      if (textareaRef.current) textareaRef.current.focus();
+                    }}
+                  >
+                    {renderTextSpans(activeStyleIndex)}
+                  </div>
+                ) : (
+                  /* MULTI-LAYER STACKING DISPLAY */
+                  <div className="relative w-full min-h-full">
+                    {layers.map((layer, stackIdx) => {
+                      if (!layer.isVisible) return null;
+                      const calculatedZIndex = layers.length - stackIdx;
+                      const isFirstVisible = stackIdx === 0;
+
+                      return (
+                        <div 
+                          key={layer.id}
+                          ref={(el) => { layerContainerRefs.current[layer.id] = el; }}
+                          className={`${isFirstVisible ? 'relative' : 'absolute inset-0'} w-full pt-4 pr-4 pb-8 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word select-none z-25 pointer-events-auto min-h-full`}
+                          style={{ 
+                            ...commonFontStyle,
+                            fontFamily: `"${config.name}-${layer.fontIndex}"`,
+                            fontSize: `${fontSize}px`, 
+                            textAlign: align, 
+                            lineHeight: lineHeight, 
+                            letterSpacing: `${letterSpacing}em`,
+                            zIndex: calculatedZIndex,
+                            color: layer.color
+                          }}
+                        >
+                          {renderTextSpans(layer.fontIndex)}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* ACCURATE VISUAL CARET */}
+                {isFocused && caretCoords && (
+                  <div 
+                    className="absolute z-40 pointer-events-none animate-pulse"
+                    style={{
+                      left: `${caretCoords.left}px`,
+                      top: `${caretCoords.top}px`,
+                      height: `${caretCoords.height}px`,
+                      width: '2px',
+                      backgroundColor: '#000000'
+                    }}
+                  />
+                )}
+
+                {/* TEXTAREA INPUT */}
+                <textarea 
+                  ref={textareaRef}
+                  value={text} 
+                  onChange={(e) => { 
+                    const nextText = e.target.value;
+                    const prevText = text;
+                    setText(nextText); 
+                    
+                    // Sesuaikan index overrides jika teks bertambah/berkurang
+                    const diff = nextText.length - prevText.length;
+                    const changePos = textareaRef.current?.selectionStart ?? nextText.length;
+                    const insertPos = diff > 0 ? changePos - diff : changePos;
+
+                    setGlyphOverrides(prev => {
+                      const next: Record<number, number> = {};
+                      Object.entries(prev).forEach(([k, val]) => {
+                        const idx = Number(k);
+                        if (diff > 0) {
+                          if (idx < insertPos) {
+                            next[idx] = val;
+                          } else {
+                            next[idx + diff] = val;
+                          }
+                        } else if (diff < 0) {
+                          const deletedCount = Math.abs(diff);
+                          if (idx < insertPos) {
+                            next[idx] = val;
+                          } else if (idx >= insertPos + deletedCount) {
+                            next[idx - deletedCount] = val;
+                          }
+                        } else {
+                          next[idx] = val;
+                        }
+                      });
+                      return next;
+                    });
+
+                    setCharOverrides(prev => {
+                      const next: Record<number, string> = {};
+                      Object.entries(prev).forEach(([k, val]) => {
+                        const idx = Number(k);
+                        if (diff > 0) {
+                          if (idx < insertPos) {
+                            next[idx] = val;
+                          } else {
+                            next[idx + diff] = val;
+                          }
+                        } else if (diff < 0) {
+                          const deletedCount = Math.abs(diff);
+                          if (idx < insertPos) {
+                            next[idx] = val;
+                          } else if (idx >= insertPos + deletedCount) {
+                            next[idx - deletedCount] = val;
+                          }
+                        } else {
+                          next[idx] = val;
+                        }
+                      });
+                      return next;
+                    });
+
+                    setPopoverPos(null); 
+                    setSelectedCharIndex(null); 
+                    setSelectionRange(null);
+                    setTimeout(handleSelectionOrCursorChange, 0);
+                  }}
+                  onFocus={() => {
+                    setIsFocused(true);
+                    handleSelectionOrCursorChange();
+                  }}
+                  onBlur={() => {
+                    setIsFocused(false);
+                    setCaretCoords(null);
+                  }}
+                  onSelect={handleSelectionOrCursorChange}
+                  onKeyUp={handleSelectionOrCursorChange}
+                  onKeyDown={handleSelectionOrCursorChange}
+                  onMouseUp={handleSelectionOrCursorChange}
+                  onMouseDown={handleSelectionOrCursorChange}
+                  className="absolute inset-0 w-full h-full bg-transparent outline-none resize-none pt-4 pr-4 pb-8 pl-6 md:pl-8 z-10 text-transparent caret-transparent selection:bg-transparent selection:text-transparent pointer-events-none overflow-hidden"
                   style={{ 
-                    ...commonFontStyle, 
+                    ...commonFontStyle,
                     fontSize: `${fontSize}px`, 
-                    textAlign: align, 
-                    lineHeight: lineHeight, 
-                    letterSpacing: `${letterSpacing}em` 
-                  }}
-                  onClick={() => {
-                    if (textareaRef.current) textareaRef.current.focus();
-                  }}
-                >
-                  {renderTextSpans(activeStyleIndex)}
-                </div>
-              ) : (
-                <div className="absolute inset-0 z-25 pointer-events-auto overflow-hidden select-none">
-                  {layers.map((layer, stackIdx) => {
-                    if (!layer.isVisible) return null;
-                    const calculatedZIndex = layers.length - stackIdx;
-                    return (
-                      <div 
-                        key={layer.id}
-                        ref={(el) => { layerContainerRefs.current[layer.id] = el; }}
-                        className="absolute inset-0 pt-4 pr-4 pb-4 pl-6 md:pl-8 whitespace-pre-wrap wrap-break-word select-none overflow-hidden"
-                        style={{ 
-                          ...commonFontStyle,
-                          fontFamily: `"${config.name}-${layer.fontIndex}"`,
-                          fontSize: `${fontSize}px`, 
-                          textAlign: align, 
-                          lineHeight: lineHeight, 
-                          letterSpacing: `${letterSpacing}em`,
-                          zIndex: calculatedZIndex,
-                          color: layer.color
-                        }}
-                      >
-                        {renderTextSpans(layer.fontIndex)}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* ACCURATE VISUAL CARET */}
-              {isFocused && caretCoords && cursorPos !== null && !selectionRange && (
-                <div 
-                  className="absolute z-35 w-[2px] bg-black pointer-events-none animate-pulse"
-                  style={{
-                    left: `${caretCoords.left}px`,
-                    top: `${caretCoords.top}px`,
-                    height: `${caretCoords.height}px`
-                  }}
+                    textAlign: align,
+                    lineHeight: lineHeight,
+                    letterSpacing: `${letterSpacing}em`
+                  }} 
+                  spellCheck={false} 
                 />
-              )}
-              
-              {/* INTERACTIVE TEXTAREA */}
-              <textarea 
-                ref={textareaRef}
-                value={text} 
-                onChange={(e) => { 
-                  const nextText = e.target.value;
-                  const prevText = text;
-                  setText(nextText); 
-                  
-                  // Sesuaikan index overrides jika teks bertambah/berkurang
-                  const diff = nextText.length - prevText.length;
-                  const changePos = textareaRef.current?.selectionStart ?? nextText.length;
-                  const insertPos = diff > 0 ? changePos - diff : changePos;
-
-                  setGlyphOverrides(prev => {
-                    const next: Record<number, number> = {};
-                    Object.entries(prev).forEach(([k, val]) => {
-                      const idx = Number(k);
-                      if (diff > 0) {
-                        // Teks disisipkan / ditambah
-                        if (idx < insertPos) {
-                          next[idx] = val;
-                        } else {
-                          next[idx + diff] = val;
-                        }
-                      } else if (diff < 0) {
-                        // Teks dihapus (backspace/delete)
-                        const deletedCount = Math.abs(diff);
-                        if (idx < insertPos) {
-                          next[idx] = val;
-                        } else if (idx >= insertPos + deletedCount) {
-                          next[idx - deletedCount] = val;
-                        }
-                      } else {
-                        next[idx] = val;
-                      }
-                    });
-                    return next;
-                  });
-
-                  setCharOverrides(prev => {
-                    const next: Record<number, string> = {};
-                    Object.entries(prev).forEach(([k, val]) => {
-                      const idx = Number(k);
-                      if (diff > 0) {
-                        if (idx < insertPos) {
-                          next[idx] = val;
-                        } else {
-                          next[idx + diff] = val;
-                        }
-                      } else if (diff < 0) {
-                        const deletedCount = Math.abs(diff);
-                        if (idx < insertPos) {
-                          next[idx] = val;
-                        } else if (idx >= insertPos + deletedCount) {
-                          next[idx - deletedCount] = val;
-                        }
-                      } else {
-                        next[idx] = val;
-                      }
-                    });
-                    return next;
-                  });
-
-                  setPopoverPos(null); 
-                  setSelectedCharIndex(null); 
-                  setSelectionRange(null);
-                  setTimeout(handleSelectionOrCursorChange, 0);
-                }}
-                onFocus={() => {
-                  setIsFocused(true);
-                  handleSelectionOrCursorChange();
-                }}
-                onBlur={() => {
-                  setIsFocused(false);
-                  setCaretCoords(null);
-                }}
-                onSelect={handleSelectionOrCursorChange}
-                onKeyUp={handleSelectionOrCursorChange}
-                onKeyDown={handleSelectionOrCursorChange}
-                onMouseUp={handleSelectionOrCursorChange}
-                onMouseDown={handleSelectionOrCursorChange}
-                onScroll={handleScrollSync}
-                className="w-full min-h-[300px] bg-transparent outline-none resize-none pt-4 pr-4 pb-4 pl-6 md:pl-8 relative z-10 text-transparent caret-transparent selection:bg-transparent selection:text-transparent pointer-events-none"
-                style={{ 
-                  ...commonFontStyle,
-                  fontSize: `${fontSize}px`, 
-                  textAlign: align,
-                  lineHeight: lineHeight,
-                  letterSpacing: `${letterSpacing}em`
-                }} 
-                spellCheck={false} 
-              />
+              </div>
 
               {/* POPOVER ALTERNATE GLYPHS */}
               {popoverPos && alternateGlyphs.length > 0 && selectedCharIndex !== null && (
