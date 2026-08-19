@@ -100,9 +100,9 @@ const Footer = () => {
         {/* KOLOM 3: SOCIAL CHANNELS */}
         <div className="flex flex-col gap-3">
           <span className="opacity-40 tracking-[0.2em] mb-2 italic">SOCIAL_CHANNELS</span>
-          <a href="https://behance.net" target="_blank" rel="noopener noreferrer" className="hover:underline tracking-widest w-fit">BEHANCE</a>
-          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:underline tracking-widest w-fit">INSTAGRAM</a>
-          <a href="mailto:hello@subqi.com" className="hover:underline tracking-widest w-fit">EMAIL_INQUIRY</a>
+          <a href="https://www.behance.net/amirsubqisetiaji" target="_blank" rel="noopener noreferrer" className="hover:underline tracking-widest w-fit">BEHANCE</a>
+          <a href="https://www.instagram.com/amirsubqi/" target="_blank" rel="noopener noreferrer" className="hover:underline tracking-widest w-fit">INSTAGRAM</a>
+          <a href="mailto:subqistudio@gmail.com" className="hover:underline tracking-widest w-fit">EMAIL_INQUIRY</a>
         </div>
 
         {/* KOLOM 4: LEGAL & HQ */}
