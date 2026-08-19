@@ -119,8 +119,12 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <Link to="/" className="font-normal tracking-tighter text-xl md:text-2xl uppercase hover:opacity-70 transition-opacity truncate">
-            Subqi Studio
+          <Link to="/" className="flex items-center h-full hover:opacity-70 transition-opacity">
+            <img 
+              src="/Logo.png" 
+              alt="Subqi Studio" 
+              className="h-6 md:h-8 w-auto object-contain" 
+            />
           </Link>
         </div>
 
