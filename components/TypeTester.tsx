@@ -679,8 +679,15 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     const gsub = loadedFontObj.tables.gsub;
 
     if (gsub && gsub.features && gsub.lookups) {
+      const altFeatureTags = [
+        'salt', 'swsh', 'titl', 'calt', 'dlig',
+        ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`)
+      ];
+      
       gsub.features.forEach((featureRecord: any) => {
-        featureRecord.feature.lookupListIndexes.forEach((lookupIndex: number) => {
+        if (!altFeatureTags.includes(featureRecord.tag)) return;
+
+        featureRecord.feature.lookupListIndexes?.forEach((lookupIndex: number) => {
           const lookup = gsub.lookups[lookupIndex];
           if (!lookup || !lookup.subtables) return;
           if (lookup.lookupType !== 1 && lookup.lookupType !== 3) return;
@@ -707,10 +714,11 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 if (subtable.deltaGlyphId !== undefined) {
                   extractedIndices.push((glyphIndex + subtable.deltaGlyphId) % 65536);
                 } else if (Array.isArray(subtable.substitute)) {
-                  extractedIndices.push(subtable.substitute[covIdx]);
+                  const targetSub = subtable.substitute[covIdx];
+                  if (targetSub !== undefined) extractedIndices.push(targetSub);
                 }
               } else if (lookup.lookupType === 3) {
-                const altSets = subtable.alternateSets || subtable.alternates || [];
+                const altSets = subtable.alternateSets || subtable.alternateSet || subtable.alternates || [];
                 const targetSet = altSets[covIdx];
                 if (targetSet) {
                   if (Array.isArray(targetSet)) {
@@ -736,7 +744,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   ? String.fromCharCode(targetGlyph.unicode) 
                   : targetChar;
 
-                if (!alternates.some(a => a.glyphIndex === numIdx && a.featureTag === featureRecord.tag)) {
+                // KUNCI: Cegah duplikasi murni berdasarkan glyphIndex
+                if (!alternates.some(a => a.glyphIndex === numIdx)) {
                   alternates.push({ char: charStr, glyphIndex: numIdx, featureTag: featureRecord.tag });
                 }
               });
