@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
-import { supabase } from '../../lib/supabase'; // Pastikan path ini benar sesuai folder lib kamu
+import { supabase } from '../../lib/supabase';
 
 // Definisi tipe untuk hasil API agar TypeScript tidak error
 interface UploadResponse {
@@ -45,10 +45,8 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   });
 
   const [price, setPrice] = useState(initialData?.price?.toString() || ''); 
-  // Preview sederhana (Tetap dipertahankan sesuai backup)
-  const [prices, setPrices] = useState({ desktop: 0, web: 0, app: 0 }); 
 
-  // Handler untuk update harga (Tetap dipertahankan sesuai backup)
+  // Handler untuk update harga
   const updatePrice = (category: string, subKey: string | null, value: string) => {
     const numValue = parseFloat(value) || 0;
     setLicensePrices((prev: any) => {
@@ -97,24 +95,15 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
     setDraggedImgIndex(null);
   };
 
-  // Fungsi helper untuk merubah urutan item dalam array (Move Up/Down)
-  const moveItem = (array: any[], setArray: React.Dispatch<React.SetStateAction<any[]>>, index: number, direction: 'up' | 'down') => {
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= array.length) return;
-    const newArray = [...array];
-    [newArray[index], newArray[newIndex]] = [newArray[newIndex], newArray[index]];
-    setArray(newArray);
-  };
-
   const handleSelectAllDrive = (type: 'fonts' | 'previews') => {
     if (!driveResults) return;
     if (type === 'fonts') {
-      const unselected = driveResults.fonts.filter(f => !existingFontFiles.includes(f.id));
-      setExistingFontFiles(prev => [...prev, ...unselected.map(f => f.id)]);
+      const unselected = driveResults.fonts.filter(f => !existingFontFiles.includes(f.name || f.id));
+      setExistingFontFiles(prev => [...prev, ...unselected.map(f => f.name || f.id)]);
     } else {
-      const unselected = driveResults.images.filter(img => !existingPreviewImages.includes(img.id));
+      const unselected = driveResults.images.filter(img => !existingPreviewImages.includes(img.name || img.id));
       if (existingPreviewImages.length + previewImages.length + unselected.length > 20) return alert("Maksimal 20 gambar!");
-      setExistingPreviewImages(prev => [...prev, ...unselected.map(img => img.id)]);
+      setExistingPreviewImages(prev => [...prev, ...unselected.map(img => img.name || img.id)]);
     }
   };
 
@@ -132,7 +121,22 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         alert("Drive Error: " + data.error);
         setDriveResults({ images: [], fonts: [], trial: [] });
       } else {
-        setDriveResults(data);
+        // Natural Sort Client-side Safety
+        const sortedImages = (data.images || []).sort((a, b) => 
+          (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' })
+        );
+        const sortedFonts = (data.fonts || []).sort((a, b) => 
+          (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' })
+        );
+        const sortedTrial = (data.trial || []).sort((a, b) => 
+          (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' })
+        );
+
+        setDriveResults({
+          images: sortedImages,
+          fonts: sortedFonts,
+          trial: sortedTrial
+        });
       }
     } catch (err) { 
       alert("Gagal koneksi ke Worker"); 
@@ -159,8 +163,6 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       );
     }
   }, [initialData]);
-
-  const removeExistingTrial = () => setExistingTrialFile('');
 
   const removeExistingFont = (index: number) => {
     setExistingFontFiles(prev => prev.filter((_, i) => i !== index));
@@ -194,7 +196,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
     }
   };
 
-  // Fungsi upload helper ke R2 (Tetap dipertahankan sesuai backup)
+  // Fungsi upload helper ke R2
   const uploadToR2 = async (files: File[]) => {
     const uploadedUrls = [];
     const { data: { session } } = await supabase.auth.getSession();
@@ -235,7 +237,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
     return uploadedUrls;
   };
 
-  // 2. Handler Upload & Save (Disesuaikan untuk INSERT & UPDATE)
+  // Handler Upload & Save
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!initialData && fontFiles.length === 0 && existingFontFiles.length === 0) {
@@ -279,12 +281,10 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       };
 
       if (initialData?.id) {
-        // Mode UPDATE
         const { error: dbError } = await supabase.from('fonts').update(payload).eq('id', initialData.id);
         if (dbError) throw dbError;
         alert("Font berhasil diupdate!");
       } else {
-        // Mode INSERT
         const { error: dbError } = await supabase.from('fonts').insert([payload]);
         if (dbError) throw dbError;
         alert("Gokil! Font berhasil dipublikasikan.");
@@ -436,7 +436,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         </div>
       </div>
 
-      {/* LAYERED FONT SYSTEM CHECKBOX (SUBQI THEME) */}
+      {/* LAYERED FONT SYSTEM CHECKBOX */}
       <div className="p-4 border border-black bg-gray-50 flex items-center justify-between">
         <div>
           <label className="font-bold text-xs uppercase tracking-wider text-black block cursor-pointer" htmlFor="isLayeredCheckboxSubqi">
@@ -561,6 +561,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         </div>
       </div>
 
+      {/* TRIAL FILE */}
       <div className="space-y-2">
         <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">
           Trial / Demo Version (.zip / .ttf)
@@ -600,6 +601,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
         </div>
       </div>
 
+      {/* PREVIEW IMAGES */}
       <div className="space-y-2">
         <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Preview Images (Max 20)</label>
         <div 
@@ -607,19 +609,19 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           onDrop={(e) => handleDropFiles(e, 'previews')}
           className="grid grid-cols-4 md:grid-cols-6 gap-2 border-2 border-black p-4 bg-gray-100"
         >
-          {Array.isArray(driveResults?.images) && driveResults.images.filter(img => !existingPreviewImages.includes(img.id)).length > 0 && (
+          {Array.isArray(driveResults?.images) && driveResults.images.filter(img => !existingPreviewImages.includes(img.name || img.id)).length > 0 && (
              <div className="col-span-full flex justify-between items-center bg-blue-100 p-1 px-2 border border-blue-300">
                <span className="text-[8px] font-bold text-blue-700 uppercase">Drive Images</span>
                <button type="button" onClick={() => handleSelectAllDrive('previews')} className="text-[7px] bg-blue-600 text-white px-2 py-0.5 font-bold uppercase hover:bg-black transition-colors">Select All</button>
              </div>
           )}
 
-          {Array.isArray(driveResults?.images) && driveResults.images.filter(img => !existingPreviewImages.includes(img.id)).map((img, i) => (
+          {Array.isArray(driveResults?.images) && driveResults.images.filter(img => !existingPreviewImages.includes(img.name || img.id)).map((img, i) => (
             <div key={`dr-p-${i}`} className="aspect-square bg-blue-50 border border-blue-200 relative group overflow-hidden">
               <img src={img.url} className="w-full h-full object-cover" alt="drive" />
               <button
                 type="button"
-                onClick={() => setExistingPreviewImages(prev => [...prev, img.id])}
+                onClick={() => setExistingPreviewImages(prev => [...prev, img.name || img.id])}
                 className="absolute inset-0 bg-blue-600/90 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-bold text-[8px]"
               >
                 USE DRIVE FILE
@@ -639,7 +641,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
             >
               <img src={`/api/images/${url}`} className="w-full h-full object-cover" alt="preview" />
               <button 
-                type="button"
+                type="button" 
                 onClick={() => removeExistingPreview(i)}
                 className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-bold"
               >
@@ -647,11 +649,12 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
               </button>
             </div>
           ))}
+          
           {previewImages.map((file, i) => (
             <div key={`new-p-${i}`} className="aspect-square bg-white border border-black relative group overflow-hidden">
               <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" alt="preview" />
               <button 
-                type="button"
+                type="button" 
                 onClick={() => setPreviewImages(prev => prev.filter((_, idx) => idx !== i))}
                 className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-bold"
               >
