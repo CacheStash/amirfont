@@ -143,12 +143,12 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   const handleSelectAllDrive = (type: 'fonts' | 'previews') => {
     if (!driveResults) return;
     if (type === 'fonts') {
-      const unselected = driveResults.fonts.filter(f => !existingFontFiles.includes(f.name || f.id));
-      setExistingFontFiles(prev => [...prev, ...unselected.map(f => f.name || f.id)]);
+      const unselected = driveResults.fonts.filter(f => !existingFontFiles.includes(f.id));
+      setExistingFontFiles(prev => [...prev, ...unselected.map(f => f.id)]);
     } else {
-      const unselected = driveResults.images.filter(img => !existingPreviewImages.includes(img.name || img.id));
+      const unselected = driveResults.images.filter(img => !existingPreviewImages.includes(img.id));
       if (existingPreviewImages.length + previewImages.length + unselected.length > 20) return alert("Maksimal 20 gambar!");
-      setExistingPreviewImages(prev => [...prev, ...unselected.map(img => img.name || img.id)]);
+      setExistingPreviewImages(prev => [...prev, ...unselected.map(img => img.id)]);
     }
   };
 
