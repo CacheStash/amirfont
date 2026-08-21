@@ -15,21 +15,46 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   // 1. State untuk Form (Diambil dari initialData jika sedang mode EDIT)
   const [fontName, setFontName] = useState(initialData?.name || '');
   const FONT_TAGS_LIBRARY = [
-    // Dasar & Teknis
-    "Sans Serif", "Serif", "Slab Serif", "Monospace", "Variable Font", "Display", "Text", "Stencil", "Blackletter", "Script", "Handwritten",
-    // Sub-Klasifikasi Serif
-    "Didone", "Old Style", "Transitional", "Modern Serif", "Glyphic", "Didot", "Garalde", "Humanist Serif",
-    // Sub-Klasifikasi Sans
-    "Geometric Sans", "Grotesque", "Neo-Grotesque", "Humanist Sans", "Grotesk",
-    // Gaya & Era
-    "Art Deco", "Art Nouveau", "Bauhaus", "Vintage", "Retro", "Victorian", "Mid-Century", "Y2K", "90s", "80s", "Cyberpunk", "Futuristic",
-    // Vibe & Mood
-    "Minimalist", "Brutalism", "Acid", "Experimental", "Liquid", "Distorted", "Elegant", "Luxury", "Classic", "Editorial", "Fashion", "Corporate",
-    // Khusus & Dekoratif
-    "Horror", "Gothic", "Old English", "Fraktur", "Calligraphy", "Signature", "Brush", "Marker", "Comic", "Pixel", "Gaming", "Sports", "Techno",
-    // Karakteristik Fisik
-    "Condensed", "Expanded", "Narrow", "Wide", "Outline", "Inline", "Shadow", "Soft Edges", "Rounded", "Sharp", "High Contrast", "Low Contrast"
-  ].sort();
+    // 1. Klasifikasi Utama & Teknis
+    "Blackletter", "Calligraphy", "Dingbats", "Display", "Experimental", "Fraktur", "Handwritten",
+    "Layered", "Monospace", "OpenType Features", "Pixel", "Rough", "Rustic", "Sans Serif", "Script",
+    "Serif", "Signature", "Slab Serif", "Stencil", "Text", "Variable Font",
+
+    // 2. Sub-Klasifikasi Serif & Sans
+    "Didone", "Didot", "Garalde", "Geometric Sans", "Glyphic", "Grotesk", "Grotesque", "Humanist Sans",
+    "Humanist Serif", "Modern Serif", "Neo-Grotesque", "Old Style", "Rustic Serif", "Square Sans",
+    "Transitional", "Tuscan", "Wedge Serif",
+
+    // 3. Sistem Layered, Chromatic & 3D
+    "Bevel", "Chromatic", "Color Font", "Drop Shadow", "Embossed", "Extrude", "Fill Layer", "Gradient",
+    "Hatch", "Inline", "Layered System", "Multilayer", "Offset", "Ornamental Layer", "Outline", "Ribbon",
+    "Shadow", "Staggered", "Volume",
+
+    // 4. Era, Historis & Vintage Heritage
+    "1800s", "1900s", "1920s", "1930s", "1950s", "1960s", "1970s", "1980s", "1990s", "50s", "60s",
+    "70s", "80s", "90s", "Americana", "Antique", "Art Deco", "Art Nouveau", "Baroque", "Bauhaus",
+    "Circus", "Colonial", "Cyberpunk", "Early American", "Edwardian", "Futuristic", "Gilded Age",
+    "Industrial", "Medieval", "Mid-Century", "Mid-Century Modern", "Nostalgic", "Old West", "Psychedelic",
+    "Renaissance", "Retro", "Steampunk", "Victorian", "Vintage", "Western", "Wild West", "Y2K",
+
+    // 5. Karakteristik Fisik, Geometri & Outline
+    "Clean", "Condensed", "Distressed", "Expanded", "Extra Bold", "Heavy", "High Contrast", "Inktraps",
+    "Light", "Low Contrast", "Medium", "Narrow", "Oblique", "Pencil Stroke", "Reverse Contrast", "Ribbon Cut",
+    "Rounded", "Rough Edges", "Semi Bold", "Sharp", "Soft Edges", "Spurred", "Stamp Effect", "Swash",
+    "Tall", "Textured", "Thin", "Tight Kerning", "Wide",
+
+    // 6. Penggunaan, Vibe & Mood Industri
+    "Acid", "Advertising", "Apparel", "Archival", "Authoritative", "Badges", "Beer Label", "Beverage",
+    "Bold Header", "Book Cover", "Bootleg", "Branding", "Brutalism", "Cafe Menu", "Casual", "Chicano",
+    "Chiseled", "Classic", "Coffee Shop", "Commercial", "Corporate", "Craft", "Cyber", "Editorial",
+    "Elegant", "Emblem", "Esoteric", "Exclusive", "Fairground", "Fashion", "Film Poster", "Gothic",
+    "Hardcore", "Header", "Heritage", "Hero Title", "High End", "Horror", "Label Design", "Letterpress",
+    "Logotype", "Luxury", "Magazine", "Masculine", "Minimalist", "Monogram", "Motorcycle", "Music Poster",
+    "Mystical", "Neoclassical", "Packaging", "Period Piece", "Playful", "Postage Stamp", "Poster",
+    "Premium", "Prohibition", "Pub Sign", "Saloon", "Signage", "Sign Painting", "Streetwear", "Subcultural",
+    "Tattoo", "Theater", "Tiki", "Timeless", "Title", "Typography", "Urban", "Whiskey Label", "Woodcut", "Wood Type"
+  ].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  
   const [description, setDescription] = useState(initialData?.description || '');
   const [tags, setTags] = useState(initialData?.tags?.join(', ') || ''); 
   
@@ -79,6 +104,26 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   const [layerFontIndices, setLayerFontIndices] = useState<number[]>(initialData?.metadata?.layer_font_indices || []);
 
   const [draggedImgIndex, setDraggedImgIndex] = useState<number | null>(null);
+
+  // Helper Autocomplete untuk Classification Tags (Root Scope)
+  const currentTagQuery = tags.split(',').pop()?.trimStart() || '';
+  
+  const activeSuggestion = currentTagQuery.length >= 1
+    ? FONT_TAGS_LIBRARY.find(tag => tag.toLowerCase().startsWith(currentTagQuery.toLowerCase())) || ''
+    : '';
+
+  const ghostSuffix = (activeSuggestion && activeSuggestion.toLowerCase().startsWith(currentTagQuery.toLowerCase()))
+    ? activeSuggestion.slice(currentTagQuery.length)
+    : '';
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.key === 'Tab' || e.key === 'Enter') && activeSuggestion) {
+      e.preventDefault();
+      const parts = tags.split(',');
+      parts[parts.length - 1] = (parts[parts.length - 1].startsWith(' ') ? ' ' : '') + activeSuggestion;
+      setTags(parts.join(',') + ', ');
+    }
+  };
 
   const handleDragStart = (index: number) => setDraggedImgIndex(index);
   const handleDragOver = (e: React.DragEvent) => {
@@ -418,21 +463,39 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
             />
           </div>
         </div>
+
+        {/* INPUT CLASSIFICATION TAGS DENGAN SMART AUTOCOMPLETE */}
         <div className="space-y-2">
-          <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">Tags (Separated by Comma)</label>
-          <input 
-            type="text" 
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            list="font-tags-suggestions"
-            className="w-full border border-black p-3 outline-none focus:bg-yellow-50" 
-            placeholder="Variable, Serif, Display" 
-          />
-          <datalist id="font-tags-suggestions">
-            {FONT_TAGS_LIBRARY.map((tag) => (
-              <option key={tag} value={tag} />
-            ))}
-          </datalist>
+          <div className="flex items-center justify-between">
+            <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">
+              Tags (Separated by Comma)
+            </label>
+            {activeSuggestion && (
+              <span className="text-[9px] uppercase font-mono font-bold text-black bg-yellow-300 px-1 border border-black animate-pulse">
+                [TAB]/[ENTER]: "{activeSuggestion}"
+              </span>
+            )}
+          </div>
+          <div className="relative w-full border border-black focus-within:bg-yellow-50 transition-colors bg-white">
+            {/* Ghost text background overlay */}
+            <div 
+              className="absolute inset-0 p-3 font-normal text-base pointer-events-none select-none overflow-hidden whitespace-pre flex items-center"
+              aria-hidden="true"
+            >
+              <span className="opacity-0">{tags}</span>
+              <span className="opacity-30 italic">{ghostSuffix}</span>
+            </div>
+
+            {/* Main Interactive Input */}
+            <input 
+              type="text" 
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              onKeyDown={handleTagKeyDown}
+              className="relative z-10 w-full p-3 bg-transparent outline-none font-normal text-base placeholder:text-gray-400 text-black" 
+              placeholder="Variable, Serif, Display" 
+            />
+          </div>
         </div>
       </div>
 
