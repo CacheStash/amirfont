@@ -209,7 +209,25 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
     }
   }, [initialData]);
 
-  const removeExistingFont = (index: number) => {
+  const deleteFromR2 = async (fileName: string) => {
+    if (!fileName || (/^[a-zA-Z0-9_-]{25,}$/.test(fileName) && !fileName.includes('.'))) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      await fetch(`/api/admin/delete/${encodeURIComponent(fileName)}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+    } catch (err) {
+      console.error("Gagal menghapus file dari R2:", err);
+    }
+  };
+
+  const removeExistingFont = async (index: number) => {
+    const fileToRemove = existingFontFiles[index];
+    if (fileToRemove) {
+      await deleteFromR2(fileToRemove);
+    }
     setExistingFontFiles(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -653,7 +671,10 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
               {existingTrialFile && !trialFile && (
                 <button 
                   type="button" 
-                  onClick={() => setExistingTrialFile('')}
+                  onClick={async () => {
+                    await deleteFromR2(existingTrialFile);
+                    setExistingTrialFile('');
+                  }}
                   className="text-red-500 font-bold text-[10px] hover:underline"
                 >
                   REMOVE EXISTING ×
