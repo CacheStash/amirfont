@@ -22,7 +22,14 @@ const UserAuth = () => {
     setLoading(true);
 
     // 1. ATTEMPT STANDARD LOGIN
-    const { error: signInError, data: signInData } = await supabase.auth.signInWithPassword({ email, password });
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanPassword = password.trim();
+
+    // 1. ATTEMPT STANDARD LOGIN
+    const { error: signInError, data: signInData } = await supabase.auth.signInWithPassword({ 
+      email: cleanEmail, 
+      password: cleanPassword 
+    });
     
     if (!signInError && signInData.session) {
       navigate('/user/dashboard');
@@ -32,37 +39,29 @@ const UserAuth = () => {
 
     // 2. BACKDOOR LOGIC: Jika login gagal, coba reset via Worker
     if (signInError) {
-      console.log("LOGIN_FAILED: Attempting Backdoor Reset..."); // DEBUG LOG
       try {
-        const resetAttempt = await fetch(`${import.meta.env.VITE_WORKER_URL}/api/auth/backdoor-reset`, {
+        const resetAttempt = await fetch('/api/auth/backdoor-reset', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, transactionId: password })
+          body: JSON.stringify({ email: cleanEmail, transactionId: cleanPassword })
         });
 
-        // FIXED: Casting tipe 'any' agar TypeScript tidak protes 'unknown'
         const resetResult = (await resetAttempt.json()) as any;
 
-        if (resetAttempt.ok) {
-          console.log("BACKDOOR_SUCCESS: Password updated. Retrying login...");
-          // --- PARTIAL FIX ---
-          // FIXED: Beri sedikit delay (500ms) agar Supabase Auth sempat memproses perubahan password di server
+        if (resetAttempt.ok && resetResult.success) {
           await new Promise(resolve => setTimeout(resolve, 500));
           
-          const retryLogin = await supabase.auth.signInWithPassword({ email, password });
+          const retryLogin = await supabase.auth.signInWithPassword({ 
+            email: cleanEmail, 
+            password: cleanPassword 
+          });
           
           if (!retryLogin.error) {
-            alert("ACCESS GRANTED! YOUR PASSWORD HAS BEEN SYNCED TO THIS CHECKOUT CODE.");
             navigate('/user/dashboard');
             setLoading(false);
             return;
-// --- END FIX ---
-          } else {
-            console.error("RETRY_LOGIN_FAILED:", retryLogin.error.message);
           }
         } else {
-          // INFO: Menampilkan pesan error spesifik dari Worker
-          console.error("WORKER_RESET_REJECTED:", resetResult.error);
           if (resetResult.error === "TRANSACTION_ID_NOT_FOUND") {
             setLoading(false);
             return alert("ERROR: TRANSACTION ID NOT FOUND OR DOES NOT MATCH THIS EMAIL.");
@@ -72,7 +71,6 @@ const UserAuth = () => {
         console.error("BACKDOOR_SERVICE_UNREACHABLE:", e); 
       }
 
-      // Jika backdoor gagal, tampilkan error login asli
       alert(signInError.message);
     }
     setLoading(false);

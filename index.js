@@ -344,10 +344,10 @@ export default {
         const userCheckData = await userCheckRes.json();
         let targetUserId;
 
-        if (userCheckData && userCheckData.length > 0) {
+       if (userCheckData && userCheckData.length > 0) {
           targetUserId = userCheckData[0].id;
           
-          // A. Reset Password via Admin Auth
+          // A. Update Profil fontbuyer
           await fetch(`${supabaseUrl}/rest/v1/fontbuyer?id=eq.${targetUserId}`, {
             method: 'PATCH',
             headers: { 
@@ -359,6 +359,17 @@ export default {
               full_name: name || null, 
               address: address || null 
             })
+          });
+
+          // B. Update Password Auth ke Order ID Transaksi Baru
+          await fetch(`${supabaseUrl}/auth/v1/admin/users/${targetUserId}`, {
+            method: 'PUT',
+            headers: { 
+              'apikey': env.SUPABASE_SERVICE_ROLE_KEY, 
+              'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 
+              'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify({ password: transactionId })
           });
 
         } else {
@@ -509,16 +520,26 @@ export default {
         // 1b. FALLBACK: VERIFIKASI VIA EMAIL + ORDER ID (Untuk pembeli lama/guest)
         if (!isAuthorized && email && transactionId && serviceRoleKey) {
           const checkRes = await fetch(
-            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&select=id,fontbuyer!inner(email,full_name,address)`,
+            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&select=id,user_id`,
             { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
           );
-          const checkData = await checkRes.json();
-          const record = checkData?.[0];
-          if (record && record.fontbuyer?.email?.toLowerCase() === email.toLowerCase()) {
-            isAuthorized = true;
-            buyerEmail = email;
-            buyerName = record.fontbuyer?.full_name || 'N/A';
-            buyerAddress = record.fontbuyer?.address || 'N/A';
+          const historyRows = await checkRes.json();
+          
+          if (historyRows && historyRows.length > 0 && historyRows[0].user_id) {
+            const targetUserId = historyRows[0].user_id;
+            const buyerRes = await fetch(
+              `${supabaseUrl}/rest/v1/fontbuyer?id=eq.${targetUserId}&select=email,full_name,address`,
+              { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
+            );
+            const buyerRows = await buyerRes.json();
+            const record = buyerRows?.[0];
+            
+            if (record && record.email?.toLowerCase().trim() === email.toLowerCase().trim()) {
+              isAuthorized = true;
+              buyerEmail = record.email;
+              buyerName = record.full_name || 'N/A';
+              buyerAddress = record.address || 'N/A';
+            }
           }
         }
 // --- END FIX ---
@@ -628,7 +649,8 @@ export default {
         licenseBody += `LICENSEE NAME  : ${buyerName}\n`;
         licenseBody += `ADDRESS        : ${buyerAddress}\n`;
         licenseBody += `ISSUE DATE     : ${issueDate}\n`;
-        licenseBody += `ASSET NAME     : ${cleanFontName}\n`;
+        const displayFontName = txData.actual_name || cleanFontName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+        licenseBody += `ASSET NAME     : ${displayFontName}\n`;
         licenseBody += `------------------------------------------------------------------------\n\n`;
 
         licenseBody += `LICENSED USAGE TERMS:\n\n`;
