@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { LayoutDashboard, Type, ShoppingCart, LogOut, Tag, Menu, X, Mail } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  LayoutDashboard, Type, ShoppingCart, LogOut, Tag, 
+  Menu, X, Mail, FileText, Power, Loader2 
+} from 'lucide-react';
 import ProductManager from './ProductManager';
-import { FileText } from 'lucide-react'; // Icon baru untuk Content
 import ContentManager from './ContentManager';
 import PromotionsManager from './PromotionsManager'; 
 import Orders from './Orders';
@@ -9,30 +11,72 @@ import Statistics from './Statistics';
 import AdminMessages from './AdminMessages';
 import { supabase } from '../../lib/supabase';
 
-import { useEffect } from 'react';
-
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('products');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [activeTab, setActiveTab] = useState('products');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isMaintenance, setIsMaintenance] = useState(false);
+  const [updatingMaintenance, setUpdatingMaintenance] = useState(false);
 
-  useEffect(() => {
-    fetchUnreadCount();
-    // Setup realtime listener opsional di sini jika ingin auto-update
-  }, []);
+  useEffect(() => {
+    fetchUnreadCount();
+    fetchMaintenanceStatus();
+  }, []);
 
-  const fetchUnreadCount = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+  const fetchMaintenanceStatus = async () => {
+    try {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'maintenance_mode')
+        .maybeSingle();
+      if (data) {
+        setIsMaintenance(data.value === true || data.value === 'true');
+      }
+    } catch (e) {
+      console.error('Failed to fetch maintenance status:', e);
+    }
+  };
 
-    const { count } = await supabase
-      .from('font_messages')
-      .select('*', { count: 'exact', head: true })
-      .eq('recipient_id', user.id)
-      .eq('is_read', false);
+  const handleToggleMaintenance = async () => {
+    const nextState = !isMaintenance;
+    const confirmMsg = nextState 
+      ? 'Aktifkan MODE MAINTENANCE? Pengunjung umum tidak akan bisa membuka situs (hanya admin).'
+      : 'Matikan MODE MAINTENANCE? Situs akan kembali dapat diakses oleh publik.';
+    
+    if (!window.confirm(confirmMsg)) return;
 
-    setUnreadCount(count || 0);
-  };
+    setUpdatingMaintenance(true);
+    try {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({
+          key: 'maintenance_mode',
+          value: nextState,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+      setIsMaintenance(nextState);
+    } catch (err: any) {
+      alert('Gagal mengubah mode maintenance: ' + err.message);
+    } finally {
+      setUpdatingMaintenance(false);
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { count } = await supabase
+      .from('font_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_id', user.id)
+      .eq('is_read', false);
+
+    setUnreadCount(count || 0);
+  };
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -67,7 +111,7 @@ const AdminDashboard = () => {
         ${isMenuOpen ? 'top-[61px] h-[calc(100vh-61px)] border-b border-black' : 'top-[-100%] md:top-0 h-0 md:h-screen overflow-hidden md:overflow-visible'}
       `}>
         <div className="p-8 border-b border-black hidden md:block">
-         <h1 className="font-normal uppercase tracking-tighter text-xl italic">Studio Admin</h1>
+          <h1 className="font-normal uppercase tracking-tighter text-xl italic">Studio Admin</h1>
         </div>
         
         <nav className="flex-grow p-4 space-y-2">
@@ -75,16 +119,16 @@ const AdminDashboard = () => {
             <LayoutDashboard size={18} /> Statistics
           </button>
           <button onClick={() => handleTabChange('inbox')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all relative ${activeTab === 'inbox' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
-            <div className="relative">
-              <Mail size={18} />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1.5 -left-2.5 bg-red-600 text-white text-[7px] font-black px-1 py-0 border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] animate-pulse">
-                  {unreadCount}
-                </span>
-              )}
-            </div>
-            Inbox & Broadcast
-          </button>
+            <div className="relative">
+              <Mail size={18} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 -left-2.5 bg-red-600 text-white text-[7px] font-black px-1 py-0 border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] animate-pulse">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+            Inbox & Broadcast
+          </button>
           <button onClick={() => handleTabChange('products')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'products' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <Type size={18} /> Products
           </button>
@@ -99,7 +143,32 @@ const AdminDashboard = () => {
           </button>
         </nav>
 
-        <div className="p-4 border-t border-black">
+        {/* Maintenance Toggle & Logout */}
+        <div className="p-4 border-t border-black space-y-2">
+          <button
+            onClick={handleToggleMaintenance}
+            disabled={updatingMaintenance}
+            className={`w-full flex items-center justify-between px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none ${
+              isMaintenance 
+                ? 'bg-amber-500 text-black' 
+                : 'bg-gray-100 text-black hover:bg-gray-200'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {updatingMaintenance ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Power size={14} className={isMaintenance ? 'text-black animate-pulse' : 'opacity-40'} />
+              )}
+              <span>MAINTENANCE</span>
+            </div>
+            <span className={`px-1.5 py-0.5 text-[9px] font-black border border-black ${
+              isMaintenance ? 'bg-black text-white' : 'bg-white text-black'
+            }`}>
+              {isMaintenance ? 'ON' : 'OFF'}
+            </span>
+          </button>
+
           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs hover:bg-red-50 text-red-600 transition-all cursor-pointer">
             <LogOut size={18} /> Logout
           </button>
