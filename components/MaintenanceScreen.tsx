@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Sparkles } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const MaintenanceScreen: React.FC = () => {
@@ -16,76 +16,93 @@ const MaintenanceScreen: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-vintage-paper text-vintage-ink flex flex-col justify-between p-6 sm:p-12 relative overflow-hidden font-serif selection:bg-vintage-ink selection:text-vintage-paper">
+    <div className="min-h-screen bg-[#EDEBE6] text-black font-sans selection:bg-black selection:text-white relative flex flex-col justify-between overflow-hidden">
       
-      {/* Subtle Background Pattern */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(#1a1a1a_1px,transparent_1px)] [background-size:24px_24px]" />
+      {/* Subqi Signature Background Grain Orbs */}
+      <div className="grain-orb-base orb-top-right pointer-events-none" />
+      <div className="grain-orb-base orb-bottom-left pointer-events-none" />
 
-      {/* Top Header */}
-      <div className="relative z-10 flex justify-between items-center border-b border-vintage-ink/20 pb-4">
+      {/* Radial Gradient Glow Effect (Subqi Home Style) */}
+      <div className="absolute -top-24 -right-24 w-[600px] h-[500px] pointer-events-none z-0">
+        <div 
+          className="w-full h-full mix-blend-multiply blur-[80px]"
+          style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.7) 0%, rgba(253, 186, 116, 0.45) 50%, rgba(253, 186, 116, 0) 100%)' }}
+        />
+      </div>
+
+      <div className="absolute -bottom-24 -left-24 w-[600px] h-[500px] pointer-events-none z-0">
+        <div 
+          className="w-full h-full mix-blend-multiply blur-[80px]"
+          style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.6) 0%, rgba(253, 186, 116, 0.35) 50%, rgba(253, 186, 116, 0) 100%)' }}
+        />
+      </div>
+
+      {/* Top Header Bar */}
+      <header className="relative z-10 w-full border-b border-black bg-transparent px-6 sm:px-12 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-600 animate-pulse" />
-          <span className="font-mono text-xs uppercase tracking-widest font-bold">System Status: Maintenance Mode</span>
+          <span className="inline-block w-2.5 h-2.5 rounded-full bg-orange-600 animate-pulse" />
+          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-black">Status: Under Construction</span>
         </div>
         <Link 
           to="/admin" 
-          className="text-xs font-mono uppercase tracking-widest text-vintage-ink/40 hover:text-vintage-ink hover:underline transition-all"
+          className="text-[11px] font-bold uppercase tracking-[0.2em] text-black/50 hover:text-black hover:underline transition-all"
         >
           Staff Portal →
         </Link>
-      </div>
+      </header>
 
-      {/* Main Content */}
-      <div className="relative z-10 max-w-4xl mx-auto my-auto py-10 text-center flex flex-col items-center">
+      {/* Main Content Area */}
+      <main className="relative z-10 max-w-3xl mx-auto my-auto py-12 px-6 text-center flex flex-col items-center">
         
-        {/* Brand Logo Subqi */}
-        <div className="mb-6 relative group">
+        {/* Brand Logo Subqi (Bersih tanpa bintang yang nabrak) */}
+        <div className="mb-6 flex justify-center items-center">
           <img 
             src="/Logo.png" 
-            alt="Subqi Type Foundry" 
-            className="h-16 sm:h-20 w-auto object-contain transition-transform duration-500 hover:scale-105"
+            alt="Subqi Studio" 
+            className="h-12 sm:h-16 w-auto object-contain transition-transform duration-300 hover:scale-105"
           />
-          <Sparkles className="w-5 h-5 absolute -top-3 -right-3 text-amber-700 animate-spin" style={{ animationDuration: '8s' }} />
         </div>
 
-        {/* Animated Routine Indicator */}
-        <div className="flex items-center gap-2 mb-6 text-vintage-ink/60 font-mono text-xs uppercase tracking-wider">
-          <Settings className="w-4 h-4 animate-spin" style={{ animationDuration: '4s' }} />
+        {/* Routine Engine Indicator */}
+        <div className="flex items-center gap-2 mb-6 text-black/60 text-xs font-bold uppercase tracking-widest">
+          <Settings className="w-4 h-4 animate-spin" style={{ animationDuration: '6s' }} />
           <span>Routine Engine Maintenance</span>
         </div>
 
         {/* Subqi Terminal Subtitle */}
-        <div className="border border-vintage-ink px-4 py-2 bg-vintage-ink text-vintage-paper font-mono text-xs sm:text-sm tracking-widest uppercase mb-6 shadow-sm">
+        <div className="border border-black px-4 py-2 bg-transparent text-black font-mono text-xs sm:text-sm tracking-widest uppercase mb-6 shadow-sm">
           {typedText}
           <span className="animate-pulse">_</span>
         </div>
 
         {/* System Message */}
-        <p className="max-w-lg text-sm sm:text-base text-vintage-ink/80 leading-relaxed mb-8">
+        <p className="max-w-lg text-sm sm:text-base text-black/80 font-serif leading-relaxed mb-8">
           We are currently performing some necessary system maintenance, server optimizations, and backend upgrades. Everything will be back up and running smoothly in just a short while.
         </p>
 
-        {/* Status Card */}
-        <div className="w-full max-w-md border border-vintage-ink/30 bg-vintage-ink/5 p-4 rounded-none text-left font-mono text-xs space-y-2">
-          <div className="flex justify-between border-b border-vintage-ink/10 pb-1">
-            <span className="text-vintage-ink/60">Estimated Uptime</span>
-            <span className="font-bold">Moments Away</span>
+        {/* Brutalist Status Card */}
+        <div className="w-full max-w-md border border-black bg-white/40 backdrop-blur-sm p-4 text-left font-sans text-xs space-y-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex justify-between border-b border-black/10 pb-1.5">
+            <span className="text-black/60 uppercase tracking-wider text-[10px] font-bold">Estimated Uptime</span>
+            <span className="font-bold uppercase tracking-wider text-[10px]">Moments Away</span>
           </div>
-          <div className="flex justify-between border-b border-vintage-ink/10 pb-1">
-            <span className="text-vintage-ink/60">Direct Inquiries</span>
-            <span className="font-bold">Contact subqistudio@gmail.com</span>
+          <div className="flex justify-between border-b border-black/10 pb-1.5">
+            <span className="text-black/60 uppercase tracking-wider text-[10px] font-bold">Direct Inquiries</span>
+            <a href="mailto:subqistudio@gmail.com" className="font-bold underline text-black hover:text-orange-600 transition-colors">
+              subqistudio@gmail.com
+            </a>
           </div>
           <div className="flex justify-between">
-            <span className="text-vintage-ink/60">Core Server</span>
-            <span className="text-emerald-700 font-bold">Optimizing...</span>
+            <span className="text-black/60 uppercase tracking-wider text-[10px] font-bold">Core Server</span>
+            <span className="text-emerald-700 font-bold uppercase tracking-wider text-[10px]">Optimizing...</span>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Footer */}
-      <div className="relative z-10 text-center border-t border-vintage-ink/20 pt-4 font-mono text-[10px] sm:text-xs text-vintage-ink/50 uppercase tracking-widest">
+      <footer className="relative z-10 w-full border-t border-black bg-transparent py-4 text-center text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-black/60">
         © {new Date().getFullYear()} Subqi Studio. All Rights Reserved.
-      </div>
+      </footer>
     </div>
   );
 };
