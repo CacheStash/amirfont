@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Type, ShoppingCart, LogOut, Tag, 
-  Menu, X, Mail, FileText, Power, Loader2 
+  Menu, X, Mail, FileText, Power, Loader2, CreditCard 
 } from 'lucide-react';
 import ProductManager from './ProductManager';
 import ContentManager from './ContentManager';
@@ -15,26 +15,36 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('products');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // Settings states
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [updatingMaintenance, setUpdatingMaintenance] = useState(false);
+  const [isSandbox, setIsSandbox] = useState(false);
+  const [updatingSandbox, setUpdatingSandbox] = useState(false);
 
   useEffect(() => {
     fetchUnreadCount();
-    fetchMaintenanceStatus();
+    fetchSiteSettings();
   }, []);
 
-  const fetchMaintenanceStatus = async () => {
+  const fetchSiteSettings = async () => {
     try {
       const { data } = await supabase
         .from('site_settings')
-        .select('value')
-        .eq('key', 'maintenance_mode')
-        .maybeSingle();
+        .select('key, value');
+      
       if (data) {
-        setIsMaintenance(data.value === true || data.value === 'true');
+        data.forEach((setting: any) => {
+          if (setting.key === 'maintenance_mode') {
+            setIsMaintenance(setting.value === true || setting.value === 'true');
+          }
+          if (setting.key === 'paypal_sandbox_mode') {
+            setIsSandbox(setting.value === true || setting.value === 'true');
+          }
+        });
       }
     } catch (e) {
-      console.error('Failed to fetch maintenance status:', e);
+      console.error('Failed to fetch site settings:', e);
     }
   };
 
@@ -62,6 +72,33 @@ const AdminDashboard = () => {
       alert('Gagal mengubah mode maintenance: ' + err.message);
     } finally {
       setUpdatingMaintenance(false);
+    }
+  };
+
+  const handleToggleSandbox = async () => {
+    const nextState = !isSandbox;
+    const confirmMsg = nextState 
+      ? 'Aktifkan PAYPAL SANDBOX MODE untuk testing transaksi?'
+      : 'Beralih ke PAYPAL LIVE MODE untuk menerima transaksi nyata?';
+    
+    if (!window.confirm(confirmMsg)) return;
+
+    setUpdatingSandbox(true);
+    try {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({
+          key: 'paypal_sandbox_mode',
+          value: nextState,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+      setIsSandbox(nextState);
+    } catch (err: any) {
+      alert('Gagal mengubah mode PayPal: ' + err.message);
+    } finally {
+      setUpdatingSandbox(false);
     }
   };
 
@@ -143,8 +180,9 @@ const AdminDashboard = () => {
           </button>
         </nav>
 
-        {/* Maintenance Toggle & Logout */}
+        {/* Maintenance Toggle, PayPal Mode Toggle & Logout */}
         <div className="p-4 border-t border-black space-y-2">
+          {/* Maintenance Switch */}
           <button
             onClick={handleToggleMaintenance}
             disabled={updatingMaintenance}
@@ -166,6 +204,31 @@ const AdminDashboard = () => {
               isMaintenance ? 'bg-black text-white' : 'bg-white text-black'
             }`}>
               {isMaintenance ? 'ON' : 'OFF'}
+            </span>
+          </button>
+
+          {/* PayPal Sandbox / Live Switch */}
+          <button
+            onClick={handleToggleSandbox}
+            disabled={updatingSandbox}
+            className={`w-full flex items-center justify-between px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none ${
+              isSandbox 
+                ? 'bg-[#0070BA] text-white' 
+                : 'bg-gray-100 text-black hover:bg-gray-200'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {updatingSandbox ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <CreditCard size={14} className={isSandbox ? 'text-white' : 'opacity-40'} />
+              )}
+              <span>PAYPAL MODE</span>
+            </div>
+            <span className={`px-1.5 py-0.5 text-[9px] font-black border border-black ${
+              isSandbox ? 'bg-white text-black' : 'bg-black text-white'
+            }`}>
+              {isSandbox ? 'SANDBOX' : 'LIVE'}
             </span>
           </button>
 

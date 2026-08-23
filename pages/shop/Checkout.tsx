@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Check , Copy } from 'lucide-react';
+import { ArrowLeft, Plus, Copy } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { supabase } from '../../lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -14,25 +14,49 @@ const Checkout: React.FC = () => {
   };
 
   const { cart, clearCart, checkExistingTrials } = useCart();
-  const [trialConflicts, setTrialConflicts] = React.useState<string[]>([]);
+  const [trialConflicts, setTrialConflicts] = useState<string[]>([]);
   
-  const [user, setUser] = React.useState<User | null>(null);
-  const orderId = React.useMemo(() => `SQ-${Math.floor(100000 + Math.random() * 900000)}`, []);
-  const [loading, setLoading] = React.useState(false);
-const [name, setName] = React.useState('');
-  const [email, setEmail] = React.useState(''); 
-  const [address, setAddress] = React.useState('');
-  const [isPaid, setIsPaid] = React.useState(false);
-  const [subscribe, setSubscribe] = React.useState(true);
-  const [purchasedItems, setPurchasedItems] = React.useState<any[]>([]);
-  const [successfulOrderId, setSuccessfulOrderId] = React.useState<string | null>(null);
-const [couponCodeInput, setCouponCodeInput] = React.useState('');
-  const [appliedCoupon, setAppliedCoupon] = React.useState<any | null>(null);
-  const [isApplyingCoupon, setIsApplyingCoupon] = React.useState(false);
-  const [couponMessage, setCouponMessage] = React.useState<{type: 'error' | 'success', text: string} | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const orderId = useMemo(() => `SQ-${Math.floor(100000 + Math.random() * 900000)}`, []);
+  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState(''); 
+  const [address, setAddress] = useState('');
+  const [isPaid, setIsPaid] = useState(false);
+  const [subscribe, setSubscribe] = useState(true);
+  const [purchasedItems, setPurchasedItems] = useState<any[]>([]);
+  const [successfulOrderId, setSuccessfulOrderId] = useState<string | null>(null);
+  const [couponCodeInput, setCouponCodeInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [couponMessage, setCouponMessage] = useState<{type: 'error' | 'success', text: string} | null>(null);
 
-  // AUTH & PRE-FILL: Menggunakan getSession agar lebih instan dibanding getUser
-  React.useEffect(() => {
+  // Dynamic PayPal Mode States
+  const [isSandbox, setIsSandbox] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const fetchPaypalMode = async () => {
+      try {
+        const { data } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'paypal_sandbox_mode')
+          .maybeSingle();
+        if (data) {
+          setIsSandbox(data.value === true || data.value === 'true');
+        }
+      } catch (e) {
+        console.error('Failed to load PayPal mode:', e);
+      } finally {
+        setIsReady(true);
+      }
+    };
+    fetchPaypalMode();
+  }, []);
+
+  // AUTH & PRE-FILL
+  useEffect(() => {
     const fetchBuyerProfile = async (userId: string) => {
       const { data, error } = await supabase
         .from('fontbuyer')
@@ -70,7 +94,7 @@ const [couponCodeInput, setCouponCodeInput] = React.useState('');
     return () => subscription.unsubscribe();
   }, []);
   
-  React.useEffect(() => {
+  useEffect(() => {
     const validateTrials = async () => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (emailRegex.test(email) && cart.some(item => item.price === 0)) {
@@ -88,7 +112,7 @@ const [couponCodeInput, setCouponCodeInput] = React.useState('');
 
   const total = cart.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0);
  
-const finalTotal = React.useMemo(() => {
+  const finalTotal = useMemo(() => {
     if (!appliedCoupon) return total;
     let discountAmount = 0;
     if (appliedCoupon.discount_type === 'percentage') {
@@ -115,14 +139,12 @@ const finalTotal = React.useMemo(() => {
 
       if (error || !coupon) throw new Error("INVALID_OR_INACTIVE_COUPON");
 
-      // Validate Dates
       const now = new Date();
       const startDate = new Date(coupon.start_date);
       const endDate = new Date(coupon.end_date);
       endDate.setHours(23, 59, 59, 999);
       if (now < startDate || now > endDate) throw new Error("COUPON_EXPIRED");
 
-      // Validate Usage Limits
       if (coupon.max_uses !== null && coupon.used_count >= coupon.max_uses) {
         throw new Error("COUPON_USAGE_LIMIT_REACHED");
       }
@@ -146,23 +168,20 @@ const finalTotal = React.useMemo(() => {
     setCouponMessage(null);
   };
 
-
   const handlePurchaseSuccess = async (finalOrderId: string) => {
     setLoading(true);
     try {
-      // 1. Kirim data ke Worker API (Worker akan handle bypass RLS & Resetter Password)
-      // Karena cart bisa berisi banyak item, kita kirimkan sebagai metadata atau loop
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify({
+        body: JSON.stringify({
           email,
           name,
           address,
           fontName: cart.map(i => i.name).join(', '),
-          type: 'full', // FIXED: Gunakan 'full' untuk pembelian sukses
+          type: 'full',
           metadata: { 
-            order_id: finalOrderId, // FIXED: Gunakan finalOrderId (ID PayPal) agar sinkron dengan tombol download
+            order_id: finalOrderId,
             cart_items: cart 
           }
         })
@@ -171,10 +190,7 @@ const finalTotal = React.useMemo(() => {
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error || "API_CHECKOUT_FAILED");
 
-
-    
-
-     if (subscribe) {
+      if (subscribe) {
         const { error: subError } = await supabase
           .from('fontsubscribers')
           .upsert(
@@ -185,19 +201,16 @@ const finalTotal = React.useMemo(() => {
             }, 
             { onConflict: 'email' }
           )
-          .select(); // Tambahkan select() untuk memaksa verifikasi status insert
+          .select();
         
         if (subError) console.error("SUBSCRIBE_DB_ERROR:", subError);
       }
 
-      // FIXED: Alur baru - Jangan redirect, tapi tampilkan unduhan di tempat
-      
       setIsPaid(true);
       setPurchasedItems([...cart]);
       clearCart();
       setSuccessfulOrderId(finalOrderId);
 
-      // INCREMENT COUPON USAGE IF APPLIED
       if (appliedCoupon) {
         const { error: couponUpdateError } = await supabase
           .from('coupons')
@@ -214,10 +227,8 @@ const finalTotal = React.useMemo(() => {
     }
   };
 
-   const handleSecureDownload = async (fileName: string, type: 'trial' | 'full' = 'full') => {
+  const handleSecureDownload = async (fileName: string, type: 'trial' | 'full' = 'full') => {
     const { data: { session } } = await supabase.auth.getSession();
-    
-
     const targetOrder = successfulOrderId || orderId;
 
     if (!fileName || fileName === 'null' || fileName === 'undefined') {
@@ -225,7 +236,6 @@ const finalTotal = React.useMemo(() => {
     }
 
     try {
-      // FIXED: Masukkan targetOrder ke URL agar Worker bisa memverifikasi Guest via DB
       const url = `/api/download-zip?file=${encodeURIComponent(fileName)}&order=${encodeURIComponent(targetOrder)}&type=${type}&email=${encodeURIComponent(email)}`;
       
       const res = await fetch(url, {
@@ -239,18 +249,15 @@ const finalTotal = React.useMemo(() => {
       const a = document.createElement('a');
       a.href = urlBlob;
       
-      // FIXED: Bersihkan nama file dari timestamp agar sama dengan format Dashboard
-     const contentDisposition = res.headers.get('Content-Disposition');
-      let downloadName = `SQ_Font_Asset.zip`; // Fallback jika header tidak terbaca
+      const contentDisposition = res.headers.get('Content-Disposition');
+      let downloadName = `SQ_Font_Asset.zip`;
       
       if (contentDisposition && contentDisposition.includes('filename=')) {
-        // Ekstrak: attachment; filename="SQ_Kovanov.zip" -> SQ_Kovanov.zip
         downloadName = contentDisposition.split('filename=')[1].split(';')[0].replace(/["']/g, '').trim();
       }
 
       a.download = downloadName;
-      
-      document.body.appendChild(a); // Tambahkan ke body untuk kompabilitas browser
+      document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(urlBlob);
@@ -260,8 +267,7 @@ const finalTotal = React.useMemo(() => {
   };
 
   const handleFreeTrial = async () => {
-    // 1. Validasi format email ketat (name@domain.com)
-   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       alert("PLEASE ENTER A VALID EMAIL ADDRESS (E.G. NAME@DOMAIN.COM)");
       return;
@@ -269,8 +275,6 @@ const finalTotal = React.useMemo(() => {
 
     setLoading(true);
     try {
-      // 1. Kirim data ke Worker API (Worker bypasses RLS)
-      // Kita gunakan orderId sebagai password resetter
       const response = await fetch('/api/claim-trial', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -281,7 +285,7 @@ const finalTotal = React.useMemo(() => {
           type: 'trial',
           metadata: { 
             order_id: orderId,
-            cart_items: cart // WAJIB: Agar Worker bisa mengambil font_id (UUID) asli dari keranjang
+            cart_items: cart
           }
         })
       });
@@ -289,9 +293,7 @@ const finalTotal = React.useMemo(() => {
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error || "API_TRIAL_FAILED");
 
-      
-
-if (subscribe) {
+      if (subscribe) {
         const { error: subError } = await supabase
           .from('fontsubscribers')
           .upsert(
@@ -307,7 +309,6 @@ if (subscribe) {
         if (subError) console.error("SUBSCRIBE_TRIAL_DB_ERROR:", subError.message);
       }
 
-    
       setPurchasedItems([...cart]);
       setIsPaid(true);
       clearCart();
@@ -336,8 +337,17 @@ if (subscribe) {
   );
 
   return (
-    /* FIX 1: Gunakan clientId (camelCase) */
-    <PayPalScriptProvider options={{ clientId: "AW3HtSermytFGmhSTbMNpacFkkEyTYo19CRismstFmSUT2drz6TBj8nAH18pg4YWPj0esy4-MIzAGhki", currency: "USD", intent: "capture",locale: "en_US" }}>
+    <PayPalScriptProvider 
+      key={isReady ? (isSandbox ? "paypal-sandbox" : "paypal-live") : "paypal-loading"}
+      options={{ 
+        clientId: isSandbox
+          ? "AXw6xL6HBIWZRoBSnsigTHBPaYB70tTFMJHv3o4tA_AP9BEsH81uyOLGYWnWonxP9kn59OjE9Tyo5ABW" // Subqi Sandbox
+          : "AW3HtSermytFGmhSTbMNpacFkkEyTYo19CRismstFmSUT2drz6TBj8nAH18pg4YWPj0esy4-MIzAGhki", // Subqi Live
+        currency: "USD", 
+        intent: "capture", 
+        locale: "en_US" 
+      }}
+    >
       <div className="min-h-screen bg-[#EDEBE6] py-12 px-3 md:px-8 flex flex-col items-center uppercase font-mono print:p-0 print:bg-white text-black text-left">
         
         {/* HEADER TOOLS */}
@@ -381,13 +391,10 @@ if (subscribe) {
               <div className="space-y-2 md:text-right">
                 <div className="flex justify-between md:justify-end md:gap-10"><span>CASHIER</span> <span>SYSTEM_WEB_01</span></div>
                 <div className="flex justify-between md:justify-end md:gap-10">
-                  
                   <span>STATUS</span> 
-  {/* Mengubah UNPAID menjadi FREE jika total 0 */}
                   <span className={isPaid ? "text-green-600 font-black" : "text-red-600 font-black animate-pulse"}>
                     {isPaid ? "PAID" : (total <= 0 ? "FREE" : "UNPAID")}
                   </span>
-
                 </div>
               </div>
             </div>
@@ -408,7 +415,8 @@ if (subscribe) {
                 </div>
               ))}
             </div>
-{/* Discount Row (If Any) */}
+
+            {/* Discount Row (If Any) */}
             {appliedCoupon && (
               <div className="flex justify-between items-center mb-6 text-orange-600 font-bold text-lg md:text-xl border-b border-black border-dashed pb-6">
                 <span>DISCOUNT ({appliedCoupon.code})</span>
@@ -455,8 +463,7 @@ if (subscribe) {
                     value={address}
                     onChange={(e) => setAddress(e.target.value.replace(/\b\w/g, l => l.toUpperCase()))}
                     className="w-full p-4 font-mono font-bold outline-none text-sm placeholder:text-black/30 min-h-[80px] resize-none"
-                    placeholder="COMPLETE ADDRESS (STREET, CITY, ZIP CODE)"
-                    required
+                    placeholder="COMPLETE ADDRESS (STREET, CITY, ZIP CODE) — OPTIONAL"
                   />
                 </div>
 
@@ -471,7 +478,6 @@ if (subscribe) {
                   </div>
                 )}
 
-
                 {/* CUSTOM CHECKBOX SUBSCRIBE */}
                 <label className="flex items-center gap-3 cursor-pointer group select-none">
                   <div className="relative flex items-center">
@@ -481,9 +487,7 @@ if (subscribe) {
                       onChange={() => setSubscribe(!subscribe)}
                       className="sr-only"
                     />
-                    {/* Outer White Box */}
                     <div className="w-5 h-5 border border-black bg-white flex items-center justify-center">
-                      {/* Inner Black Square (When Checked) */}
                       {subscribe && <div className="w-3 h-3 bg-black" />}
                     </div>
                   </div>
@@ -493,7 +497,7 @@ if (subscribe) {
                 </label>
 
                 {/* CLAIM BUTTON FOR TRIAL */}
-                {total <= 0 && name && address && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && trialConflicts.length === 0 && (
+                {total <= 0 && name && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && trialConflicts.length === 0 && (
                   <button 
                     onClick={handleFreeTrial}
                     disabled={loading}
@@ -505,13 +509,11 @@ if (subscribe) {
 
                 <p className="text-[9px] mt-4 opacity-60 italic leading-tight">
                   * DATA IS SECURE. YOUR ACCOUNT WILL BE UPDATED AUTOMATICALLY.<br/>
-                
                 </p>
               </div>
             )}
 
-          
-            {/* DELIVERY INFO BOX - FORM STYLE (NO SHADOW) */}
+            {/* DELIVERY INFO BOX */}
             {!isPaid && (
               <div className="mb-10 p-6 md:p-8 border-2 border-black bg-white space-y-6">
                 <div className="space-y-4">
@@ -572,7 +574,7 @@ if (subscribe) {
               </div>
             )}
 
-{/* COUPON / PROMO CODE SECTION (HIGH-CONTRAST BRUTALIST STYLE) */}
+            {/* COUPON / PROMO CODE SECTION */}
             {!isPaid && total > 0 && (
               <div className="mb-10 p-6 md:p-8 border-2 border-black bg-[#FFE500] text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                 <div className="flex items-center justify-between mb-4">
@@ -628,11 +630,10 @@ if (subscribe) {
                   ACCESS GRANTED. {purchasedItems.length} FONT(S) ADDED TO YOUR LIBRARY.
                 </p>
                 <div className="flex flex-col gap-3">
-                  {/* FIXED: Gunakan purchasedItems (karena cart sudah kosong) */}
                   {purchasedItems.map((item) => (
                     <button 
-                      key={item.cartId}
-                     onClick={() => handleSecureDownload(
+                      key={item.cartId} 
+                      onClick={() => handleSecureDownload(
                         item.price === 0 
                           ? (item.trialFileUrl || 'null') 
                           : (item.font_files?.[0] || 'null'), 
@@ -644,7 +645,6 @@ if (subscribe) {
                     </button>
                   ))}
 
-                  {/* FIXED: Pindah button "Go To My Library" ke sini */}
                   <Link 
                     to="/user/auth"
                     className="w-full mt-4 bg-transparent border-2 border-black text-black py-5 text-center text-sm font-black tracking-[0.2em] hover:bg-black hover:text-white transition-all flex items-center justify-center gap-4 group"
@@ -655,92 +655,88 @@ if (subscribe) {
               </div>
             )}
             
-
             {/* Dual Payment Gateway Section */}
             <div className="w-full flex flex-col gap-10 print:hidden">
               <div className="w-full">
-                {/* GLOBAL PAYMENT (PAYPAL) - FULL WIDTH */}
-                <div className={`flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative ${finalTotal <= 0 ? 'opacity-20 pointer-events-none hidden' : ''}`}>
+                {/* GLOBAL PAYMENT (PAYPAL) */}
+                <div className={`flex flex-col gap-4 p-6 border-2 border-black border-dashed bg-black/5 relative ${finalTotal <= 0 ? 'opacity-20 pointer-events-none hidden' : ''}`}>
                   <div className="absolute -top-3 left-4 bg-[#EDEBE6] px-2 text-[10px] font-black tracking-widest border border-black">
                     PAYMENT GATEWAY (USD)
                   </div>
                   <span className="text-[10px] font-black tracking-widest text-black/40 px-2">PAYPAL / CREDIT CARD</span>
                   
-                  <div className={`relative z-0 transition-all w-full flex justify-center ${(loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || trialConflicts.length > 0) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
+                  <div className={`relative z-0 transition-all w-full flex justify-center ${(loading || !name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || trialConflicts.length > 0) ? 'opacity-20 pointer-events-none grayscale' : 'opacity-100'}`}>
                     <div className="w-full max-w-[750px]">
-                    <PayPalButtons 
-                      style={{ layout: "vertical", shape: "rect", label: "pay", height: 55 }}
-                    onClick={(data, actions) => {
-                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                      if (!emailRegex.test(email)) {
-                        alert("PLEASE PROVIDE A VALID RECEIVER EMAIL (BLOCK 00) BEFORE PROCEEDING TO PAYMENT.");
-                        return actions.reject();
-                      }
-                      return actions.resolve();
-                    }}
-                    createOrder={(data, actions) => {
-                      return actions.order.create({
-                        intent: "CAPTURE",
-                        purchase_units: [{
-                          amount: { 
-                            currency_code: "USD",
-                            value: finalTotal.toFixed(2) 
-                          },
-                          description: `Subqi Studio Font Purchase - Order ${orderId}`
-                        }]
-                      });
-                    }}
-                    onApprove={async (data, actions) => {
-                      try {
-                        const details = await actions.order?.capture();
-                        if (details && details.status === "COMPLETED") {
-                          // PANGGIL LOGIKA AUTO-REGISTER SETELAH DANA TERKUNCI
-                          await handlePurchaseSuccess(orderId);
-                          alert(`TRANSACTION SUCCESSFUL! WELCOME, ${details?.payer?.name?.given_name || 'BUYER'}.`);
-                        }
-                      } catch (captureError) {
-                        console.error("Capture Error:", captureError);
-                        alert("PAYMENT_CAPTURE_FAILED. YOUR FUNDS WERE NOT DEDUCTED. PLEASE TRY AGAIN.");
-                      }
-                    }}
-                    // FIXED: Menangkap error teknis (Client ID salah, koneksi, atau kartu ditolak)
-                    onError={(err) => {
-                      console.error("PayPal Gateway Error:", err);
-                      alert("PAYPAL_GATEWAY_ERROR: COULD NOT INITIALIZE TRANSACTION. CHECK YOUR EMAIL FORMAT OR PAYMENT METHOD.");
-                    }}
-                    />
-                   
+                      <PayPalButtons 
+                        style={{ layout: "vertical", shape: "rect", label: "pay", height: 55 }}
+                        onClick={(data, actions) => {
+                          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                          if (!emailRegex.test(email)) {
+                            alert("PLEASE PROVIDE A VALID RECEIVER EMAIL (BLOCK 00) BEFORE PROCEEDING TO PAYMENT.");
+                            return actions.reject();
+                          }
+                          return actions.resolve();
+                        }}
+                        createOrder={(data, actions) => {
+                          return actions.order.create({
+                            intent: "CAPTURE",
+                            purchase_units: [{
+                              amount: { 
+                                currency_code: "USD",
+                                value: finalTotal.toFixed(2) 
+                              },
+                              description: `Subqi Studio Font Purchase - Order ${orderId}`
+                            }]
+                          });
+                        }}
+                        onApprove={async (data, actions) => {
+                          try {
+                            const details = await actions.order?.capture();
+                            if (details && details.status === "COMPLETED") {
+                              await handlePurchaseSuccess(orderId);
+                              alert(`TRANSACTION SUCCESSFUL! WELCOME, ${details?.payer?.name?.given_name || 'BUYER'}.`);
+                            }
+                          } catch (captureError) {
+                            console.error("Capture Error:", captureError);
+                            alert("PAYMENT_CAPTURE_FAILED. YOUR FUNDS WERE NOT DEDUCTED. PLEASE TRY AGAIN.");
+                          }
+                        }}
+                        onError={(err) => {
+                          console.error("PayPal Gateway Error:", err);
+                          alert("PAYPAL_GATEWAY_ERROR: COULD NOT INITIALIZE TRANSACTION. CHECK YOUR EMAIL FORMAT OR PAYMENT METHOD.");
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
+
+                {/* BUTTON UNTUK DISKON 100% */}
+                {!isPaid && total > 0 && finalTotal === 0 && (
+                  <div className="w-full p-6 border-2 border-black border-dashed bg-green-50 text-center animate-in zoom-in-95">
+                    <h4 className="text-xl font-black text-green-600 mb-2 italic">100% DISCOUNT GRANTED</h4>
+                    <p className="text-[10px] font-bold mb-4 text-black/60 uppercase tracking-widest">
+                      NO PAYMENT GATEWAY REQUIRED. PROCEED TO CLAIM YOUR ASSETS.
+                    </p>
+                    <button 
+                      onClick={() => handlePurchaseSuccess(orderId)}
+                      disabled={loading || !name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || trialConflicts.length > 0}
+                      className="w-full bg-black text-white py-5 text-sm font-black tracking-[0.2em] hover:bg-green-600 transition-all disabled:opacity-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                    >
+                      {loading ? "PROCESSING..." : "COMPLETE FREE PURCHASE"}
+                    </button>
+                  </div>
+                )}
               </div>
-{/* BUTTON UNTUK DISKON 100% / CART JADI GRATIS KARENA KUPON */}
-              {!isPaid && total > 0 && finalTotal === 0 && (
-                <div className="w-full p-6 border-2 border-black border-dashed bg-green-50 text-center animate-in zoom-in-95">
-                  <h4 className="text-xl font-black text-green-600 mb-2 italic">100% DISCOUNT GRANTED</h4>
-                  <p className="text-[10px] font-bold mb-4 text-black/60 uppercase tracking-widest">
-                    NO PAYMENT GATEWAY REQUIRED. PROCEED TO CLAIM YOUR ASSETS.
-                  </p>
-                  <button 
-                    onClick={() => handlePurchaseSuccess(orderId)}
-                    disabled={loading || !name || !address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || trialConflicts.length > 0}
-                    className="w-full bg-black text-white py-5 text-sm font-black tracking-[0.2em] hover:bg-green-600 transition-all disabled:opacity-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
-                  >
-                    {loading ? "PROCESSING..." : "COMPLETE FREE PURCHASE"}
-                  </button>
-                </div>
-              )}
-              
+            </div>
+
+            {/* Lubang karcis bawah */}
+            <div className="absolute bottom-0 left-0 w-full z-20 rotate-180 flex">
+              <TicketEdges />
             </div>
           </div>
-
-          {/* Lubang karcis bawah */}
-          <div className="absolute bottom-0 left-0 w-full z-20 rotate-180 flex">
-            <TicketEdges />
-          </div>
+          
+          <div className="mt-12 text-[10px] opacity-20 print:hidden font-bold">** END OF RECEIPT **</div>
         </div>
-        
-        <div className="mt-12 text-[10px] opacity-20 print:hidden font-bold">** END OF RECEIPT **</div>
-      </div>
       </div>
     </PayPalScriptProvider>
   );
