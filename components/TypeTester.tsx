@@ -1066,7 +1066,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   </div>
                 ) : (
                   /* MULTI-LAYER STACKING DISPLAY */
-                  <div className="relative w-full min-h-full">
+                  <div 
+                    className="relative w-full min-h-full cursor-text"
+                    onClick={() => {
+                      if (textareaRef.current) textareaRef.current.focus();
+                    }}
+                  >
                     {layers.map((layer, stackIdx) => {
                       if (!layer.isVisible) return null;
                       const calculatedZIndex = layers.length - stackIdx;
