@@ -107,6 +107,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
   const isDraggingSelection = useRef(false);
   const dragAnchorIdx = useRef<number | null>(null);
+  const hasRandomizedPreset = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   const updateCaretPosition = (pos: number | null) => {
@@ -315,6 +316,90 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       setActiveFeatures({});
       setPopoverPos(null);
       setSelectedCharIndex(null);
+
+      // OTOMATIS RANDOMIZE ALTERNATE SEKALI SAAT INITIAL LOAD
+      const configAny = config as any;
+      if (configAny.initialRandomAlternates && !hasRandomizedPreset.current && font.tables.gsub?.features && font.tables.gsub?.lookups) {
+        hasRandomizedPreset.current = true;
+        const altFeatureTags = [
+          'aalt', 'salt', 'swsh', 'titl', 'calt', 'dlig', 'liga',
+          ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`)
+        ];
+
+        const randomGlyphMap: Record<number, number> = {};
+        const randomCharMap: Record<number, string> = {};
+
+        text.split('').forEach((char, charIdx) => {
+          if (!char || char === ' ' || char === '\n') return;
+          const glyphIndex = font.charToGlyphIndex(char);
+          if (!glyphIndex) return;
+
+          const collectedAlts: { glyphIndex: number; tag: string }[] = [];
+
+          font.tables.gsub.features.forEach((featureRecord: any) => {
+            if (!altFeatureTags.includes(featureRecord.tag)) return;
+            featureRecord.feature.lookupListIndexes?.forEach((lookupIndex: number) => {
+              const lookup = font.tables.gsub.lookups[lookupIndex];
+              if (!lookup || !lookup.subtables) return;
+
+              lookup.subtables.forEach((subtable: any) => {
+                try {
+                  let covIdx = -1;
+                  const cov = subtable.coverage;
+                  if (!cov) return;
+
+                  if (cov.format === 2 && Array.isArray(cov.ranges)) {
+                    const range = cov.ranges.find((r: any) => glyphIndex >= r.start && glyphIndex <= r.end);
+                    if (range) covIdx = range.index + (glyphIndex - range.start);
+                  } else if (Array.isArray(cov.glyphs)) {
+                    covIdx = cov.glyphs.indexOf(glyphIndex);
+                  } else if (Array.isArray(cov)) {
+                    covIdx = cov.indexOf(glyphIndex);
+                  }
+
+                  if (covIdx === -1) return;
+
+                  if (lookup.lookupType === 1) {
+                    if (subtable.deltaGlyphId !== undefined) {
+                      collectedAlts.push({ glyphIndex: (glyphIndex + subtable.deltaGlyphId) % 65536, tag: featureRecord.tag });
+                    } else if (Array.isArray(subtable.substitute)) {
+                      const targetSub = subtable.substitute[covIdx];
+                      if (targetSub !== undefined) collectedAlts.push({ glyphIndex: targetSub, tag: featureRecord.tag });
+                    }
+                  } else if (lookup.lookupType === 3) {
+                    const altSets = subtable.alternateSets || subtable.alternates || [];
+                    const targetSet = altSets[covIdx];
+                    if (targetSet) {
+                      if (Array.isArray(targetSet)) {
+                        collectedAlts.push(...targetSet);
+                      } else if (Array.isArray(targetSet.alternateGlyphs)) {
+                        collectedAlts.push(...targetSet.alternateGlyphs);
+                      } else if (Array.isArray(targetSet.alternates)) {
+                        collectedAlts.push(...targetSet.alternates);
+                      } else if (Array.isArray(targetSet.glyphs)) {
+                        collectedAlts.push(...targetSet.glyphs);
+                      }
+                    }
+                  }
+                } catch (e) {}
+              });
+            });
+          });
+
+          const validAlts = collectedAlts.filter(a => a.glyphIndex && a.glyphIndex !== glyphIndex);
+          if (validAlts.length > 0 && (charIdx === 0 || Math.random() > 0.45)) {
+            const picked = validAlts[Math.floor(Math.random() * validAlts.length)];
+            randomGlyphMap[charIdx] = picked.glyphIndex;
+            randomCharMap[charIdx] = picked.tag === 'aalt' ? 'salt' : picked.tag;
+          }
+        });
+
+        if (Object.keys(randomGlyphMap).length > 0) {
+          setGlyphOverrides(randomGlyphMap);
+          setCharOverrides(randomCharMap);
+        }
+      }
+      
     });
   }, [config, activeStyleIndex]);
 
