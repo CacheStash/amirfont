@@ -266,10 +266,11 @@ const Checkout: React.FC = () => {
     }
   };
 
-  const handleFreeTrial = async () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      alert("PLEASE ENTER A VALID EMAIL ADDRESS (E.G. NAME@DOMAIN.COM)");
+ const handleFreeTrial = async () => {
+    const { validateLegitEmail } = await import('../../lib/emailValidator');
+    const validation = await validateLegitEmail(email);
+    if (!validation.isValid) {
+      alert(validation.message || "PLEASE ENTER A VALID EMAIL ADDRESS (E.G. NAME@DOMAIN.COM)");
       return;
     }
 
@@ -669,10 +670,11 @@ const Checkout: React.FC = () => {
                     <div className="w-full max-w-[750px]">
                       <PayPalButtons 
                         style={{ layout: "vertical", shape: "rect", label: "pay", height: 55 }}
-                        onClick={(data, actions) => {
-                          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                          if (!emailRegex.test(email)) {
-                            alert("PLEASE PROVIDE A VALID RECEIVER EMAIL (BLOCK 00) BEFORE PROCEEDING TO PAYMENT.");
+                        onClick={async (data, actions) => {
+                          const { validateLegitEmail } = await import('../../lib/emailValidator');
+                          const validation = await validateLegitEmail(email);
+                          if (!validation.isValid) {
+                            alert(validation.message || "PLEASE PROVIDE A VALID RECEIVER EMAIL (BLOCK 00) BEFORE PROCEEDING TO PAYMENT.");
                             return actions.reject();
                           }
                           return actions.resolve();
@@ -718,7 +720,15 @@ const Checkout: React.FC = () => {
                       NO PAYMENT GATEWAY REQUIRED. PROCEED TO CLAIM YOUR ASSETS.
                     </p>
                     <button 
-                      onClick={() => handlePurchaseSuccess(orderId)}
+                      onClick={async () => {
+                        const { validateLegitEmail } = await import('../../lib/emailValidator');
+                        const validation = await validateLegitEmail(email);
+                        if (!validation.isValid) {
+                          alert(validation.message || "PLEASE ENTER A VALID EMAIL ADDRESS (BLOCK 00)");
+                          return;
+                        }
+                        await handlePurchaseSuccess(orderId);
+                      }}
                       disabled={loading || !name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || trialConflicts.length > 0}
                       className="w-full bg-black text-white py-5 text-sm font-black tracking-[0.2em] hover:bg-green-600 transition-all disabled:opacity-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
                     >

@@ -13,10 +13,16 @@ const Footer = () => {
     setStatus('loading');
 
     try {
+      const { validateLegitEmail } = await import('../lib/emailValidator');
+      const validation = await validateLegitEmail(email);
+      if (!validation.isValid) {
+        throw new Error(validation.message || "INVALID_EMAIL");
+      }
+
       const { error } = await supabase
         .from('fontsubscribers')
         .insert([{ 
-          email: email.toLowerCase(), 
+          email: email.toLowerCase().trim(), 
           source: 'footer_subscription',
           status: 'active' 
         }]);
@@ -34,7 +40,7 @@ const Footer = () => {
       setStatus('error');
       alert(err.message === "EMAIL_ALREADY_SUBSCRIBED" 
         ? "YOU ARE ALREADY IN OUR SYSTEM!" 
-        : "SUBSCRIPTION_FAILED. PLEASE TRY AGAIN.");
+        : err.message || "SUBSCRIPTION_FAILED. PLEASE TRY AGAIN.");
       setTimeout(() => setStatus('idle'), 3000);
     }
   };
