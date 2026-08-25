@@ -317,9 +317,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       setPopoverPos(null);
       setSelectedCharIndex(null);
 
-      // OTOMATIS RANDOMIZE ALTERNATE SEKALI SAAT INITIAL LOAD
-      const configAny = config as any;
-      if (configAny.initialRandomAlternates && !hasRandomizedPreset.current && font.tables.gsub?.features && font.tables.gsub?.lookups) {
+      // OTOMATIS RANDOMIZE ALTERNATE SEKALI SAAT FONT PERTAMA KALI LOAD
+      if (!hasRandomizedPreset.current && font.tables.gsub?.features && font.tables.gsub?.lookups) {
         hasRandomizedPreset.current = true;
         const altFeatureTags = [
           'aalt', 'salt', 'swsh', 'titl', 'calt', 'dlig', 'liga',
@@ -362,23 +361,16 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   if (lookup.lookupType === 1) {
                     if (subtable.deltaGlyphId !== undefined) {
                       collectedAlts.push({ glyphIndex: (glyphIndex + subtable.deltaGlyphId) % 65536, tag: featureRecord.tag });
-                    } else if (Array.isArray(subtable.substitute)) {
-                      const targetSub = subtable.substitute[covIdx];
-                      if (targetSub !== undefined) collectedAlts.push({ glyphIndex: targetSub, tag: featureRecord.tag });
+                    } else if (Array.isArray(subtable.substitute) && subtable.substitute[covIdx] !== undefined) {
+                      collectedAlts.push({ glyphIndex: subtable.substitute[covIdx], tag: featureRecord.tag });
                     }
                   } else if (lookup.lookupType === 3) {
-                    const altSets = subtable.alternateSets || subtable.alternates || [];
+                    const altSets = subtable.alternateSets || subtable.alternateSet || subtable.alternates || [];
                     const targetSet = altSets[covIdx];
-                    if (targetSet) {
-                      if (Array.isArray(targetSet)) {
-                        collectedAlts.push(...targetSet);
-                      } else if (Array.isArray(targetSet.alternateGlyphs)) {
-                        collectedAlts.push(...targetSet.alternateGlyphs);
-                      } else if (Array.isArray(targetSet.alternates)) {
-                        collectedAlts.push(...targetSet.alternates);
-                      } else if (Array.isArray(targetSet.glyphs)) {
-                        collectedAlts.push(...targetSet.glyphs);
-                      }
+                    if (Array.isArray(targetSet)) {
+                      targetSet.forEach(idx => collectedAlts.push({ glyphIndex: idx, tag: featureRecord.tag }));
+                    } else if (targetSet?.alternateGlyphs) {
+                      targetSet.alternateGlyphs.forEach((idx: number) => collectedAlts.push({ glyphIndex: idx, tag: featureRecord.tag }));
                     }
                   }
                 } catch (e) {}
@@ -399,7 +391,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           setCharOverrides(randomCharMap);
         }
       }
-      
+
     });
   }, [config, activeStyleIndex]);
 
