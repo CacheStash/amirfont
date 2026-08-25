@@ -1,13 +1,13 @@
 /**
  * 100% Free Client-Side Email & Mailbox Domain Validator
- * Uses Cloudflare DNS-over-HTTPS (DoH) to verify real MX records.
+ * Uses Google Public DNS over HTTPS (DoH - CORS Enabled) to verify real MX records.
  */
 
-interface CloudflareDnsResponse {
-  Status: number;
+interface GoogleDnsResponse {
+  Status: number; // 0 = NOERROR (Domain exists), 3 = NXDOMAIN (Domain does not exist)
   Answer?: Array<{
     name: string;
-    type: number;
+    type: number; // Type 15 is MX
     TTL: number;
     data: string;
   }>;
@@ -17,7 +17,8 @@ const BLOCKED_DOMAINS = new Set([
   'bla.com', 'test.com', 'example.com', 'asdf.com', 'sample.com', 'fake.com',
   'mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com',
   'yopmail.com', 'throwawaymail.com', 'getairmail.com', 'dispostable.com',
-  'trashmail.com', 'sharklasers.com', 'nada.ltd', 'mohmal.com'
+  'trashmail.com', 'sharklasers.com', 'nada.ltd', 'mohmal.com', 'mytemp.email',
+  'burnermail.io', 'inboxkitten.com', 'crazymailing.com', 'dropmail.me'
 ]);
 
 export async function validateLegitEmail(email: string): Promise<{ isValid: boolean; message?: string }> {
@@ -43,27 +44,35 @@ export async function validateLegitEmail(email: string): Promise<{ isValid: bool
     return { isValid: false, message: 'SUSPICIOUS EMAIL PATTERN DETECTED' };
   }
 
-  // 3. 100% Free Live MX Record Lookup via Cloudflare DNS over HTTPS
+  // 3. 100% Free Live MX Record Lookup via Google DNS (CORS Enabled)
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-    const response = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=MX`, {
-      headers: { 'Accept': 'application/dns-json' },
+    const response = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`, {
       signal: controller.signal
     });
     clearTimeout(timeoutId);
 
     if (response.ok) {
-      const data = (await response.json()) as CloudflareDnsResponse;
-      // Status 0 = NOERROR, Answer array holds valid MX servers
-      if (data.Status !== 0 || !Array.isArray(data.Answer) || data.Answer.length === 0) {
-        return { isValid: false, message: `DOMAIN "@${domain.toUpperCase()}" DOES NOT ACCEPT EMAILS (NO MX RECORD)` };
+      const data = (await response.json()) as GoogleDnsResponse;
+      
+      // Status 3 = NXDOMAIN (Domain tidak pernah terdaftar)
+      if (data.Status === 3) {
+        return { isValid: false, message: `DOMAIN "@${domain.toUpperCase()}" DOES NOT EXIST` };
+      }
+
+      // Status 0 = NOERROR, periksa apakah ada Answer MX record
+      if (!Array.isArray(data.Answer) || data.Answer.length === 0) {
+        return { isValid: false, message: `DOMAIN "@${domain.toUpperCase()}" HAS NO ACTIVE MAIL SERVER (NO MX RECORD)` };
       }
     }
   } catch (err) {
-    // Fallback jika network DNS timeout/offline
-    console.warn('DNS MX check skipped / timeout:', err);
+    console.error('DNS MX check failed:', err);
+    // Jika user offline / DNS diblokir, tetap tolak jika domain terdeteksi aneh
+    if (domain.endsWith('.bla') || domain === 'bla.com') {
+      return { isValid: false, message: 'INVALID EMAIL DOMAIN' };
+    }
   }
 
   return { isValid: true };
