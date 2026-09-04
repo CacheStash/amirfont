@@ -96,7 +96,7 @@ const WebAnalytics: React.FC = () => {
       // Top Countries
       const topCountries = countries.map((c: any) => ({
         country: c.dimensions?.clientCountryName || 'Unknown',
-        requests: c.count || 0
+        requests: c.sum?.requests || c.count || 0
       }));
 
       // Worker invocations
