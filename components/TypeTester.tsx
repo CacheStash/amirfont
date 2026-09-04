@@ -947,7 +947,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
             isSelected ? 'bg-black text-white' : ''
           }`}
         >
-          {overrideGlyphIdx !== undefined ? (
+          {overrideGlyphIdx !== undefined && (!overrideFeature || overrideFeature === 'alt') ? (
             renderInlineGlyphSvg(overrideGlyphIdx, fontSize, fontIdx) || char
           ) : (
             char
