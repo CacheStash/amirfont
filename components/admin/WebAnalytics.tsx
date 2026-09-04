@@ -65,20 +65,27 @@ const WebAnalytics: React.FC = () => {
 
       const zoneData = raw?.data?.viewer?.zones?.[0];
       const http1d = zoneData?.httpRequests1dGroups || [];
-      const countries = zoneData?.httpRequestsAdaptiveGroups || [];
       const workerInv = raw?.data?.viewer?.accounts?.[0]?.workersInvocationsAdaptive || [];
 
-      // Agregasi Ringkasan
+      // Deklarasi Akumulator Ringkasan
       let totalReq = 0;
       let totalBytesRaw = 0;
       let totalViews = 0;
       let totalUniques = 0;
+      const countryTotals: Record<string, number> = {};
 
       const trend = http1d.map((g: any) => {
         const req = g.sum?.requests || 0;
         const b = g.sum?.bytes || 0;
         const pv = g.sum?.pageViews || 0;
         const u = g.uniq?.uniques || 0;
+
+        // Akumulasi data negara dari countryMap
+        const cMap = g.sum?.countryMap || [];
+        cMap.forEach((item: any) => {
+          const cName = item.clientCountryName || 'Unknown';
+          countryTotals[cName] = (countryTotals[cName] || 0) + (item.requests || 0);
+        });
 
         totalReq += req;
         totalBytesRaw += b;
@@ -93,11 +100,11 @@ const WebAnalytics: React.FC = () => {
         };
       });
 
-      // Top Countries
-      const topCountries = countries.map((c: any) => ({
-        country: c.dimensions?.clientCountryName || 'Unknown',
-        requests: c.sum?.requests || c.count || 0
-      }));
+      // Sortir Top 10 Negara
+      const topCountries = Object.entries(countryTotals)
+        .map(([country, requests]) => ({ country, requests }))
+        .sort((a, b) => b.requests - a.requests)
+        .slice(0, 10);
 
       // Worker invocations
       let workerTotal = 0;

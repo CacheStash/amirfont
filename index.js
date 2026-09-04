@@ -584,12 +584,12 @@ headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400');
                       uniques
                     }
                   }
-                  httpRequestsOverviewAdaptiveGroups(limit: 10, filter: { datetime_geq: "${dateSince}T00:00:00Z", datetime_leq: "${dateUntil}T23:59:59Z" }) {
+                  httpRequests1dGroups(limit: 30, filter: { date_geq: $dateSince, date_leq: $dateUntil }, orderBy: [date_DESC]) {
                     sum {
-                      requests
-                    }
-                    dimensions {
-                      clientCountryName
+                      countryMap {
+                        clientCountryName
+                        requests
+                      }
                     }
                   }
                 }
