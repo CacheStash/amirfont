@@ -3,6 +3,8 @@ import {
   LayoutDashboard, Type, ShoppingCart, LogOut, Tag, 
   Menu, X, Mail, FileText, Power, Loader2, CreditCard 
 } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import WebAnalytics from './WebAnalytics';
 import ProductManager from './ProductManager';
 import ContentManager from './ContentManager';
 import PromotionsManager from './PromotionsManager'; 
@@ -178,6 +180,9 @@ const AdminDashboard = () => {
           <button onClick={() => handleTabChange('content')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'content' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <FileText size={18} /> Content Mgr
           </button>
+       <button onClick={() => handleTabChange('analytics')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'analytics' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+            <Globe size={18} /> Web Analytics
+          </button>
         </nav>
 
         {/* Maintenance Toggle, PayPal Mode Toggle & Logout */}
@@ -246,6 +251,7 @@ const AdminDashboard = () => {
         {activeTab === 'stats' && <Statistics />}
         {activeTab === 'inbox' && <AdminMessages />}
         {activeTab === 'orders' && <Orders />}
+        {activeTab === 'analytics' && <WebAnalytics />}
       </main>
     </div>
   );

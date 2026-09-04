@@ -422,8 +422,9 @@ const Home: React.FC = () => {
                   family: `"${font.name}"`,
                   tags: Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []),
                   styleCount: Array.isArray(font.font_files) ? font.font_files.length : 1,
-                  randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length]
-                };
+                  randomText: DUMMY_LIBRARY[index % DUMMY_LIBRARY.length],
+                  initialRandomAlternates: true,
+};
 
                 const promo = getActivePromo(font.id || '');
                 const basePrice = font.price || 25;
