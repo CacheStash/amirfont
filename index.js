@@ -571,7 +571,7 @@ headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400');
             query GetAnalytics($zoneId: String!, $dateSince: String!, $dateUntil: String!, $accountTag: String!) {
               viewer {
                 zones(filter: { zoneTag: $zoneId }) {
-                  httpRequests1dGroups(limit: 30, filter: { date_geq: $dateSince, date_leq: $dateUntil }, orderBy: [date_DESC]) {
+                 httpRequests1dGroups(limit: 30, filter: { date_geq: $dateSince, date_leq: $dateUntil }, orderBy: [date_DESC]) {
                     dimensions {
                       date
                     }
@@ -579,17 +579,13 @@ headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400');
                       requests
                       bytes
                       pageViews
-                    }
-                    uniq {
-                      uniques
-                    }
-                  }
-                  httpRequests1dGroups(limit: 30, filter: { date_geq: $dateSince, date_leq: $dateUntil }, orderBy: [date_DESC]) {
-                    sum {
                       countryMap {
                         clientCountryName
                         requests
                       }
+                    }
+                    uniq {
+                      uniques
                     }
                   }
                 }
