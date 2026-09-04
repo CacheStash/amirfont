@@ -571,7 +571,7 @@ headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400');
             query GetAnalytics($zoneId: String!, $dateSince: String!, $dateUntil: String!, $accountTag: String!) {
               viewer {
                 zones(filter: { zoneTag: $zoneId }) {
-                  httpRequests1dGroups(limit: 30, filter: { date_geq: $dateSince, date_leq: $dateUntil }) {
+                  httpRequests1dGroups(limit: 30, filter: { date_geq: $dateSince, date_leq: $dateUntil }, orderBy: [date_DESC]) {
                     dimensions {
                       date
                     }
@@ -584,7 +584,7 @@ headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400');
                       uniques
                     }
                   }
-                  httpRequestsAdaptiveGroups(limit: 10, filter: { date_geq: $dateSince, date_leq: $dateUntil }) {
+                  httpRequestsOverviewAdaptiveGroups(limit: 10, filter: { datetime_geq: "${dateSince}T00:00:00Z", datetime_leq: "${dateUntil}T23:59:59Z" }, orderBy: [count_DESC]) {
                     count
                     dimensions {
                       clientCountryName
@@ -637,7 +637,7 @@ headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400');
         });
       }
     }
-    
+
     
     // --- 7. API Secure ZIP Download (For Buyers) ---
     if (url.pathname.startsWith('/api/download-zip')) {
