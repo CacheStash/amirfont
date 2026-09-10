@@ -420,7 +420,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 }
               }
 
-              extractedIndices.forEach((altIdx: any) => {
+             extractedIndices.forEach((altIdx: any, idxInFeature: number) => {
                 const numIdx = Number(altIdx);
                 if (isNaN(numIdx) || numIdx === glyphIndex || numIdx === 0) return;
                 
@@ -431,11 +431,19 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                   ? String.fromCharCode(targetGlyph.unicode) 
                   : targetChar;
 
-                const effectiveTag = featureRecord.tag === 'aalt' ? 'salt' : featureRecord.tag;
+                const rawTag = featureRecord.tag === 'aalt' ? 'salt' : featureRecord.tag;
+                // Jika fitur mendukung multi-varian, sertakan nomor urutannya ("salt" 1, "salt" 2, dst.)
+                const effectiveTagWithIndex = (rawTag === 'salt' || rawTag === 'swsh') 
+                  ? `"${rawTag}" ${idxInFeature + 1}`
+                  : `"${rawTag}" 1`;
 
-                // Cegah duplikasi glyph jika terdaftar di beberapa fitur sekaligus (misal aalt + salt)
+                // KUNCI: Cegah duplikasi murni berdasarkan glyphIndex
                 if (!alternates.some(a => a.glyphIndex === numIdx)) {
-                  alternates.push({ char: charStr, glyphIndex: numIdx, featureTag: effectiveTag });
+                  alternates.push({ 
+                    char: charStr, 
+                    glyphIndex: numIdx, 
+                    featureTag: effectiveTagWithIndex 
+                  });
                 }
               });
             } catch (e) {
@@ -487,7 +495,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       }));
       setCharOverrides(prev => ({
         ...prev,
-        [selectedCharIndex]: alt.featureTag || 'alt'
+        [selectedCharIndex]: alt.featureTag || 'salt'
       }));
     }
 
@@ -845,9 +853,13 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       const overrideGlyphIdx = glyphOverrides[i];
       const overrideFeature = charOverrides[i];
 
-      const activeCharFeatures = overrideFeature && overrideFeature !== 'alt'
-        ? (globalActiveFeatureString === 'normal' ? `"${overrideFeature}" 1` : `"${overrideFeature}" 1, ${globalActiveFeatureString}`)
-        : globalActiveFeatureString;
+      let activeCharFeatures = globalActiveFeatureString;
+      if (overrideFeature && overrideFeature !== 'alt') {
+        const featureStr = overrideFeature.includes('"') ? overrideFeature : `"${overrideFeature}" 1`;
+        activeCharFeatures = globalActiveFeatureString === 'normal' 
+          ? featureStr 
+          : `${featureStr}, ${globalActiveFeatureString}`;
+      }
 
       const isCurrentActiveLayer = fontIdx === (layers[0]?.fontIndex ?? activeStyleIndex);
       const isSelected = selectionRange 
@@ -874,11 +886,15 @@ const TypeTester: React.FC<TypeTesterProps> = ({
             isSelected ? 'bg-black text-white' : ''
           }`}
         >
-          {overrideGlyphIdx !== undefined && (!overrideFeature || overrideFeature === 'alt') ? (
-            renderInlineGlyphSvg(overrideGlyphIdx, fontSize, fontIdx) || char
-          ) : (
-            char
-          )}
+          {(() => {
+            if (overrideGlyphIdx !== undefined && loadedFontObj) {
+              const g = loadedFontObj.glyphs.get(overrideGlyphIdx);
+              if (g && g.unicode) {
+                return String.fromCharCode(g.unicode);
+              }
+            }
+            return char;
+          })()}
         </span>
       );
     });
