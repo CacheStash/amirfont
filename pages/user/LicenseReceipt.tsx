@@ -7,14 +7,23 @@ const LicenseReceipt = () => {
   const { orderId } = useParams();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-const [userEmail, setUserEmail] = useState('');
-const [buyerInfo, setBuyerInfo] = useState<{name: string, address: string}>({ name: 'N/A', address: 'N/A' });
+  const [userEmail, setUserEmail] = useState('');
+  const [buyerInfo, setBuyerInfo] = useState<{name: string, address: string}>({ name: 'N/A', address: 'N/A' });
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchReceipt = async () => {
-      // 1. Ambil email user aktif
+      // 1. Ambil email user aktif & cek status admin
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.email) setUserEmail(user.email);
+      if (user) {
+        const { data: adminData } = await supabase
+          .from('fontadmin')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+        setIsAdmin(!!adminData);
+      }
 
       // 2. Ambil detail transaksi + Data Pembeli (Join fontbuyer)
       const { data, error } = await supabase
@@ -22,7 +31,7 @@ const [buyerInfo, setBuyerInfo] = useState<{name: string, address: string}>({ na
         .select(`
           *, 
           fonts(name),
-          fontbuyer(full_name, address)
+          fontbuyer(full_name, address, email)
         `)
         .eq('transaction_id', orderId);
       
@@ -35,6 +44,9 @@ const [buyerInfo, setBuyerInfo] = useState<{name: string, address: string}>({ na
             name: buyer.full_name || 'N/A',
             address: buyer.address || 'N/A'
           });
+          if (buyer.email) {
+            setUserEmail(buyer.email);
+          }
         }
       }
       setLoading(false);
@@ -87,8 +99,8 @@ const [buyerInfo, setBuyerInfo] = useState<{name: string, address: string}>({ na
 
       {/* TOOLBAR */}
       <div className="max-w-2xl mx-auto mb-8 flex justify-between items-center print:hidden">
-        <Link to="/user/dashboard" className="flex items-center gap-2 text-[10px] font-bold">
-          <ArrowLeft size={14} /> BACK_TO_DASHBOARD
+        <Link to={isAdmin ? "/admin" : "/user/dashboard"} className="flex items-center gap-2 text-[10px] font-bold">
+          <ArrowLeft size={14} /> {isAdmin ? "BACK_TO_ADMIN" : "BACK_TO_DASHBOARD"}
         </Link>
         <button 
           onClick={() => window.print()}
