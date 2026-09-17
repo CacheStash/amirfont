@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { AlignLeft, AlignCenter, AlignRight, Grid, Keyboard, ChevronDown, ChevronLeft, ChevronRight, Layers, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { FontConfig } from '../types';
-import opentype from 'opentype.js';
+import * as opentypeModule from 'opentype.js';
+const opentype: any = (opentypeModule as any).default || opentypeModule;
 
 interface TypeTesterProps {
   config: FontConfig & { 
