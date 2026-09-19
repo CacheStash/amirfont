@@ -28,7 +28,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
   const location = useLocation();
   const { cartCount } = useCart();
 
-  const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Insights'];
+  const menuItems = ['Fonts', 'Canvas', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Insights'];
 
   // AUTH LOGIC
   useEffect(() => {
@@ -125,6 +125,17 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
               alt="Subqi Studio" 
               className="h-6 md:h-8 w-auto object-contain" 
             />
+          </Link>
+        </div>
+
+        {/* Center: Quick Links */}
+        <div className="hidden md:flex items-center gap-8 font-mono text-xs font-bold uppercase tracking-widest px-6 h-full flex-1 justify-center">
+          <Link to="/fonts" className="hover:text-[#FF5C00] transition-colors py-2">
+            Fonts
+          </Link>
+          <Link to="/canvas" className="flex items-center gap-2 hover:text-[#FF5C00] transition-colors py-2">
+            <span>Canvas</span>
+            <span className="bg-[#FF5C00] text-black text-[9px] font-black px-1.5 py-0.5">NEW</span>
           </Link>
         </div>
 
@@ -263,7 +274,14 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                           to={`/${item.toLowerCase()}`}
                          className="text-3xl lg:text-6xl font-normal uppercase tracking-tighter px-3 lg:px-8 py-6 lg:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
                         >
-                          <span>{item}</span>
+                          <span className="flex items-center gap-3">
+                            <span>{item}</span>
+                            {item === 'Canvas' && (
+                              <span className="bg-[#FF5C00] text-black text-xs font-black px-2 py-0.5 tracking-normal group-hover:bg-white">
+                                NEW
+                              </span>
+                            )}
+                          </span>
                           <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                         </Link>
                       ))}

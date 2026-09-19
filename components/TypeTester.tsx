@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { AlignLeft, AlignCenter, AlignRight, Grid, Keyboard, ChevronDown, ChevronLeft, ChevronRight, Layers, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { FontConfig } from '../types';
 import opentype from 'opentype.js';
@@ -923,6 +924,15 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 <span>Layer Mode {isLayeredMode ? 'ON' : 'OFF'}</span>
               </button>
             )}
+
+            <Link
+              to="/canvas"
+              className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold uppercase transition-colors border border-black bg-white hover:bg-[#FF5C00] hover:text-black text-black"
+              title="Open FontCanvas Studio"
+            >
+              <span>FontCanvas</span>
+              <span className="text-[10px]">↗</span>
+            </Link>
           </div>
 
           <div className="col-span-2 lg:col-span-1 lg:ml-auto flex items-center gap-6 px-4 lg:px-8 py-4 lg:py-8 border-b lg:border-b-0 lg:border-l border-black justify-between lg:justify-end lg:order-last">
