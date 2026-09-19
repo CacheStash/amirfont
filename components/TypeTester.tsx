@@ -925,14 +925,16 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               </button>
             )}
 
-            <Link
-              to="/canvas"
+            <a
+              href={`https://canvas.subqi.com/?font=${encodeURIComponent(config.name)}&font_id=${encodeURIComponent(config.id)}&text=${encodeURIComponent(text)}&style=${activeStyleIndex}&layered=${isLayeredMode ? '1' : '0'}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold uppercase transition-colors border border-black bg-white hover:bg-[#FF5C00] hover:text-black text-black"
-              title="Open FontCanvas Studio"
+              title="Open active font in FontCanvas Studio"
             >
               <span>FontCanvas</span>
               <span className="text-[10px]">↗</span>
-            </Link>
+            </a>
           </div>
 
           <div className="col-span-2 lg:col-span-1 lg:ml-auto flex items-center gap-6 px-4 lg:px-8 py-4 lg:py-8 border-b lg:border-b-0 lg:border-l border-black justify-between lg:justify-end lg:order-last">
