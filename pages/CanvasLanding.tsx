@@ -6,14 +6,37 @@ const CanvasLanding: React.FC = () => {
   const CANVAS_APP_URL = "https://canvas.subqi.com";
 
   return (
-    <div className="min-h-screen bg-[#F5F5F0] text-black font-mono selection:bg-black selection:text-white pb-24 relative overflow-x-hidden">
-      {/* VIBRANT BACKGROUND ORBS - Harmonized with License & FAQ */}
-      <div className="grain-orb-base orb-top-right !-z-10 pointer-events-none" />
-      <div className="grain-orb-base orb-bottom-left !-z-10 pointer-events-none" />
-      <div className="grain-orb-base orb-top-right !top-auto !bottom-0 !-right-[10%] !bg-[#FF5C00]/20 !-z-10 pointer-events-none" />
+    <div className="min-h-screen bg-[#EDEBE6] text-black font-mono selection:bg-black selection:text-white pb-24 relative overflow-x-hidden">
+      {/* Background Orbs agar selaras dengan Home & Fonts */}
+      <div className="grain-orb-base orb-top-right pointer-events-none" />
+      <div className="grain-orb-base orb-bottom-left pointer-events-none" />
+
+      {/* 1. HEADER ORB (Atas Kanan) */}
+      <div className="absolute top-[-100px] right-[-100px] w-[800px] h-[600px] pointer-events-none z-0 hidden md:block opacity-60">
+        <div
+          className="w-full h-full mix-blend-multiply blur-[80px]" 
+          style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.45) 0%, rgba(253, 186, 116, 0.25) 50%, rgba(253, 186, 116, 0) 100%)' }}
+        />
+      </div>
+
+      {/* 2. MIDDLE ORB (Tengah Kiri) */}
+      <div className="absolute top-[40%] left-[-200px] w-[800px] h-[800px] pointer-events-none z-0 hidden md:block opacity-35">
+        <div
+          className="w-full h-full mix-blend-multiply blur-[100px]" 
+          style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.3) 0%, rgba(253, 186, 116, 0.15) 50%, rgba(253, 186, 116, 0) 100%)' }}
+        />
+      </div>
+
+      {/* 3. BOTTOM ORB (Bawah Kanan) */}
+      <div className="absolute bottom-[10%] right-[-200px] w-[800px] h-[800px] pointer-events-none z-0 hidden md:block opacity-45">
+        <div
+          className="w-full h-full mix-blend-multiply blur-[100px]" 
+          style={{ background: 'radial-gradient(closest-side, rgba(255, 80, 80, 0.4) 0%, rgba(253, 186, 116, 0.2) 50%, rgba(253, 186, 116, 0) 100%)' }}
+        />
+      </div>
 
       {/* 1. HERO HEADER */}
-      <header className="px-4 md:px-8 py-14 md:py-20 border-b border-black bg-white/40 backdrop-blur-xs">
+      <header className="relative z-10 px-4 md:px-8 py-14 md:py-20 border-b border-black bg-white/30 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-wrap items-center gap-3 mb-6">
             <span className="bg-black text-[#FF5C00] px-3 py-1 text-xs font-black uppercase tracking-widest">
@@ -54,7 +77,7 @@ const CanvasLanding: React.FC = () => {
       </header>
 
       {/* 2. INTERACTIVE DEMO / PREVIEW SHOWCASE */}
-      <section className="px-4 md:px-8 py-12 border-b border-black bg-white/60 backdrop-blur-xs">
+      <section className="relative z-10 px-4 md:px-8 py-12 border-b border-black bg-white/40 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto">
           <div className="border border-black bg-[#EDEBE6]/80 p-4 md:p-8 relative overflow-hidden backdrop-blur-xs">
             {/* Top Bar Simulator */}
@@ -147,7 +170,7 @@ const CanvasLanding: React.FC = () => {
       </section>
 
       {/* 3. CAPABILITIES GRID (BRUTALIST CARDS) */}
-      <section className="px-4 md:px-8 py-16 md:py-24 border-b border-black">
+      <section className="relative z-10 px-4 md:px-8 py-16 md:py-24 border-b border-black bg-white/20 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto">
           <div className="mb-12">
             <span className="text-xs uppercase tracking-widest text-[#FF5C00] font-bold">
@@ -245,12 +268,15 @@ const CanvasLanding: React.FC = () => {
                 <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
                   Touch & iPad Gestures
                 </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Full multi-touch interaction support for iPad and mobile browsers. Smooth 2-finger pinch zoom, fluid single-finger canvas panning, and tap-and-hold marquee multi-selection.
+                <p className="text-xs leading-relaxed text-black/70 normal-case mb-2">
+                  Full multi-touch interaction support for iPad and tablet browsers. Smooth 2-finger pinch zoom, fluid single-finger canvas panning, and tap-and-hold marquee multi-selection.
+                </p>
+                <p className="text-[11px] leading-relaxed text-black/90 font-medium normal-case bg-black/5 p-2 border-l border-black">
+                  Desktop Recommended: While touch devices are supported, using a desktop computer with a larger screen and mouse/trackpad precision is strongly recommended for the most optimal design workflow.
                 </p>
               </div>
               <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                HOLD-TO-MARQUEE & PINCH-ZOOM
+                DESKTOP OPTIMAL • TOUCH READY
               </div>
             </div>
 
@@ -277,7 +303,7 @@ const CanvasLanding: React.FC = () => {
       </section>
 
       {/* 4. LICENSING & COMMERCIAL POLICY */}
-      <section className="px-4 md:px-8 py-16 md:py-20 border-b border-black bg-white/40 backdrop-blur-xs">
+      <section className="relative z-10 px-4 md:px-8 py-16 md:py-20 border-b border-black bg-white/40 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto">
           <div className="border border-black bg-white/90 backdrop-blur-xs p-8 md:p-14 relative">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
@@ -289,13 +315,16 @@ const CanvasLanding: React.FC = () => {
                   </span>
                 </div>
                 <h2 className="text-2xl sm:text-4xl font-normal uppercase tracking-tight mb-4 font-sans">
-                  Free In-Browser Experimentation
+                  Free In-Browser Access & Crucial Pro Workflows
                 </h2>
-                <p className="text-xs sm:text-sm leading-relaxed text-black/80 normal-case mb-4">
-                  FontCanvas Studio is free for designers and clients to test wordmarks, explore stylistic alternates, and preview layout aesthetics before committing to a purchase.
+                <p className="text-xs sm:text-sm leading-relaxed text-black/80 normal-case mb-3">
+                  FontCanvas Studio is free for anyone to use and experiment without restriction (*). Designers and typographers can freely draft custom lettering layouts, explore stylistic alternates, test warping envelopes, and preview typography directly in their browser.
                 </p>
-                <p className="text-xs sm:text-sm leading-relaxed text-black/80 normal-case">
-                  Using font assets or converted vector paths from FontCanvas in finalized commercial branding, client deliverables, merchandise, or public media requires purchasing an appropriate desktop or commercial license.
+                <p className="text-xs sm:text-sm leading-relaxed text-black/80 normal-case mb-4">
+                  To unlock crucial production capabilities—including clean unwatermarked vector SVG & high-res PNG exports, access to full font families, chromatic layer stacking, and all extra ornaments—simply purchase at least one paid font from our collection.
+                </p>
+                <p className="text-[11px] leading-relaxed text-black/60 italic normal-case border-l-2 border-[#FF5C00] pl-3 py-0.5">
+                  * Continuous Development & In-Browser Simplicity: We actively maintain and update FontCanvas regularly to resolve critical bugs and introduce refined tools. FontCanvas is intentionally engineered to stay clean, fast, and focused on essential typographic design workflows—allowing our buyers to compose, customize, and export production-ready vector artwork directly in-browser without requiring complex 3rd-party graphic software.
                 </p>
               </div>
 
@@ -304,16 +333,16 @@ const CanvasLanding: React.FC = () => {
                   href={CANVAS_APP_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-black text-white hover:bg-[#FF5C00] hover:text-black transition-all px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-center border border-black flex items-center justify-center gap-2"
+                  className="bg-black text-white hover:bg-[#FF5C00] hover:text-black transition-all px-7 py-4 text-xs font-bold uppercase tracking-widest text-center border border-black flex items-center justify-center gap-2"
                 >
-                  <span>Open Studio</span>
+                  <span>Launch FontCanvas Editor</span>
                   <ArrowUpRight size={16} />
                 </a>
                 <Link
-                  to="/license"
-                  className="bg-white text-black hover:bg-black hover:text-white transition-all px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-center border border-black"
+                  to="/fonts"
+                  className="bg-[#FF5C00] text-black hover:bg-black hover:text-white transition-all px-7 py-4 text-xs font-bold uppercase tracking-widest text-center border border-black"
                 >
-                  View License Terms
+                  Buy Now
                 </Link>
               </div>
             </div>
@@ -322,7 +351,7 @@ const CanvasLanding: React.FC = () => {
       </section>
 
       {/* 5. BOTTOM CTA BANNER */}
-      <section className="px-4 md:px-8 pt-16 md:pt-24">
+      <section className="relative z-10 px-4 md:px-8 pt-16 md:pt-24">
         <div className="max-w-7xl mx-auto">
           <div className="border border-black bg-black text-white p-10 md:p-20 text-center relative overflow-hidden">
             <div className="relative z-10 max-w-3xl mx-auto">
