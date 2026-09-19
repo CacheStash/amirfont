@@ -906,10 +906,10 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       <div className="relative z-10 h-full flex flex-col">
         <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-50">
 
-          <div className="hidden lg:flex items-center gap-2 px-4 lg:px-8 py-4 lg:py-8 border-r border-black justify-start">
+          <div className="col-span-2 lg:col-span-1 flex flex-wrap items-center justify-between sm:justify-start gap-2 px-4 lg:px-8 py-3 lg:py-8 border-b lg:border-b-0 lg:border-r border-black">
             <button 
               onClick={() => setViewMode(viewMode === 'type' ? 'glyphs' : 'type')} 
-              className="flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors bg-black text-white hover:bg-gray-800"
+              className="flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors bg-black text-white hover:bg-gray-800 shrink-0"
             >
               {viewMode === 'type' ? <Grid size={14}/> : <Keyboard size={14}/>}
               <span>{viewMode === 'type' ? 'Map View' : 'Type View'}</span>
@@ -918,7 +918,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
             {isLayeredSupported && viewMode === 'type' && (
               <button
                 onClick={() => setIsLayeredMode(!isLayeredMode)}
-                className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors border ${isLayeredMode ? 'bg-black text-white border-black' : 'bg-transparent text-black border-black hover:bg-gray-200'}`}
+                className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase transition-colors border shrink-0 ${isLayeredMode ? 'bg-black text-white border-black' : 'bg-transparent text-black border-black hover:bg-gray-200'}`}
               >
                 <Layers size={14}/>
                 <span>Layer Mode {isLayeredMode ? 'ON' : 'OFF'}</span>
@@ -929,7 +929,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               href={`https://canvas.subqi.com/?font=${encodeURIComponent(config.name)}&font_id=${encodeURIComponent(config.id)}&style=${activeStyleIndex}&layered=${isLayeredMode ? '1' : '0'}${isLayeredMode ? `&layers=${encodeURIComponent(JSON.stringify(layers.filter(l => l.isVisible).map(l => ({ fontIndex: l.fontIndex, color: l.color }))))}` : ''}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold uppercase transition-colors border border-black bg-white hover:bg-[#FF5C00] hover:text-black text-black"
+              className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold uppercase transition-colors border border-black bg-white hover:bg-[#FF5C00] hover:text-black text-black shrink-0 sm:ml-auto lg:ml-0"
               title="Open active font in FontCanvas Studio"
             >
               <span>FontCanvas</span>
