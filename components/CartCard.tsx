@@ -413,7 +413,7 @@ const handleAdd = (redirect: boolean = false) => {
                 <button 
                   onClick={() => handleAdd(true)} 
                   disabled={!isValidSelection}
-                  className={`flex-1 ${directCheckout ? 'md:w-[280px]' : 'md:w-[180px]'} bg-black text-white py-5 px-4 flex items-center justify-center gap-3 hover:bg-gray-800 transition-all group font-black text-[10px] tracking-widest uppercase disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-black`}
+                  className={`flex-1 ${directCheckout ? 'md:w-[280px]' : 'md:w-[180px]'} bg-black text-white py-5 px-4 flex items-center justify-center gap-3 hover:bg-[#FF5C00] hover:text-black transition-all group font-bold text-[11px] tracking-widest uppercase disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:text-white cursor-pointer shadow-xs`}
                 >
                   CHECKOUT
                   <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />

@@ -83,8 +83,8 @@ const License: React.FC = () => {
       <div className="w-full relative z-10">
         {/* HEADER SECTION */}
         <header className="px-6 py-16 md:px-8 border-b border-black mb-12 bg-transparent text-left">
-          <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-6">
-            License Agreement
+          <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-6 font-sans">
+            License <span className="italic font-serif">Agreement.</span>
           </h2>
           {/* 2. SUB-HEADER INFO - Tambah info Update Terakhir */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

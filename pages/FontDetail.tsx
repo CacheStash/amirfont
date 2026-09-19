@@ -101,7 +101,7 @@ const FontDetail: React.FC = () => {
                   directCheckout: true 
                 });
               }}
-              className="w-full md:w-64 bg-black text-white px-8 py-6 text-xs font-black uppercase border border-black hover:bg-white hover:text-black transition-all flex items-center justify-center"
+              className="w-full md:w-64 bg-black text-white px-8 py-5 text-xs font-bold uppercase tracking-widest border border-black hover:bg-[#FF5C00] hover:text-black transition-all flex items-center justify-center cursor-pointer shadow-xs"
             >
               BUY LICENSE
             </button>
@@ -115,14 +115,14 @@ const FontDetail: React.FC = () => {
                   initialOption: 'trial' // Mengaktifkan opsi trial/demo secara otomatis
                 });
               }}
-              className="w-full md:w-64 border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center justify-center"
+              className="w-full md:w-64 bg-white text-black border border-black px-8 py-4 text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-xs"
             >
               Free Trial
             </button>
 
             <button 
               onClick={() => navigate(-1)} 
-              className="w-full md:w-64 border border-black px-8 py-4 text-xs font-black uppercase hover:bg-black hover:text-white transition-all flex items-center justify-center gap-3"
+              className="w-full md:w-64 bg-white text-black border border-black px-8 py-4 text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all flex items-center justify-center gap-3 cursor-pointer shadow-xs"
             >
               <ChevronLeft size={16} /> Back to Collection
             </button>

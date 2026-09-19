@@ -6,9 +6,14 @@ const CanvasLanding: React.FC = () => {
   const CANVAS_APP_URL = "https://canvas.subqi.com";
 
   return (
-    <div className="min-h-screen bg-[#EDEBE6] text-black font-mono selection:bg-black selection:text-white pb-24">
+    <div className="min-h-screen bg-[#F5F5F0] text-black font-mono selection:bg-black selection:text-white pb-24 relative overflow-x-hidden">
+      {/* VIBRANT BACKGROUND ORBS - Harmonized with License & FAQ */}
+      <div className="grain-orb-base orb-top-right !-z-10 pointer-events-none" />
+      <div className="grain-orb-base orb-bottom-left !-z-10 pointer-events-none" />
+      <div className="grain-orb-base orb-top-right !top-auto !bottom-0 !-right-[10%] !bg-[#FF5C00]/20 !-z-10 pointer-events-none" />
+
       {/* 1. HERO HEADER */}
-      <header className="px-4 md:px-8 py-14 md:py-20 border-b border-black">
+      <header className="px-4 md:px-8 py-14 md:py-20 border-b border-black bg-white/40 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-wrap items-center gap-3 mb-6">
             <span className="bg-black text-[#FF5C00] px-3 py-1 text-xs font-black uppercase tracking-widest">
@@ -49,9 +54,9 @@ const CanvasLanding: React.FC = () => {
       </header>
 
       {/* 2. INTERACTIVE DEMO / PREVIEW SHOWCASE */}
-      <section className="px-4 md:px-8 py-12 border-b border-black bg-white">
+      <section className="px-4 md:px-8 py-12 border-b border-black bg-white/60 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto">
-          <div className="border border-black bg-[#EDEBE6] p-4 md:p-8 relative overflow-hidden">
+          <div className="border border-black bg-[#EDEBE6]/80 p-4 md:p-8 relative overflow-hidden backdrop-blur-xs">
             {/* Top Bar Simulator */}
             <div className="flex items-center justify-between border-b border-black pb-4 mb-6">
               <div className="flex items-center gap-3">
@@ -59,7 +64,7 @@ const CanvasLanding: React.FC = () => {
                 <span className="w-3 h-3 rounded-full bg-black/40 inline-block"></span>
                 <span className="w-3 h-3 rounded-full bg-black/20 inline-block"></span>
                 <span className="text-xs uppercase font-bold tracking-widest ml-2 hidden sm:inline">
-                  CANVAS_VIEWPORT // 1920 × 1080
+                  CANVAS_STUDIO_VIEWPORT
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -272,9 +277,9 @@ const CanvasLanding: React.FC = () => {
       </section>
 
       {/* 4. LICENSING & COMMERCIAL POLICY */}
-      <section className="px-4 md:px-8 py-16 md:py-20 border-b border-black bg-[#EDEBE6]">
+      <section className="px-4 md:px-8 py-16 md:py-20 border-b border-black bg-white/40 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto">
-          <div className="border border-black bg-white p-8 md:p-14 relative">
+          <div className="border border-black bg-white/90 backdrop-blur-xs p-8 md:p-14 relative">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
               <div className="max-w-2xl">
                 <div className="flex items-center gap-2 mb-4">

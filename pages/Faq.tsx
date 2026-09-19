@@ -114,8 +114,9 @@ const [lastUpdated, setLastUpdated] = useState<string>('');
       <div className="max-w-full mx-auto relative z-10">
         {/* HEADER SECTION */}
         <header className="px-6 py-16 md:px-8 border-b border-black mb-12 bg-transparent text-left">
-          <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-6">
-            Frequently Asked <br className="hidden md:block" /> Questions
+          <h2 className="text-5xl md:text-8xl font-normal uppercase tracking-tighter leading-[0.85] mb-6 font-sans">
+            Frequently Asked <br className="hidden md:block" />
+            <span className="italic font-serif">Questions.</span>
           </h2>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <p className="text-xs md:text-sm font-semibold text-gray-600 uppercase tracking-widest">

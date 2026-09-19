@@ -103,12 +103,9 @@ const Footer = () => {
         {/* KOLOM 2: TOOLS & LAB */}
         <div className="flex flex-col gap-3">
           <span className="opacity-40 tracking-[0.2em] mb-2 italic">TOOLS & LAB</span>
-          <Link to="/fonts" className="hover:underline tracking-widest w-fit">
-            TYPETESTER
-          </Link>
           <Link to="/canvas" className="hover:underline tracking-widest w-fit flex items-center gap-1.5">
             <span>FONTCANVAS STUDIO</span>
-            <span className="bg-black text-[#FF5C00] text-[9px] px-1 font-bold">NEW</span>
+            <span className="bg-black text-[#FF5C00] text-[7px] px-1 py-0 h-3 leading-none flex items-center font-bold rounded-[2px] self-start -mt-0.5">BETA</span>
           </Link>
         </div>
 

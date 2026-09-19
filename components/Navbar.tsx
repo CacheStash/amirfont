@@ -133,9 +133,9 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
           <Link to="/fonts" className="hover:text-[#FF5C00] transition-colors py-2">
             Fonts
           </Link>
-          <Link to="/canvas" className="flex items-center gap-2 hover:text-[#FF5C00] transition-colors py-2">
+          <Link to="/canvas" className="flex items-center gap-1.5 hover:text-[#FF5C00] transition-colors py-2">
             <span>Canvas</span>
-            <span className="bg-[#FF5C00] text-black text-[9px] font-black px-1.5 py-0.5">NEW</span>
+            <span className="bg-[#FF5C00] text-black text-[7px] font-black px-1 py-0 h-3 leading-none flex items-center rounded-[2px] self-start -mt-0.5">BETA</span>
           </Link>
         </div>
 
@@ -277,8 +277,8 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                           <span className="flex items-center gap-3">
                             <span>{item}</span>
                             {item === 'Canvas' && (
-                              <span className="bg-[#FF5C00] text-black text-xs font-black px-2 py-0.5 tracking-normal group-hover:bg-white">
-                                NEW
+                              <span className="bg-[#FF5C00] text-black text-[9px] font-black px-1.5 py-0 h-3.5 leading-none flex items-center rounded-[2px] tracking-normal group-hover:bg-white self-start">
+                                BETA
                               </span>
                             )}
                           </span>
