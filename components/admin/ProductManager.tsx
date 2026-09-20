@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Copy } from 'lucide-react';
+import { Plus, Edit2, Trash2, Copy, Download } from 'lucide-react';
 import FontUploadForm from './FontUploadForm';
 import { supabase } from '../../lib/supabase';
 
@@ -9,6 +9,7 @@ const ProductManager = () => {
   const [fonts, setFonts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   
   // LOGIK SEARCH & PAGINATION
   const [searchTerm, setSearchTerm] = useState('');
@@ -90,6 +91,49 @@ const ProductManager = () => {
     } catch (err: any) { alert("Error: " + err.message); }
   };
 
+  const handleDownloadZip = async (font: any) => {
+    try {
+      setDownloadingId(font.id);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert("Session expired, please re-login.");
+        return;
+      }
+
+      const res = await fetch(`/api/admin/download-font-zip?id=${encodeURIComponent(font.id)}`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || `Download failed (${res.status})`);
+      }
+
+      const blob = await res.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+
+      const disposition = res.headers.get('Content-Disposition');
+      let filename = `SQ_${font.name.replace(/\s+/g, '_')}.zip`;
+      if (disposition && disposition.includes('filename=')) {
+        const match = disposition.match(/filename="?([^";]+)"?/);
+        if (match && match[1]) filename = match[1];
+      }
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err: any) {
+      alert("Download error: " + err.message);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* HEADER SECTION */}
@@ -139,6 +183,16 @@ const ProductManager = () => {
                 >
                   <td className="p-4 font-bold uppercase">{f.name}</td>
                   <td className="p-4 text-right space-x-4">
+                    <button 
+                      type="button" 
+                      disabled={downloadingId === f.id} 
+                      onClick={() => handleDownloadZip(f)} 
+                      className="text-black font-bold uppercase text-xs hover:underline inline-flex items-center gap-1 disabled:opacity-30 cursor-pointer"
+                      title="Download font files as .zip (verify exact files delivered to buyers, without license.txt)"
+                    >
+                      <Download size={12} className={downloadingId === f.id ? 'animate-bounce' : ''} /> 
+                      {downloadingId === f.id ? 'Zipping...' : 'Download .zip'}
+                    </button>
                     <button onClick={() => handleEdit(f)} className="text-blue-600 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1"><Edit2 size={12} /> Edit</button>
                     <button onClick={() => handleDuplicate(f)} className="text-green-600 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1"><Copy size={12} /> Duplicate</button>
                     <button onClick={() => handleDelete(f.id)} className="text-red-500 font-bold uppercase text-xs hover:underline inline-flex items-center gap-1"><Trash2 size={12} /> Delete</button>
