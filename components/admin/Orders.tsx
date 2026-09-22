@@ -218,6 +218,16 @@ const fetchOrders = async () => {
       licenseBody += `1. This license is non-transferable and belongs strictly to the buyer.\n`;
       licenseBody += `2. You may not sell, rent, sublicense, or redistribute the font files.\n`;
       licenseBody += `3. The font software remains the sole property of Subqi Studio.\n\n`;
+
+      if (!isTrial) {
+        licenseBody += `FONT CANVAS ACCESS (USER VAULT):\n`;
+        licenseBody += `As a commercial license holder, you are entitled to full access to our Font Canvas suite.\n`;
+        licenseBody += `Log in to the User Vault using your registered email and Order ID:\n`;
+        licenseBody += `• Portal Link : https://canvas.subqi.com\n`;
+        licenseBody += `• Username    : ${buyerEmail}\n`;
+        licenseBody += `• Order ID    : ${order.transaction_id || 'N/A'}\n\n`;
+      }
+
       licenseBody += `FULL DIGITAL RECEIPT:\n${window.location.origin}/user/receipt/${order.transaction_id} *LOGIN FIRST TO ACCESS*\n`;
 
       // 3. Trigger download .txt
