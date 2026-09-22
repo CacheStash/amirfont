@@ -326,6 +326,15 @@ const CanvasLanding: React.FC = () => {
                 <p className="text-[11px] leading-relaxed text-black/60 italic normal-case border-l-2 border-[#FF5C00] pl-3 py-0.5">
                   * Continuous Development & In-Browser Simplicity: We actively maintain and update FontCanvas regularly to resolve critical bugs and introduce refined tools. FontCanvas is intentionally engineered to stay clean, fast, and focused on essential typographic design workflows—allowing our buyers to compose, customize, and export production-ready vector artwork directly in-browser without requiring complex 3rd-party graphic software.
                 </p>
+
+                <div className="mt-4 p-4 border border-black/15 bg-black/5 text-xs leading-relaxed text-black/80 normal-case">
+                  <div className="font-bold uppercase tracking-wider text-[#FF5C00] text-[11px] mb-1 flex items-center gap-1.5">
+                    <span>Direct Store Exclusive Facility</span>
+                  </div>
+                  <p>
+                    <strong>Please note:</strong> FontCanvas VIP access, full font family unlocking, and creator perks are exclusively reserved for orders placed directly on <strong>subqi.com</strong>. We sincerely apologize, but purchases made through third-party marketplaces (such as Creative Market, Envato, MyFonts, etc.) are not eligible for this facility, as it is an exclusive benefit created solely for our direct website patrons.
+                  </p>
+                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
