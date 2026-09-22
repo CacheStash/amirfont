@@ -646,6 +646,41 @@ const Checkout: React.FC = () => {
                     </button>
                   ))}
 
+                  {/* FONT CANVAS USER VAULT PERKS */}
+                  {purchasedItems.some(item => Number(item.price) > 0) && (
+                    <div className="mt-6 p-6 md:p-8 border-2 border-black bg-[#FFF9E6] text-left space-y-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b-2 border-black pb-4">
+                        <div>
+                          <span className="bg-black text-white px-2 py-0.5 text-[9px] font-black tracking-widest uppercase">VIP BONUS</span>
+                          <h5 className="text-xl font-black italic tracking-tight text-black mt-1">FONT CANVAS & USER VAULT ACCESS</h5>
+                        </div>
+                        <a 
+                          href="https://canvas.subqi.com" 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="bg-black text-white px-5 py-3 text-xs font-black uppercase tracking-widest hover:bg-white hover:text-black border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all flex items-center justify-center gap-2 w-fit self-start md:self-auto"
+                        >
+                          OPEN FONT CANVAS ↗
+                        </a>
+                      </div>
+
+                      <div className="bg-white p-4 border-2 border-black text-xs font-mono space-y-1">
+                        <p><span className="font-bold opacity-60">PORTAL URL :</span> <a href="https://canvas.subqi.com" target="_blank" rel="noopener noreferrer" className="underline font-bold text-black">https://canvas.subqi.com</a></p>
+                        <p><span className="font-bold opacity-60">USERNAME   :</span> <span className="font-black text-black">{email}</span></p>
+                        <p><span className="font-bold opacity-60">ACCESS KEY :</span> <span className="font-black text-black">{orderId}</span> <span className="opacity-50 text-[10px]">(Order ID / Password)</span></p>
+                      </div>
+
+                      <div className="space-y-2 pt-2 text-xs font-mono">
+                        <p className="font-black uppercase tracking-wider text-black">VAULT PERKS INCLUDED:</p>
+                        <ul className="space-y-1.5 list-disc list-inside opacity-90">
+                          <li><strong className="font-black">Auto-Unlocked Fonts:</strong> All fonts you purchased are automatically unlocked in Canvas.</li>
+                          <li><strong className="font-black">Free Extras & Dingbats:</strong> Full free access to all font extras, ornaments & exclusive dingbats catalog-wide.</li>
+                          <li><strong className="font-black">Full Pro Creator Suite:</strong> Unrestricted access to locked features (Export, Save, Import & more).</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
                   <Link 
                     to="/user/auth"
                     className="w-full mt-4 bg-transparent border-2 border-black text-black py-5 text-center text-sm font-black tracking-[0.2em] hover:bg-black hover:text-white transition-all flex items-center justify-center gap-4 group"
