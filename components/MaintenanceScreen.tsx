@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SpaceImpactGame from './game/SpaceImpactGame';
 
 const MaintenanceScreen: React.FC = () => {
   const [typedText, setTypedText] = useState('');
@@ -52,7 +53,7 @@ const MaintenanceScreen: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="relative z-10 max-w-3xl mx-auto my-auto py-12 px-6 text-center flex flex-col items-center">
+      <main className="relative z-10 w-full max-w-4xl mx-auto my-auto py-12 px-4 sm:px-6 text-center flex flex-col items-center">
         
         {/* Brand Logo Subqi (Bersih tanpa bintang yang nabrak) */}
         <div className="mb-6 flex justify-center items-center">
@@ -76,9 +77,19 @@ const MaintenanceScreen: React.FC = () => {
         </div>
 
         {/* System Message */}
-        <p className="max-w-lg text-sm sm:text-base text-black/80 font-serif leading-relaxed mb-8">
+        <p className="max-w-lg text-sm sm:text-base text-black/80 font-serif leading-relaxed mb-6">
           We are currently performing some necessary system maintenance, server optimizations, and backend upgrades. Everything will be back up and running smoothly in just a short while.
         </p>
+
+        {/* Retro 8-bit Space Impact Game (Nokia 3310 Style) */}
+        <div className="w-full max-w-4xl my-6">
+          <SpaceImpactGame
+            brand="subqi"
+            themeColor="#000000"
+            accentColor="#FF5C00"
+            bgColor="#EDEBE6"
+          />
+        </div>
 
         {/* Brutalist Status Card */}
         <div className="w-full max-w-md border border-black bg-white/40 backdrop-blur-sm p-4 text-left font-sans text-xs space-y-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
