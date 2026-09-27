@@ -112,7 +112,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
       }`}>
         
         {/* Left: Toggle & Logo */}
-        <div className="flex items-center gap-2 md:gap-4 h-full border-r border-black px-3 md:px-8 flex-1 md:flex-none md:w-[450px] min-w-0">
+        <div className="flex items-center gap-2 md:gap-3 lg:gap-4 h-full border-r border-black px-3 md:px-4 lg:px-8 flex-1 md:flex-none md:w-[220px] lg:w-[320px] xl:w-[450px] min-w-0">
           <button 
             onClick={() => { setIsOpen(!isOpen); setIsSearchOpen(false); }}
             className="p-1 hover:bg-black hover:text-white transition-colors border border-black md:border-transparent md:hover:border-black shrink-0"
@@ -123,13 +123,13 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
             <img 
               src="/Logo.png" 
               alt="Subqi Studio" 
-              className="h-6 md:h-8 w-auto object-contain" 
+              className="h-6 md:h-7 lg:h-8 w-auto object-contain" 
             />
           </Link>
         </div>
 
         {/* Center: Quick Links */}
-        <div className="hidden md:flex items-center gap-8 font-mono text-xs font-bold uppercase tracking-widest px-6 h-full flex-1 justify-center">
+        <div className="hidden md:flex items-center gap-4 lg:gap-8 font-mono text-xs font-bold uppercase tracking-widest px-2 lg:px-6 h-full flex-1 justify-center">
           <Link to="/fonts" className="hover:text-[#FF5C00] transition-colors py-2">
             Fonts
           </Link>
@@ -140,7 +140,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
         </div>
 
         {/* Right: Search & Cart */}
-        <div className="flex items-center justify-end gap-2 md:gap-4 h-full border-l-0 md:border-l border-black px-3 md:px-8 shrink-0 bg-inherit">
+        <div className="flex items-center justify-end gap-1.5 md:gap-2.5 lg:gap-4 h-full border-l-0 md:border-l border-black px-2.5 md:px-4 lg:px-8 shrink-0 bg-inherit">
             <button
               onClick={() => { setIsSearchOpen(!isSearchOpen); setIsOpen(false); }}
               className={`p-1 transition-colors border border-transparent ${isSearchOpen ? 'bg-black text-white' : 'hover:bg-black hover:text-white hover:border-black'}`}
@@ -153,7 +153,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
               <div className="relative h-full group/acc border-r border-black">
                 {user ? (
                   <>
-                    <button className="h-full px-3 md:px-4 hover:bg-black hover:text-white transition-colors">
+                    <button className="h-full px-2.5 md:px-3 lg:px-4 hover:bg-black hover:text-white transition-colors">
                       ACCOUNT
                     </button>
                     {/* Account Dropdown Menu (Appears on Hover) */}
@@ -175,14 +175,14 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                     </div>
                   </>
                 ) : (
-                  <Link to="/user/auth" className="h-full px-3 md:px-4 flex items-center hover:bg-black hover:text-white transition-colors">
+                  <Link to="/user/auth" className="h-full px-2.5 md:px-3 lg:px-4 flex items-center hover:bg-black hover:text-white transition-colors">
                     LOGIN
                   </Link>
                 )}
               </div>
 
               {/* Part 2: Cart Icon Section */}
-              <Link to="/cart" className="h-full px-3 flex items-center relative hover:bg-black hover:text-white transition-colors group">
+              <Link to="/cart" className="h-full px-2.5 md:px-3 flex items-center relative hover:bg-black hover:text-white transition-colors group">
                 <ShoppingCart size={20} className="shrink-0" />
                 {cartCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-black text-[#EDEBE6] text-[10px] w-5 h-5 flex items-center justify-center border border-[#EDEBE6] font-bold">
