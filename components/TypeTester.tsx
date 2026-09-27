@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AlignLeft, AlignCenter, AlignRight, Grid, Keyboard, ChevronDown, ChevronLeft, ChevronRight, Layers, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { FontConfig } from '../types';
 import opentype from 'opentype.js';
+import { loadProtectedFontFace, loadProtectedOpenType } from '../utils/secureFontLoader';
 
 interface TypeTesterProps {
   config: FontConfig & { 
@@ -216,19 +217,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       const url = file.startsWith('http') || file.startsWith('/') ? file : `/api/fonts/${file}?v=${version}`;
       const fontNameIdentifier = `${config.name}-${index}`;
 
-      try {
-        const fontFace = new FontFace(fontNameIdentifier, `url("${url}")`);
-        fontFace.load().then((loadedFace) => {
-          document.fonts.add(loadedFace);
-        }).catch((err) => console.error(err));
-      } catch (e) {
-        console.error("FontFace API error:", e);
-      }
+      loadProtectedFontFace(fontNameIdentifier, url);
 
       if (detectedStyleNames[index] && loadedFontsMap[index]) return;
 
-      opentype.load(url, (err, font) => {
-        if (!err && font) {
+      loadProtectedOpenType(url).then((font) => {
+        if (font) {
           const names = font.names as any;
           const isVariable = font.tables.fvar?.axes?.length > 0;
           const detectedName = names.preferredSubfamily?.en || names.fontSubfamily?.en;
@@ -239,6 +233,8 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           }
           setLoadedFontsMap(prev => ({ ...prev, [index]: font }));
         }
+      }).catch((err) => {
+        console.error("Failed to load protected font in TypeTester:", err);
       });
     });
   }, [config.font_files]);
@@ -259,9 +255,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
     setIsLoadingGlyphs(true);
     
-    opentype.load(targetFile, (err, font) => {
+    loadProtectedOpenType(targetFile).then((font) => {
       setIsLoadingGlyphs(false);
-      if (err || !font) return;
+      if (!font) return;
 
       setLoadedFontObj(font);
       const names = font.names as any;
@@ -317,9 +313,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       setActiveFeatures({});
       setPopoverPos(null);
       setSelectedCharIndex(null);
-
-      
-
+    }).catch((err) => {
+      setIsLoadingGlyphs(false);
+      console.error("Failed to load glyphs for protected font:", err);
     });
   }, [config, activeStyleIndex]);
 

@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight , ChevronDown} from 'lucide-react';
 import { ChevronsLeft, ChevronsRight, Plus, Eye } from 'lucide-react';
 import { useCart } from '../context/CartContext'; // Pastikan path benar
 import { useNavigate } from 'react-router-dom';
+import { loadProtectedFontFace } from '../utils/secureFontLoader';
 
 
 
@@ -210,25 +211,16 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     if (fonts.length > 0) {
-      const styleId = 'dynamic-fonts-css';
-      let styleEl = document.getElementById(styleId) as HTMLStyleElement;
-      if (!styleEl) {
-        styleEl = document.createElement('style');
-        styleEl.id = styleId;
-        document.head.appendChild(styleEl);
-      }
-
-      const fontFaceRules = fonts.flatMap(f => {
+      fonts.forEach((f) => {
         const files = Array.isArray(f.font_files) ? f.font_files : [f.file_url];
-        return files.map((file: string, idx: number) => `
-          @font-face {
-            font-family: "${f.name}-${idx}";
-            src: url("/api/fonts/${file}?v=${new Date(f.updated_at || f.created_at).getTime()}");
-            font-display: swap;
-          }
-        `);
-      }).join('\n');
-      styleEl.innerHTML = fontFaceRules;
+        const version = new Date(f.updated_at || f.created_at || Date.now()).getTime();
+        files.forEach((file: string, idx: number) => {
+          if (!file) return;
+          const familyName = `${f.name}-${idx}`;
+          const url = `/api/fonts/${file}?v=${version}`;
+          loadProtectedFontFace(familyName, url);
+        });
+      });
     }
   }, [fonts]);
 

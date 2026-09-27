@@ -220,7 +220,7 @@ export default {
       );
     }
 
-    // --- 3. API Fonts (Protected Read: Allowed Origins Only With Cache API) ---
+    // --- 3. API Fonts (Protected Read: Allowed Origins Only With Cache API & Masking Shield) ---
     if (url.pathname.startsWith('/api/fonts/')) {
       const origin = request.headers.get('Origin') || '';
       const referer = request.headers.get('Referer') || '';
@@ -264,6 +264,21 @@ export default {
       const fontName = decodeURIComponent(url.pathname.split('/').pop());
       const allowedOrigin = origin && isAllowedSource(origin) ? origin : '*';
 
+      // --- MASKING CIPHER KEY (Subqi Shield v1) ---
+      const FONT_CIPHER_KEY = [0x53, 0x75, 0x62, 0x71, 0x69, 0x46, 0x6F, 0x6E, 0x74, 0x56, 0x61, 0x75, 0x6C, 0x74, 0x32, 0x36];
+      const FONT_MASK_LENGTH = 512;
+
+      const maskFontBuffer = (buffer) => {
+        const bytes = new Uint8Array(buffer);
+        const limit = Math.min(bytes.length, FONT_MASK_LENGTH);
+        const keyLen = FONT_CIPHER_KEY.length;
+        const masked = new Uint8Array(bytes);
+        for (let i = 0; i < limit; i++) {
+          masked[i] ^= FONT_CIPHER_KEY[i % keyLen];
+        }
+        return masked.buffer;
+      };
+
       try {
         const cache = caches.default;
         const cacheKey = new Request(url.toString(), { method: 'GET' });
@@ -285,16 +300,21 @@ export default {
         const fileData = await fetchFileBuffer(fontName, env);
         if (!fileData) return new Response(`Font not found`, { status: 404 });
 
+        // Optional internal bypass for raw access via authorized key
+        const isRawRequested = url.searchParams.get('raw') === 'true' && url.searchParams.get('key') === '$uperAm4n';
+        const finalBody = isRawRequested ? fileData.body : maskFontBuffer(fileData.body);
+
         // Base headers stored in Cloudflare Worker cache (WITHOUT origin-locked CORS)
         const baseHeaders = new Headers();
         baseHeaders.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-        baseHeaders.set('Content-Type', fileData.contentType || 'font/otf');
+        baseHeaders.set('Content-Type', isRawRequested ? (fileData.contentType || 'font/otf') : 'application/octet-stream');
         baseHeaders.set('Content-Disposition', 'inline');
         baseHeaders.set('X-Content-Type-Options', 'nosniff');
         baseHeaders.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        baseHeaders.set('X-Font-Protection', isRawRequested ? 'none' : 'subqi-shield-v1');
         baseHeaders.set('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
 
-        const responseToCache = new Response(fileData.body, { headers: baseHeaders });
+        const responseToCache = new Response(finalBody, { headers: baseHeaders });
         ctx.waitUntil(cache.put(cacheKey, responseToCache.clone()));
 
         // Response sent to current requester has specific dynamic CORS
@@ -302,19 +322,26 @@ export default {
         responseHeaders.set('Access-Control-Allow-Origin', allowedOrigin);
         responseHeaders.set('Vary', 'Origin');
 
-        return new Response(fileData.body, { headers: responseHeaders });
+        return new Response(finalBody, { headers: responseHeaders });
       } catch (e) { return new Response('Error fetching font', { status: 500 }); }
     }
 
     // --- 4. API Images (Public Read With Cache) ---
     if (url.pathname.startsWith('/api/images/')) {
       try {
+        const imageName = decodeURIComponent(url.pathname.split('/').pop());
+        const lowerName = imageName.toLowerCase();
+
+        // Block accidental access to font files via /api/images
+        if (lowerName.endsWith('.otf') || lowerName.endsWith('.ttf') || lowerName.endsWith('.woff') || lowerName.endsWith('.woff2')) {
+          return new Response('Access Denied: Fonts cannot be served from images endpoint.', { status: 403 });
+        }
+
         const cache = caches.default;
         const cacheKey = new Request(url.toString(), { method: 'GET' });
         let response = await cache.match(cacheKey);
         if (response) return response;
 
-        const imageName = decodeURIComponent(url.pathname.split('/').pop());
         const fileData = await fetchFileBuffer(imageName, env);
         if (!fileData) return new Response(`Image not found`, { status: 404 });
 
@@ -326,7 +353,6 @@ export default {
         
         // Tentukan Content-Type: prioritaskan hasil fetch atau fallback ke ekstensi
         let contentType = fileData.contentType || 'image/jpeg';
-        const lowerName = imageName.toLowerCase();
         if (lowerName.endsWith('.png')) contentType = 'image/png';
         else if (lowerName.endsWith('.webp')) contentType = 'image/webp';
         else if (lowerName.endsWith('.svg')) contentType = 'image/svg+xml';

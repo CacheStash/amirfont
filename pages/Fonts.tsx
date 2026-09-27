@@ -4,6 +4,7 @@ import { ChevronsLeft, ChevronsRight, MoveRight, ChevronLeft, ChevronRight, Eye 
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { loadProtectedFontFace } from '../utils/secureFontLoader';
 
 // --- PARTIAL FIX ---
 /** * 1. GUNAKAN PUBLIC DEVELOPMENT URL DARI SCREENSHOT R2 ANDA
@@ -120,26 +121,15 @@ const Fonts: React.FC = () => {
 
   useEffect(() => {
     if (fonts.length > 0) {
-      const styleId = 'library-fonts-css';
-      let styleEl = document.getElementById(styleId) as HTMLStyleElement;
-      if (!styleEl) {
-        styleEl = document.createElement('style');
-        styleEl.id = styleId;
-        document.head.appendChild(styleEl);
-      }
-
-      const fontFaceRules = fonts.flatMap(f => {
+      fonts.forEach((f) => {
         const files = Array.isArray(f.font_files) ? f.font_files : [f.file_url];
-        // Pastikan path sesuai dengan API route Anda (mirip Home.tsx)
-        return files.map((file: string, idx: number) => `
-          @font-face {
-            font-family: "${f.name}-${idx}";
-            src: url("/api/fonts/${file}");
-            font-display: swap;
-          }
-        `);
-      }).join('\n');
-      styleEl.innerHTML = fontFaceRules;
+        files.forEach((file: string, idx: number) => {
+          if (!file) return;
+          const familyName = `${f.name}-${idx}`;
+          const url = `/api/fonts/${file}`;
+          loadProtectedFontFace(familyName, url);
+        });
+      });
     }
   }, [fonts]);
 
