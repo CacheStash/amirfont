@@ -173,6 +173,42 @@ function resolveGasSender(resSender, url) {
   return resSender || "subqistudio@gmail.com";
 }
 
+async function getSmartPrioritizedGasAccounts(gasUrls, recipientEmail) {
+  const cleanRecipient = (recipientEmail || "").trim().toLowerCase();
+
+  // 1. Map URLs to account objects
+  const accounts = gasUrls.map(url => ({
+    url,
+    email: resolveGasSender(null, url)
+  }));
+
+  // 2. Prevent self-sending: Filter out any account whose sender email matches recipient
+  const filtered = accounts.filter(acc => acc.email.toLowerCase() !== cleanRecipient);
+  const candidates = filtered.length > 0 ? filtered : accounts; // fallback if all filtered
+
+  // 3. Query remaining daily quotas in parallel (costs 0 emails)
+  const withQuotas = await Promise.all(candidates.map(async (acc) => {
+    let quota = 100;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const qRes = await fetch(acc.url, { method: "GET", signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (qRes.ok) {
+        const qJson = await qRes.json();
+        if (typeof qJson?.quota === 'number') quota = qJson.quota;
+        else if (typeof qJson?.remainingDailyQuota === 'number') quota = qJson.remainingDailyQuota;
+      }
+    } catch (_) {}
+    return { ...acc, quota };
+  }));
+
+  // 4. Random shuffle first (for ties), then sort descending by remaining quota
+  return withQuotas
+    .sort(() => Math.random() - 0.5)
+    .sort((a, b) => b.quota - a.quota);
+}
+
 function generateOrderEmailHtml({ buyerEmail, buyerName, orderId, items, templateConfig, baseUrl }) {
   const cfg = { ...DEFAULT_EMAIL_TEMPLATE, ...(templateConfig || {}) };
   const safeName = buyerName || "Creator";
@@ -351,10 +387,11 @@ async function triggerGasEmail(buyerEmail, buyerName, orderId, items, env) {
     sender_name: "Subqi Studio"
   };
 
-  // Load balancing across accounts
-  const rotatedUrls = gasUrls.sort(() => Math.random() - 0.5);
+  // Smart prioritize accounts: exclude buyer email, highest quota first, random on ties
+  const prioritizedAccounts = await getSmartPrioritizedGasAccounts(gasUrls, buyerEmail);
 
-  for (const url of rotatedUrls) {
+  for (const acc of prioritizedAccounts) {
+    const url = acc.url;
     try {
       const res = await fetch(url, {
         method: "POST",
@@ -1282,10 +1319,11 @@ export default {
           sender_name: "Subqi Studio"
         };
 
-        const rotatedUrls = gasUrls.sort(() => Math.random() - 0.5);
+        const prioritizedAccounts = await getSmartPrioritizedGasAccounts(gasUrls, targetEmail);
         let senderAccount = null;
 
-        for (const targetUrl of rotatedUrls) {
+        for (const acc of prioritizedAccounts) {
+          const targetUrl = acc.url;
           try {
             const res = await fetch(targetUrl, {
               method: "POST",
