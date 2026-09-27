@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Search, ChevronLeft, ChevronRight, Download, FileText, ShieldCheck } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Download, FileText, ShieldCheck, Mail } from 'lucide-react';
 
 const MASTER_TIER_LABELS: Record<string, Record<string, string>> = {
   desktop: { solo: '1 USER ONLY', team: 'UP TO 30 USER', studio: 'UP TO 100 USER', enterprise: 'UNLIMITED USER' },
@@ -36,6 +36,7 @@ const Orders = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [downloadingTx, setDownloadingTx] = useState<string | null>(null);
   const [downloadingZipTx, setDownloadingZipTx] = useState<string | null>(null);
+  const [resendingTx, setResendingTx] = useState<string | null>(null);
   const itemsPerPage = 20;
 
   const [isExporting, setIsExporting] = useState(false);
@@ -328,6 +329,58 @@ const fetchOrders = async () => {
     }
   };
 
+  const handleResendOrderEmail = async (order: any) => {
+    const targetEmail = order.fontbuyer?.email;
+    if (!targetEmail) {
+      return alert("Buyer email is missing for this order.");
+    }
+
+    if (!window.confirm(`Send / resend order delivery email to ${targetEmail} for Order #${order.transaction_id}?`)) {
+      return;
+    }
+
+    setResendingTx(order.transaction_id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return alert("Session expired. Please login again.");
+
+      const res = await fetch('/api/admin/resend-order-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ orderId: order.transaction_id })
+      });
+
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || `HTTP ${res.status}`);
+
+      // Optimistically update order metadata in local state
+      setOrders(prev => prev.map(o => {
+        if (o.transaction_id === order.transaction_id) {
+          return {
+            ...o,
+            metadata: {
+              ...o.metadata,
+              email_sent: true,
+              email_sent_at: new Date().toISOString(),
+              email_sent_by: json.sender
+            }
+          };
+        }
+        return o;
+      }));
+
+      alert(`Order email successfully dispatched via: ${json.sender}`);
+    } catch (err: any) {
+      console.error("RESEND_ORDER_EMAIL_ERROR:", err);
+      alert("Failed to send order email: " + err.message);
+    } finally {
+      setResendingTx(null);
+    }
+  };
+
   return (
     <div className="space-y-8 font-mono uppercase selection:bg-black selection:text-white">
       {/* HEADER & SEARCH */}
@@ -375,15 +428,16 @@ const fetchOrders = async () => {
               <th className="p-4 text-center">Price</th>
               <th className="p-4 text-center">Type</th>
               <th className="p-4 text-center">License_Certificate</th>
+              <th className="p-4 text-center">Email_Delivery</th>
               <th className="p-4">Tier_&_Reach</th>
               <th className="p-4">Usage_Terms</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={9} className="p-20 text-center animate-pulse font-bold">FETCHING_SALES_DATA...</td></tr>
+              <tr><td colSpan={10} className="p-20 text-center animate-pulse font-bold">FETCHING_SALES_DATA...</td></tr>
             ) : orders.length === 0 ? (
-              <tr><td colSpan={9} className="p-20 text-center opacity-30 font-bold">NO_RESULTS_FOUND_FOR: "{searchTerm}"</td></tr>
+              <tr><td colSpan={10} className="p-20 text-center opacity-30 font-bold">NO_RESULTS_FOUND_FOR: "{searchTerm}"</td></tr>
             ) : orders.map((order) => (
               <tr key={order.id} className="border-b border-black hover:bg-yellow-50 transition-colors">
                 <td className="p-4 text-[11px] font-bold">{new Date(order.download_date).toLocaleDateString()}</td>
@@ -426,6 +480,34 @@ const fetchOrders = async () => {
                       <ShieldCheck size={12} />
                       <span>VIEW</span>
                     </a>
+                  </div>
+                </td>
+                <td className="p-4 text-center">
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <span className={`px-2 py-0.5 text-[9px] font-black border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
+                      order.metadata?.email_sent 
+                        ? 'bg-emerald-500 text-white' 
+                        : 'bg-gray-200 text-gray-700'
+                    }`}>
+                      {order.metadata?.email_sent ? 'SENT' : 'PENDING'}
+                    </span>
+                    {order.metadata?.email_sent_by && (
+                      <span 
+                        className="text-[8px] font-mono lowercase text-gray-500 max-w-[110px] truncate"
+                        title={order.metadata.email_sent_by}
+                      >
+                        {order.metadata.email_sent_by.split('@')[0]}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => handleResendOrderEmail(order)}
+                      disabled={resendingTx === order.transaction_id}
+                      title="Dispatch / Resend order email"
+                      className="mt-0.5 px-2 py-0.5 border border-black bg-white hover:bg-black hover:text-white text-[8px] font-black tracking-wider shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all flex items-center gap-1 group disabled:opacity-40"
+                    >
+                      <Mail size={10} />
+                      <span>{resendingTx === order.transaction_id ? 'SENDING...' : (order.metadata?.email_sent ? 'RESEND' : 'SEND')}</span>
+                    </button>
                   </div>
                 </td>
                 <td className="p-4">

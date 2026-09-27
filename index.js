@@ -144,37 +144,199 @@ async function isUserAdmin(userId, env) {
   } catch (e) { return false; }
 }
 
-async function triggerGasEmail(buyerEmail, buyerName, orderId, items, env) {
-  const gasUrls = (env.GAS_WEBAPP_URL || "").split(',').map(u => u.trim()).filter(u => u);
-  if (gasUrls.length === 0) return;
+const DEFAULT_EMAIL_TEMPLATE = {
+  subject: "Your Font Order #[ORDER_ID] is Ready! - Subqi Studio",
+  heading: "Thank you for your purchase, [BUYER_NAME]!",
+  intro_text: "Here are your font download packages and commercial licenses. Keep your order ID safe as your proof of license.",
+  warning_title: "Important Security Notice (7 Days / 7 Downloads)",
+  warning_text: "These quick-access download links are valid for 7 days or up to 7 downloads (whichever comes first) to protect against unauthorized link distribution. For permanent, lifetime unlimited access, you can log in to your User Vault anytime.",
+  vault_url: "https://subqi.com/user/auth",
+  canvas_vip_enabled: true,
+  canvas_url: "https://canvas.subqi.com",
+  canvas_heading: "Font Canvas VIP Access Unlocked!",
+  canvas_text: "As our commercial customer, you get free VIP access to our web-based typography creator app:",
+  footer_text: "Questions or assistance? Reply directly to this email.<br>© Subqi Studio. All rights reserved."
+};
 
-  const hasPaidItem = items.some(item => item.price > 0);
-  
-  // Jika hanya berisi trial font (total $0), batalkan seluruh proses pengiriman email
-  if (!hasPaidItem) return; 
+function generateOrderEmailHtml({ buyerEmail, buyerName, orderId, items, templateConfig, baseUrl }) {
+  const cfg = { ...DEFAULT_EMAIL_TEMPLATE, ...(templateConfig || {}) };
+  const safeName = buyerName || "Creator";
+  const heading = (cfg.heading || DEFAULT_EMAIL_TEMPLATE.heading).replace(/\[BUYER_NAME\]/g, safeName).replace(/\[ORDER_ID\]/g, orderId);
+  const introText = (cfg.intro_text || DEFAULT_EMAIL_TEMPLATE.intro_text).replace(/\[BUYER_NAME\]/g, safeName).replace(/\[ORDER_ID\]/g, orderId);
+  const warningText = (cfg.warning_text || DEFAULT_EMAIL_TEMPLATE.warning_text).replace(/\[BUYER_NAME\]/g, safeName).replace(/\[ORDER_ID\]/g, orderId);
+  const warningTitle = cfg.warning_title || DEFAULT_EMAIL_TEMPLATE.warning_title;
+  const vaultUrl = cfg.vault_url || DEFAULT_EMAIL_TEMPLATE.vault_url;
 
-  // Jika ada item berbayar, kirimkan semua item (Paid + Trial) dengan label berbeda
-  const fontAssets = items.map(item => {
+  let itemsHtml = "";
+  (items || []).forEach(item => {
     const isTrial = item.price === 0;
-    return {
-      name: isTrial ? `${item.name} (Trial Version)` : item.name,
-      file: isTrial ? (item.trialFileUrl || item.name) : (item.font_files?.[0] || item.name),
-      type: isTrial ? 'trial' : 'full' // Menyertakan tipe untuk dikonsumsi GAS
-    };
+    const fontName = item.name || "Commercial Font";
+    const licenseTier = item.tier || (isTrial ? "Personal Trial" : "Commercial License");
+    const fileParam = item.file || item.font_files?.[0] || item.trialFileUrl || fontName;
+    const downloadUrl = `${baseUrl}/api/download-zip?file=${encodeURIComponent(fileParam)}&order=${encodeURIComponent(orderId)}&email=${encodeURIComponent(buyerEmail)}`;
+
+    itemsHtml += `
+      <div style="background-color: #18181b; border: 1px solid #27272a; border-radius: 10px; padding: 16px 20px; margin-bottom: 12px;">
+        <div style="font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 4px; letter-spacing: -0.01em;">${fontName}</div>
+        <div style="font-size: 12px; color: #a1a1aa; margin-bottom: 14px;">License Tier: <strong style="color: #22c55e;">${licenseTier}</strong></div>
+        <a href="${downloadUrl}" style="display: inline-block; background-color: #ffffff; color: #000000; font-weight: 800; font-size: 12px; text-decoration: none; padding: 10px 18px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em;">Download Font & License (.ZIP)</a>
+      </div>
+    `;
   });
 
+  const canvasHtml = cfg.canvas_vip_enabled ? `
+    <tr>
+      <td style="padding: 0 32px 28px 32px;">
+        <div style="background: linear-gradient(135deg, #1e1b4b 0%, #172554 100%); border: 1px solid #3b82f6; border-radius: 12px; padding: 22px;">
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <span style="background-color: #2563eb; color: #ffffff; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.08em;">VIP BONUS</span>
+            <span style="color: #ffffff; font-size: 16px; font-weight: 800; margin-left: 10px;">${cfg.canvas_heading}</span>
+          </div>
+          <p style="font-size: 13px; color: #cbd5e1; margin: 8px 0 14px 0; line-height: 1.5;">
+            ${cfg.canvas_text}
+          </p>
+
+          <div style="background-color: rgba(0,0,0,0.4); border: 1px dashed #60a5fa; border-radius: 8px; padding: 14px; margin-bottom: 14px; font-size: 13px;">
+            <div style="margin-bottom: 6px;">🌐 <strong>App URL:</strong> <a href="${cfg.canvas_url}" style="color: #93c5fd; text-decoration: none; font-weight: 700;">${cfg.canvas_url}</a></div>
+            <div style="margin-bottom: 6px;">👤 <strong>Username:</strong> <span style="color: #f8fafc; font-family: monospace;">${buyerEmail}</span></div>
+            <div>🔑 <strong>Password:</strong> <span style="color: #f8fafc; font-family: monospace; font-weight: 700;">${orderId}</span></div>
+          </div>
+
+          <div style="font-size: 12px; color: #e2e8f0; line-height: 1.6;">
+            <strong>Your VIP Perks:</strong>
+            <ul style="margin: 6px 0 0 0; padding-left: 18px;">
+              <li><strong>Purchased Fonts Unlocked:</strong> All fonts in this order are automatically activated in your Canvas suite.</li>
+              <li><strong>Catalog-Wide Bonus Extras & Dingbats:</strong> Free access to all exclusive ornaments and dingbats across our entire collection.</li>
+              <li><strong>Full Pro Tools Access:</strong> All locked creator features (Export, High-Res Canvas, etc.) are completely unlocked.</li>
+            </ul>
+          </div>
+        </div>
+      </td>
+    </tr>
+  ` : '';
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${(cfg.subject || DEFAULT_EMAIL_TEMPLATE.subject).replace(/\[ORDER_ID\]/g, orderId)}</title>
+</head>
+<body style="margin: 0; padding: 32px 16px; background-color: #09090b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f4f4f5; line-height: 1.5;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td align="center">
+        <table role="presentation" style="max-width: 600px; width: 100%; background-color: #121215; border: 1px solid #27272a; border-radius: 14px; overflow: hidden; text-align: left;" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td style="padding: 32px 32px 20px 32px; border-bottom: 1px solid #27272a;">
+              <span style="display: inline-block; background-color: #ffffff; color: #000000; font-family: monospace; font-size: 11px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; margin-bottom: 12px;">SUBQI STUDIO™</span>
+              <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 800; letter-spacing: -0.02em;">${heading}</h1>
+              <p style="margin: 8px 0 0 0; color: #a1a1aa; font-size: 14px; line-height: 1.6;">${introText}</p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 20px 32px 10px 32px;">
+              <div style="background-color: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 12px 16px; font-size: 13px;">
+                <span style="color: #71717a; text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: 0.05em;">Order Reference:</span>
+                <span style="color: #ffffff; font-family: monospace; font-weight: 800; font-size: 14px; margin-left: 8px;">${orderId}</span>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 10px 32px 16px 32px;">
+              <h2 style="color: #ffffff; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin: 12px 0;">YOUR FONT PACKAGES & COMMERCIAL LICENSES</h2>
+              ${itemsHtml}
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 0 32px 24px 32px;">
+              <div style="background-color: #1c1917; border: 1px solid #ea580c; border-left: 4px solid #f97316; border-radius: 8px; padding: 14px 18px;">
+                <div style="margin-bottom: 6px;">
+                  <strong style="color: #fdba74; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;">⚠️ ${warningTitle}</strong>
+                </div>
+                <p style="margin: 0; color: #fed7aa; font-size: 12px; line-height: 1.6;">
+                  ${warningText}
+                </p>
+                <div style="margin-top: 10px;">
+                  <a href="${vaultUrl}" style="display: inline-block; color: #fb923c; font-size: 12px; font-weight: 700; text-decoration: underline;">Open User Vault (Unlimited Access) →</a>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          ${canvasHtml}
+
+          <tr>
+            <td style="padding: 24px 32px; border-top: 1px solid #27272a; text-align: center; font-size: 12px; color: #71717a; line-height: 1.6;">
+              ${cfg.footer_text || DEFAULT_EMAIL_TEMPLATE.footer_text}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+async function triggerGasEmail(buyerEmail, buyerName, orderId, items, env) {
+  const gasUrls = (env.GAS_WEBAPP_URL || "").split(',').map(u => u.trim()).filter(u => u);
+  if (gasUrls.length === 0) return { success: false, error: "GAS_URL_NOT_CONFIGURED" };
+
+  const hasPaidItem = items.some(item => item.price > 0);
+  if (!hasPaidItem) return { success: false, error: "NO_PAID_ITEMS" };
+
+  const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+  const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+
+  // 1. Ambil template dinamis dari site_settings
+  let templateConfig = null;
+  if (supabaseUrl && serviceRoleKey) {
+    try {
+      const sRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?key=eq.email_template_order&select=value`, {
+        headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` }
+      });
+      if (sRes.ok) {
+        const sData = await sRes.json();
+        if (sData?.[0]?.value) {
+          templateConfig = typeof sData[0].value === 'string' ? JSON.parse(sData[0].value) : sData[0].value;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to fetch template from site_settings, using defaults:", e.message);
+    }
+  }
+
+  const baseUrl = "https://subqi.com";
+  const renderedHtml = generateOrderEmailHtml({
+    buyerEmail,
+    buyerName,
+    orderId,
+    items,
+    templateConfig,
+    baseUrl
+  });
+
+  const subjectTemplate = (templateConfig?.subject || DEFAULT_EMAIL_TEMPLATE.subject);
+  const finalSubject = subjectTemplate.replace(/\[ORDER_ID\]/g, orderId).replace(/\[BUYER_NAME\]/g, buyerName || "Creator");
+
   const payload = {
-    token: "$emogaAm4n_", 
+    token: "$emogaAm4n_",
+    action: "order",
     email: buyerEmail,
     name: buyerName,
-    orderId: orderId,
-    font_assets: fontAssets
+    order_id: orderId,
+    subject: finalSubject,
+    htmlBody: renderedHtml,
+    sender_name: "Subqi Studio"
   };
 
-  // SELANG-SELING: Acak urutan akun agar distribusi beban merata (Load Balancing)
+  // Load balancing across accounts
   const rotatedUrls = gasUrls.sort(() => Math.random() - 0.5);
 
-  // FAILOVER: Coba satu per satu akun sampai ada yang berhasil mengirim (SUCCESS)
   for (const url of rotatedUrls) {
     try {
       const res = await fetch(url, {
@@ -182,17 +344,58 @@ async function triggerGasEmail(buyerEmail, buyerName, orderId, items, env) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      
-      const statusText = await res.text();
-      if (statusText === "SUCCESS") {
-        console.log(`GAS_DELIVERY_SUCCESS: Account ${url.substring(0, 45)}...`);
-        return; // Berhenti jika salah satu akun sukses mengirim
+
+      const resText = await res.text();
+      let resJson = null;
+      try { resJson = JSON.parse(resText); } catch (_) {}
+
+      const isSuccess = (resJson && resJson.status === "SUCCESS") || resText === "SUCCESS" || resText.includes("Order Email Sent");
+
+      if (isSuccess) {
+        const senderAccount = resJson?.sender || url.substring(0, 45) + "...";
+        console.log(`GAS_DELIVERY_SUCCESS: Account ${senderAccount}`);
+
+        // Update font_history in Supabase
+        if (supabaseUrl && serviceRoleKey) {
+          try {
+            const hRes = await fetch(`${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(orderId)}&select=id,metadata`, {
+              headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` }
+            });
+            const hRows = await hRes.json();
+            if (hRows && hRows.length > 0) {
+              for (const row of hRows) {
+                const updatedMeta = {
+                  ...(row.metadata || {}),
+                  email_sent: true,
+                  email_sent_at: new Date().toISOString(),
+                  email_sent_by: senderAccount
+                };
+                await fetch(`${supabaseUrl}/rest/v1/font_history?id=eq.${row.id}`, {
+                  method: 'PATCH',
+                  headers: {
+                    'apikey': serviceRoleKey,
+                    'Authorization': `Bearer ${serviceRoleKey}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                  },
+                  body: JSON.stringify({ metadata: updatedMeta })
+                });
+              }
+            }
+          } catch (dbErr) {
+            console.error("Failed to record email_sent in font_history:", dbErr);
+          }
+        }
+
+        return { success: true, sender: senderAccount };
       }
-      console.warn(`GAS_LIMIT_REACHED: Account ${url.substring(0, 45)}... returned ${statusText}`);
+      console.warn(`GAS_LIMIT_REACHED: ${url.substring(0, 45)} returned: ${resText}`);
     } catch (e) {
       console.error(`GAS_FETCH_FAILED: ${e.message}`);
     }
   }
+
+  return { success: false, error: "ALL_GAS_ACCOUNTS_FAILED" };
 }
 
 
@@ -923,6 +1126,249 @@ export default {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Expose-Headers': 'Content-Disposition'
           }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // --- 6E. API Admin Email Template Management ---
+    if (url.pathname === '/api/admin/email-template') {
+      try {
+        const authHeader = request.headers.get('Authorization');
+        const user = await getSupabaseUser(authHeader, env);
+        if (!user || !(await isUserAdmin(user.id, env))) {
+          return new Response(JSON.stringify({ error: "ADMIN_ONLY_ACCESS" }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
+        const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+        const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (request.method === 'GET') {
+          let currentConfig = null;
+          if (supabaseUrl && serviceRoleKey) {
+            const sRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?key=eq.email_template_order&select=value`, {
+              headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` }
+            });
+            if (sRes.ok) {
+              const sData = await sRes.json();
+              if (sData?.[0]?.value) {
+                currentConfig = typeof sData[0].value === 'string' ? JSON.parse(sData[0].value) : sData[0].value;
+              }
+            }
+          }
+          return new Response(JSON.stringify({
+            template: { ...DEFAULT_EMAIL_TEMPLATE, ...(currentConfig || {}) },
+            defaultTemplate: DEFAULT_EMAIL_TEMPLATE
+          }), {
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
+        if (request.method === 'POST') {
+          const body = await request.json();
+          const templateData = body.template || body;
+
+          const upsertRes = await fetch(`${supabaseUrl}/rest/v1/site_settings`, {
+            method: 'POST',
+            headers: {
+              'apikey': serviceRoleKey,
+              'Authorization': `Bearer ${serviceRoleKey}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'resolution=merge-duplicates'
+            },
+            body: JSON.stringify({
+              key: 'email_template_order',
+              value: templateData,
+              updated_at: new Date().toISOString()
+            })
+          });
+
+          if (!upsertRes.ok) throw new Error(await upsertRes.text());
+
+          return new Response(JSON.stringify({ success: true }), {
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // --- 6F. API Admin Send Test Email ---
+    if (url.pathname === '/api/admin/send-test-email' && request.method === 'POST') {
+      try {
+        const authHeader = request.headers.get('Authorization');
+        const user = await getSupabaseUser(authHeader, env);
+        if (!user || !(await isUserAdmin(user.id, env))) {
+          return new Response(JSON.stringify({ error: "ADMIN_ONLY_ACCESS" }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
+        const body = await request.json();
+        const targetEmail = body.targetEmail;
+        if (!targetEmail) {
+          return new Response(JSON.stringify({ error: "TARGET_EMAIL_REQUIRED" }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
+        const dummyOrderId = `TEST-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        const dummyItems = [
+          {
+            name: "Royal Grande (Commercial Test)",
+            file: "RoyalGrande-Regular.otf",
+            price: 25,
+            tier: "SOLO (1 USER ONLY)"
+          }
+        ];
+
+        const gasUrls = (env.GAS_WEBAPP_URL || "").split(',').map(u => u.trim()).filter(u => u);
+        if (gasUrls.length === 0) throw new Error("GAS_URL_NOT_CONFIGURED");
+
+        const templateConfig = body.templateConfig || DEFAULT_EMAIL_TEMPLATE;
+        const renderedHtml = generateOrderEmailHtml({
+          buyerEmail: targetEmail,
+          buyerName: "Admin Tester",
+          orderId: dummyOrderId,
+          items: dummyItems,
+          templateConfig,
+          baseUrl: "https://subqi.com"
+        });
+
+        const subjectTemplate = templateConfig.subject || DEFAULT_EMAIL_TEMPLATE.subject;
+        const finalSubject = `[TEST EMAIL] ` + subjectTemplate.replace(/\[ORDER_ID\]/g, dummyOrderId).replace(/\[BUYER_NAME\]/g, "Admin Tester");
+
+        const payload = {
+          token: "$emogaAm4n_",
+          action: "order",
+          email: targetEmail,
+          name: "Admin Tester",
+          order_id: dummyOrderId,
+          subject: finalSubject,
+          htmlBody: renderedHtml,
+          sender_name: "Subqi Studio"
+        };
+
+        const rotatedUrls = gasUrls.sort(() => Math.random() - 0.5);
+        let senderAccount = null;
+
+        for (const targetUrl of rotatedUrls) {
+          try {
+            const res = await fetch(targetUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+            const resText = await res.text();
+            let resJson = null;
+            try { resJson = JSON.parse(resText); } catch (_) {}
+
+            if ((resJson && resJson.status === "SUCCESS") || resText === "SUCCESS" || resText.includes("Order Email Sent")) {
+              senderAccount = resJson?.sender || targetUrl.substring(0, 45) + "...";
+              break;
+            }
+          } catch (e) {
+            console.error("Test email send failed for account:", e.message);
+          }
+        }
+
+        if (!senderAccount) throw new Error("FAILED_TO_SEND_VIA_ALL_GAS_ACCOUNTS");
+
+        return new Response(JSON.stringify({ success: true, sender: senderAccount }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // --- 6G. API Admin Resend Order Email ---
+    if (url.pathname === '/api/admin/resend-order-email' && request.method === 'POST') {
+      try {
+        const authHeader = request.headers.get('Authorization');
+        const user = await getSupabaseUser(authHeader, env);
+        if (!user || !(await isUserAdmin(user.id, env))) {
+          return new Response(JSON.stringify({ error: "ADMIN_ONLY_ACCESS" }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
+        const body = await request.json();
+        const orderId = body.orderId;
+        if (!orderId) {
+          return new Response(JSON.stringify({ error: "ORDER_ID_REQUIRED" }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
+        const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+        const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+
+        const hRes = await fetch(
+          `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(orderId)}&select=id,user_id,font_id,download_type,tier,metadata`,
+          { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
+        );
+        const orderRows = await hRes.json();
+        if (!orderRows || orderRows.length === 0) {
+          return new Response(JSON.stringify({ error: "ORDER_NOT_FOUND" }), {
+            status: 404,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
+        const firstRow = orderRows[0];
+        const bRes = await fetch(
+          `${supabaseUrl}/rest/v1/fontbuyer?id=eq.${firstRow.user_id}&select=email,full_name`,
+          { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
+        );
+        const buyerRows = await bRes.json();
+        const buyer = buyerRows?.[0];
+        if (!buyer?.email) throw new Error("BUYER_EMAIL_NOT_FOUND");
+
+        // Fetch font names and files
+        const fontIds = orderRows.map(r => r.font_id).filter(Boolean);
+        const fRes = await fetch(
+          `${supabaseUrl}/rest/v1/fonts?id=in.(${fontIds.join(',')})&select=id,name,font_files,trial_file_url`,
+          { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
+        );
+        const fontRows = fRes.ok ? await fRes.json() : [];
+        const fontMap = {};
+        fontRows.forEach(f => { fontMap[f.id] = f; });
+
+        const items = orderRows.map(r => {
+          const f = fontMap[r.font_id];
+          const files = Array.isArray(f?.font_files) && f.font_files.length > 0 ? f.font_files : [f?.trial_file_url || f?.name];
+          return {
+            name: f?.name || "Font",
+            file: files[0],
+            price: r.metadata?.price_at_purchase || 25,
+            tier: r.tier || "SOLO"
+          };
+        });
+
+        const result = await triggerGasEmail(buyer.email, buyer.full_name || "Creator", orderId, items, env);
+        if (!result.success) throw new Error(result.error || "GAS_DISPATCH_FAILED");
+
+        return new Response(JSON.stringify({ success: true, sender: result.sender }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (err) {
         return new Response(JSON.stringify({ error: err.message }), {

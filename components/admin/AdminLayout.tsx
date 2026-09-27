@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Type, ShoppingCart, LogOut, Tag, 
-  Menu, X, Mail, FileText, Power, Loader2, CreditCard 
+  Menu, X, Mail, FileText, Power, Loader2, CreditCard, SendHorizontal 
 } from 'lucide-react';
 import { Globe } from 'lucide-react';
 import WebAnalytics from './WebAnalytics';
@@ -11,6 +11,7 @@ import PromotionsManager from './PromotionsManager';
 import Orders from './Orders';
 import Statistics from './Statistics';
 import AdminMessages from './AdminMessages';
+import EmailStudio from './EmailStudio';
 import { supabase } from '../../lib/supabase';
 
 const AdminDashboard = () => {
@@ -177,6 +178,9 @@ const AdminDashboard = () => {
           <button onClick={() => handleTabChange('orders')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'orders' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <ShoppingCart size={18} /> Orders
           </button>
+          <button onClick={() => handleTabChange('email_studio')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'email_studio' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+            <SendHorizontal size={18} /> Email Studio
+          </button>
           <button onClick={() => handleTabChange('content')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'content' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <FileText size={18} /> Content Mgr
           </button>
@@ -251,6 +255,7 @@ const AdminDashboard = () => {
         {activeTab === 'stats' && <Statistics />}
         {activeTab === 'inbox' && <AdminMessages />}
         {activeTab === 'orders' && <Orders />}
+        {activeTab === 'email_studio' && <EmailStudio />}
         {activeTab === 'analytics' && <WebAnalytics />}
       </main>
     </div>
