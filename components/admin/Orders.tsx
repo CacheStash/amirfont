@@ -2,6 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Search, ChevronLeft, ChevronRight, Download, FileText, ShieldCheck, Mail } from 'lucide-react';
 
+const GAS_MAP: Record<string, string> = {
+  "AKfycbzO1E0IkuoZIdlaM4hRyz1y84VyObjRSJUUuSc2PjQxaTHcz-rJ82cKhUA4KUs3X9c": "subqistudio@gmail.com",
+  "AKfycbzgr3nOGCM9QBnaP7BD1MDY-s3uDizcckwYlo2-CkkKo1OxHr_pIjdhvOdlaPOY2tE04Q": "amirsubqisetiaji@gmail.com",
+  "AKfycbw9eibNs8cKKMiusDi8aKFp2t2xU_T0gDo_FFlBMM6jZWEiX5ERbR5vF-YlLTM9XlgI": "ameervg@gmail.com"
+};
+
+function formatGasSender(sender: string | undefined): string {
+  if (!sender) return '';
+  for (const [id, email] of Object.entries(GAS_MAP)) {
+    if (sender.includes(id)) return email;
+  }
+  return sender;
+}
+
 const MASTER_TIER_LABELS: Record<string, Record<string, string>> = {
   desktop: { solo: '1 USER ONLY', team: 'UP TO 30 USER', studio: 'UP TO 100 USER', enterprise: 'UNLIMITED USER' },
   social_web: { small_50k: '50K VIEWS', medium_500k: '500K VIEWS', large_5m: '2M VIEWS', enterprise_unlimited: 'UNLIMITED VIEWS' },
@@ -491,14 +505,17 @@ const fetchOrders = async () => {
                     }`}>
                       {order.metadata?.email_sent ? 'SENT' : 'PENDING'}
                     </span>
-                    {order.metadata?.email_sent_by && (
-                      <span 
-                        className="text-[8px] font-mono lowercase text-gray-500 max-w-[110px] truncate"
-                        title={order.metadata.email_sent_by}
-                      >
-                        {order.metadata.email_sent_by.split('@')[0]}
-                      </span>
-                    )}
+                    {order.metadata?.email_sent_by && (() => {
+                      const cleanSender = formatGasSender(order.metadata.email_sent_by);
+                      return (
+                        <span 
+                          className="text-[8px] font-mono lowercase text-gray-500 max-w-[130px] truncate"
+                          title={cleanSender}
+                        >
+                          {cleanSender}
+                        </span>
+                      );
+                    })()}
                     <button
                       onClick={() => handleResendOrderEmail(order)}
                       disabled={resendingTx === order.transaction_id}

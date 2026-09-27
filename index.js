@@ -158,6 +158,20 @@ const DEFAULT_EMAIL_TEMPLATE = {
   footer_text: "Questions or assistance? Reply directly to this email.<br>© Subqi Studio. All rights reserved."
 };
 
+const GAS_ACCOUNT_MAP = {
+  "AKfycbzO1E0IkuoZIdlaM4hRyz1y84VyObjRSJUUuSc2PjQxaTHcz-rJ82cKhUA4KUs3X9c": "subqistudio@gmail.com",
+  "AKfycbzgr3nOGCM9QBnaP7BD1MDY-s3uDizcckwYlo2-CkkKo1OxHr_pIjdhvOdlaPOY2tE04Q": "amirsubqisetiaji@gmail.com",
+  "AKfycbw9eibNs8cKKMiusDi8aKFp2t2xU_T0gDo_FFlBMM6jZWEiX5ERbR5vF-YlLTM9XlgI": "ameervg@gmail.com"
+};
+
+function resolveGasSender(resSender, url) {
+  if (resSender && resSender.includes('@')) return resSender;
+  for (const [id, email] of Object.entries(GAS_ACCOUNT_MAP)) {
+    if (url && url.includes(id)) return email;
+  }
+  return resSender || "subqistudio@gmail.com";
+}
+
 function generateOrderEmailHtml({ buyerEmail, buyerName, orderId, items, templateConfig, baseUrl }) {
   const cfg = { ...DEFAULT_EMAIL_TEMPLATE, ...(templateConfig || {}) };
   const safeName = buyerName || "Creator";
@@ -176,38 +190,40 @@ function generateOrderEmailHtml({ buyerEmail, buyerName, orderId, items, templat
     const downloadUrl = `${baseUrl}/api/download-zip?file=${encodeURIComponent(fileParam)}&order=${encodeURIComponent(orderId)}&email=${encodeURIComponent(buyerEmail)}`;
 
     itemsHtml += `
-      <div style="background-color: #18181b; border: 1px solid #27272a; border-radius: 10px; padding: 16px 20px; margin-bottom: 12px;">
-        <div style="font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 4px; letter-spacing: -0.01em;">${fontName}</div>
-        <div style="font-size: 12px; color: #a1a1aa; margin-bottom: 14px;">License Tier: <strong style="color: #22c55e;">${licenseTier}</strong></div>
-        <a href="${downloadUrl}" style="display: inline-block; background-color: #ffffff; color: #000000; font-weight: 800; font-size: 12px; text-decoration: none; padding: 10px 18px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em;">Download Font & License (.ZIP)</a>
+      <div style="background-color: #ffffff; border: 2px solid #000000; box-shadow: 4px 4px 0px #000000; padding: 18px 20px; margin-bottom: 14px;">
+        <div style="font-size: 18px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: -0.01em; margin-bottom: 6px;">${fontName}</div>
+        <div style="font-size: 12px; color: #262626; margin-bottom: 14px;">
+          LICENSE TIER: <strong style="background-color: #ff5c00; color: #ffffff; border: 1.5px solid #000000; padding: 2px 8px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block;">${licenseTier}</strong>
+        </div>
+        <a href="${downloadUrl}" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: 900; font-size: 12px; text-decoration: none; padding: 12px 22px; border: 2px solid #000000; box-shadow: 3px 3px 0px #ff5c00; text-transform: uppercase; letter-spacing: 0.05em;">Download Font & License (.ZIP)</a>
       </div>
     `;
   });
 
   const canvasHtml = cfg.canvas_vip_enabled ? `
     <tr>
-      <td style="padding: 0 32px 28px 32px;">
-        <div style="background: linear-gradient(135deg, #1e1b4b 0%, #172554 100%); border: 1px solid #3b82f6; border-radius: 12px; padding: 22px;">
-          <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <span style="background-color: #2563eb; color: #ffffff; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.08em;">VIP BONUS</span>
-            <span style="color: #ffffff; font-size: 16px; font-weight: 800; margin-left: 10px;">${cfg.canvas_heading}</span>
+      <td style="padding: 0 32px 24px 32px;">
+        <div style="background-color: #eff6ff; border: 2px solid #000000; box-shadow: 4px 4px 0px #2563eb; padding: 20px;">
+          <div style="margin-bottom: 10px;">
+            <span style="background-color: #2563eb; color: #ffffff; font-size: 10px; font-weight: 900; padding: 3px 8px; border: 1.5px solid #000000; text-transform: uppercase; letter-spacing: 0.08em; display: inline-block;">VIP BONUS</span>
+            <span style="color: #000000; font-size: 16px; font-weight: 900; text-transform: uppercase; margin-left: 8px; display: inline-block; vertical-align: middle;">${cfg.canvas_heading}</span>
           </div>
-          <p style="font-size: 13px; color: #cbd5e1; margin: 8px 0 14px 0; line-height: 1.5;">
+          <p style="font-size: 13px; color: #1e293b; margin: 8px 0 14px 0; line-height: 1.5; font-weight: 500;">
             ${cfg.canvas_text}
           </p>
 
-          <div style="background-color: rgba(0,0,0,0.4); border: 1px dashed #60a5fa; border-radius: 8px; padding: 14px; margin-bottom: 14px; font-size: 13px;">
-            <div style="margin-bottom: 6px;">🌐 <strong>App URL:</strong> <a href="${cfg.canvas_url}" style="color: #93c5fd; text-decoration: none; font-weight: 700;">${cfg.canvas_url}</a></div>
-            <div style="margin-bottom: 6px;">👤 <strong>Username:</strong> <span style="color: #f8fafc; font-family: monospace;">${buyerEmail}</span></div>
-            <div>🔑 <strong>Password:</strong> <span style="color: #f8fafc; font-family: monospace; font-weight: 700;">${orderId}</span></div>
+          <div style="background-color: #ffffff; border: 2px solid #000000; box-shadow: 2px 2px 0px #000000; padding: 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.8;">
+            <div>🌐 <strong>APP URL:</strong> <a href="${cfg.canvas_url}" style="color: #2563eb; font-weight: 800; text-decoration: underline;">${cfg.canvas_url}</a></div>
+            <div>👤 <strong>USERNAME:</strong> <span style="font-family: monospace; font-weight: 800; background-color: #f1f5f9; padding: 2px 6px; border: 1px solid #cbd5e1;">${buyerEmail}</span></div>
+            <div>🔑 <strong>PASSWORD:</strong> <span style="font-family: monospace; font-weight: 800; background-color: #f1f5f9; padding: 2px 6px; border: 1px solid #cbd5e1;">${orderId}</span></div>
           </div>
 
-          <div style="font-size: 12px; color: #e2e8f0; line-height: 1.6;">
-            <strong>Your VIP Perks:</strong>
+          <div style="font-size: 12px; color: #1e293b; line-height: 1.6; font-weight: 500;">
+            <strong style="text-transform: uppercase; letter-spacing: 0.05em; font-weight: 900;">Your VIP Perks:</strong>
             <ul style="margin: 6px 0 0 0; padding-left: 18px;">
               <li><strong>Purchased Fonts Unlocked:</strong> All fonts in this order are automatically activated in your Canvas suite.</li>
-              <li><strong>Catalog-Wide Bonus Extras & Dingbats:</strong> Free access to all exclusive ornaments and dingbats across our entire collection.</li>
-              <li><strong>Full Pro Tools Access:</strong> All locked creator features (Export, High-Res Canvas, etc.) are completely unlocked.</li>
+              <li><strong>Bonus Extras & Dingbats:</strong> Free access to exclusive ornaments and dingbats catalog-wide.</li>
+              <li><strong>Full Pro Tools:</strong> High-res export, canvas saving, and SVG generation completely unlocked.</li>
             </ul>
           </div>
         </div>
@@ -222,46 +238,46 @@ function generateOrderEmailHtml({ buyerEmail, buyerName, orderId, items, templat
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${(cfg.subject || DEFAULT_EMAIL_TEMPLATE.subject).replace(/\[ORDER_ID\]/g, orderId)}</title>
 </head>
-<body style="margin: 0; padding: 32px 16px; background-color: #09090b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f4f4f5; line-height: 1.5;">
+<body style="margin: 0; padding: 32px 16px; background-color: #f5f4ef; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #000000; line-height: 1.5;">
   <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
     <tr>
       <td align="center">
-        <table role="presentation" style="max-width: 600px; width: 100%; background-color: #121215; border: 1px solid #27272a; border-radius: 14px; overflow: hidden; text-align: left;" border="0" cellspacing="0" cellpadding="0">
+        <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border: 3px solid #000000; box-shadow: 6px 6px 0px #000000; text-align: left;" border="0" cellspacing="0" cellpadding="0">
           <tr>
-            <td style="padding: 32px 32px 20px 32px; border-bottom: 1px solid #27272a;">
-              <span style="display: inline-block; background-color: #ffffff; color: #000000; font-family: monospace; font-size: 11px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; margin-bottom: 12px;">SUBQI STUDIO™</span>
-              <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 800; letter-spacing: -0.02em;">${heading}</h1>
-              <p style="margin: 8px 0 0 0; color: #a1a1aa; font-size: 14px; line-height: 1.6;">${introText}</p>
+            <td style="padding: 32px 32px 20px 32px; border-bottom: 2px solid #000000; background-color: #ffffff;">
+              <span style="display: inline-block; background-color: #000000; color: #ffffff; font-family: monospace; font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; margin-bottom: 14px;">SUBQI STUDIO™</span>
+              <h1 style="margin: 0; color: #000000; font-size: 24px; font-weight: 900; letter-spacing: -0.02em; text-transform: uppercase; line-height: 1.2;">${heading}</h1>
+              <p style="margin: 8px 0 0 0; color: #262626; font-size: 14px; font-weight: 500; line-height: 1.6;">${introText}</p>
             </td>
           </tr>
 
           <tr>
             <td style="padding: 20px 32px 10px 32px;">
-              <div style="background-color: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 12px 16px; font-size: 13px;">
-                <span style="color: #71717a; text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: 0.05em;">Order Reference:</span>
-                <span style="color: #ffffff; font-family: monospace; font-weight: 800; font-size: 14px; margin-left: 8px;">${orderId}</span>
+              <div style="background-color: #fef08a; border: 2px solid #000000; box-shadow: 3px 3px 0px #000000; padding: 12px 16px; font-size: 13px;">
+                <span style="color: #000000; text-transform: uppercase; font-size: 11px; font-weight: 900; letter-spacing: 0.05em;">ORDER REFERENCE:</span>
+                <span style="background-color: #000000; color: #ffffff; font-family: monospace; font-weight: 900; font-size: 13px; padding: 3px 8px; margin-left: 8px; display: inline-block;">${orderId}</span>
               </div>
             </td>
           </tr>
 
           <tr>
             <td style="padding: 10px 32px 16px 32px;">
-              <h2 style="color: #ffffff; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin: 12px 0;">YOUR FONT PACKAGES & COMMERCIAL LICENSES</h2>
+              <h2 style="color: #000000; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; margin: 12px 0;">YOUR FONT PACKAGES & COMMERCIAL LICENSES</h2>
               ${itemsHtml}
             </td>
           </tr>
 
           <tr>
             <td style="padding: 0 32px 24px 32px;">
-              <div style="background-color: #1c1917; border: 1px solid #ea580c; border-left: 4px solid #f97316; border-radius: 8px; padding: 14px 18px;">
+              <div style="background-color: #fff1f2; border: 2px solid #000000; box-shadow: 4px 4px 0px #e11d48; padding: 16px 18px;">
                 <div style="margin-bottom: 6px;">
-                  <strong style="color: #fdba74; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;">⚠️ ${warningTitle}</strong>
+                  <strong style="color: #e11d48; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 900;">⚠️ ${warningTitle}</strong>
                 </div>
-                <p style="margin: 0; color: #fed7aa; font-size: 12px; line-height: 1.6;">
+                <p style="margin: 0; color: #4c0519; font-size: 12px; font-weight: 600; line-height: 1.6;">
                   ${warningText}
                 </p>
                 <div style="margin-top: 10px;">
-                  <a href="${vaultUrl}" style="display: inline-block; color: #fb923c; font-size: 12px; font-weight: 700; text-decoration: underline;">Open User Vault (Unlimited Access) →</a>
+                  <a href="${vaultUrl}" style="display: inline-block; background-color: #000000; color: #ffffff; border: 1.5px solid #000000; padding: 6px 12px; font-size: 11px; font-weight: 900; text-decoration: none; text-transform: uppercase;">Open User Vault (Unlimited Access) →</a>
                 </div>
               </div>
             </td>
@@ -270,7 +286,7 @@ function generateOrderEmailHtml({ buyerEmail, buyerName, orderId, items, templat
           ${canvasHtml}
 
           <tr>
-            <td style="padding: 24px 32px; border-top: 1px solid #27272a; text-align: center; font-size: 12px; color: #71717a; line-height: 1.6;">
+            <td style="padding: 22px 32px; border-top: 2px solid #000000; background-color: #fafaf9; text-align: center; font-size: 11px; font-weight: 700; color: #525252; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.6;">
               ${cfg.footer_text || DEFAULT_EMAIL_TEMPLATE.footer_text}
             </td>
           </tr>
@@ -352,7 +368,7 @@ async function triggerGasEmail(buyerEmail, buyerName, orderId, items, env) {
       const isSuccess = (resJson && resJson.status === "SUCCESS") || resText === "SUCCESS" || resText.includes("Order Email Sent");
 
       if (isSuccess) {
-        const senderAccount = resJson?.sender || url.substring(0, 45) + "...";
+        const senderAccount = resolveGasSender(resJson?.sender, url);
         console.log(`GAS_DELIVERY_SUCCESS: Account ${senderAccount}`);
 
         // Update font_history in Supabase
@@ -1277,7 +1293,7 @@ export default {
             try { resJson = JSON.parse(resText); } catch (_) {}
 
             if ((resJson && resJson.status === "SUCCESS") || resText === "SUCCESS" || resText.includes("Order Email Sent")) {
-              senderAccount = resJson?.sender || targetUrl.substring(0, 45) + "...";
+              senderAccount = resolveGasSender(resJson?.sender, targetUrl);
               break;
             }
           } catch (e) {
@@ -1368,6 +1384,67 @@ export default {
         if (!result.success) throw new Error(result.error || "GAS_DISPATCH_FAILED");
 
         return new Response(JSON.stringify({ success: true, sender: result.sender }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // --- 6H. API Admin GAS Status & Remaining Daily Quota (0 quota cost check) ---
+    if (url.pathname === '/api/admin/gas-status' && request.method === 'GET') {
+      try {
+        const authHeader = request.headers.get('Authorization');
+        const user = await getSupabaseUser(authHeader, env);
+        if (!user || !(await isUserAdmin(user.id, env))) {
+          return new Response(JSON.stringify({ error: "ADMIN_ONLY_ACCESS" }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
+        const gasUrls = (env.GAS_WEBAPP_URL || "").split(',').map(u => u.trim()).filter(u => u);
+        const accounts = await Promise.all(gasUrls.map(async (targetUrl) => {
+          const email = resolveGasSender(null, targetUrl);
+          let quota = 100;
+          let isOnline = false;
+
+          try {
+            // Check quota via lightweight GET request (costs 0 emails)
+            const qRes = await fetch(targetUrl, { method: "GET" });
+            if (qRes.ok) {
+              isOnline = true;
+              const qText = await qRes.text();
+              try {
+                const qJson = JSON.parse(qText);
+                if (typeof qJson?.quota === 'number') quota = qJson.quota;
+                else if (typeof qJson?.remainingDailyQuota === 'number') quota = qJson.remainingDailyQuota;
+              } catch (_) {}
+            }
+          } catch (e) {
+            console.error("GAS quota check error for:", email, e.message);
+          }
+
+          return {
+            email,
+            url: targetUrl,
+            remaining: quota,
+            limit: 100,
+            status: isOnline ? "ONLINE" : "READY"
+          };
+        }));
+
+        const totalRemaining = accounts.reduce((sum, acc) => sum + (acc.remaining || 0), 0);
+        const totalLimit = accounts.length * 100;
+
+        return new Response(JSON.stringify({
+          accounts,
+          totalRemaining,
+          totalLimit
+        }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (err) {

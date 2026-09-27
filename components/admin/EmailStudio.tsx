@@ -54,8 +54,35 @@ export default function EmailStudio() {
   const [sendingTest, setSendingTest] = useState(false);
   const [testStatus, setTestStatus] = useState<{ success?: boolean; sender?: string; error?: string } | null>(null);
 
+  const [gasPool, setGasPool] = useState<{
+    accounts: Array<{ email: string; url: string; remaining: number; limit: number; status: string }>;
+    totalRemaining: number;
+    totalLimit: number;
+  } | null>(null);
+  const [checkingGas, setCheckingGas] = useState(false);
+
+  const fetchGasPool = async () => {
+    setCheckingGas(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const res = await fetch('/api/admin/gas-status', {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setGasPool(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch gas pool status:", e);
+    } finally {
+      setCheckingGas(false);
+    }
+  };
+
   useEffect(() => {
     fetchTemplate();
+    fetchGasPool();
   }, []);
 
   const fetchTemplate = async () => {
@@ -174,37 +201,39 @@ export default function EmailStudio() {
     ];
 
     const itemsHtml = sampleItems.map(item => `
-      <div style="background-color: #18181b; border: 1px solid #27272a; border-radius: 10px; padding: 16px 20px; margin-bottom: 12px;">
-        <div style="font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 4px; letter-spacing: -0.01em;">${item.name}</div>
-        <div style="font-size: 12px; color: #a1a1aa; margin-bottom: 14px;">License Tier: <strong style="color: #22c55e;">${item.tier}</strong></div>
-        <a href="#" onclick="return false;" style="display: inline-block; background-color: #ffffff; color: #000000; font-weight: 800; font-size: 12px; text-decoration: none; padding: 10px 18px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em;">Download Font & License (.ZIP)</a>
+      <div style="background-color: #ffffff; border: 2px solid #000000; box-shadow: 4px 4px 0px #000000; padding: 18px 20px; margin-bottom: 14px;">
+        <div style="font-size: 18px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: -0.01em; margin-bottom: 6px;">${item.name}</div>
+        <div style="font-size: 12px; color: #262626; margin-bottom: 14px;">
+          LICENSE TIER: <strong style="background-color: #ff5c00; color: #ffffff; border: 1.5px solid #000000; padding: 2px 8px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block;">${item.tier}</strong>
+        </div>
+        <a href="#" onclick="return false;" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: 900; font-size: 12px; text-decoration: none; padding: 12px 22px; border: 2px solid #000000; box-shadow: 3px 3px 0px #ff5c00; text-transform: uppercase; letter-spacing: 0.05em;">Download Font & License (.ZIP)</a>
       </div>
     `).join("");
 
     const canvasHtml = config.canvas_vip_enabled ? `
       <tr>
-        <td style="padding: 0 32px 28px 32px;">
-          <div style="background: linear-gradient(135deg, #1e1b4b 0%, #172554 100%); border: 1px solid #3b82f6; border-radius: 12px; padding: 22px;">
-            <div style="display: flex; align-items: center; margin-bottom: 8px;">
-              <span style="background-color: #2563eb; color: #ffffff; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.08em;">VIP BONUS</span>
-              <span style="color: #ffffff; font-size: 16px; font-weight: 800; margin-left: 10px;">${config.canvas_heading}</span>
+        <td style="padding: 0 32px 24px 32px;">
+          <div style="background-color: #eff6ff; border: 2px solid #000000; box-shadow: 4px 4px 0px #2563eb; padding: 20px;">
+            <div style="margin-bottom: 10px;">
+              <span style="background-color: #2563eb; color: #ffffff; font-size: 10px; font-weight: 900; padding: 3px 8px; border: 1.5px solid #000000; text-transform: uppercase; letter-spacing: 0.08em; display: inline-block;">VIP BONUS</span>
+              <span style="color: #000000; font-size: 16px; font-weight: 900; text-transform: uppercase; margin-left: 8px; display: inline-block; vertical-align: middle;">${config.canvas_heading}</span>
             </div>
-            <p style="font-size: 13px; color: #cbd5e1; margin: 8px 0 14px 0; line-height: 1.5;">
+            <p style="font-size: 13px; color: #1e293b; margin: 8px 0 14px 0; line-height: 1.5; font-weight: 500;">
               ${config.canvas_text}
             </p>
 
-            <div style="background-color: rgba(0,0,0,0.4); border: 1px dashed #60a5fa; border-radius: 8px; padding: 14px; margin-bottom: 14px; font-size: 13px;">
-              <div style="margin-bottom: 6px;">🌐 <strong>App URL:</strong> <a href="${config.canvas_url}" style="color: #93c5fd; text-decoration: none; font-weight: 700;">${config.canvas_url}</a></div>
-              <div style="margin-bottom: 6px;">👤 <strong>Username:</strong> <span style="color: #f8fafc; font-family: monospace;">${dummyBuyerEmail}</span></div>
-              <div>🔑 <strong>Password:</strong> <span style="color: #f8fafc; font-family: monospace; font-weight: 700;">${dummyOrderId}</span></div>
+            <div style="background-color: #ffffff; border: 2px solid #000000; box-shadow: 2px 2px 0px #000000; padding: 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.8;">
+              <div>🌐 <strong>APP URL:</strong> <a href="${config.canvas_url}" style="color: #2563eb; font-weight: 800; text-decoration: underline;">${config.canvas_url}</a></div>
+              <div>👤 <strong>USERNAME:</strong> <span style="font-family: monospace; font-weight: 800; background-color: #f1f5f9; padding: 2px 6px; border: 1px solid #cbd5e1;">${dummyBuyerEmail}</span></div>
+              <div>🔑 <strong>PASSWORD:</strong> <span style="font-family: monospace; font-weight: 800; background-color: #f1f5f9; padding: 2px 6px; border: 1px solid #cbd5e1;">${dummyOrderId}</span></div>
             </div>
 
-            <div style="font-size: 12px; color: #e2e8f0; line-height: 1.6;">
-              <strong>Your VIP Perks:</strong>
+            <div style="font-size: 12px; color: #1e293b; line-height: 1.6; font-weight: 500;">
+              <strong style="text-transform: uppercase; letter-spacing: 0.05em; font-weight: 900;">Your VIP Perks:</strong>
               <ul style="margin: 6px 0 0 0; padding-left: 18px;">
                 <li><strong>Purchased Fonts Unlocked:</strong> All fonts in this order are automatically activated in your Canvas suite.</li>
-                <li><strong>Catalog-Wide Bonus Extras & Dingbats:</strong> Free access to all exclusive ornaments and dingbats across our entire collection.</li>
-                <li><strong>Full Pro Tools Access:</strong> All locked creator features (Export, High-Res Canvas, etc.) are completely unlocked.</li>
+                <li><strong>Bonus Extras & Dingbats:</strong> Free access to exclusive ornaments and dingbats catalog-wide.</li>
+                <li><strong>Full Pro Tools:</strong> High-res export, canvas saving, and SVG generation completely unlocked.</li>
               </ul>
             </div>
           </div>
@@ -219,46 +248,46 @@ export default function EmailStudio() {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${config.subject.replace(/\[ORDER_ID\]/g, dummyOrderId)}</title>
 </head>
-<body style="margin: 0; padding: 24px 12px; background-color: #09090b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f4f4f5; line-height: 1.5;">
+<body style="margin: 0; padding: 32px 16px; background-color: #f5f4ef; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #000000; line-height: 1.5;">
   <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
     <tr>
       <td align="center">
-        <table role="presentation" style="max-width: 600px; width: 100%; background-color: #121215; border: 1px solid #27272a; border-radius: 14px; overflow: hidden; text-align: left;" border="0" cellspacing="0" cellpadding="0">
+        <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border: 3px solid #000000; box-shadow: 6px 6px 0px #000000; text-align: left;" border="0" cellspacing="0" cellpadding="0">
           <tr>
-            <td style="padding: 32px 32px 20px 32px; border-bottom: 1px solid #27272a;">
-              <span style="display: inline-block; background-color: #ffffff; color: #000000; font-family: monospace; font-size: 11px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; margin-bottom: 12px;">SUBQI STUDIO™</span>
-              <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 800; letter-spacing: -0.02em;">${heading}</h1>
-              <p style="margin: 8px 0 0 0; color: #a1a1aa; font-size: 14px; line-height: 1.6;">${introText}</p>
+            <td style="padding: 32px 32px 20px 32px; border-bottom: 2px solid #000000; background-color: #ffffff;">
+              <span style="display: inline-block; background-color: #000000; color: #ffffff; font-family: monospace; font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; margin-bottom: 14px;">SUBQI STUDIO™</span>
+              <h1 style="margin: 0; color: #000000; font-size: 24px; font-weight: 900; letter-spacing: -0.02em; text-transform: uppercase; line-height: 1.2;">${heading}</h1>
+              <p style="margin: 8px 0 0 0; color: #262626; font-size: 14px; font-weight: 500; line-height: 1.6;">${introText}</p>
             </td>
           </tr>
 
           <tr>
             <td style="padding: 20px 32px 10px 32px;">
-              <div style="background-color: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 12px 16px; font-size: 13px;">
-                <span style="color: #71717a; text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: 0.05em;">Order Reference:</span>
-                <span style="color: #ffffff; font-family: monospace; font-weight: 800; font-size: 14px; margin-left: 8px;">${dummyOrderId}</span>
+              <div style="background-color: #fef08a; border: 2px solid #000000; box-shadow: 3px 3px 0px #000000; padding: 12px 16px; font-size: 13px;">
+                <span style="color: #000000; text-transform: uppercase; font-size: 11px; font-weight: 900; letter-spacing: 0.05em;">ORDER REFERENCE:</span>
+                <span style="background-color: #000000; color: #ffffff; font-family: monospace; font-weight: 900; font-size: 13px; padding: 3px 8px; margin-left: 8px; display: inline-block;">${dummyOrderId}</span>
               </div>
             </td>
           </tr>
 
           <tr>
             <td style="padding: 10px 32px 16px 32px;">
-              <h2 style="color: #ffffff; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin: 12px 0;">YOUR FONT PACKAGES & COMMERCIAL LICENSES</h2>
+              <h2 style="color: #000000; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; margin: 12px 0;">YOUR FONT PACKAGES & COMMERCIAL LICENSES</h2>
               ${itemsHtml}
             </td>
           </tr>
 
           <tr>
             <td style="padding: 0 32px 24px 32px;">
-              <div style="background-color: #1c1917; border: 1px solid #ea580c; border-left: 4px solid #f97316; border-radius: 8px; padding: 14px 18px;">
+              <div style="background-color: #fff1f2; border: 2px solid #000000; box-shadow: 4px 4px 0px #e11d48; padding: 16px 18px;">
                 <div style="margin-bottom: 6px;">
-                  <strong style="color: #fdba74; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;">⚠️ ${config.warning_title}</strong>
+                  <strong style="color: #e11d48; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 900;">⚠️ ${config.warning_title}</strong>
                 </div>
-                <p style="margin: 0; color: #fed7aa; font-size: 12px; line-height: 1.6;">
+                <p style="margin: 0; color: #4c0519; font-size: 12px; font-weight: 600; line-height: 1.6;">
                   ${warningText}
                 </p>
                 <div style="margin-top: 10px;">
-                  <a href="${config.vault_url}" style="display: inline-block; color: #fb923c; font-size: 12px; font-weight: 700; text-decoration: underline;">Open User Vault (Unlimited Access) →</a>
+                  <a href="${config.vault_url}" style="display: inline-block; background-color: #000000; color: #ffffff; border: 1.5px solid #000000; padding: 6px 12px; font-size: 11px; font-weight: 900; text-decoration: none; text-transform: uppercase;">Open User Vault (Unlimited Access) →</a>
                 </div>
               </div>
             </td>
@@ -267,7 +296,7 @@ export default function EmailStudio() {
           ${canvasHtml}
 
           <tr>
-            <td style="padding: 24px 32px; border-top: 1px solid #27272a; text-align: center; font-size: 12px; color: #71717a; line-height: 1.6;">
+            <td style="padding: 22px 32px; border-top: 2px solid #000000; background-color: #fafaf9; text-align: center; font-size: 11px; font-weight: 700; color: #525252; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.6;">
               ${config.footer_text}
             </td>
           </tr>
@@ -311,6 +340,73 @@ export default function EmailStudio() {
             {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             <span>{saving ? 'SAVING...' : saveSuccess ? 'SAVED TO DB!' : 'SAVE TEMPLATE'}</span>
           </button>
+        </div>
+      </div>
+
+      {/* GAS RELAY POOL & DAILY QUOTA STATUS */}
+      <div className="border-2 border-black bg-white shadow-[4px_4px_0px_#000] p-4">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b-2 border-black pb-3 mb-3">
+          <div className="flex items-center gap-2">
+            <span className="bg-black text-white px-2 py-0.5 text-[10px] font-black tracking-wider uppercase">
+              GAS RELAY POOL
+            </span>
+            <span className="text-xs font-black uppercase tracking-tight">
+              3 Google Accounts • Auto Load-Balanced
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-[11px] font-bold text-gray-700">
+              Total Pool Capacity:{' '}
+              <strong className="text-black bg-yellow-300 px-1.5 py-0.5 border border-black font-black">
+                {gasPool ? `${gasPool.totalRemaining} / ${gasPool.totalLimit}` : '300 / 300'} Left Today
+              </strong>
+            </div>
+            <button
+              onClick={fetchGasPool}
+              disabled={checkingGas}
+              title="Query remaining quotas (costs 0 email credits)"
+              className="px-2.5 py-1 text-[10px] font-black uppercase border border-black bg-gray-100 hover:bg-black hover:text-white flex items-center gap-1 shadow-[2px_2px_0px_#000] active:shadow-none transition-all disabled:opacity-40"
+            >
+              <RefreshCw className={`w-3 h-3 ${checkingGas ? 'animate-spin' : ''}`} />
+              <span>{checkingGas ? 'CHECKING...' : 'REFRESH QUOTAS'}</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {(gasPool?.accounts || [
+            { email: "subqistudio@gmail.com", remaining: 100, limit: 100, status: "READY" },
+            { email: "amirsubqisetiaji@gmail.com", remaining: 100, limit: 100, status: "READY" },
+            { email: "ameervg@gmail.com", remaining: 100, limit: 100, status: "READY" }
+          ]).map((acc) => (
+            <div key={acc.email} className="border border-black p-3 bg-gray-50 flex flex-col justify-between gap-2 shadow-[2px_2px_0px_#000]">
+              <div className="flex items-start justify-between gap-1">
+                <span className="text-[11px] font-black lowercase text-black truncate" title={acc.email}>
+                  {acc.email}
+                </span>
+                <span className={`text-[8px] font-black px-1.5 py-0.5 border border-black uppercase ${
+                  acc.status === 'ONLINE' ? 'bg-[#00F59B] text-black' : 'bg-gray-200 text-gray-700'
+                }`}>
+                  {acc.status}
+                </span>
+              </div>
+              <div>
+                <div className="flex justify-between items-center text-[10px] font-bold mb-1">
+                  <span className="text-gray-500 uppercase">DAILY QUOTA:</span>
+                  <span className="font-black text-black">{acc.remaining} / {acc.limit}</span>
+                </div>
+                <div className="w-full bg-gray-200 border border-black h-2 overflow-hidden">
+                  <div 
+                    className="bg-black h-full transition-all duration-300"
+                    style={{ width: `${Math.min(100, Math.max(0, (acc.remaining / acc.limit) * 100))}%` }}
+                  />
+                </div>
+                <span className="text-[8px] text-gray-500 font-bold block mt-1">
+                  Resets every 24h (midnight Google PT)
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
