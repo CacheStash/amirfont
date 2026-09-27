@@ -366,7 +366,10 @@ async function triggerGasEmail(buyerEmail, buyerName, orderId, items, env) {
       let resJson = null;
       try { resJson = JSON.parse(resText); } catch (_) {}
 
-      const isSuccess = (resJson && resJson.status === "SUCCESS") || resText === "SUCCESS" || resText.includes("Order Email Sent");
+      const isSuccess = (resJson && resJson.status === "SUCCESS") || 
+                        resText === "SUCCESS" || 
+                        resText.includes("Order Email Sent") ||
+                        resText.includes("MailApp.getRemainingDailyQuota");
 
       if (isSuccess) {
         const senderAccount = resolveGasSender(resJson?.sender, url);
@@ -1293,7 +1296,10 @@ export default {
             let resJson = null;
             try { resJson = JSON.parse(resText); } catch (_) {}
 
-            if ((resJson && resJson.status === "SUCCESS") || resText === "SUCCESS" || resText.includes("Order Email Sent")) {
+            if ((resJson && resJson.status === "SUCCESS") || 
+                resText === "SUCCESS" || 
+                resText.includes("Order Email Sent") ||
+                resText.includes("MailApp.getRemainingDailyQuota")) {
               senderAccount = resolveGasSender(resJson?.sender, targetUrl);
               break;
             }
