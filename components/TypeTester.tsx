@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { AlignLeft, AlignCenter, AlignRight, Grid, Keyboard, ChevronDown, ChevronLeft, ChevronRight, Layers, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { FontConfig } from '../types';
 import opentype from 'opentype.js';
-import { loadProtectedFontFace, loadProtectedOpenType } from '../utils/secureFontLoader';
 
 interface TypeTesterProps {
   config: FontConfig & { 
@@ -217,12 +216,19 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       const url = file.startsWith('http') || file.startsWith('/') ? file : `/api/fonts/${file}?v=${version}`;
       const fontNameIdentifier = `${config.name}-${index}`;
 
-      loadProtectedFontFace(fontNameIdentifier, url);
+      try {
+        const fontFace = new FontFace(fontNameIdentifier, `url("${url}")`);
+        fontFace.load().then((loadedFace) => {
+          document.fonts.add(loadedFace);
+        }).catch((err) => console.error(err));
+      } catch (e) {
+        console.error("FontFace API error:", e);
+      }
 
       if (detectedStyleNames[index] && loadedFontsMap[index]) return;
 
-      loadProtectedOpenType(url).then((font) => {
-        if (font) {
+      opentype.load(url, (err, font) => {
+        if (!err && font) {
           const names = font.names as any;
           const isVariable = font.tables.fvar?.axes?.length > 0;
           const detectedName = names.preferredSubfamily?.en || names.fontSubfamily?.en;
@@ -233,8 +239,6 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           }
           setLoadedFontsMap(prev => ({ ...prev, [index]: font }));
         }
-      }).catch((err) => {
-        console.error("Failed to load protected font in TypeTester:", err);
       });
     });
   }, [config.font_files]);
@@ -255,9 +259,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
     setIsLoadingGlyphs(true);
     
-    loadProtectedOpenType(targetFile).then((font) => {
+    opentype.load(targetFile, (err, font) => {
       setIsLoadingGlyphs(false);
-      if (!font) return;
+      if (err || !font) return;
 
       setLoadedFontObj(font);
       const names = font.names as any;
@@ -313,9 +317,9 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       setActiveFeatures({});
       setPopoverPos(null);
       setSelectedCharIndex(null);
-    }).catch((err) => {
-      setIsLoadingGlyphs(false);
-      console.error("Failed to load glyphs for protected font:", err);
+
+      
+
     });
   }, [config, activeStyleIndex]);
 
@@ -922,7 +926,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
             )}
 
             <a
-              href={`https://canvas.subqi.com/?font=${encodeURIComponent(config.name)}&font_id=${encodeURIComponent(config.id || '')}&text=${encodeURIComponent(text)}&style=${activeStyleIndex}&layered=${isLayeredMode ? '1' : '0'}${isLayeredMode ? `&layers=${encodeURIComponent(JSON.stringify(layers.filter(l => l.isVisible).map(l => ({ fontIndex: l.fontIndex, color: l.color }))))}` : ''}`}
+              href={`https://canvas.subqi.com/?font=${encodeURIComponent(config.name)}&font_id=${encodeURIComponent(config.id || '')}&style=${activeStyleIndex}&layered=${isLayeredMode ? '1' : '0'}${isLayeredMode ? `&layers=${encodeURIComponent(JSON.stringify(layers.filter(l => l.isVisible).map(l => ({ fontIndex: l.fontIndex, color: l.color }))))}` : ''}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold uppercase transition-colors border border-black bg-white hover:bg-[#FF5C00] hover:text-black text-black shrink-0 sm:ml-auto lg:ml-0"
