@@ -222,10 +222,19 @@ export default function EmailStudio() {
               ${config.canvas_text}
             </p>
 
-            <div style="background-color: #ffffff; border: 2px solid #000000; box-shadow: 2px 2px 0px #000000; padding: 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.8;">
-              <div>🌐 <strong>APP URL:</strong> <a href="${config.canvas_url}" style="color: #2563eb; font-weight: 800; text-decoration: underline;">${config.canvas_url}</a></div>
-              <div>👤 <strong>USERNAME:</strong> <span style="font-family: monospace; font-weight: 800; background-color: #f1f5f9; padding: 2px 6px; border: 1px solid #cbd5e1;">${dummyBuyerEmail}</span></div>
-              <div>🔑 <strong>PASSWORD:</strong> <span style="font-family: monospace; font-weight: 800; background-color: #f1f5f9; padding: 2px 6px; border: 1px solid #cbd5e1;">${dummyOrderId}</span></div>
+            <div style="background-color: #ffffff; border: 2px solid #000000; box-shadow: 2px 2px 0px #000000; padding: 14px 16px; margin-bottom: 14px; font-size: 13px; line-height: 2;">
+              <div style="margin-bottom: 4px;">
+                <span style="display: inline-block; background-color: #2563eb; color: #ffffff; font-family: monospace; font-size: 9px; font-weight: 900; padding: 1px 6px; margin-right: 8px; vertical-align: middle; border: 1.5px solid #000000;">URL</span>
+                <strong>APP URL:</strong> <a href="${config.canvas_url}" style="color: #2563eb; font-weight: 800; text-decoration: underline;">${config.canvas_url}</a>
+              </div>
+              <div style="margin-bottom: 4px;">
+                <span style="display: inline-block; background-color: #000000; color: #ffffff; font-family: monospace; font-size: 9px; font-weight: 900; padding: 1px 6px; margin-right: 8px; vertical-align: middle; border: 1.5px solid #000000;">USER</span>
+                <strong>USERNAME:</strong> <span style="font-family: monospace; font-weight: 800; background-color: #f1f5f9; padding: 2px 6px; border: 1px solid #cbd5e1;">${dummyBuyerEmail}</span>
+              </div>
+              <div>
+                <span style="display: inline-block; background-color: #ff5c00; color: #ffffff; font-family: monospace; font-size: 9px; font-weight: 900; padding: 1px 6px; margin-right: 8px; vertical-align: middle; border: 1.5px solid #000000;">PASS</span>
+                <strong>PASSWORD:</strong> <span style="font-family: monospace; font-weight: 800; background-color: #f1f5f9; padding: 2px 6px; border: 1px solid #cbd5e1;">${dummyOrderId}</span>
+              </div>
             </div>
 
             <div style="font-size: 12px; color: #1e293b; line-height: 1.6; font-weight: 500;">

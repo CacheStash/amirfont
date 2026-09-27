@@ -249,10 +249,19 @@ function generateOrderEmailHtml({ buyerEmail, buyerName, orderId, items, templat
             ${cfg.canvas_text}
           </p>
 
-          <div style="background-color: #ffffff; border: 2px solid #000000; box-shadow: 2px 2px 0px #000000; padding: 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.8;">
-            <div>🌐 <strong>APP URL:</strong> <a href="${cfg.canvas_url}" style="color: #2563eb; font-weight: 800; text-decoration: underline;">${cfg.canvas_url}</a></div>
-            <div>👤 <strong>USERNAME:</strong> <span style="font-family: monospace; font-weight: 800; background-color: #f1f5f9; padding: 2px 6px; border: 1px solid #cbd5e1;">${buyerEmail}</span></div>
-            <div>🔑 <strong>PASSWORD:</strong> <span style="font-family: monospace; font-weight: 800; background-color: #f1f5f9; padding: 2px 6px; border: 1px solid #cbd5e1;">${orderId}</span></div>
+          <div style="background-color: #ffffff; border: 2px solid #000000; box-shadow: 2px 2px 0px #000000; padding: 14px 16px; margin-bottom: 14px; font-size: 13px; line-height: 2;">
+            <div style="margin-bottom: 4px;">
+              <span style="display: inline-block; background-color: #2563eb; color: #ffffff; font-family: monospace; font-size: 9px; font-weight: 900; padding: 1px 6px; margin-right: 8px; vertical-align: middle; border: 1.5px solid #000000;">URL</span>
+              <strong>APP URL:</strong> <a href="${cfg.canvas_url}" style="color: #2563eb; font-weight: 800; text-decoration: underline;">${cfg.canvas_url}</a>
+            </div>
+            <div style="margin-bottom: 4px;">
+              <span style="display: inline-block; background-color: #000000; color: #ffffff; font-family: monospace; font-size: 9px; font-weight: 900; padding: 1px 6px; margin-right: 8px; vertical-align: middle; border: 1.5px solid #000000;">USER</span>
+              <strong>USERNAME:</strong> <span style="font-family: monospace; font-weight: 800; background-color: #f1f5f9; padding: 2px 6px; border: 1px solid #cbd5e1;">${buyerEmail}</span>
+            </div>
+            <div>
+              <span style="display: inline-block; background-color: #ff5c00; color: #ffffff; font-family: monospace; font-size: 9px; font-weight: 900; padding: 1px 6px; margin-right: 8px; vertical-align: middle; border: 1.5px solid #000000;">PASS</span>
+              <strong>PASSWORD:</strong> <span style="font-family: monospace; font-weight: 800; background-color: #f1f5f9; padding: 2px 6px; border: 1px solid #cbd5e1;">${orderId}</span>
+            </div>
           </div>
 
           <div style="font-size: 12px; color: #1e293b; line-height: 1.6; font-weight: 500;">
@@ -373,10 +382,10 @@ function generateCouponEmailHtml({ buyerEmail, buyerName, couponCode, discountTe
 
           <tr>
             <td style="padding: 10px 32px 20px 32px;">
-              <div style="background-color: #ffffff; border: 2px solid #000000; box-shadow: 3px 3px 0px #000000; padding: 16px 20px; font-size: 13px; line-height: 1.8;">
-                <div>📅 <strong>VALID UNTIL:</strong> <span style="font-weight: 800; color: #000000;">${validUntil}</span></div>
-                <div>⚡ <strong>USAGE LIMIT:</strong> <span style="font-weight: 800; color: #000000;">${usageLimit}</span></div>
-                <div>🏷️ <strong>APPLIES TO:</strong> <span style="font-weight: 800; color: #ff5c00;">All Commercial Font Licenses</span></div>
+              <div style="background-color: #ffffff; border: 2px solid #000000; box-shadow: 3px 3px 0px #000000; padding: 16px 20px; font-size: 13px; line-height: 2;">
+                <div style="margin-bottom: 4px;"><span style="display: inline-block; background-color: #000000; color: #ffffff; font-family: monospace; font-size: 9px; font-weight: 900; padding: 1px 6px; margin-right: 8px; vertical-align: middle; border: 1.5px solid #000000;">EXPIRY</span> <strong>VALID UNTIL:</strong> <span style="font-weight: 800; color: #000000;">${validUntil}</span></div>
+                <div style="margin-bottom: 4px;"><span style="display: inline-block; background-color: #000000; color: #ffffff; font-family: monospace; font-size: 9px; font-weight: 900; padding: 1px 6px; margin-right: 8px; vertical-align: middle; border: 1.5px solid #000000;">LIMIT</span> <strong>USAGE LIMIT:</strong> <span style="font-weight: 800; color: #000000;">${usageLimit}</span></div>
+                <div><span style="display: inline-block; background-color: #ff5c00; color: #ffffff; font-family: monospace; font-size: 9px; font-weight: 900; padding: 1px 6px; margin-right: 8px; vertical-align: middle; border: 1.5px solid #000000;">TIER</span> <strong>APPLIES TO:</strong> <span style="font-weight: 800; color: #ff5c00;">All Commercial Font Licenses</span></div>
               </div>
             </td>
           </tr>
