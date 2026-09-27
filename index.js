@@ -285,7 +285,7 @@ export default {
         let cachedResponse = await cache.match(cacheKey);
 
         // 2. Cache Hit: Return cached binary with dynamic CORS & Vary: Origin
-        if (cachedResponse) {
+        if (cachedResponse && cachedResponse.headers.get('X-Font-Protection') === 'subqi-shield-v1') {
           const headers = new Headers(cachedResponse.headers);
           headers.set('Access-Control-Allow-Origin', allowedOrigin);
           headers.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
