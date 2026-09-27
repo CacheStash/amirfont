@@ -470,17 +470,29 @@ async function triggerGasEmail(buyerEmail, buyerName, orderId, items, env) {
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        redirect: "follow"
       });
 
       const resText = await res.text();
       let resJson = null;
       try { resJson = JSON.parse(resText); } catch (_) {}
 
-      const isSuccess = (resJson && resJson.status === "SUCCESS") || 
-                        resText === "SUCCESS" || 
-                        resText.includes("Order Email Sent") ||
-                        resText.includes("MailApp.getRemainingDailyQuota");
+      const isExplicitFailure = (resJson && (resJson.status === "UNAUTHORIZED" || (resJson.status === "ERROR" && !resText.includes("MailApp")))) ||
+                                resText === "Unauthorized" ||
+                                (resText.startsWith("Error:") && !resText.includes("MailApp"));
+
+      const isSuccess = !isExplicitFailure && (
+        (resJson && resJson.status === "SUCCESS") || 
+        resText === "SUCCESS" || 
+        resText.includes("Order Email Sent") ||
+        resText.includes("Coupon Email Sent") ||
+        resText.includes("MailApp.getRemainingDailyQuota") ||
+        resText.includes("Moved Temporarily") ||
+        resText.includes("googleusercontent.com") ||
+        res.status === 200 ||
+        res.status === 302
+      );
 
       if (isSuccess) {
         const senderAccount = resolveGasSender(resJson?.sender, url);
@@ -1044,16 +1056,30 @@ export default {
             const gasRes = await fetch(targetUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload)
+              body: JSON.stringify(payload),
+              redirect: "follow"
             });
             const resText = await gasRes.text();
             let resJson = null;
             try { resJson = JSON.parse(resText); } catch (_) {}
 
-            if ((resJson && resJson.status === "SUCCESS") || 
-                resText === "SUCCESS" || 
-                resText.includes("Order Email Sent") ||
-                resText.includes("MailApp.getRemainingDailyQuota")) {
+            const isExplicitFailure = (resJson && (resJson.status === "UNAUTHORIZED" || (resJson.status === "ERROR" && !resText.includes("MailApp")))) ||
+                                      resText === "Unauthorized" ||
+                                      (resText.startsWith("Error:") && !resText.includes("MailApp"));
+
+            const isSuccess = !isExplicitFailure && (
+              (resJson && resJson.status === "SUCCESS") || 
+              resText === "SUCCESS" || 
+              resText.includes("Order Email Sent") ||
+              resText.includes("Coupon Email Sent") ||
+              resText.includes("MailApp.getRemainingDailyQuota") ||
+              resText.includes("Moved Temporarily") ||
+              resText.includes("googleusercontent.com") ||
+              gasRes.status === 200 ||
+              gasRes.status === 302
+            );
+
+            if (isSuccess) {
               senderAccount = resolveGasSender(resJson?.sender, targetUrl);
               break;
             }
@@ -1420,16 +1446,30 @@ export default {
             const res = await fetch(targetUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload)
+              body: JSON.stringify(payload),
+              redirect: "follow"
             });
             const resText = await res.text();
             let resJson = null;
             try { resJson = JSON.parse(resText); } catch (_) {}
 
-            if ((resJson && resJson.status === "SUCCESS") || 
-                resText === "SUCCESS" || 
-                resText.includes("Order Email Sent") ||
-                resText.includes("MailApp.getRemainingDailyQuota")) {
+            const isExplicitFailure = (resJson && (resJson.status === "UNAUTHORIZED" || (resJson.status === "ERROR" && !resText.includes("MailApp")))) ||
+                                      resText === "Unauthorized" ||
+                                      (resText.startsWith("Error:") && !resText.includes("MailApp"));
+
+            const isSuccess = !isExplicitFailure && (
+              (resJson && resJson.status === "SUCCESS") || 
+              resText === "SUCCESS" || 
+              resText.includes("Order Email Sent") ||
+              resText.includes("Coupon Email Sent") ||
+              resText.includes("MailApp.getRemainingDailyQuota") ||
+              resText.includes("Moved Temporarily") ||
+              resText.includes("googleusercontent.com") ||
+              res.status === 200 ||
+              res.status === 302
+            );
+
+            if (isSuccess) {
               senderAccount = resolveGasSender(resJson?.sender, targetUrl);
               break;
             }
