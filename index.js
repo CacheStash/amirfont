@@ -998,16 +998,72 @@ export default {
           }
         }
 
-        // 1b. FALLBACK: VERIFIKASI VIA EMAIL + ORDER ID (Untuk pembeli lama/guest)
+        let emailHistoryRecordToUpdate = null;
+
+        // 1b. FALLBACK: VERIFIKASI VIA EMAIL + ORDER ID (Khusus Quick-Access link dari Email)
+        // Aturan Keamanan: Maksimal 7 Hari ATAU Maksimal 7 Kali Download (mana saja yang lebih dulu)
         if (!isAuthorized && email && transactionId && serviceRoleKey) {
           const checkRes = await fetch(
-            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&select=id,user_id`,
+            `${supabaseUrl}/rest/v1/font_history?transaction_id=eq.${encodeURIComponent(transactionId)}&select=id,user_id,download_date,metadata`,
             { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
           );
           const historyRows = await checkRes.json();
           
           if (historyRows && historyRows.length > 0 && historyRows[0].user_id) {
-            const targetUserId = historyRows[0].user_id;
+            const histRow = historyRows[0];
+            const targetUserId = histRow.user_id;
+
+            // 1. Cek Batas Waktu: Maksimal 7 Hari
+            const purchaseTime = new Date(histRow.download_date).getTime();
+            const now = Date.now();
+            const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+            const isExpired = !isNaN(purchaseTime) && (now - purchaseTime) > SEVEN_DAYS_MS;
+
+            // 2. Cek Batas Frekuensi: Maksimal 7 Kali Download via Email Link
+            const currentMeta = histRow.metadata || {};
+            const emailDownloadCount = typeof currentMeta.email_download_count === 'number' ? currentMeta.email_download_count : 0;
+            const isLimitReached = emailDownloadCount >= 7;
+
+            if (isExpired || isLimitReached) {
+              const reasonText = isExpired
+                ? "has expired (7-day validity window exceeded)"
+                : "has reached the maximum download limit (7/7 downloads used)";
+
+              return new Response(
+                `<!DOCTYPE html>
+                <html>
+                <head>
+                  <meta charset="utf-8">
+                  <title>Link Expired - Subqi Studio</title>
+                  <meta name="viewport" content="width=device-width, initial-scale=1">
+                  <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; background: #EDEBE6; color: #111; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 24px; box-sizing: border-box; }
+                    .card { background: #fff; border: 2px solid #000; padding: 36px 28px; max-width: 480px; width: 100%; box-shadow: 6px 6px 0px #000; text-align: center; }
+                    .badge { display: inline-block; background: #FF5C00; color: #000; font-weight: 900; font-size: 10px; text-transform: uppercase; padding: 4px 8px; border: 1px solid #000; margin-bottom: 16px; }
+                    h1 { font-size: 22px; font-weight: 900; text-transform: uppercase; margin: 0 0 12px 0; font-style: italic; }
+                    p { font-size: 13px; line-height: 1.6; color: #444; margin: 0 0 24px 0; }
+                    .btn { display: inline-block; background: #000; color: #fff; padding: 14px 28px; text-decoration: none; font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; border: 2px solid #000; transition: all 0.2s; }
+                    .btn:hover { background: #FF5C00; color: #000; }
+                    .note { margin-top: 20px; font-size: 11px; color: #777; }
+                  </style>
+                </head>
+                <body>
+                  <div class="card">
+                    <span class="badge">Security Protection</span>
+                    <h1>Download Link Expired</h1>
+                    <p>This quick-access email link ${reasonText} to prevent unauthorized distribution.<br><br>Don't worry! You can log in to your <strong>User Vault</strong> anytime to download all your purchased fonts permanently without limits.</p>
+                    <a href="https://subqi.com/user/auth" class="btn">Log In to User Vault</a>
+                    <div class="note">Order ID: <strong>${transactionId}</strong></div>
+                  </div>
+                </body>
+                </html>`,
+                {
+                  status: 403,
+                  headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                }
+              );
+            }
+
             const buyerRes = await fetch(
               `${supabaseUrl}/rest/v1/fontbuyer?id=eq.${targetUserId}&select=email,full_name,address`,
               { headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` } }
@@ -1020,6 +1076,13 @@ export default {
               buyerEmail = record.email;
               buyerName = record.full_name || 'N/A';
               buyerAddress = record.address || 'N/A';
+              
+              // Catat record untuk increment counter download
+              emailHistoryRecordToUpdate = {
+                id: histRow.id,
+                currentCount: emailDownloadCount,
+                metadata: currentMeta
+              };
             }
           }
         }
@@ -1212,8 +1275,28 @@ export default {
         headers.set('Access-Control-Allow-Origin', '*');
         headers.set('X-License-Owner', buyerEmail);
         headers.set('X-Order-ID', transactionId || 'N/A');
-        headers.set('X-License-Status', 'VALID_COMMERCIAL');
-        headers.set('Access-Control-Allow-Headers', 'Authorization, apikey, X-Order-ID');
+        // Jika diunduh via quick-access link email, catat dan tambahkan counter unduhan (+1)
+        if (emailHistoryRecordToUpdate && serviceRoleKey) {
+          ctx.waitUntil((async () => {
+            try {
+              const nextCount = emailHistoryRecordToUpdate.currentCount + 1;
+              const updatedMeta = { ...emailHistoryRecordToUpdate.metadata, email_download_count: nextCount };
+              await fetch(`${supabaseUrl}/rest/v1/font_history?id=eq.${emailHistoryRecordToUpdate.id}`, {
+                method: 'PATCH',
+                headers: {
+                  'apikey': serviceRoleKey,
+                  'Authorization': `Bearer ${serviceRoleKey}`,
+                  'Content-Type': 'application/json',
+                  'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({ metadata: updatedMeta })
+              });
+            } catch (err) {
+              console.error("Failed to increment email download count:", err);
+            }
+          })());
+        }
+
         return new Response(zipData, { headers });
       } catch (e) { return new Response("Download Failed", { status: 500 }); }
     }
