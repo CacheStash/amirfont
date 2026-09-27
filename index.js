@@ -289,6 +289,7 @@ export default {
           const headers = new Headers(cachedResponse.headers);
           headers.set('Access-Control-Allow-Origin', allowedOrigin);
           headers.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+          headers.set('Access-Control-Expose-Headers', '*');
           headers.set('Vary', 'Origin');
           return new Response(cachedResponse.body, {
             status: cachedResponse.status,
@@ -307,6 +308,7 @@ export default {
         // Base headers stored in Cloudflare Worker cache (WITHOUT origin-locked CORS)
         const baseHeaders = new Headers();
         baseHeaders.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+        baseHeaders.set('Access-Control-Expose-Headers', '*');
         baseHeaders.set('Content-Type', isRawRequested ? (fileData.contentType || 'font/otf') : 'application/octet-stream');
         baseHeaders.set('Content-Disposition', 'inline');
         baseHeaders.set('X-Content-Type-Options', 'nosniff');
@@ -320,6 +322,7 @@ export default {
         // Response sent to current requester has specific dynamic CORS
         const responseHeaders = new Headers(baseHeaders);
         responseHeaders.set('Access-Control-Allow-Origin', allowedOrigin);
+        responseHeaders.set('Access-Control-Expose-Headers', '*');
         responseHeaders.set('Vary', 'Origin');
 
         return new Response(finalBody, { headers: responseHeaders });
