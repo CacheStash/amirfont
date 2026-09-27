@@ -253,7 +253,7 @@ const PromotionsManager: React.FC = () => {
       const resData = await res.json() as any;
       if (!res.ok) throw new Error(resData.error || "FAILED_TO_SEND");
 
-      alert(`COUPON EMAIL DISPATCHED TO: ${selectedBuyerEmail}`);
+      alert(`COUPON EMAIL DISPATCHED TO: ${selectedBuyerEmail}${resData.sender ? `\nSent via: ${resData.sender}` : ''}`);
       setIsSendingCoupon(false);
       setSearchTxOrEmail('');
       setSelectedBuyerEmail('');

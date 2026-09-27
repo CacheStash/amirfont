@@ -335,6 +335,71 @@ function generateOrderEmailHtml({ buyerEmail, buyerName, orderId, items, templat
 </html>`;
 }
 
+function generateCouponEmailHtml({ buyerEmail, buyerName, couponCode, discountText, validUntil, usageLimit, baseUrl }) {
+  const safeName = buyerName || "Creator";
+  const siteUrl = baseUrl || "https://subqi.com";
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exclusive ${discountText} Off Voucher - Subqi Studio</title>
+</head>
+<body style="margin: 0; padding: 32px 16px; background-color: #f5f4ef; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #000000; line-height: 1.5;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td align="center">
+        <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border: 3px solid #000000; box-shadow: 6px 6px 0px #000000; text-align: left;" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td style="padding: 32px 32px 20px 32px; border-bottom: 2px solid #000000; background-color: #ffffff;">
+              <span style="display: inline-block; background-color: #000000; color: #ffffff; font-family: monospace; font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; margin-bottom: 14px;">SUBQI STUDIO™</span>
+              <h1 style="margin: 0; color: #000000; font-size: 24px; font-weight: 900; letter-spacing: -0.02em; text-transform: uppercase; line-height: 1.2;">Exclusive VIP Voucher For You</h1>
+              <p style="margin: 8px 0 0 0; color: #262626; font-size: 14px; font-weight: 500; line-height: 1.6;">Hello ${safeName}, as our valued creator, here is an exclusive discount code for your next font license purchase.</p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 24px 32px 12px 32px;">
+              <div style="background-color: #fef08a; border: 2px solid #000000; box-shadow: 4px 4px 0px #000000; padding: 24px 20px; text-align: center;">
+                <div style="color: #000000; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">YOUR DISCOUNT CODE</div>
+                <div style="color: #000000; font-size: 36px; font-weight: 900; letter-spacing: -0.02em; text-transform: uppercase; line-height: 1;">${discountText}</div>
+                <div style="margin-top: 14px;">
+                  <span style="display: inline-block; background-color: #000000; color: #ffffff; border: 2px solid #000000; padding: 10px 24px; font-family: monospace; font-size: 20px; font-weight: 900; letter-spacing: 0.15em;">${couponCode}</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 10px 32px 20px 32px;">
+              <div style="background-color: #ffffff; border: 2px solid #000000; box-shadow: 3px 3px 0px #000000; padding: 16px 20px; font-size: 13px; line-height: 1.8;">
+                <div>📅 <strong>VALID UNTIL:</strong> <span style="font-weight: 800; color: #000000;">${validUntil}</span></div>
+                <div>⚡ <strong>USAGE LIMIT:</strong> <span style="font-weight: 800; color: #000000;">${usageLimit}</span></div>
+                <div>🏷️ <strong>APPLIES TO:</strong> <span style="font-weight: 800; color: #ff5c00;">All Commercial Font Licenses</span></div>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 0 32px 28px 32px; text-align: center;">
+              <a href="${siteUrl}" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: 900; font-size: 13px; text-decoration: none; padding: 14px 28px; border: 2px solid #000000; box-shadow: 4px 4px 0px #ff5c00; text-transform: uppercase; letter-spacing: 0.05em;">Explore Fonts & Redeem Code →</a>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 22px 32px; border-top: 2px solid #000000; background-color: #fafaf9; text-align: center; font-size: 11px; font-weight: 700; color: #525252; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.6;">
+              Questions or assistance? Reply directly to this email.<br>© Subqi Studio. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
 async function triggerGasEmail(buyerEmail, buyerName, orderId, items, env) {
   const gasUrls = (env.GAS_WEBAPP_URL || "").split(',').map(u => u.trim()).filter(u => u);
   if (gasUrls.length === 0) return { success: false, error: "GAS_URL_NOT_CONFIGURED" };
@@ -937,23 +1002,35 @@ export default {
         const gasUrls = (env.GAS_WEBAPP_URL || "").split(',').map(u => u.trim()).filter(u => u);
         if (gasUrls.length === 0) throw new Error("GAS_URL_NOT_CONFIGURED");
 
+        const renderedHtml = generateCouponEmailHtml({
+          buyerEmail: email,
+          buyerName: name,
+          couponCode,
+          discountText,
+          validUntil,
+          usageLimit,
+          baseUrl: "https://subqi.com"
+        });
+
+        const subject = `Exclusive ${discountText} Off Voucher - Subqi Studio`;
+
         const payload = {
-          type: "send_coupon",
           token: "$emogaAm4n_",
+          action: "order", // Universal relay handler
+          type: "send_coupon",
           email,
           name: name || "Customer",
-          coupon_code: couponCode,
-          discount_text: discountText,
-          valid_until: validUntil,
-          usage_limit: usageLimit,
-          website_url: "https://subqistudio.com",
-          foundry_name: "Subqi Studio"
+          subject,
+          htmlBody: renderedHtml,
+          sender_name: "Subqi Studio"
         };
 
-        const rotatedUrls = gasUrls.sort(() => Math.random() - 0.5);
-        let isSent = false;
+        // Smart prioritize accounts: exclude buyer email, highest quota first, random on ties
+        const prioritizedAccounts = await getSmartPrioritizedGasAccounts(gasUrls, email);
+        let senderAccount = null;
 
-        for (const targetUrl of rotatedUrls) {
+        for (const acc of prioritizedAccounts) {
+          const targetUrl = acc.url;
           try {
             const gasRes = await fetch(targetUrl, {
               method: "POST",
@@ -961,8 +1038,14 @@ export default {
               body: JSON.stringify(payload)
             });
             const resText = await gasRes.text();
-            if (resText === "SUCCESS") {
-              isSent = true;
+            let resJson = null;
+            try { resJson = JSON.parse(resText); } catch (_) {}
+
+            if ((resJson && resJson.status === "SUCCESS") || 
+                resText === "SUCCESS" || 
+                resText.includes("Order Email Sent") ||
+                resText.includes("MailApp.getRemainingDailyQuota")) {
+              senderAccount = resolveGasSender(resJson?.sender, targetUrl);
               break;
             }
           } catch (err) {
@@ -970,9 +1053,9 @@ export default {
           }
         }
 
-        if (!isSent) throw new Error("FAILED_TO_DISPATCH_VIA_GAS");
+        if (!senderAccount) throw new Error("FAILED_TO_DISPATCH_VIA_GAS");
 
-        return new Response(JSON.stringify({ success: true }), {
+        return new Response(JSON.stringify({ success: true, sender: senderAccount }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (e) {
