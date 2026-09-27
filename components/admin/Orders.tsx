@@ -10,9 +10,9 @@ const GAS_MAP: Record<string, string> = {
 
 function formatGasSender(sender: string | undefined): string {
   if (!sender) return '';
-  for (const [id, email] of Object.entries(GAS_MAP)) {
-    if (sender.includes(id)) return email;
-  }
+  if (sender.includes('AKfycbzO') || sender.includes('subqistudio')) return 'subqistudio@gmail.com';
+  if (sender.includes('AKfycbzg') || sender.includes('amirsubqi')) return 'amirsubqisetiaji@gmail.com';
+  if (sender.includes('AKfycbw9') || sender.includes('ameervg')) return 'ameervg@gmail.com';
   return sender;
 }
 

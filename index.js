@@ -166,9 +166,10 @@ const GAS_ACCOUNT_MAP = {
 
 function resolveGasSender(resSender, url) {
   if (resSender && resSender.includes('@')) return resSender;
-  for (const [id, email] of Object.entries(GAS_ACCOUNT_MAP)) {
-    if (url && url.includes(id)) return email;
-  }
+  const target = (url || "") + " " + (resSender || "");
+  if (target.includes('AKfycbzO') || target.includes('subqistudio')) return 'subqistudio@gmail.com';
+  if (target.includes('AKfycbzg') || target.includes('amirsubqi')) return 'amirsubqisetiaji@gmail.com';
+  if (target.includes('AKfycbw9') || target.includes('ameervg')) return 'ameervg@gmail.com';
   return resSender || "subqistudio@gmail.com";
 }
 
@@ -1410,35 +1411,50 @@ export default {
         const accounts = await Promise.all(gasUrls.map(async (targetUrl) => {
           const email = resolveGasSender(null, targetUrl);
           let quota = 100;
+          let limit = 100;
           let isOnline = false;
+          let needsAuth = false;
 
           try {
             // Check quota via lightweight GET request (costs 0 emails)
             const qRes = await fetch(targetUrl, { method: "GET" });
             if (qRes.ok) {
-              isOnline = true;
               const qText = await qRes.text();
               try {
                 const qJson = JSON.parse(qText);
-                if (typeof qJson?.quota === 'number') quota = qJson.quota;
-                else if (typeof qJson?.remainingDailyQuota === 'number') quota = qJson.remainingDailyQuota;
-              } catch (_) {}
+                if (qJson?.status === "SUCCESS") {
+                  isOnline = true;
+                  if (typeof qJson?.quota === 'number') quota = qJson.quota;
+                  else if (typeof qJson?.remainingDailyQuota === 'number') quota = qJson.remainingDailyQuota;
+                  limit = typeof qJson?.limit === 'number' ? qJson.limit : (quota > 100 ? 1500 : 100);
+                } else if (qText.includes("izin") || qText.includes("permission") || qText.includes("authorization")) {
+                  needsAuth = true;
+                }
+              } catch (_) {
+                if (qText.includes("izin") || qText.includes("permission") || qText.includes("authorization")) {
+                  needsAuth = true;
+                }
+              }
             }
           } catch (e) {
             console.error("GAS quota check error for:", email, e.message);
           }
 
+          let accountStatus = "READY";
+          if (isOnline) accountStatus = "ONLINE";
+          else if (needsAuth) accountStatus = "NEEDS_AUTH";
+
           return {
             email,
             url: targetUrl,
             remaining: quota,
-            limit: 100,
-            status: isOnline ? "ONLINE" : "READY"
+            limit: limit,
+            status: accountStatus
           };
         }));
 
         const totalRemaining = accounts.reduce((sum, acc) => sum + (acc.remaining || 0), 0);
-        const totalLimit = accounts.length * 100;
+        const totalLimit = accounts.reduce((sum, acc) => sum + (acc.limit || 100), 0);
 
         return new Response(JSON.stringify({
           accounts,

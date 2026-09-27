@@ -385,9 +385,9 @@ export default function EmailStudio() {
                   {acc.email}
                 </span>
                 <span className={`text-[8px] font-black px-1.5 py-0.5 border border-black uppercase ${
-                  acc.status === 'ONLINE' ? 'bg-[#00F59B] text-black' : 'bg-gray-200 text-gray-700'
+                  acc.status === 'ONLINE' ? 'bg-[#00F59B] text-black' : acc.status === 'NEEDS_AUTH' ? 'bg-[#FFE600] text-black' : 'bg-gray-200 text-gray-700'
                 }`}>
-                  {acc.status}
+                  {acc.status === 'NEEDS_AUTH' ? 'AUTHORIZE IN GAS' : acc.status}
                 </span>
               </div>
               <div>
