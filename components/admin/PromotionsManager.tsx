@@ -206,8 +206,8 @@ const PromotionsManager: React.FC = () => {
 
   const handleSelectBuyerSuggestion = (buyer: any) => {
     setSelectedBuyerEmail(buyer.email);
-    setSelectedBuyerName(buyer.name || 'Customer');
-    setSearchTxOrEmail(`${buyer.email} (${buyer.transaction_id})`);
+    setSelectedBuyerName(buyer.name && buyer.name !== 'Customer' ? buyer.name : '');
+    setSearchTxOrEmail(buyer.email);
     setShowSuggestions(false);
   };
 
@@ -224,8 +224,13 @@ const PromotionsManager: React.FC = () => {
 
   const handleDispatchCouponEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedBuyerEmail || !activeCouponData) {
-      return alert("Please select a buyer and an active coupon!");
+    const cleanEmail = (selectedBuyerEmail || searchTxOrEmail).trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+      return alert("Please enter a valid recipient email address (e.g. buyer@domain.com)!");
+    }
+    if (!activeCouponData) {
+      return alert("Please select an active coupon!");
     }
 
     setIsDispatching(true);
@@ -569,31 +574,40 @@ const PromotionsManager: React.FC = () => {
             </div>
 
             <form onSubmit={handleDispatchCouponEmail} className="space-y-6">
-              {/* Search Buyer / Order ID */}
+              {/* Recipient Email: Direct Input or Search History */}
               <div ref={searchContainerRef} className="space-y-2 relative">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-black">
-                  Search Order ID or Buyer Email
-                </label>
+                <div className="flex justify-between items-baseline">
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-black">
+                    Recipient Email
+                  </label>
+                  <span className="text-[9px] text-[#FF5C00] font-bold">
+                    Direct Email or Search Past Buyers
+                  </span>
+                </div>
                 <div className="relative">
                   <input 
-                    type="text"
+                    type="email"
                     value={searchTxOrEmail}
                     onFocus={() => setShowSuggestions(true)}
                     onChange={(e) => {
-                      setSearchTxOrEmail(e.target.value);
-                      setSelectedBuyerEmail(e.target.value);
+                      const val = e.target.value;
+                      setSearchTxOrEmail(val);
+                      setSelectedBuyerEmail(val.trim());
                       setShowSuggestions(true);
                     }}
-                    placeholder="Type SQ-123456 or buyer@domain.com..."
-                    className="w-full border-2 border-black p-3 text-xs font-bold outline-none uppercase placeholder:normal-case placeholder:text-black/30 pr-8"
+                    placeholder="Enter any prospect email (e.g. buyer@studio.com) or search..."
+                    className="w-full border-2 border-black p-3 text-xs font-bold outline-none placeholder:text-black/30 pr-8 bg-white focus:bg-[#FFFBEA]"
                     required
                   />
                   <Search className="absolute right-3 top-3.5 opacity-40 pointer-events-none" size={16} />
                 </div>
 
                 {/* Autocomplete Dropdown List */}
-                {showSuggestions && filteredBuyers.length > 0 && (
+                {showSuggestions && filteredBuyers.length > 0 && searchTxOrEmail.length > 0 && (
                   <div className="absolute top-full left-0 right-0 z-50 mt-1 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] max-h-48 overflow-y-auto divide-y divide-black/10">
+                    <div className="p-1.5 bg-black text-white text-[9px] font-black uppercase tracking-wider">
+                      Recent Buyer Suggestions ({filteredBuyers.length})
+                    </div>
                     {filteredBuyers.slice(0, 8).map((b, i) => (
                       <div 
                         key={i} 
@@ -616,10 +630,12 @@ const PromotionsManager: React.FC = () => {
               {/* Recipient Full Name */}
               <div className="space-y-1">
                 <div className="flex justify-between items-center">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-black">Buyer Name</label>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-black">
+                    Recipient Name (Optional)
+                  </label>
                   {selectedBuyerName && (
                     <span className="text-[9px] text-green-700 font-bold flex items-center gap-1">
-                      <UserCheck size={12} /> Synced with Buyer Record
+                      <UserCheck size={12} /> Personalized Greeting
                     </span>
                   )}
                 </div>
@@ -627,8 +643,8 @@ const PromotionsManager: React.FC = () => {
                   type="text" 
                   value={selectedBuyerName} 
                   onChange={e => setSelectedBuyerName(e.target.value.replace(/\b\w/g, l => l.toUpperCase()))} 
-                  className="w-full border-2 border-black p-3 font-bold text-xs outline-none" 
-                  placeholder="Customer / Full Name" 
+                  className="w-full border-2 border-black p-3 font-bold text-xs outline-none bg-white focus:bg-[#FFFBEA]" 
+                  placeholder="Customer / Full Name (Defaults to 'Customer')" 
                 />
               </div>
 
@@ -657,7 +673,7 @@ const PromotionsManager: React.FC = () => {
                   <span className="text-[10px] font-black uppercase tracking-widest text-[#FF5C00] block mb-2">Live Template Data:</span>
                   <div className="flex justify-between border-b border-black/10 pb-1">
                     <span className="opacity-50">Recipient:</span>
-                    <span className="font-bold">{selectedBuyerEmail || "Pending Selection..."}</span>
+                    <span className="font-bold">{selectedBuyerEmail || searchTxOrEmail || "Enter recipient email above..."}</span>
                   </div>
                   <div className="flex justify-between border-b border-black/10 pb-1">
                     <span className="opacity-50">Greeting:</span>
@@ -680,8 +696,8 @@ const PromotionsManager: React.FC = () => {
 
               <button 
                 type="submit" 
-                disabled={isDispatching || !selectedBuyerEmail}
-                className="w-full bg-black text-white py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-[#FF5C00] hover:text-black border-2 border-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none disabled:opacity-40 flex justify-center items-center gap-2"
+                disabled={isDispatching || !(selectedBuyerEmail || searchTxOrEmail)?.includes('@')}
+                className="w-full bg-black text-white py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-[#FF5C00] hover:text-black border-2 border-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none disabled:opacity-40 flex justify-center items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
               >
                 {isDispatching ? <Loader2 className="animate-spin" size={16} /> : "Dispatch Email via GAS"}
               </button>
