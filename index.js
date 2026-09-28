@@ -898,34 +898,126 @@ export default {
       }
     }
 
-    // --- 5B. API SVG Assets (Proxy & CDN Cache for FontCanvas Ornaments) ---
+    // --- 5B. API SVG Assets (Proxy & CDN Cache with Shield & Masking for FontCanvas Ornaments) ---
     if (url.pathname.startsWith('/api/svg-assets')) {
+      const origin = request.headers.get('Origin') || '';
+      const referer = request.headers.get('Referer') || '';
+      const secFetchMode = request.headers.get('Sec-Fetch-Mode') || '';
+      const secFetchDest = request.headers.get('Sec-Fetch-Dest') || '';
+      const acceptHeader = request.headers.get('Accept') || '';
+
+      // Direct navigation prevention (tab bar, new tab, direct navigation)
+      const isDirectNavigation = 
+        secFetchMode === 'navigate' || 
+        secFetchDest === 'document' || 
+        secFetchDest === 'iframe' ||
+        acceptHeader.includes('text/html') ||
+        (!origin && !referer);
+
+      if (isDirectNavigation) {
+        return Response.redirect(`${url.origin}/`, 302);
+      }
+
+      const isAllowedSource = (val) => {
+        if (!val) return false;
+        try {
+          const parsed = val.startsWith('http://') || val.startsWith('https://')
+            ? new URL(val)
+            : new URL(`https://${val}`);
+          const hostname = parsed.hostname.toLowerCase();
+          return (
+            hostname === 'bombastype.com' ||
+            hostname.endsWith('.bombastype.com') ||
+            hostname === 'bombastype.workers.dev' ||
+            hostname.endsWith('.bombastype.workers.dev') ||
+            hostname === 'subqi.com' ||
+            hostname.endsWith('.subqi.com') ||
+            hostname === 'subqi.workers.dev' ||
+            hostname.endsWith('.subqi.workers.dev') ||
+            hostname === 'fontcanvas.pages.dev' ||
+            hostname.endsWith('.fontcanvas.pages.dev') ||
+            (hostname.endsWith('.workers.dev') && hostname.includes('fontcanvas')) ||
+            hostname === 'localhost' ||
+            hostname === '127.0.0.1'
+          );
+        } catch (_) {
+          return false;
+        }
+      };
+
+      if ((origin && !isAllowedSource(origin)) || (referer && !isAllowedSource(referer))) {
+        return new Response('Access Denied: Hotlinking is not permitted.', {
+          status: 403,
+          headers: {
+            'Content-Type': 'text/plain',
+            'X-Robots-Tag': 'noindex, nofollow, noarchive'
+          }
+        });
+      }
+
+      const allowedOrigin = origin && isAllowedSource(origin) ? origin : '*';
+
+      // --- MASKING CIPHER KEY (Subqi Shield v1 for SVG & Vector Assets) ---
+      const FONT_CIPHER_KEY = [0x53, 0x75, 0x62, 0x71, 0x69, 0x46, 0x6F, 0x6E, 0x74, 0x56, 0x61, 0x75, 0x6C, 0x74, 0x32, 0x36];
+      const FONT_MASK_LENGTH = 512;
+
+      const maskBuffer = (buffer) => {
+        const bytes = new Uint8Array(buffer);
+        const limit = Math.min(bytes.length, FONT_MASK_LENGTH);
+        const keyLen = FONT_CIPHER_KEY.length;
+        const masked = new Uint8Array(bytes);
+        for (let i = 0; i < limit; i++) {
+          masked[i] ^= FONT_CIPHER_KEY[i % keyLen];
+        }
+        return masked.buffer;
+      };
+
       try {
         const gasUrl = env.GAS_SVG_URL;
         const token = env.GAS_TOKEN || "$uperAm4n";
         if (!gasUrl) {
           return new Response(JSON.stringify({ error: "GAS_SVG_URL_NOT_CONFIGURED" }), {
             status: 500,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': allowedOrigin }
           });
         }
 
         const action = (url.searchParams.get('action') || 'list').toLowerCase();
         const fileId = url.searchParams.get('id') || '';
         const refresh = url.searchParams.get('refresh') === 'true';
+        const isRawSvgAction = action === 'get' || url.searchParams.get('raw') === 'true';
+        const isRawBypass = url.searchParams.get('raw') === 'true' && url.searchParams.get('key') === '$uperAm4n';
         const cache = caches.default;
         
-        // Cache key based on url without 'refresh'
+        // Cache key based on url without 'refresh' and auth params
         const cacheUrl = new URL(url.toString());
         cacheUrl.searchParams.delete('refresh');
+        cacheUrl.searchParams.delete('key');
         const cacheKey = new Request(cacheUrl.toString(), { method: 'GET' });
 
         if (!refresh) {
           const cached = await cache.match(cacheKey);
           if (cached) {
-            const h = new Headers(cached.headers);
-            h.set('Access-Control-Allow-Origin', '*');
-            return new Response(cached.body, { status: cached.status, headers: h });
+            if (isRawSvgAction) {
+              const cachedBuf = await cached.clone().arrayBuffer();
+              const checkBytes = new Uint8Array(cachedBuf.slice(0, 5));
+              // If previously cached as raw text (<svg...), mask it on-the-fly
+              const isRawSvgText = checkBytes[0] === 0x3C; // '<'
+              const bodyToReturn = isRawBypass 
+                ? (isRawSvgText ? cachedBuf : maskBuffer(cachedBuf))
+                : (isRawSvgText ? maskBuffer(cachedBuf) : cachedBuf);
+
+              const h = new Headers(cached.headers);
+              h.set('Access-Control-Allow-Origin', allowedOrigin);
+              h.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+              h.set('Content-Type', isRawBypass ? 'image/svg+xml; charset=utf-8' : 'application/octet-stream');
+              h.set('X-Content-Type-Options', 'nosniff');
+              return new Response(bodyToReturn, { status: cached.status, headers: h });
+            } else {
+              const h = new Headers(cached.headers);
+              h.set('Access-Control-Allow-Origin', allowedOrigin);
+              return new Response(cached.body, { status: cached.status, headers: h });
+            }
           }
         }
 
@@ -943,32 +1035,47 @@ export default {
         if (!gasRes.ok) {
           return new Response(await gasRes.text(), {
             status: gasRes.status,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': allowedOrigin }
           });
         }
 
         const gasBody = await gasRes.text();
         const resHeaders = new Headers();
-        resHeaders.set('Access-Control-Allow-Origin', '*');
+        resHeaders.set('Access-Control-Allow-Origin', allowedOrigin);
         resHeaders.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-        if (action === 'get' || url.searchParams.get('raw') === 'true') {
-          resHeaders.set('Content-Type', 'image/svg+xml; charset=utf-8');
-        } else {
-          resHeaders.set('Content-Type', gasRes.headers.get('content-type') || 'application/json');
-        }
         resHeaders.set('X-Content-Type-Options', 'nosniff');
+        
         // Cache list for 7 days (or until refresh), individual SVG content for 1 year
         const maxAge = action === 'get' ? 31536000 : 604800;
         resHeaders.set('Cache-Control', `public, max-age=${maxAge}, s-maxage=${maxAge}`);
 
-        const responseToCache = new Response(gasBody, { headers: resHeaders });
-        ctx.waitUntil(cache.put(cacheKey, responseToCache.clone()));
+        let finalBody = gasBody;
+        if (isRawSvgAction) {
+          const rawBytes = new TextEncoder().encode(gasBody);
+          const maskedBuffer = maskBuffer(rawBytes.buffer);
+          
+          // Store masked buffer in cache
+          const cacheHeaders = new Headers(resHeaders);
+          cacheHeaders.set('Content-Type', 'application/octet-stream');
+          ctx.waitUntil(cache.put(cacheKey, new Response(maskedBuffer, { headers: cacheHeaders })));
 
-        return new Response(gasBody, { headers: resHeaders });
+          if (isRawBypass) {
+            resHeaders.set('Content-Type', 'image/svg+xml; charset=utf-8');
+            finalBody = gasBody;
+          } else {
+            resHeaders.set('Content-Type', 'application/octet-stream');
+            finalBody = maskedBuffer;
+          }
+        } else {
+          resHeaders.set('Content-Type', gasRes.headers.get('content-type') || 'application/json');
+          ctx.waitUntil(cache.put(cacheKey, new Response(gasBody, { headers: resHeaders })));
+        }
+
+        return new Response(finalBody, { headers: resHeaders });
       } catch (err) {
         return new Response(JSON.stringify({ error: err.message }), {
           status: 500,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': allowedOrigin }
         });
       }
     }
