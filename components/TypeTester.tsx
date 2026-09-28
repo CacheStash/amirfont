@@ -144,6 +144,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     typeof window !== 'undefined' ? window.innerWidth < 640 : false
   );
   const [mapPage, setMapPage] = useState(0);
+  const [selectedMapGlyphIndex, setSelectedMapGlyphIndex] = useState<number | null>(null);
   const [mapGridSize, setMapGridSize] = useState(() => 
     typeof window !== 'undefined' && window.innerWidth < 640 ? 8 : 10
   );
@@ -1384,31 +1385,48 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               className="w-full grid content-start border-t border-l border-black/10" 
               style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}
             >
-              {filteredGlyphs.slice(mapPage * glyphsPerPage, (mapPage + 1) * glyphsPerPage).map((item, idx) => (
-                <div 
-                  key={item.index ?? idx} 
-                  className="aspect-square flex items-center justify-center p-1 border-b border-r border-black/10 hover:bg-black transition-colors cursor-pointer group relative" 
-                  title={item.name ? `${item.name} (#${item.index})` : `Glyph #${item.index}`}
-                >
-                  <div className="w-full h-full flex items-center justify-center pointer-events-none group-hover:invert transition-all">
-                    {renderGlyphSvg(item.index, currentGlyphSize) || (
-                      item.char ? (
-                        <span 
-                          className="text-black group-hover:text-white transition-colors leading-none"
-                          style={{ 
-                            ...commonFontStyle,
-                            fontSize: `${currentGlyphSize}px` 
-                          }}
-                        >
-                          {item.char}
-                        </span>
-                      ) : (
-                        <span className="text-[9px] font-mono opacity-30 text-black group-hover:text-white transition-colors">#{item.index}</span>
-                      )
-                    )}
+              {filteredGlyphs.slice(mapPage * glyphsPerPage, (mapPage + 1) * glyphsPerPage).map((item, idx) => {
+                const isSelected = selectedMapGlyphIndex === item.index;
+                return (
+                  <div 
+                    key={item.index ?? idx} 
+                    onClick={() => setSelectedMapGlyphIndex(isSelected ? null : item.index)}
+                    className={`aspect-square flex items-center justify-center p-1 border-b border-r border-black/10 transition-colors cursor-pointer group/cell relative ${
+                      isSelected ? 'bg-black' : 'hover:bg-black'
+                    }`} 
+                    title={item.name ? `${item.name} (#${item.index})` : `Glyph #${item.index}`}
+                  >
+                    <div className={`w-full h-full flex items-center justify-center pointer-events-none transition-all ${
+                      isSelected ? 'invert' : 'group-hover/cell:invert'
+                    }`}>
+                      {renderGlyphSvg(item.index, currentGlyphSize) || (
+                        item.char ? (
+                          <span 
+                            className={`leading-none transition-colors ${
+                              isSelected ? 'text-white' : 'text-black group-hover/cell:text-white'
+                            }`}
+                            style={{ 
+                              ...commonFontStyle,
+                              fontSize: `${currentGlyphSize}px` 
+                            }}
+                          >
+                            {item.char}
+                          </span>
+                        ) : (
+                          <span className={`text-[9px] font-mono opacity-30 transition-colors ${
+                            isSelected ? 'text-white' : 'text-black group-hover/cell:text-white'
+                          }`}>#{item.index}</span>
+                        )
+                      )}
+                    </div>
+
+                    {/* Quick Badge info on hover or select */}
+                    <div className={`${isSelected ? 'flex' : 'hidden group-hover/cell:flex'} absolute -bottom-5 left-1/2 -translate-x-1/2 z-50 bg-black text-white text-[8px] font-mono px-1.5 py-0.5 whitespace-nowrap border border-white/20 shadow-md pointer-events-none`}>
+                      {item.char ? `${item.char} (#${item.index})` : `#${item.index}`}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
