@@ -67,7 +67,7 @@ const RasterMetricTile: React.FC<RasterMetricTileProps> = React.memo(({
     <canvas
       ref={canvasRef}
       style={{ width: `${size}px`, height: `${size}px` }}
-      className={`pointer-events-none group-hover:invert transition-all ${className}`}
+      className={`pointer-events-none transition-all ${className}`}
     />
   );
 });
@@ -566,7 +566,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   };
 
   // Canvas Raster Tile Builder (Replaces exposed SVG vectors with secure pixel canvas)
-  const renderGlyphSvg = (glyphIdx: number, size: number = 24) => {
+  const renderGlyphSvg = (glyphIdx: number, size: number = 24, color: string = '#000000') => {
     if (!loadedFontObj) return null;
     const glyph = loadedFontObj.glyphs.get(glyphIdx);
     if (!glyph) return null;
@@ -576,7 +576,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
         glyphIdx={glyphIdx}
         size={size}
         fontObj={loadedFontObj}
-        color="#000000"
+        color={color}
       />
     );
   };
@@ -1308,12 +1308,16 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                       className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all ${
                         !charOverrides[selectedCharIndex] 
                           ? 'bg-black text-white border-black' 
-                          : 'border-transparent hover:bg-black hover:text-white bg-transparent text-black'
+                          : 'border-transparent hover:border-black hover:bg-black/5 bg-transparent text-black'
                       }`}
                       title="Default Style"
                     >
                       <div className="h-6 flex items-center justify-center">
-                        {renderGlyphSvg(loadedFontObj ? loadedFontObj.charToGlyphIndex(text.charAt(selectedCharIndex)) : 0, 20) || (
+                        {renderGlyphSvg(
+                          loadedFontObj ? loadedFontObj.charToGlyphIndex(text.charAt(selectedCharIndex)) : 0, 
+                          20,
+                          !charOverrides[selectedCharIndex] ? '#ffffff' : '#000000'
+                        ) || (
                           <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: 'normal' }}>
                             {text.charAt(selectedCharIndex)}
                           </span>
@@ -1331,12 +1335,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                           className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all shrink-0 ${
                             isSelected 
                               ? 'bg-black text-white border-black' 
-                              : 'border-transparent hover:bg-black hover:text-white bg-transparent text-black'
+                              : 'border-transparent hover:border-black hover:bg-black/5 bg-transparent text-black'
                           }`}
                           title={`Glyph #${alt.glyphIndex}`}
                         >
                           <div className="h-6 flex items-center justify-center">
-                            {renderGlyphSvg(alt.glyphIndex, 20) || (
+                            {renderGlyphSvg(alt.glyphIndex, 20, isSelected ? '#ffffff' : '#000000') || (
                               <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: `"${alt.featureTag}" 1` }}>
                                 {alt.char}
                               </span>
@@ -1355,18 +1359,25 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           ) : (
             <div className="w-full grid content-start" style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}>
               {filteredGlyphs.slice(mapPage * glyphsPerPage, (mapPage + 1) * glyphsPerPage).map((item, idx) => (
-                <div key={idx} className="aspect-square flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-default border border-transparent hover:border-black" title={item.name}>
+                <div 
+                  key={idx} 
+                  className="aspect-square flex items-center justify-center hover:bg-black/5 hover:border-black transition-colors cursor-default border border-transparent" 
+                  title={item.name}
+                >
                   <div className="flex items-center justify-center pointer-events-none">
                     {renderGlyphSvg(item.index, mapGridSize === 10 ? 60 : mapGridSize === 20 ? 32 : 20) || (
                       item.char ? (
-                        <span style={{ 
-                          ...commonFontStyle,
-                          fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' 
-                        }}>
+                        <span 
+                          className="text-black"
+                          style={{ 
+                            ...commonFontStyle,
+                            fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' 
+                          }}
+                        >
                           {item.char}
                         </span>
                       ) : (
-                        <span className="text-[9px] font-mono opacity-30">#{item.index}</span>
+                        <span className="text-[9px] font-mono opacity-30 text-black">#{item.index}</span>
                       )
                     )}
                   </div>
