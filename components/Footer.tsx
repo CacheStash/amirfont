@@ -126,6 +126,15 @@ const Footer = () => {
             <span>FONTCANVAS STUDIO</span>
             <span className="bg-black text-[#FF5C00] text-[7px] px-1 py-0 h-3 leading-none flex items-center font-bold rounded-[2px] self-start -mt-0.5">BETA</span>
           </Link>
+          <a 
+            href="https://fontshift.subqi.com" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="hover:underline tracking-widest w-fit flex items-center gap-1.5"
+          >
+            <span>FONTSHIFT CONVERTER</span>
+            <span className="bg-black text-[#FF5C00] text-[7px] px-1 py-0 h-3 leading-none flex items-center font-bold rounded-[2px] self-start -mt-0.5">FREE</span>
+          </a>
         </div>
 
         {/* KOLOM 3: SOCIAL CHANNELS */}
