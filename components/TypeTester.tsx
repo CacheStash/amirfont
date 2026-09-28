@@ -1,9 +1,76 @@
+/**
+ * PANDUAN PENGEMBANG (INTERNAL GUIDE):
+ * - `RasterMetricTile`: Komponen render piksel kanvas (HTML5 Canvas 2D) untuk menggantikan
+ *   eksposur kurva vektor SVG <path> pada tab Glyph Map & Alternate Popover.
+ *   Tujuannya mencegah pembajakan/scraping koordinat kurva Bézier master font dari DOM browser.
+ */
+
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AlignLeft, AlignCenter, AlignRight, Grid, Keyboard, ChevronDown, ChevronLeft, ChevronRight, Layers, Plus, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { FontConfig } from '../types';
 import opentype from 'opentype.js';
 import { loadProtectedFontFace, loadProtectedOpenType } from '../utils/secureFontLoader';
+
+interface RasterMetricTileProps {
+  glyphIdx: number;
+  size?: number;
+  fontObj: any;
+  color?: string;
+  className?: string;
+}
+
+const RasterMetricTile: React.FC<RasterMetricTileProps> = React.memo(({
+  glyphIdx,
+  size = 24,
+  fontObj,
+  color,
+  className = ""
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !fontObj) return;
+
+    const glyph = fontObj.glyphs?.get(glyphIdx);
+    if (!glyph) return;
+
+    const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 2, 2.5) : 2;
+    canvas.width = Math.round(size * dpr);
+    canvas.height = Math.round(size * dpr);
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(dpr, dpr);
+
+    const unitsPerEm = fontObj.unitsPerEm || 1000;
+    const renderSize = size * 0.75;
+    const scale = renderSize / unitsPerEm;
+    const baseline = renderSize;
+    const advanceWidth = (glyph.advanceWidth || unitsPerEm * 0.6) * scale;
+    const xOffset = Math.max(0, (size - advanceWidth) / 2);
+
+    try {
+      const path = glyph.getPath(xOffset, baseline, renderSize);
+      ctx.fillStyle = color || '#000000';
+      path.draw(ctx);
+      ctx.fill();
+    } catch (e) {
+      // Ignored
+    }
+  }, [glyphIdx, size, fontObj, color]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ width: `${size}px`, height: `${size}px` }}
+      className={`pointer-events-none group-hover:invert transition-all ${className}`}
+    />
+  );
+});
 
 interface TypeTesterProps {
   config: FontConfig & { 
@@ -498,28 +565,20 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     setSelectedCharIndex(null);
   };
 
-  // SVGs Builder & Helper
+  // Canvas Raster Tile Builder (Replaces exposed SVG vectors with secure pixel canvas)
   const renderGlyphSvg = (glyphIdx: number, size: number = 24) => {
     if (!loadedFontObj) return null;
     const glyph = loadedFontObj.glyphs.get(glyphIdx);
     if (!glyph) return null;
 
-    const unitsPerEm = loadedFontObj.unitsPerEm || 1000;
-    const scale = (size * 0.75) / unitsPerEm;
-    const baseline = size * 0.75;
-    const advanceWidth = (glyph.advanceWidth || unitsPerEm * 0.6) * scale;
-    const xOffset = Math.max(0, (size - advanceWidth) / 2);
-
-    try {
-      const pathData = glyph.getPath(xOffset, baseline, size * 0.75).toPathData(2);
-      return (
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="fill-current pointer-events-none">
-          <path d={pathData} />
-        </svg>
-      );
-    } catch (e) {
-      return null;
-    }
+    return (
+      <RasterMetricTile
+        glyphIdx={glyphIdx}
+        size={size}
+        fontObj={loadedFontObj}
+        color="#000000"
+      />
+    );
   };
 
   const renderInlineGlyphSvg = (glyphIdx: number, targetSize: number, fontIdx: number) => {
