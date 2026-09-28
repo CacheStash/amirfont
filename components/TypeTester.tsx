@@ -140,8 +140,13 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   const [lineHeight, setLineHeight] = useState(1.1);
   const [letterSpacing, setLetterSpacing] = useState(0);
   
+  const [isMobile, setIsMobile] = useState(() => 
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  );
   const [mapPage, setMapPage] = useState(0);
-  const [mapGridSize, setMapGridSize] = useState(10);
+  const [mapGridSize, setMapGridSize] = useState(() => 
+    typeof window !== 'undefined' && window.innerWidth < 640 ? 8 : 10
+  );
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
@@ -235,8 +240,15 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     ...Array.from({ length: 20 }, (_, i) => `ss${String(i + 1).padStart(2, '0')}`) 
   ]);
 
-  const rowsPerPage = mapGridSize === 10 ? 3 : mapGridSize === 20 ? 5 : 7;
+  const rowsPerPage = isMobile 
+    ? (mapGridSize <= 6 ? 5 : mapGridSize <= 8 ? 6 : 7) 
+    : (mapGridSize === 10 ? 4 : mapGridSize === 20 ? 6 : 8);
   const glyphsPerPage = mapGridSize * rowsPerPage;
+  const totalPages = Math.max(1, Math.ceil(filteredGlyphs.length / glyphsPerPage));
+  const gridOptions = isMobile ? [6, 8, 10] : [10, 20, 30];
+  const currentGlyphSize = isMobile
+    ? (mapGridSize <= 6 ? 36 : mapGridSize <= 8 ? 26 : 20)
+    : (mapGridSize === 10 ? 56 : mapGridSize === 20 ? 30 : 18);
 
   const availableLayerIndices: number[] = React.useMemo(() => {
     if (!Array.isArray(config.font_files)) return [];
@@ -390,13 +402,15 @@ const TypeTester: React.FC<TypeTesterProps> = ({
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 1024 && viewMode === 'glyphs') {
-        setViewMode('type');
+      const mobile = window.innerWidth < 640;
+      setIsMobile(mobile);
+      if (mobile) {
+        setMapGridSize(prev => (prev > 10 ? 8 : prev < 6 ? 6 : prev));
       }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [viewMode]);
+  }, []);
 
   // Alternate Selection Logic
   const handleTextSelect = () => {
@@ -1086,8 +1100,14 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 </div>
               </>
             ) : (
-              [10, 20, 30].map(size => (
-                <button key={size} onClick={() => { setMapGridSize(size); setMapPage(0); }} className={`px-3 py-1 text-xs font-bold border border-black ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent hover:bg-gray-200 uppercase'}`}>{size}</button>
+              gridOptions.map(size => (
+                <button 
+                  key={size} 
+                  onClick={() => { setMapGridSize(size); setMapPage(0); }} 
+                  className={`px-2.5 sm:px-3 py-1 text-xs font-bold border border-black transition-colors ${mapGridSize === size ? 'bg-black text-white' : 'bg-transparent hover:bg-gray-200 uppercase'}`}
+                >
+                  {size}
+                </button>
               ))
             )}
           </div>
@@ -1100,20 +1120,23 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                 <button onClick={() => setAlign('right')} className={`p-2 ${align === 'right' ? 'bg-black text-white' : 'hover:bg-gray-200'}`}><AlignRight size={16}/></button>
               </>
             ) : (
-              <div className="flex gap-1 items-center">
+              <div className="flex gap-1.5 sm:gap-2 items-center">
+                <span className="text-[10px] font-mono font-bold opacity-60 mr-1 select-none">
+                  {mapPage + 1}/{totalPages}
+                </span>
                 <button 
                   onClick={() => setMapPage(Math.max(0, mapPage - 1))} 
                   disabled={mapPage === 0} 
                   className="p-2 border border-black disabled:opacity-20 hover:bg-black hover:text-white transition-colors"
                 >
-                  <ChevronLeft size={16} />
+                  <ChevronLeft size={14} />
                 </button>
                 <button 
                   onClick={() => setMapPage(mapPage + 1)} 
                   disabled={(mapPage + 1) * glyphsPerPage >= filteredGlyphs.length} 
                   className="p-2 border border-black disabled:opacity-20 hover:bg-black hover:text-white transition-colors"
                 >
-                  <ChevronRight size={16} />
+                  <ChevronRight size={14} />
                 </button>
               </div>
             )}
@@ -1357,27 +1380,30 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               )}
             </div>
           ) : (
-            <div className="w-full grid content-start" style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}>
+            <div 
+              className="w-full grid content-start border-t border-l border-black/10" 
+              style={{ gridTemplateColumns: `repeat(${mapGridSize}, minmax(0, 1fr))` }}
+            >
               {filteredGlyphs.slice(mapPage * glyphsPerPage, (mapPage + 1) * glyphsPerPage).map((item, idx) => (
                 <div 
-                  key={idx} 
-                  className="aspect-square flex items-center justify-center hover:bg-black/5 hover:border-black transition-colors cursor-default border border-transparent" 
-                  title={item.name}
+                  key={item.index ?? idx} 
+                  className="aspect-square flex items-center justify-center p-1 border-b border-r border-black/10 hover:bg-black transition-colors cursor-pointer group relative" 
+                  title={item.name ? `${item.name} (#${item.index})` : `Glyph #${item.index}`}
                 >
-                  <div className="flex items-center justify-center pointer-events-none">
-                    {renderGlyphSvg(item.index, mapGridSize === 10 ? 60 : mapGridSize === 20 ? 32 : 20) || (
+                  <div className="w-full h-full flex items-center justify-center pointer-events-none group-hover:invert transition-all">
+                    {renderGlyphSvg(item.index, currentGlyphSize) || (
                       item.char ? (
                         <span 
-                          className="text-black"
+                          className="text-black group-hover:text-white transition-colors leading-none"
                           style={{ 
                             ...commonFontStyle,
-                            fontSize: mapGridSize === 10 ? '60px' : mapGridSize === 20 ? '32px' : '20px' 
+                            fontSize: `${currentGlyphSize}px` 
                           }}
                         >
                           {item.char}
                         </span>
                       ) : (
-                        <span className="text-[9px] font-mono opacity-30 text-black">#{item.index}</span>
+                        <span className="text-[9px] font-mono opacity-30 text-black group-hover:text-white transition-colors">#{item.index}</span>
                       )
                     )}
                   </div>
