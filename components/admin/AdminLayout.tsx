@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Type, ShoppingCart, LogOut, Tag, 
-  Menu, X, Mail, FileText, Power, Loader2, CreditCard, SendHorizontal 
+  Menu, X, Mail, FileText, Power, Loader2, CreditCard, SendHorizontal, Megaphone
 } from 'lucide-react';
 import { Globe } from 'lucide-react';
 import WebAnalytics from './WebAnalytics';
@@ -10,7 +10,7 @@ import ContentManager from './ContentManager';
 import PromotionsManager from './PromotionsManager'; 
 import Orders from './Orders';
 import Statistics from './Statistics';
-import AdminMessages from './AdminMessages';
+import BroadcastStudio from './BroadcastStudio';
 import EmailStudio from './EmailStudio';
 import { supabase } from '../../lib/supabase';
 
@@ -158,16 +158,8 @@ const AdminDashboard = () => {
           <button onClick={() => handleTabChange('stats')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'stats' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <LayoutDashboard size={18} /> Statistics
           </button>
-          <button onClick={() => handleTabChange('inbox')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all relative ${activeTab === 'inbox' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
-            <div className="relative">
-              <Mail size={18} />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1.5 -left-2.5 bg-red-600 text-white text-[7px] font-black px-1 py-0 border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] animate-pulse">
-                  {unreadCount}
-                </span>
-              )}
-            </div>
-            Inbox & Broadcast
+          <button onClick={() => handleTabChange('broadcast')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'broadcast' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+            <Megaphone size={18} /> Broadcast Studio
           </button>
           <button onClick={() => handleTabChange('products')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'products' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <Type size={18} /> Products
@@ -253,7 +245,7 @@ const AdminDashboard = () => {
         {activeTab === 'promotions' && <PromotionsManager />}
         {activeTab === 'content' && <ContentManager />}
         {activeTab === 'stats' && <Statistics />}
-        {activeTab === 'inbox' && <AdminMessages />}
+        {(activeTab === 'broadcast' || activeTab === 'inbox') && <BroadcastStudio />}
         {activeTab === 'orders' && <Orders />}
         {activeTab === 'email_studio' && <EmailStudio />}
         {activeTab === 'analytics' && <WebAnalytics />}

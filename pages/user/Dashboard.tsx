@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Library, Settings, LogOut, ArrowLeft, Menu, X, Mail } from 'lucide-react';
+import { Library, Settings, LogOut, ArrowLeft, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import MyFontsHistory from './MyFontsHistory';
 import AccountSettings from './AccountSettings'; 
-import UserMessages from './UserMessages'; // Komponen pesan baru
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('library');
@@ -12,49 +11,26 @@ const UserDashboard = () => {
   const [userEmail, setUserEmail] = useState('');
   const [fullName, setFullName] = useState('');
 
-  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email || '');
+        const { data } = await supabase
+          .from('fontbuyer')
+          .select('full_name')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (data?.full_name) setFullName(data.full_name);
+      }
+    };
+    fetchInitialData();
+  }, []);
 
-  // Fetch data profil & unread messages (Filtered by Registration Date)
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const userJoinedAt = user.created_at;
-        setUserEmail(user.email || '');
-        const { data } = await supabase
-          .from('fontbuyer')
-          .select('full_name')
-          .eq('id', user.id)
-          .maybeSingle();
-        if (data?.full_name) setFullName(data.full_name);
-
-        // Fetch Unread Messages (Direct + Broadcast Filtered)
-        const [{ data: readData }, { data: hiddenData }, { data: messages }] = await Promise.all([
-          supabase.from('font_message_reads').select('message_id').eq('user_id', user.id),
-          supabase.from('font_message_hides').select('message_id').eq('user_id', user.id),
-          supabase.from('font_messages')
-            .select('id, recipient_id, is_read, created_at')
-            .or(`recipient_id.eq.${user.id},and(recipient_id.is.null,created_at.gte.${userJoinedAt})`)
-        ]);
-
-        const rIds = readData?.map(r => r.message_id) || [];
-        const hIds = hiddenData?.map(h => h.message_id) || [];
-        const count = messages?.filter(m => 
-          !hIds.includes(m.id) && 
-          (m.recipient_id === null ? !rIds.includes(m.id) : !m.is_read)
-        ).length || 0;
-
-        setUnreadCount(count);
-      }
-    };
-    fetchInitialData();
-  }, []);
-
-  // Sinkronisasi Sidebar & Content
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    setIsMenuOpen(false);
-  };
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setIsMenuOpen(false);
+  };
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -104,21 +80,6 @@ const UserDashboard = () => {
           >
             <Library size={18} /> My Library
           </button>
-          
-          <button 
-            onClick={() => handleTabChange('inbox')} 
-            className={`w-full flex items-center gap-3 px-4 py-3 font-bold text-xs transition-all relative ${activeTab === 'inbox' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
-          >
-            <div className="relative">
-              <Mail size={18} />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1.5 -left-2.5 bg-red-600 text-white text-[7px] font-black px-1 py-0 border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] animate-pulse">
-                  {unreadCount}
-                </span>
-              )}
-            </div>
-            Inbox & Support
-          </button>
 
           <button 
             onClick={() => handleTabChange('settings')} 
@@ -146,7 +107,6 @@ const UserDashboard = () => {
       {/* MAIN CONTENT AREA */}
       <main className="flex-grow p-6 md:p-10 overflow-y-auto w-full">
         {activeTab === 'library' && <MyFontsHistory />}
-        {activeTab === 'inbox' && <UserMessages />}
         {activeTab === 'settings' && <AccountSettings />}
       </main>
     </div>

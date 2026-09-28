@@ -4,12 +4,20 @@ import { supabase } from '../lib/supabase';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
+  const [honeypot, setHoneypot] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Insights'];
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (honeypot) {
+      // Silently discard automated spam bot submission
+      setStatus('success');
+      setEmail('');
+      setTimeout(() => setStatus('idle'), 4000);
+      return;
+    }
     setStatus('loading');
 
     try {
@@ -52,8 +60,19 @@ const Footer = () => {
         <div className="w-full">
           <form 
             onSubmit={handleSubscribe} 
-            className="w-full flex border border-black bg-white overflow-hidden"
+            className="w-full flex border border-black bg-white overflow-hidden relative"
           >
+            {/* Honeypot field for bot spam prevention */}
+            <input 
+              type="text" 
+              name="b_nickname" 
+              value={honeypot} 
+              onChange={(e) => setHoneypot(e.target.value)} 
+              tabIndex={-1} 
+              autoComplete="off" 
+              aria-hidden="true"
+              style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', height: 0, width: 0, zIndex: -1 }} 
+            />
             <input
               type="email"
               value={email}
