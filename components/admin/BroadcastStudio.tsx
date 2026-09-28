@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { 
   Send, Megaphone, Users, ShieldAlert, Sparkles, CheckCircle2, 
   AlertCircle, RefreshCw, Eye, History, Clock, ArrowRight, 
-  Tag, HelpCircle, Layers, Mail, Check, Search
+  Tag, HelpCircle, Layers, Mail, Check, Search, Upload, Image as ImageIcon, X
 } from 'lucide-react';
 
 interface GasAccount {
@@ -139,10 +139,70 @@ export default function BroadcastStudio() {
   // Search & Filter
   const [logSearch, setLogSearch] = useState('');
 
-  // Font Selection State for Typeface Presets
   const [fontsList, setFontsList] = useState<Array<{ id: string; name: string; slug?: string }>>([]);
   const [selectedFontName, setSelectedFontName] = useState('');
   const [fontSearch, setFontSearch] = useState('');
+
+  // Banner Upload & Google Drive Auto-Converter State
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [isDraggingBanner, setIsDraggingBanner] = useState(false);
+
+  const convertDriveUrl = (inputUrl: string) => {
+    if (!inputUrl) return '';
+    const trimmed = inputUrl.trim();
+    const match1 = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match1 && match1[1]) {
+      return `https://lh3.googleusercontent.com/d/${match1[1]}`;
+    }
+    const match2 = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (match2 && match2[1]) {
+      return `https://lh3.googleusercontent.com/d/${match2[1]}`;
+    }
+    return trimmed;
+  };
+
+  const handleBannerUrlChange = (val: string) => {
+    const converted = convertDriveUrl(val);
+    setBannerUrl(converted);
+  };
+
+  const handleBannerUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file (PNG, JPG, WEBP, SVG).');
+      return;
+    }
+    setIsUploadingBanner(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Session expired. Please log in again.');
+
+      const timestamp = Date.now();
+      const cleanFileName = file.name.replace(/\s+/g, '_');
+      const uniqueFileName = `${timestamp}-${cleanFileName}`;
+
+      const res = await fetch(`/api/admin/upload/${uniqueFileName}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': file.type
+        },
+        body: file
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as any).error || `Upload failed with HTTP ${res.status}`);
+      }
+
+      const publicUrl = `${window.location.origin}/api/images/${uniqueFileName}`;
+      setBannerUrl(publicUrl);
+    } catch (err: any) {
+      console.error('Banner upload error:', err);
+      alert('Failed to upload image: ' + err.message);
+    } finally {
+      setIsUploadingBanner(false);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -608,27 +668,106 @@ export default function BroadcastStudio() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* BANNER IMAGE UPLOAD / DRAG & DROP & URL */}
+              <div className="border-2 border-dashed border-black/40 p-4 bg-black/[0.02] space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="uppercase tracking-widest font-black text-xs flex items-center gap-2">
+                    <ImageIcon size={14} /> Header Banner Image (Optional)
+                  </label>
+                  {bannerUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setBannerUrl('')}
+                      className="text-[10px] font-bold text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <X size={12} /> Remove
+                    </button>
+                  )}
+                </div>
+
+                {bannerUrl ? (
+                  <div className="flex items-center gap-3 bg-white p-2 border-2 border-black">
+                    <img src={bannerUrl} alt="Banner Preview" className="w-20 h-14 object-cover border border-black" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] font-black text-emerald-700 flex items-center gap-1">
+                        <Check size={12} /> Image Active
+                      </div>
+                      <div className="text-[9px] font-mono text-gray-500 truncate" title={bannerUrl}>
+                        {bannerUrl}
+                      </div>
+                    </div>
+                    <label className="px-3 py-1.5 bg-black text-white text-[9px] font-black uppercase cursor-pointer hover:bg-gray-800 transition-all">
+                      Change
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleBannerUpload(f);
+                        }}
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setIsDraggingBanner(true); }}
+                    onDragLeave={() => setIsDraggingBanner(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDraggingBanner(false);
+                      const f = e.dataTransfer.files?.[0];
+                      if (f) handleBannerUpload(f);
+                    }}
+                    className={`border-2 border-dashed p-4 text-center transition-all cursor-pointer ${
+                      isDraggingBanner ? 'border-[#ff5c00] bg-orange-50' : 'border-black/30 hover:border-black bg-white'
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      id="bannerFileInput"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleBannerUpload(f);
+                      }}
+                    />
+                    <label htmlFor="bannerFileInput" className="cursor-pointer block">
+                      <Upload size={20} className="mx-auto mb-1 text-gray-500" />
+                      <div className="font-bold text-xs">
+                        {isUploadingBanner ? 'Uploading to CDN...' : 'Drop image here, or click to browse'}
+                      </div>
+                      <div className="text-[9px] text-gray-400 mt-0.5">
+                        PNG, JPG, WEBP, SVG (Auto-uploaded to Cloudflare R2)
+                      </div>
+                    </label>
+                  </div>
+                )}
+
                 <div>
-                  <label className="uppercase tracking-widest font-black block mb-1">Banner Image URL (Optional)</label>
+                  <div className="text-[10px] font-bold text-gray-500 mb-1">
+                    Or paste direct image URL (Google Drive share links auto-convert):
+                  </div>
                   <input
                     type="url"
                     value={bannerUrl}
-                    onChange={(e) => setBannerUrl(e.target.value)}
-                    placeholder="https://.../banner.png"
-                    className="w-full border-2 border-black p-2.5 bg-white outline-none"
+                    onChange={(e) => handleBannerUrlChange(e.target.value)}
+                    placeholder="https://... or Google Drive share link"
+                    className="w-full border-2 border-black p-2 text-xs bg-white outline-none font-mono"
                   />
                 </div>
-                <div>
-                  <label className="uppercase tracking-widest font-black block mb-1">Promo Coupon Code (Optional)</label>
-                  <input
-                    type="text"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="e.g. SUBQIVIP20"
-                    className="w-full border-2 border-black p-2.5 bg-white outline-none uppercase font-black"
-                  />
-                </div>
+              </div>
+
+              <div>
+                <label className="uppercase tracking-widest font-black block mb-1">Promo Coupon Code (Optional)</label>
+                <input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  placeholder="e.g. SUBQIVIP20"
+                  className="w-full border-2 border-black p-2.5 bg-white outline-none uppercase font-black"
+                />
               </div>
             </div>
 
