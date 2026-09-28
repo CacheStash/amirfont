@@ -123,10 +123,11 @@ const Fonts: React.FC = () => {
     if (fonts.length > 0) {
       fonts.forEach((f) => {
         const files = Array.isArray(f.font_files) ? f.font_files : [f.file_url];
+        const version = new Date(f.updated_at || f.created_at || Date.now()).getTime();
         files.forEach((file: string, idx: number) => {
           if (!file) return;
           const familyName = `${f.name}-${idx}`;
-          const url = `/api/fonts/${file}`;
+          const url = `/api/fonts/${file}?v=s2_${version}`;
           loadProtectedFontFace(familyName, url);
         });
       });

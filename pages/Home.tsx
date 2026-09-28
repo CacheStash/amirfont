@@ -217,7 +217,7 @@ const Home: React.FC = () => {
         files.forEach((file: string, idx: number) => {
           if (!file) return;
           const familyName = `${f.name}-${idx}`;
-          const url = `/api/fonts/${file}?v=${version}`;
+          const url = `/api/fonts/${file}?v=s2_${version}`;
           loadProtectedFontFace(familyName, url);
         });
       });
