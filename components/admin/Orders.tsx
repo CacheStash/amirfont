@@ -54,6 +54,7 @@ const Orders = () => {
   const itemsPerPage = 20;
 
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingEmails, setIsExportingEmails] = useState(false);
 
   const handleExportCSV = async () => {
     setIsExporting(true);
@@ -98,6 +99,82 @@ const Orders = () => {
       console.error("EXPORT_ERROR:", err);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleExportEmails = async () => {
+    setIsExportingEmails(true);
+    try {
+      const fetchColumn = async (table: string, col: string) => {
+        const results: string[] = [];
+        let from = 0;
+        const step = 1000;
+        while (true) {
+          const { data, error } = await supabase
+            .from(table)
+            .select(col)
+            .range(from, from + step - 1);
+          if (error) {
+            console.warn(`Query on ${table}.${col} returned:`, error);
+            break;
+          }
+          if (!data || data.length === 0) break;
+          for (const row of data as any[]) {
+            const raw = row[col];
+            if (raw && typeof raw === 'string') {
+              const clean = raw.trim().toLowerCase();
+              if (clean.includes('@')) {
+                results.push(clean);
+              }
+            }
+          }
+          if (data.length < step) break;
+          from += step;
+        }
+        return results;
+      };
+
+      const [orderBuyerEmails, directBuyerEmails, subEmails] = await Promise.all([
+        fetchColumn('admin_order_view', 'buyer_email'),
+        fetchColumn('fontbuyer', 'email'),
+        fetchColumn('fontsubscribers', 'email')
+      ]);
+
+      const subSet = new Set<string>(subEmails);
+      const buyerSet = new Set<string>([...orderBuyerEmails, ...directBuyerEmails]);
+
+      if (buyerSet.size === 0 && subSet.size === 0) {
+        alert('NO EMAIL DATA FOUND TO EXPORT');
+        return;
+      }
+
+      // If a buyer also subscribed, place them into subscriber list and exclude from buyer list
+      const finalBuyers = Array.from(buyerSet).filter(email => !subSet.has(email)).sort();
+      const finalSubscribers = Array.from(subSet).sort();
+
+      const maxRows = Math.max(finalBuyers.length, finalSubscribers.length);
+      const csvRows = ['Email Buyer,Email Subscriber'];
+      for (let i = 0; i < maxRows; i++) {
+        const b = finalBuyers[i] || '';
+        const s = finalSubscribers[i] || '';
+        csvRows.push(`${b},${s}`);
+      }
+
+      const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `AUDIENCE_EMAILS_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error("EXPORT_EMAILS_ERROR:", err);
+      alert("Failed to export emails: " + (err.message || 'Unknown error'));
+    } finally {
+      setIsExportingEmails(false);
     }
   };
 
@@ -408,10 +485,19 @@ const fetchOrders = async () => {
           <button 
             onClick={handleExportCSV}
             disabled={isExporting || loading}
-            className="flex items-center gap-2 bg-black text-white px-6 py-3 text-[10px] font-black hover:bg-gray-800 disabled:opacity-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] active:shadow-none transition-all uppercase"
+            className="flex items-center gap-2 bg-black text-white px-6 py-3 text-[10px] font-black hover:bg-gray-800 disabled:opacity-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] active:shadow-none transition-all uppercase cursor-pointer"
           >
             <Download size={14} />
             {isExporting ? 'EXPORTING...' : 'EXPORT_CSV'}
+          </button>
+
+          <button 
+            onClick={handleExportEmails}
+            disabled={isExportingEmails || loading}
+            className="flex items-center gap-2 bg-black text-white px-6 py-3 text-[10px] font-black hover:bg-gray-800 disabled:opacity-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] active:shadow-none transition-all uppercase cursor-pointer"
+          >
+            <Mail size={14} />
+            {isExportingEmails ? 'EXPORTING...' : 'EXPORT_EMAILS'}
           </button>
 
           <form onSubmit={handleSearchSubmit} className="relative w-full md:w-auto">

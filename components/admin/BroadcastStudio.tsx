@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { 
   Send, Megaphone, Users, ShieldAlert, Sparkles, CheckCircle2, 
   AlertCircle, RefreshCw, Eye, History, Clock, ArrowRight, 
-  Tag, HelpCircle, Layers, Mail, Check
+  Tag, HelpCircle, Layers, Mail, Check, Search
 } from 'lucide-react';
 
 interface GasAccount {
@@ -47,10 +47,21 @@ const PRESETS = [
     subject: 'NEW RELEASE: [FONT_NAME] by Subqi Studio',
     title: 'NEW TYPEFACE RELEASE: [FONT_NAME]',
     subtitle: 'Contemporary Display & Editorial Typeface System',
-    bodyText: 'We are excited to introduce our latest typeface release. Crafted with precision geometry, extensive OpenType features, expressive stylistic alternates, and variable axes ready for high-impact visual identity projects.',
+    bodyText: 'We are excited to introduce our latest typeface release, [FONT_NAME]. Crafted with precision geometry, extensive OpenType features, expressive stylistic alternates, and variable axes ready for high-impact visual identity projects.',
     buttonText: 'TEST & BUY LICENSE',
     buttonUrl: 'https://subqi.com/fonts',
     couponCode: 'SUBQIVIP20'
+  },
+  {
+    id: 'update_typeface',
+    name: 'Update Typeface (Specimen Upgrade)',
+    subject: 'TYPEFACE UPDATE: [FONT_NAME] v2.0 is Here',
+    title: 'TYPEFACE UPDATE: [FONT_NAME]',
+    subtitle: 'Expanded Glyph Set, Kerning Refinements & Bug Fixes',
+    bodyText: 'We have released an important update for [FONT_NAME]. This update includes refined kerning pairs, expanded language support, new stylistic ligatures, and structural outline optimizations for enhanced display rendering.',
+    buttonText: 'EXPLORE UPDATE',
+    buttonUrl: 'https://subqi.com/fonts',
+    couponCode: 'UPDATE20'
   },
   {
     id: 'new_feature',
@@ -128,37 +139,89 @@ export default function BroadcastStudio() {
   // Search & Filter
   const [logSearch, setLogSearch] = useState('');
 
+  // Font Selection State for Typeface Presets
+  const [fontsList, setFontsList] = useState<Array<{ id: string; name: string; slug?: string }>>([]);
+  const [selectedFontName, setSelectedFontName] = useState('');
+  const [fontSearch, setFontSearch] = useState('');
+
   useEffect(() => {
     fetchData();
+    fetchFontsList();
   }, []);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchFontsList = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      const res = await fetch('/api/admin/broadcast-data', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const json = await res.json();
-        setData(json);
+      const { data, error } = await supabase
+        .from('fonts')
+        .select('id, name, slug, created_at')
+        .order('created_at', { ascending: false });
+      if (data && !error) {
+        setFontsList(data);
       }
     } catch (e) {
-      console.error('Failed fetching broadcast data:', e);
-    } finally {
-      setLoading(false);
+      console.warn('Failed fetching fonts list:', e);
     }
+  };
+
+  const handleSelectFont = (fontName: string) => {
+    setSelectedFontName(fontName);
+    if (!fontName) return;
+
+    const isRelease = selectedPreset === 'new_release';
+    const isUpdate = selectedPreset === 'update_typeface';
+
+    if (isRelease) {
+      setCampaignTitle(`${fontName} - Release`);
+    } else if (isUpdate) {
+      setCampaignTitle(`${fontName} - Update`);
+    }
+
+    const currentPresetObj = PRESETS.find(p => p.id === selectedPreset);
+    if (!currentPresetObj) return;
+
+    const replaceToken = (text: string, templateFallback: string) => {
+      if (text.includes('[FONT_NAME]')) {
+        return text.replace(/\[FONT_NAME\]/g, fontName);
+      }
+      if (selectedFontName && text.includes(selectedFontName)) {
+        return text.split(selectedFontName).join(fontName);
+      }
+      return templateFallback.replace(/\[FONT_NAME\]/g, fontName);
+    };
+
+    setSubject(prev => replaceToken(prev, currentPresetObj.subject));
+    setHeadline(prev => replaceToken(prev, currentPresetObj.title));
+    setSubtitle(prev => replaceToken(prev, currentPresetObj.subtitle));
+    setBodyText(prev => replaceToken(prev, currentPresetObj.bodyText));
   };
 
   const handleApplyPreset = (presetId: string) => {
     setSelectedPreset(presetId);
     const p = PRESETS.find(item => item.id === presetId);
     if (!p) return;
-    setSubject(p.subject);
-    setHeadline(p.title);
-    setSubtitle(p.subtitle);
-    setBodyText(p.bodyText);
+
+    const isRelease = presetId === 'new_release';
+    const isUpdate = presetId === 'update_typeface';
+
+    let subj = p.subject;
+    let head = p.title;
+    let subt = p.subtitle;
+    let body = p.bodyText;
+
+    if ((isRelease || isUpdate) && selectedFontName) {
+      subj = subj.replace(/\[FONT_NAME\]/g, selectedFontName);
+      head = head.replace(/\[FONT_NAME\]/g, selectedFontName);
+      subt = subt.replace(/\[FONT_NAME\]/g, selectedFontName);
+      body = body.replace(/\[FONT_NAME\]/g, selectedFontName);
+      setCampaignTitle(isRelease ? `${selectedFontName} - Release` : `${selectedFontName} - Update`);
+    } else if (isRelease || isUpdate) {
+      setCampaignTitle('');
+    }
+
+    setSubject(subj);
+    setHeadline(head);
+    setSubtitle(subt);
+    setBodyText(body);
     setButtonText(p.buttonText);
     setButtonUrl(p.buttonUrl);
     setCouponCode(p.couponCode);
@@ -392,7 +455,7 @@ export default function BroadcastStudio() {
             <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-3">
               <label className="text-xs uppercase tracking-widest font-black flex items-center justify-between">
                 <span>Template Preset</span>
-                <span className="text-[10px] font-normal opacity-60">5 Formats Available</span>
+                <span className="text-[10px] font-normal opacity-60">{PRESETS.length} Formats Available</span>
               </label>
               <select
                 value={selectedPreset}
@@ -404,6 +467,70 @@ export default function BroadcastStudio() {
                 ))}
               </select>
             </div>
+
+            {/* TYPEFACE SELECTOR (FOR RELEASE & UPDATE PRESETS) */}
+            {(selectedPreset === 'new_release' || selectedPreset === 'update_typeface') && (
+              <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-amber-50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs uppercase tracking-widest font-black flex items-center gap-2">
+                    <Sparkles size={14} className="text-amber-600" /> Select Target Typeface
+                  </label>
+                  <span className="text-[10px] font-bold text-gray-500">
+                    {fontsList.length} Fonts Loaded (Recent First)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={fontSearch}
+                      onChange={(e) => setFontSearch(e.target.value)}
+                      placeholder="SEARCH FONT NAME..."
+                      className="w-full border-2 border-black pl-8 pr-3 py-2 text-xs bg-white font-bold outline-none uppercase"
+                    />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                    {fontSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setFontSearch('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] font-bold hover:underline"
+                      >
+                        CLEAR
+                      </button>
+                    )}
+                  </div>
+
+                  <div>
+                    <select
+                      value={selectedFontName}
+                      onChange={(e) => handleSelectFont(e.target.value)}
+                      className="w-full border-2 border-black p-2 text-xs uppercase font-bold bg-white outline-none cursor-pointer"
+                    >
+                      <option value="">-- Choose Typeface --</option>
+                      {fontsList
+                        .filter(f => !fontSearch || f.name.toLowerCase().includes(fontSearch.toLowerCase().trim()))
+                        .map(f => (
+                          <option key={f.id} value={f.name}>
+                            {f.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+
+                {selectedFontName ? (
+                  <div className="flex items-center gap-2 text-[10px] font-black text-emerald-800 bg-emerald-100 border-2 border-emerald-500 p-2">
+                    <Check size={12} />
+                    <span>Selected: <strong>{selectedFontName}</strong> — Campaign title & [FONT_NAME] tokens automatically populated</span>
+                  </div>
+                ) : (
+                  <div className="text-[10px] font-bold text-amber-700 italic">
+                    Choose a typeface above to automatically replace [FONT_NAME] tokens and configure campaign reference.
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* EMAIL FIELDS */}
             <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4 text-xs">
