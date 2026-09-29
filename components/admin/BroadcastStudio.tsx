@@ -8,8 +8,21 @@ import { supabase } from '../../lib/supabase';
 import { 
   Send, Megaphone, Users, ShieldAlert, Sparkles, CheckCircle2, 
   AlertCircle, RefreshCw, Eye, History, Clock, ArrowRight, 
-  Tag, HelpCircle, Layers, Mail, Check, Search, Upload, Image as ImageIcon, X
+  Tag, HelpCircle, Layers, Mail, Check, Search, Upload, Image as ImageIcon, X,
+  Plus, Trash2, ChevronUp, ChevronDown, Type, AlignLeft, ExternalLink
 } from 'lucide-react';
+
+export interface BroadcastBlock {
+  id: string;
+  type: 'heading' | 'text' | 'button' | 'image';
+  title?: string;
+  subtitle?: string;
+  text?: string;
+  buttonText?: string;
+  buttonUrl?: string;
+  imageUrl?: string;
+  imageCaption?: string;
+}
 
 interface GasAccount {
   email: string;
@@ -146,6 +159,42 @@ export default function BroadcastStudio() {
   // Banner Upload & Google Drive Auto-Converter State
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [isDraggingBanner, setIsDraggingBanner] = useState(false);
+
+  // Email Builder: Modular Content Blocks
+  const [blocks, setBlocks] = useState<BroadcastBlock[]>([]);
+
+  const addBlock = (type: 'heading' | 'text' | 'button' | 'image') => {
+    const newBlock: BroadcastBlock = {
+      id: `blk_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      type,
+      title: type === 'heading' ? 'NEW SECTION HEADING' : undefined,
+      subtitle: type === 'heading' ? 'Section Subtitle' : undefined,
+      text: type === 'text' ? 'Write additional announcement or details here...' : undefined,
+      buttonText: type === 'button' ? 'LEARN MORE' : undefined,
+      buttonUrl: type === 'button' ? 'https://subqi.com' : undefined,
+      imageUrl: type === 'image' ? '' : undefined,
+      imageCaption: type === 'image' ? '' : undefined,
+    };
+    setBlocks(prev => [...prev, newBlock]);
+  };
+
+  const updateBlock = (id: string, updates: Partial<BroadcastBlock>) => {
+    setBlocks(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b));
+  };
+
+  const removeBlock = (id: string) => {
+    setBlocks(prev => prev.filter(b => b.id !== id));
+  };
+
+  const moveBlock = (index: number, direction: 'up' | 'down') => {
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === blocks.length - 1) return;
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const updated = [...blocks];
+    const [removed] = updated.splice(index, 1);
+    updated.splice(targetIndex, 0, removed);
+    setBlocks(updated);
+  };
 
   const convertDriveUrl = (inputUrl: string) => {
     if (!inputUrl) return '';
@@ -356,7 +405,8 @@ export default function BroadcastStudio() {
             bannerUrl,
             buttonText,
             buttonUrl,
-            couponCode
+            couponCode,
+            blocks
           }
         })
       });
@@ -792,6 +842,258 @@ export default function BroadcastStudio() {
               </div>
             </div>
 
+            {/* EMAIL BUILDER: MODULAR ADDITIONAL CONTENT SECTIONS */}
+            <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4 text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-black gap-2">
+                <div>
+                  <label className="uppercase tracking-widest font-black text-xs flex items-center gap-2">
+                    <Layers size={14} className="text-[#ff5c00]" /> Additional Sections (Email Builder)
+                  </label>
+                  <p className="text-[10px] text-gray-500 font-bold mt-0.5">
+                    Add extra announcements, messages, secondary CTAs, or imagery to this broadcast
+                  </p>
+                </div>
+                <span className="text-[10px] font-black bg-black text-white px-2 py-0.5 uppercase">
+                  {blocks.length} {blocks.length === 1 ? 'Section' : 'Sections'}
+                </span>
+              </div>
+
+              {/* ACTION TOOLBAR: ADD BUTTONS */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  onClick={() => addBlock('heading')}
+                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                >
+                  <Type size={13} /> + Heading
+                </button>
+                <button
+                  type="button"
+                  onClick={() => addBlock('text')}
+                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                >
+                  <AlignLeft size={13} /> + Message
+                </button>
+                <button
+                  type="button"
+                  onClick={() => addBlock('button')}
+                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                >
+                  <ExternalLink size={13} /> + CTA Button
+                </button>
+                <button
+                  type="button"
+                  onClick={() => addBlock('image')}
+                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                >
+                  <ImageIcon size={13} /> + Image
+                </button>
+              </div>
+
+              {/* LIST OF BLOCKS */}
+              {blocks.length === 0 ? (
+                <div className="border-2 border-dashed border-gray-300 p-6 text-center text-gray-400 font-bold">
+                  No additional sections added yet. Use the buttons above to append extra headings, announcements, buttons, or images.
+                </div>
+              ) : (
+                <div className="space-y-4 pt-2">
+                  {blocks.map((block, idx) => (
+                    <div key={block.id} className="border-2 border-black p-4 bg-zinc-50 shadow-[3px_3px_0px_#000000] space-y-3">
+                      {/* Block Header */}
+                      <div className="flex items-center justify-between border-b border-black/20 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-black text-white text-[10px] font-black flex items-center justify-center">
+                            {idx + 1}
+                          </span>
+                          <span className="font-black uppercase tracking-wider text-[11px] text-black">
+                            {block.type === 'heading' && 'Section Heading'}
+                            {block.type === 'text' && 'Text Message'}
+                            {block.type === 'button' && 'CTA Button'}
+                            {block.type === 'image' && 'Image Banner'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => moveBlock(idx, 'up')}
+                            disabled={idx === 0}
+                            title="Move Up"
+                            className="p-1 border border-black bg-white hover:bg-black hover:text-white disabled:opacity-20 cursor-pointer"
+                          >
+                            <ChevronUp size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveBlock(idx, 'down')}
+                            disabled={idx === blocks.length - 1}
+                            title="Move Down"
+                            className="p-1 border border-black bg-white hover:bg-black hover:text-white disabled:opacity-20 cursor-pointer"
+                          >
+                            <ChevronDown size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeBlock(block.id)}
+                            title="Delete Section"
+                            className="p-1 border border-black bg-white text-red-600 hover:bg-red-600 hover:text-white cursor-pointer ml-1"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Block Form Fields */}
+                      {block.type === 'heading' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] uppercase font-black tracking-wider block mb-1">Heading Title</label>
+                            <input
+                              type="text"
+                              value={block.title || ''}
+                              onChange={(e) => updateBlock(block.id, { title: e.target.value })}
+                              placeholder="e.g. SPECIAL ANNOUNCEMENT"
+                              className="w-full border-2 border-black p-2 bg-white outline-none font-bold"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] uppercase font-black tracking-wider block mb-1">Sub-heading (Optional)</label>
+                            <input
+                              type="text"
+                              value={block.subtitle || ''}
+                              onChange={(e) => updateBlock(block.id, { subtitle: e.target.value })}
+                              placeholder="e.g. Limited Edition Offering"
+                              className="w-full border-2 border-black p-2 bg-white outline-none"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {block.type === 'text' && (
+                        <div>
+                          <label className="text-[10px] uppercase font-black tracking-wider block mb-1">Message Text</label>
+                          <textarea
+                            rows={4}
+                            value={block.text || ''}
+                            onChange={(e) => updateBlock(block.id, { text: e.target.value })}
+                            placeholder="Type additional announcement or details here..."
+                            className="w-full border-2 border-black p-2 bg-white outline-none font-sans text-xs leading-relaxed"
+                          />
+                        </div>
+                      )}
+
+                      {block.type === 'button' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] uppercase font-black tracking-wider block mb-1">Button Label</label>
+                            <input
+                              type="text"
+                              value={block.buttonText || ''}
+                              onChange={(e) => updateBlock(block.id, { buttonText: e.target.value })}
+                              placeholder="e.g. READ DOCUMENTATION"
+                              className="w-full border-2 border-black p-2 bg-white outline-none font-bold"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] uppercase font-black tracking-wider block mb-1">Target Link URL</label>
+                            <input
+                              type="url"
+                              value={block.buttonUrl || ''}
+                              onChange={(e) => updateBlock(block.id, { buttonUrl: e.target.value })}
+                              placeholder="https://..."
+                              className="w-full border-2 border-black p-2 bg-white outline-none"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {block.type === 'image' && (
+                        <div className="space-y-3">
+                          {block.imageUrl ? (
+                            <div className="flex items-center gap-3 bg-white p-2 border-2 border-black">
+                              <img src={block.imageUrl} alt="Block Preview" className="w-20 h-14 object-cover border border-black" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[10px] font-black text-emerald-700 flex items-center gap-1">
+                                  <Check size={12} /> Image Ready
+                                </div>
+                                <div className="text-[9px] font-mono text-gray-500 truncate" title={block.imageUrl}>
+                                  {block.imageUrl}
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => updateBlock(block.id, { imageUrl: '' })}
+                                className="px-2 py-1 bg-red-100 text-red-700 border border-red-400 text-[9px] font-black uppercase hover:bg-red-200 cursor-pointer"
+                              >
+                                Clear
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <label className="flex-1 border-2 border-dashed border-black/40 hover:border-black p-3 bg-white text-center cursor-pointer transition-all">
+                                  <span className="text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5">
+                                    <Upload size={13} /> Click to Upload Image
+                                  </span>
+                                  <span className="text-[9px] text-gray-400 block mt-0.5 font-bold">PNG, JPG, WEBP, SVG</span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      try {
+                                        const { data: { session } } = await supabase.auth.getSession();
+                                        if (!session) throw new Error('Session expired.');
+                                        const uniqueFileName = `${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+                                        const res = await fetch(`/api/admin/upload/${uniqueFileName}`, {
+                                          method: 'PUT',
+                                          headers: {
+                                            'Authorization': `Bearer ${session.access_token}`,
+                                            'Content-Type': file.type
+                                          },
+                                          body: file
+                                        });
+                                        if (!res.ok) throw new Error('Upload failed');
+                                        const publicUrl = `${window.location.origin}/api/images/${uniqueFileName}`;
+                                        updateBlock(block.id, { imageUrl: publicUrl });
+                                      } catch (err: any) {
+                                        alert('Upload error: ' + err.message);
+                                      }
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                              <div>
+                                <label className="text-[10px] uppercase font-black tracking-wider block mb-1">Or Paste Direct / Google Drive URL</label>
+                                <input
+                                  type="url"
+                                  value={block.imageUrl || ''}
+                                  onChange={(e) => updateBlock(block.id, { imageUrl: convertDriveUrl(e.target.value) })}
+                                  placeholder="https://drive.google.com/file/d/... or https://..."
+                                  className="w-full border-2 border-black p-2 bg-white outline-none text-xs"
+                                />
+                              </div>
+                            </div>
+                          )}
+                          <div>
+                            <label className="text-[10px] uppercase font-black tracking-wider block mb-1">Image Caption / Alt Text (Optional)</label>
+                            <input
+                              type="text"
+                              value={block.imageCaption || ''}
+                              onChange={(e) => updateBlock(block.id, { imageCaption: e.target.value })}
+                              placeholder="e.g. Type specimen comparison"
+                              className="w-full border-2 border-black p-2 bg-white outline-none"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* LAUNCH BUTTON */}
             <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="text-xs">
@@ -898,6 +1200,55 @@ export default function BroadcastStudio() {
                   </span>
                 </div>
               )}
+
+              {/* Additional Modular Blocks Preview */}
+              {blocks.map((block, idx) => {
+                if (block.type === 'heading') {
+                  return (
+                    <div key={block.id || idx} className="text-center my-6 pt-5 border-t border-black/20">
+                      <h3 className="font-sans font-black text-base uppercase tracking-tight leading-tight">
+                        {block.title || 'SECTION HEADING'}
+                      </h3>
+                      {block.subtitle && (
+                        <p className="text-[11px] font-bold text-[#ff5c00] uppercase tracking-wider mt-1">
+                          {block.subtitle}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
+                if (block.type === 'text') {
+                  return (
+                    <div key={block.id || idx} className="text-xs leading-relaxed text-black/80 whitespace-pre-line my-4 font-sans">
+                      {block.text || 'Message paragraph...'}
+                    </div>
+                  );
+                }
+                if (block.type === 'button') {
+                  return (
+                    <div key={block.id || idx} className="text-center my-5">
+                      <span className="inline-block bg-black text-white text-[11px] font-black uppercase tracking-[0.1em] px-5 py-2.5 border-2 border-black shadow-[3px_3px_0px_#ff5c00]">
+                        {block.buttonText || 'BUTTON'} &rarr;
+                      </span>
+                    </div>
+                  );
+                }
+                if (block.type === 'image') {
+                  return block.imageUrl ? (
+                    <div key={block.id || idx} className="my-5 text-center">
+                      <div className="border-2 border-black overflow-hidden inline-block w-full">
+                        <img src={block.imageUrl} alt={block.imageCaption || 'Studio image'} className="w-full h-auto object-cover" />
+                      </div>
+                      {block.imageCaption && (
+                        <div className="text-[10px] font-mono text-black/60 uppercase tracking-wider mt-1 font-bold">
+                          {block.imageCaption}
+                        </div>
+                      )}
+                    </div>
+                  ) : null;
+                }
+                return null;
+              })}
 
               {/* Footer */}
               <div className="text-center pt-4 border-t-2 border-black text-[10px] text-black/60 leading-relaxed font-bold">
