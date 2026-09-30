@@ -35,7 +35,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
   const toolLinks = [
     { name: 'Canvas', href: 'https://canvas.subqi.com', badge: 'BETA' },
     { name: 'FontShift', href: 'https://fontshift.subqi.com', badge: 'FREE' },
-    { name: 'Fontopsy', href: 'https://fontopsy.subqi.com', badge: 'NEW' },
+    { name: 'Fontopsy', href: 'https://fontopsy.subqi.com', badge: 'FREE' },
   ];
 
   // AUTH LOGIC
@@ -137,12 +137,12 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
         </div>
 
         {/* Center: Quick Links */}
-        <div className="hidden md:flex items-center gap-4 lg:gap-8 font-mono text-xs font-bold uppercase tracking-widest px-2 lg:px-6 h-full flex-1 justify-center">
+        <div className="hidden md:flex items-center gap-8 lg:gap-14 xl:gap-16 font-mono text-xs font-bold uppercase tracking-widest px-2 lg:px-6 h-full flex-1 justify-center">
           <Link to="/fonts" className="hover:text-[#FF5C00] transition-colors py-2">
-            Fonts
+            FONTS
           </Link>
           <Link to="/canvas" className="flex items-center gap-1.5 hover:text-[#FF5C00] transition-colors py-2">
-            <span>Canvas</span>
+            <span>CANVAS</span>
             <span className="bg-[#FF5C00] text-black text-[7px] font-black px-1 py-0 h-3 leading-none flex items-center rounded-[2px] self-start -mt-0.5">BETA</span>
           </Link>
 
@@ -155,9 +155,9 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
             <button
               type="button"
               onClick={() => setIsToolsOpen(prev => !prev)}
-              className="hover:text-[#FF5C00] transition-colors py-2 flex items-center gap-1 cursor-pointer select-none"
+              className="hover:text-[#FF5C00] transition-colors py-2 flex items-center gap-1.5 cursor-pointer select-none uppercase tracking-widest font-bold"
             >
-              <span>Tools</span>
+              <span>TOOLS</span>
               <ChevronDown size={11} className={`transition-transform duration-200 ${isToolsOpen ? 'rotate-180 text-[#FF5C00]' : ''}`} />
             </button>
 
