@@ -72,7 +72,7 @@ const ContentManager = () => {
     sort_order: 0
   });
 
-  const categories = ['faq', 'license', 'policy', 'about', 'insights'];
+  const categories = ['faq', 'license', 'policy', 'about'];
 
   useEffect(() => {
     fetchContent();

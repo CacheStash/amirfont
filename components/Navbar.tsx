@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search, ArrowRight, ArrowLeft, ShoppingCart } from 'lucide-react';
+import { Menu, X, Search, ArrowRight, ArrowLeft, ShoppingCart, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -24,11 +24,19 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
+  const [isToolsDrawerOpen, setIsToolsDrawerOpen] = useState(true);
   
   const location = useLocation();
   const { cartCount } = useCart();
 
-  const menuItems = ['Fonts', 'Canvas', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Insights'];
+  const menuItems = ['Fonts', 'Canvas', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Tools'];
+
+  const toolLinks = [
+    { name: 'Canvas', href: 'https://canvas.subqi.com', badge: 'BETA' },
+    { name: 'FontShift', href: 'https://fontshift.subqi.com', badge: 'FREE' },
+    { name: 'Fontopsy', href: 'https://fontopsy.subqi.com', badge: 'NEW' },
+  ];
 
   // AUTH LOGIC
   useEffect(() => {
@@ -137,6 +145,42 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
             <span>Canvas</span>
             <span className="bg-[#FF5C00] text-black text-[7px] font-black px-1 py-0 h-3 leading-none flex items-center rounded-[2px] self-start -mt-0.5">BETA</span>
           </Link>
+
+          {/* Tools Dropdown */}
+          <div 
+            className="relative h-full flex items-center"
+            onMouseEnter={() => setIsToolsOpen(true)}
+            onMouseLeave={() => setIsToolsOpen(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setIsToolsOpen(prev => !prev)}
+              className="hover:text-[#FF5C00] transition-colors py-2 flex items-center gap-1 cursor-pointer select-none"
+            >
+              <span>Tools</span>
+              <ChevronDown size={11} className={`transition-transform duration-200 ${isToolsOpen ? 'rotate-180 text-[#FF5C00]' : ''}`} />
+            </button>
+
+            {isToolsOpen && (
+              <div className="absolute top-full left-1/2 -translate-x-1/2 w-44 bg-[#EDEBE6] border-x border-b border-black shadow-2xl py-1.5 px-1 z-[140] flex flex-col gap-1">
+                {toolLinks.map(tool => (
+                  <a
+                    key={tool.name}
+                    href={tool.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsToolsOpen(false)}
+                    className="px-3 py-2 hover:bg-black hover:text-white transition-colors flex items-center justify-between text-[10px] font-bold tracking-widest uppercase"
+                  >
+                    <span>{tool.name}</span>
+                    <span className="bg-[#FF5C00] text-black text-[7px] px-1 py-0 h-3 leading-none flex items-center rounded-[2px] font-black">
+                      {tool.badge}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right: Search & Cart */}
@@ -289,16 +333,60 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
 
                   {/* Column 2: Items 5-7 + Auth Button */}
                   <div className="flex flex-col">
-                      {menuItems.slice(4).map((item) => (
-                        <Link 
-                          key={item} 
-                          to={`/${item.toLowerCase()}`}
-                          className="text-3xl lg:text-6xl font-normal uppercase tracking-tighter px-3 lg:px-8 py-6 lg:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
-                        >
-                          <span>{item}</span>
-                          <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                        </Link>
-                      ))}
+                      {menuItems.slice(4).map((item) => {
+                        if (item === 'Tools') {
+                          return (
+                            <div key="Tools" className="border-b border-black">
+                              <button
+                                type="button"
+                                onClick={() => setIsToolsDrawerOpen(prev => !prev)}
+                                className="w-full text-3xl lg:text-6xl font-normal uppercase tracking-tighter px-3 lg:px-8 py-6 lg:py-10 hover:bg-black hover:text-white transition-all flex justify-between items-center group cursor-pointer text-left"
+                              >
+                                <span className="flex items-center gap-3">
+                                  <span>Tools</span>
+                                  <ChevronDown size={28} className={`transition-transform duration-300 ${isToolsDrawerOpen ? 'rotate-180' : ''}`} />
+                                </span>
+                                <span className="text-xs font-mono tracking-widest text-[#FF5C00] font-bold">
+                                  3 APPS
+                                </span>
+                              </button>
+                              {isToolsDrawerOpen && (
+                                <div className="bg-black/5 divide-y divide-black/10 border-t border-black">
+                                  {toolLinks.map(tool => (
+                                    <a
+                                      key={tool.name}
+                                      href={tool.href}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={() => setIsOpen(false)}
+                                      className="px-6 lg:px-12 py-4 hover:bg-black hover:text-white transition-all flex justify-between items-center group/tool"
+                                    >
+                                      <span className="flex items-center gap-3 font-mono text-sm lg:text-lg font-bold tracking-widest uppercase">
+                                        <span>{tool.name}</span>
+                                        <span className="bg-[#FF5C00] text-black text-[8px] font-black px-1.5 py-0.5 rounded-[2px]">
+                                          {tool.badge}
+                                        </span>
+                                      </span>
+                                      <ArrowRight size={18} className="opacity-0 -translate-x-2 group-hover/tool:opacity-100 group-hover/tool:translate-x-0 transition-all" />
+                                    </a>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <Link 
+                            key={item} 
+                            to={`/${item.toLowerCase()}`}
+                            className="text-3xl lg:text-6xl font-normal uppercase tracking-tighter px-3 lg:px-8 py-6 lg:py-10 border-b border-black hover:bg-black hover:text-white transition-all flex justify-between items-center group"
+                          >
+                            <span>{item}</span>
+                            <ArrowRight size={32} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                          </Link>
+                        );
+                      })}
 
                       
                       

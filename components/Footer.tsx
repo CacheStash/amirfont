@@ -7,7 +7,7 @@ const Footer = () => {
   const [honeypot, setHoneypot] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Insights'];
+  const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ'];
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,10 +122,15 @@ const Footer = () => {
         {/* KOLOM 2: TOOLS & LAB */}
         <div className="flex flex-col gap-3">
           <span className="opacity-40 tracking-[0.2em] mb-2 italic">TOOLS & LAB</span>
-          <Link to="/canvas" className="hover:underline tracking-widest w-fit flex items-center gap-1.5">
+          <a 
+            href="https://canvas.subqi.com" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="hover:underline tracking-widest w-fit flex items-center gap-1.5"
+          >
             <span>FONTCANVAS STUDIO</span>
             <span className="bg-black text-[#FF5C00] text-[7px] px-1 py-0 h-3 leading-none flex items-center font-bold rounded-[2px] self-start -mt-0.5">BETA</span>
-          </Link>
+          </a>
           <a 
             href="https://fontshift.subqi.com" 
             target="_blank" 
@@ -134,6 +139,15 @@ const Footer = () => {
           >
             <span>FONTSHIFT CONVERTER</span>
             <span className="bg-black text-[#FF5C00] text-[7px] px-1 py-0 h-3 leading-none flex items-center font-bold rounded-[2px] self-start -mt-0.5">FREE</span>
+          </a>
+          <a 
+            href="https://fontopsy.subqi.com" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="hover:underline tracking-widest w-fit flex items-center gap-1.5"
+          >
+            <span>FONTOPSY</span>
+            <span className="bg-black text-[#FF5C00] text-[7px] px-1 py-0 h-3 leading-none flex items-center font-bold rounded-[2px] self-start -mt-0.5">NEW</span>
           </a>
         </div>
 
