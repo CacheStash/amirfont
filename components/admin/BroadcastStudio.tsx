@@ -533,135 +533,263 @@ export default function BroadcastStudio() {
 
       {/* TAB 1: COMPOSE BROADCAST */}
       {activeTab === 'compose' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* LEFT COLUMN: FORM CONTROLS */}
-          <div className="lg:col-span-7 space-y-6">
-            
-            {/* AUDIENCE SELECTOR CARD */}
-            <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4">
-              <label className="text-xs uppercase tracking-widest font-black flex items-center gap-2">
-                <Users size={14} /> Target Audience
-              </label>
-              <div className="grid grid-cols-3 gap-3 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setAudience('all')}
-                  className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${
-                    audience === 'all' 
-                      ? 'bg-black text-white shadow-[2px_2px_0px_#ff5c00]' 
-                      : 'bg-white hover:bg-black/5'
-                  }`}
-                >
-                  <div className="font-black">ALL AUDIENCE</div>
-                  <div className="text-[10px] opacity-70 mt-1">{data.audience.totalUniqueCount} Unique Emails</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAudience('buyers')}
-                  className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${
-                    audience === 'buyers' 
-                      ? 'bg-black text-white shadow-[2px_2px_0px_#ff5c00]' 
-                      : 'bg-white hover:bg-black/5'
-                  }`}
-                >
-                  <div className="font-black">BUYERS ONLY</div>
-                  <div className="text-[10px] opacity-70 mt-1">{data.audience.buyersCount} Verified Patrons</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAudience('subscribers')}
-                  className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${
-                    audience === 'subscribers' 
-                      ? 'bg-black text-white shadow-[2px_2px_0px_#ff5c00]' 
-                      : 'bg-white hover:bg-black/5'
-                  }`}
-                >
-                  <div className="font-black">SUBSCRIBERS</div>
-                  <div className="text-[10px] opacity-70 mt-1">{data.audience.subscribersCount} Active Readers</div>
-                </button>
-              </div>
-            </div>
-
-            {/* PRESET SELECTOR */}
-            <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-3">
-              <label className="text-xs uppercase tracking-widest font-black flex items-center justify-between">
-                <span>Template Preset</span>
-                <span className="text-[10px] font-normal opacity-60">{PRESETS.length} Formats Available</span>
-              </label>
-              <select
-                value={selectedPreset}
-                onChange={(e) => handleApplyPreset(e.target.value)}
-                className="w-full border-2 border-black p-3 text-xs uppercase font-bold tracking-wider bg-white outline-none cursor-pointer"
+        <div className="space-y-6 max-w-4xl mx-auto">
+          {/* 1. AUDIENCE SELECTOR CARD */}
+          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4">
+            <label className="text-xs uppercase tracking-widest font-black flex items-center gap-2">
+              <Users size={14} /> Target Audience
+            </label>
+            <div className="grid grid-cols-3 gap-3 text-xs">
+              <button
+                type="button"
+                onClick={() => setAudience('all')}
+                className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${
+                  audience === 'all' 
+                    ? 'bg-black text-white shadow-[2px_2px_0px_#ff5c00]' 
+                    : 'bg-white hover:bg-black/5'
+                }`}
               >
-                {PRESETS.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
+                <div className="font-black">ALL AUDIENCE</div>
+                <div className="text-[10px] opacity-70 mt-1">{data.audience.totalUniqueCount} Unique Emails</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAudience('buyers')}
+                className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${
+                  audience === 'buyers' 
+                    ? 'bg-black text-white shadow-[2px_2px_0px_#ff5c00]' 
+                    : 'bg-white hover:bg-black/5'
+                }`}
+              >
+                <div className="font-black">BUYERS ONLY</div>
+                <div className="text-[10px] opacity-70 mt-1">{data.audience.buyersCount} Verified Patrons</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAudience('subscribers')}
+                className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${
+                  audience === 'subscribers' 
+                    ? 'bg-black text-white shadow-[2px_2px_0px_#ff5c00]' 
+                    : 'bg-white hover:bg-black/5'
+                }`}
+              >
+                <div className="font-black">SUBSCRIBERS</div>
+                <div className="text-[10px] opacity-70 mt-1">{data.audience.subscribersCount} Active Readers</div>
+              </button>
+            </div>
+          </div>
+
+          {/* 2. PRESET SELECTOR */}
+          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-3">
+            <label className="text-xs uppercase tracking-widest font-black flex items-center justify-between">
+              <span>Template Preset</span>
+              <span className="text-[10px] font-normal opacity-60">{PRESETS.length} Formats Available</span>
+            </label>
+            <select
+              value={selectedPreset}
+              onChange={(e) => handleApplyPreset(e.target.value)}
+              className="w-full border-2 border-black p-3 text-xs uppercase font-bold tracking-wider bg-white outline-none cursor-pointer"
+            >
+              {PRESETS.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 3. TYPEFACE SELECTOR (FOR RELEASE & UPDATE PRESETS) */}
+          {(selectedPreset === 'new_release' || selectedPreset === 'update_typeface') && (
+            <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-amber-50 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs uppercase tracking-widest font-black flex items-center gap-2">
+                  <Sparkles size={14} className="text-amber-600" /> Select Target Typeface
+                </label>
+                <span className="text-[10px] font-bold text-gray-500">
+                  {fontsList.length} Fonts Loaded (Recent First)
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={fontSearch}
+                    onChange={(e) => setFontSearch(e.target.value)}
+                    placeholder="SEARCH FONT NAME..."
+                    className="w-full border-2 border-black pl-8 pr-3 py-2 text-xs bg-white font-bold outline-none uppercase"
+                  />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                  {fontSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setFontSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] font-bold hover:underline"
+                    >
+                      CLEAR
+                    </button>
+                  )}
+                </div>
+
+                <div>
+                  <select
+                    value={selectedFontName}
+                    onChange={(e) => handleSelectFont(e.target.value)}
+                    className="w-full border-2 border-black p-2 text-xs uppercase font-bold bg-white outline-none cursor-pointer"
+                  >
+                    <option value="">-- Choose Typeface --</option>
+                    {fontsList
+                      .filter(f => !fontSearch || f.name.toLowerCase().includes(fontSearch.toLowerCase().trim()))
+                      .map(f => (
+                        <option key={f.id} value={f.name}>
+                          {f.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+
+              {selectedFontName ? (
+                <div className="flex items-center gap-2 text-[10px] font-black text-emerald-800 bg-emerald-100 border-2 border-emerald-500 p-2">
+                  <Check size={12} />
+                  <span>Selected: <strong>{selectedFontName}</strong> — Campaign title & [FONT_NAME] tokens automatically populated</span>
+                </div>
+              ) : (
+                <div className="text-[10px] font-bold text-amber-700 italic">
+                  Choose a typeface above to automatically replace [FONT_NAME] tokens and configure campaign reference.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 4. EMAIL PREVIEW (PLACED PROMINENTLY UNDER PRESET & TYPEFACE SELECTOR) */}
+          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4">
+            <div className="flex items-center justify-between text-xs uppercase tracking-widest font-black border-b-2 border-black pb-2">
+              <span className="flex items-center gap-2">
+                <Eye size={15} /> Subqi Email Preview
+              </span>
+              <span className="text-[10px] font-normal opacity-60">Recipient Live View</span>
             </div>
 
-            {/* TYPEFACE SELECTOR (FOR RELEASE & UPDATE PRESETS) */}
-            {(selectedPreset === 'new_release' || selectedPreset === 'update_typeface') && (
-              <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-amber-50 space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs uppercase tracking-widest font-black flex items-center gap-2">
-                    <Sparkles size={14} className="text-amber-600" /> Select Target Typeface
-                  </label>
-                  <span className="text-[10px] font-bold text-gray-500">
-                    {fontsList.length} Fonts Loaded (Recent First)
-                  </span>
+            {/* PREVIEW CONTAINER (FULL WIDTH WITH REALISTIC READING WIDTH) */}
+            <div className="max-w-2xl mx-auto border-2 border-black shadow-[6px_6px_0px_#000000] bg-white p-6 sm:p-8 text-black">
+              {/* Header Branding */}
+              <div className="text-center pb-5 mb-5 border-b-2 border-black">
+                <div className="text-[10px] font-black uppercase tracking-[0.25em] text-[#ff5c00]">
+                  OFFICIAL FOUNDRY DISPATCH
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={fontSearch}
-                      onChange={(e) => setFontSearch(e.target.value)}
-                      placeholder="SEARCH FONT NAME..."
-                      className="w-full border-2 border-black pl-8 pr-3 py-2 text-xs bg-white font-bold outline-none uppercase"
-                    />
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                    {fontSearch && (
-                      <button
-                        type="button"
-                        onClick={() => setFontSearch('')}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] font-bold hover:underline"
-                      >
-                        CLEAR
-                      </button>
-                    )}
-                  </div>
-
-                  <div>
-                    <select
-                      value={selectedFontName}
-                      onChange={(e) => handleSelectFont(e.target.value)}
-                      className="w-full border-2 border-black p-2 text-xs uppercase font-bold bg-white outline-none cursor-pointer"
-                    >
-                      <option value="">-- Choose Typeface --</option>
-                      {fontsList
-                        .filter(f => !fontSearch || f.name.toLowerCase().includes(fontSearch.toLowerCase().trim()))
-                        .map(f => (
-                          <option key={f.id} value={f.name}>
-                            {f.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                <div className="font-sans font-black text-2xl tracking-tight uppercase mt-1">
+                  SUBQI TYPE FOUNDRY
                 </div>
+                <div className="text-[9px] font-mono tracking-widest text-black/60 uppercase mt-1 font-bold">
+                  CONTEMPORARY &amp; EDITORIAL TYPE DESIGN
+                </div>
+              </div>
 
-                {selectedFontName ? (
-                  <div className="flex items-center gap-2 text-[10px] font-black text-emerald-800 bg-emerald-100 border-2 border-emerald-500 p-2">
-                    <Check size={12} />
-                    <span>Selected: <strong>{selectedFontName}</strong> — Campaign title & [FONT_NAME] tokens automatically populated</span>
-                  </div>
-                ) : (
-                  <div className="text-[10px] font-bold text-amber-700 italic">
-                    Choose a typeface above to automatically replace [FONT_NAME] tokens and configure campaign reference.
-                  </div>
+              {/* Banner Image */}
+              {bannerUrl && (
+                <div className="mb-5 border-2 border-black overflow-hidden">
+                  <img src={bannerUrl} alt="Banner" className="w-full h-auto object-cover" />
+                </div>
+              )}
+
+              {/* Title & Subtitle */}
+              <div className="text-center mb-5">
+                <h2 className="font-sans font-black text-xl uppercase tracking-tight leading-tight">
+                  {headline || "MAIN HEADLINE"}
+                </h2>
+                {subtitle && (
+                  <p className="text-xs font-bold text-[#ff5c00] uppercase tracking-wider mt-1">
+                    {subtitle}
+                  </p>
                 )}
               </div>
-            )}
+
+              {/* Body */}
+              <div className="text-xs leading-relaxed text-black/80 whitespace-pre-line mb-6 font-sans">
+                {bodyText || "Your broadcast announcement will appear here with clean contemporary styling."}
+              </div>
+
+              {/* Coupon Box */}
+              {couponCode && (
+                <div className="bg-[#ff5c00] border-2 border-black shadow-[4px_4px_0px_#000000] p-4 text-center my-5 text-white">
+                  <div className="text-[10px] uppercase tracking-[0.15em] font-black mb-1">
+                    VIP EXCLUSIVE VOUCHER
+                  </div>
+                  <div className="font-mono text-lg font-black text-black bg-white inline-block px-3 py-1 border-2 border-black tracking-widest">
+                    {couponCode}
+                  </div>
+                  <div className="text-[10px] font-bold text-white uppercase tracking-wider mt-1">
+                    Redeem at checkout for an instant discount.
+                  </div>
+                </div>
+              )}
+
+              {/* CTA Button */}
+              {buttonText && (
+                <div className="text-center my-6">
+                  <span className="inline-block bg-black text-white text-[11px] font-black uppercase tracking-[0.1em] px-6 py-3 border-2 border-black shadow-[3px_3px_0px_#ff5c00]">
+                    {buttonText} &rarr;
+                  </span>
+                </div>
+              )}
+
+              {/* Additional Modular Blocks Preview */}
+              {blocks.map((block, idx) => {
+                if (block.type === 'heading') {
+                  return (
+                    <div key={block.id || idx} className="text-center my-6 pt-5 border-t border-black/20">
+                      <h3 className="font-sans font-black text-base uppercase tracking-tight leading-tight">
+                        {block.title || 'SECTION HEADING'}
+                      </h3>
+                      {block.subtitle && (
+                        <p className="text-[11px] font-bold text-[#ff5c00] uppercase tracking-wider mt-1">
+                          {block.subtitle}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
+                if (block.type === 'text') {
+                  return (
+                    <div key={block.id || idx} className="text-xs leading-relaxed text-black/80 whitespace-pre-line my-4 font-sans">
+                      {block.text || 'Message paragraph...'}
+                    </div>
+                  );
+                }
+                if (block.type === 'button') {
+                  return (
+                    <div key={block.id || idx} className="text-center my-5">
+                      <span className="inline-block bg-black text-white text-[11px] font-black uppercase tracking-[0.1em] px-5 py-2.5 border-2 border-black shadow-[3px_3px_0px_#ff5c00]">
+                        {block.buttonText || 'BUTTON'} &rarr;
+                      </span>
+                    </div>
+                  );
+                }
+                if (block.type === 'image') {
+                  return block.imageUrl ? (
+                    <div key={block.id || idx} className="my-5 text-center">
+                      <div className="border-2 border-black overflow-hidden inline-block w-full">
+                        <img src={block.imageUrl} alt={block.imageCaption || 'Studio image'} className="w-full h-auto object-cover" />
+                      </div>
+                      {block.imageCaption && (
+                        <div className="text-[10px] font-mono text-black/60 uppercase tracking-wider mt-1 font-bold">
+                          {block.imageCaption}
+                        </div>
+                      )}
+                    </div>
+                  ) : null;
+                }
+                return null;
+              })}
+
+              {/* Footer */}
+              <div className="text-center pt-4 border-t-2 border-black text-[10px] text-black/60 leading-relaxed font-bold">
+                <div className="text-black uppercase tracking-wider mb-0.5">
+                  Subqi Type Studio
+                </div>
+                <div>You are receiving this communication as a registered buyer or subscriber.</div>
+              </div>
+            </div>
+          </div>
 
             {/* EMAIL FIELDS */}
             <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4 text-xs">
@@ -1128,139 +1256,7 @@ export default function BroadcastStudio() {
               </button>
             </div>
           </div>
-
-          {/* RIGHT COLUMN: LIVE VISUAL EMAIL PREVIEW */}
-          <div className="lg:col-span-5 sticky top-20 space-y-3">
-            <div className="flex items-center justify-between text-xs uppercase tracking-widest font-black border-b-2 border-black pb-2">
-              <span className="flex items-center gap-2">
-                <Eye size={14} /> Subqi Email Preview
-              </span>
-              <span className="text-[10px] font-normal opacity-60">Recipient View</span>
-            </div>
-
-            {/* PREVIEW CONTAINER */}
-            <div className="border-2 border-black shadow-[6px_6px_0px_#000000] bg-white p-6 text-black max-h-[750px] overflow-y-auto">
-              {/* Header Branding */}
-              <div className="text-center pb-5 mb-5 border-b-2 border-black">
-                <div className="text-[10px] font-black uppercase tracking-[0.25em] text-[#ff5c00]">
-                  OFFICIAL FOUNDRY DISPATCH
-                </div>
-                <div className="font-sans font-black text-2xl tracking-tight uppercase mt-1">
-                  SUBQI TYPE FOUNDRY
-                </div>
-                <div className="text-[9px] font-mono tracking-widest text-black/60 uppercase mt-1 font-bold">
-                  CONTEMPORARY &amp; EDITORIAL TYPE DESIGN
-                </div>
-              </div>
-
-              {/* Banner Image */}
-              {bannerUrl && (
-                <div className="mb-5 border-2 border-black overflow-hidden">
-                  <img src={bannerUrl} alt="Banner" className="w-full h-auto object-cover" />
-                </div>
-              )}
-
-              {/* Title & Subtitle */}
-              <div className="text-center mb-5">
-                <h2 className="font-sans font-black text-xl uppercase tracking-tight leading-tight">
-                  {headline || "MAIN HEADLINE"}
-                </h2>
-                {subtitle && (
-                  <p className="text-xs font-bold text-[#ff5c00] uppercase tracking-wider mt-1">
-                    {subtitle}
-                  </p>
-                )}
-              </div>
-
-              {/* Body */}
-              <div className="text-xs leading-relaxed text-black/80 whitespace-pre-line mb-6 font-sans">
-                {bodyText || "Your broadcast announcement will appear here with clean contemporary styling."}
-              </div>
-
-              {/* Coupon Box */}
-              {couponCode && (
-                <div className="bg-[#ff5c00] border-2 border-black shadow-[4px_4px_0px_#000000] p-4 text-center my-5 text-white">
-                  <div className="text-[10px] uppercase tracking-[0.15em] font-black mb-1">
-                    VIP EXCLUSIVE VOUCHER
-                  </div>
-                  <div className="font-mono text-lg font-black text-black bg-white inline-block px-3 py-1 border-2 border-black tracking-widest">
-                    {couponCode}
-                  </div>
-                  <div className="text-[10px] font-bold text-white uppercase tracking-wider mt-1">
-                    Redeem at checkout for an instant discount.
-                  </div>
-                </div>
-              )}
-
-              {/* CTA Button */}
-              {buttonText && (
-                <div className="text-center my-6">
-                  <span className="inline-block bg-black text-white text-[11px] font-black uppercase tracking-[0.1em] px-6 py-3 border-2 border-black shadow-[3px_3px_0px_#ff5c00]">
-                    {buttonText} &rarr;
-                  </span>
-                </div>
-              )}
-
-              {/* Additional Modular Blocks Preview */}
-              {blocks.map((block, idx) => {
-                if (block.type === 'heading') {
-                  return (
-                    <div key={block.id || idx} className="text-center my-6 pt-5 border-t border-black/20">
-                      <h3 className="font-sans font-black text-base uppercase tracking-tight leading-tight">
-                        {block.title || 'SECTION HEADING'}
-                      </h3>
-                      {block.subtitle && (
-                        <p className="text-[11px] font-bold text-[#ff5c00] uppercase tracking-wider mt-1">
-                          {block.subtitle}
-                        </p>
-                      )}
-                    </div>
-                  );
-                }
-                if (block.type === 'text') {
-                  return (
-                    <div key={block.id || idx} className="text-xs leading-relaxed text-black/80 whitespace-pre-line my-4 font-sans">
-                      {block.text || 'Message paragraph...'}
-                    </div>
-                  );
-                }
-                if (block.type === 'button') {
-                  return (
-                    <div key={block.id || idx} className="text-center my-5">
-                      <span className="inline-block bg-black text-white text-[11px] font-black uppercase tracking-[0.1em] px-5 py-2.5 border-2 border-black shadow-[3px_3px_0px_#ff5c00]">
-                        {block.buttonText || 'BUTTON'} &rarr;
-                      </span>
-                    </div>
-                  );
-                }
-                if (block.type === 'image') {
-                  return block.imageUrl ? (
-                    <div key={block.id || idx} className="my-5 text-center">
-                      <div className="border-2 border-black overflow-hidden inline-block w-full">
-                        <img src={block.imageUrl} alt={block.imageCaption || 'Studio image'} className="w-full h-auto object-cover" />
-                      </div>
-                      {block.imageCaption && (
-                        <div className="text-[10px] font-mono text-black/60 uppercase tracking-wider mt-1 font-bold">
-                          {block.imageCaption}
-                        </div>
-                      )}
-                    </div>
-                  ) : null;
-                }
-                return null;
-              })}
-
-              {/* Footer */}
-              <div className="text-center pt-4 border-t-2 border-black text-[10px] text-black/60 leading-relaxed font-bold">
-                <div className="text-black uppercase tracking-wider mb-0.5">
-                  Subqi Type Studio
-                </div>
-                <div>You are receiving this communication as a registered buyer or subscriber.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
 
       {/* TAB 2: CAMPAIGNS & MULTI-DAY QUEUE */}
       {activeTab === 'campaigns' && (
