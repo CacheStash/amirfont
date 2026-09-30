@@ -1240,7 +1240,7 @@ export default function BroadcastStudio() {
                 type="button"
                 onClick={() => handleSendBroadcast()}
                 disabled={sending || getTargetAudienceCount() === 0 || data.gas.allowedToday === 0}
-                className="w-full md:w-auto px-8 py-3 bg-black text-white text-xs uppercase font-black tracking-widest hover:bg-[#ff5c00] hover:text-black border-2 border-black shadow-[3px_3px_0px_#000000] transition-all disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full md:w-auto px-8 py-3 bg-black text-white text-xs uppercase font-black tracking-widest hover:bg-[#ff5c00] hover:text-black border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {sending ? (
                   <>
@@ -1309,7 +1309,7 @@ export default function BroadcastStudio() {
                         <button
                           onClick={() => handleSendBroadcast(camp.id)}
                           disabled={sending || !canContinue}
-                          className="px-5 py-2.5 bg-black text-white text-xs uppercase font-black tracking-wider hover:bg-[#ff5c00] hover:text-black border-2 border-black shadow-[3px_3px_0px_#000000] transition-all disabled:opacity-40 flex items-center gap-2 cursor-pointer self-start md:self-auto"
+                          className="px-5 py-2.5 bg-black text-white text-xs uppercase font-black tracking-wider hover:bg-[#ff5c00] hover:text-black border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-40 flex items-center gap-2 cursor-pointer self-start md:self-auto"
                         >
                           <Send size={12} />
                           Continue Next Batch ({Math.min(remaining, data.gas.allowedToday)} emails)
