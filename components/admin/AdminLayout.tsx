@@ -26,8 +26,14 @@ const AdminDashboard = () => {
   const [updatingSandbox, setUpdatingSandbox] = useState(false);
 
   useEffect(() => {
-    fetchUnreadCount();
-    fetchSiteSettings();
+    // Concurrent initial data loading for minimal dashboard latency
+    Promise.all([fetchUnreadCount(), fetchSiteSettings()]);
+
+    const handleSwitchTab = (e: any) => {
+      if (e.detail) setActiveTab(e.detail);
+    };
+    window.addEventListener('admin-switch-tab', handleSwitchTab);
+    return () => window.removeEventListener('admin-switch-tab', handleSwitchTab);
   }, []);
 
   const fetchSiteSettings = async () => {
@@ -54,8 +60,8 @@ const AdminDashboard = () => {
   const handleToggleMaintenance = async () => {
     const nextState = !isMaintenance;
     const confirmMsg = nextState 
-      ? 'Aktifkan MODE MAINTENANCE? Pengunjung umum tidak akan bisa membuka situs (hanya admin).'
-      : 'Matikan MODE MAINTENANCE? Situs akan kembali dapat diakses oleh publik.';
+      ? 'Enable MAINTENANCE MODE? Public visitors will not be able to access the site (admin only).'
+      : 'Disable MAINTENANCE MODE? The site will become publicly accessible again.';
     
     if (!window.confirm(confirmMsg)) return;
 
@@ -72,7 +78,7 @@ const AdminDashboard = () => {
       if (error) throw error;
       setIsMaintenance(nextState);
     } catch (err: any) {
-      alert('Gagal mengubah mode maintenance: ' + err.message);
+      alert('Failed to update maintenance mode: ' + err.message);
     } finally {
       setUpdatingMaintenance(false);
     }
@@ -81,8 +87,8 @@ const AdminDashboard = () => {
   const handleToggleSandbox = async () => {
     const nextState = !isSandbox;
     const confirmMsg = nextState 
-      ? 'Aktifkan PAYPAL SANDBOX MODE untuk testing transaksi?'
-      : 'Beralih ke PAYPAL LIVE MODE untuk menerima transaksi nyata?';
+      ? 'Enable PAYPAL SANDBOX MODE for testing transactions?'
+      : 'Switch to PAYPAL LIVE MODE to accept real customer transactions?';
     
     if (!window.confirm(confirmMsg)) return;
 
@@ -99,14 +105,16 @@ const AdminDashboard = () => {
       if (error) throw error;
       setIsSandbox(nextState);
     } catch (err: any) {
-      alert('Gagal mengubah mode PayPal: ' + err.message);
+      alert('Failed to update PayPal mode: ' + err.message);
     } finally {
       setUpdatingSandbox(false);
     }
   };
 
   const fetchUnreadCount = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    // Read local session directly to avoid redundant network round-trip of getUser()
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
 
     const { count } = await supabase
@@ -126,7 +134,7 @@ const AdminDashboard = () => {
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      alert("Gagal keluar: " + error.message);
+      alert("Failed to sign out: " + error.message);
     } else {
       window.location.href = '/login';
     }
@@ -242,7 +250,7 @@ const AdminDashboard = () => {
       {/* MAIN CONTENT */}
       <main className="flex-grow p-6 md:p-10 overflow-x-hidden overflow-y-auto w-full">
         {activeTab === 'products' && <ProductManager />}
-        {activeTab === 'promotions' && <PromotionsManager />}
+        {activeTab === 'promotions' && <PromotionsManager onNavigateTab={setActiveTab} />}
         {activeTab === 'content' && <ContentManager />}
         {activeTab === 'stats' && <Statistics />}
         {(activeTab === 'broadcast' || activeTab === 'inbox') && <BroadcastStudio />}

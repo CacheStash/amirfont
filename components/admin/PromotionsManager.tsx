@@ -3,7 +3,11 @@ import { createPortal } from 'react-dom';
 import { Plus, X, Loader2, Search, Send, Calculator, MailCheck, UserCheck } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
-const PromotionsManager: React.FC = () => {
+interface PromotionsManagerProps {
+  onNavigateTab?: (tab: string) => void;
+}
+
+const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) => {
   const [activeTab, setActiveTab] = useState<'campaigns' | 'coupons'>('coupons');
   const [promos, setPromos] = useState<any[]>([]);
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -356,11 +360,13 @@ const PromotionsManager: React.FC = () => {
           ) : (
             <div className="flex items-center gap-3">
               <button 
-                onClick={() => handleOpenSendModal()}
-                disabled={coupons.length === 0}
-                className="bg-[#FF5C00] text-black px-6 py-3 font-black uppercase text-xs flex items-center gap-2 border border-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none disabled:opacity-40"
+                onClick={() => {
+                  if (onNavigateTab) onNavigateTab('broadcast');
+                  else window.dispatchEvent(new CustomEvent('admin-switch-tab', { detail: 'broadcast' }));
+                }}
+                className="bg-[#FF5C00] text-black px-6 py-3 font-black uppercase text-xs flex items-center gap-2 border-2 border-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none cursor-pointer"
               >
-                <Send size={15} /> Send Coupon to Buyer
+                <Send size={15} /> Send in Broadcast Studio
               </button>
               <button 
                 onClick={() => setIsAddingCoupon(true)}
@@ -414,7 +420,29 @@ const PromotionsManager: React.FC = () => {
 
       {/* TAB 2: COUPONS LIST (BARGAIN DEALS) */}
       {activeTab === 'coupons' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-orange-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="font-black text-black uppercase tracking-wider block text-xs mb-1">
+                Visual Email Dispatch in Broadcast Studio
+              </span>
+              <span className="text-black/70 text-[11px] font-bold leading-relaxed">
+                Send personal negotiated discount vouchers to individual clients or customer segments with live email preview and price request calculator.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (onNavigateTab) onNavigateTab('broadcast');
+                else window.dispatchEvent(new CustomEvent('admin-switch-tab', { detail: 'broadcast' }));
+              }}
+              className="px-5 py-2.5 bg-black text-white text-[10px] uppercase font-black tracking-wider hover:bg-[#ff5c00] hover:text-black border-2 border-black transition-all whitespace-nowrap cursor-pointer shadow-[2px_2px_0px_#000000] self-start sm:self-auto"
+            >
+              Open in Broadcast Studio &rarr;
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {coupons.length === 0 ? (
             <div className="col-span-2 p-20 border-2 border-dashed border-gray-300 text-center text-gray-400 font-bold text-xs uppercase tracking-widest">
               No coupons generated yet.
@@ -451,7 +479,8 @@ const PromotionsManager: React.FC = () => {
             ))
           )}
         </div>
-      )}
+      </div>
+    )}
 
       {/* MODAL 1: GENERATOR KUPON & KALKULATOR TAWARAN (PORTAL) */}
       {isAddingCoupon && createPortal(
