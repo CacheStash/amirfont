@@ -138,7 +138,7 @@ const PRESETS = [
     subject: '[EVENT_NAME] Celebration: Up to [DISCOUNT]% Off Site-Wide',
     title: '[EVENT_NAME] SPECIAL SALE',
     subtitle: 'Store-Wide Price Reduction Across All Fonts',
-    bodyText: 'To celebrate [EVENT_NAME], we are offering a limited-time site-wide holiday promotion. All font licenses and family bundles are automatically discounted at checkout — no coupon code required.\n\nElevate your visual identity projects with our latest typographic specimens.',
+    bodyText: 'To celebrate [EVENT_NAME], we are offering a limited-time site-wide holiday promotion. All font licenses and family bundles are automatically discounted — no coupon code required.\n\nElevate your visual identity projects with our latest typographic specimens.',
     buttonText: 'EXPLORE [EVENT_NAME] DEALS',
     buttonUrl: 'https://subqi.com/fonts',
     couponCode: ''
@@ -432,7 +432,7 @@ export default function BroadcastStudio() {
     setSubject(`[${promo.name}] Celebration: Up to ${promo.discount_percent}% Off ${promo.type === 'global' ? 'Site-Wide' : 'Special Selection'}`);
     setHeadline(`${promo.name.toUpperCase()} SPECIAL SALE`);
     setSubtitle(`${promo.discount_percent}% Price Reduction • ${scopeText}`);
-    setBodyText(`To celebrate ${promo.name}, we are offering a limited-time ${promo.type === 'global' ? 'site-wide' : 'curated'} promotion. Font licenses ${promo.type === 'global' ? 'across our entire foundry catalog' : 'for selected specimens'} are automatically discounted by ${promo.discount_percent}% at checkout — no coupon code required.${urgency ? `\n\nThis promotional period ends on ${urgency}.` : ''}\n\nElevate your visual identity projects with our latest typographic specimens.`);
+    setBodyText(`To celebrate ${promo.name}, we are offering a limited-time ${promo.type === 'global' ? 'site-wide' : 'curated'} promotion. Font licenses ${promo.type === 'global' ? 'across our entire foundry catalog' : 'for selected specimens'} are automatically discounted by ${promo.discount_percent}% — no coupon code required.${urgency ? `\n\nThis promotional period ends on ${urgency}.` : ''}\n\nElevate your visual identity projects with our latest typographic specimens.`);
     setButtonText(`EXPLORE ${promo.name.toUpperCase()} DEALS`);
     setCampaignTitle(`Event Sale - ${promo.name}`);
 
@@ -530,7 +530,7 @@ export default function BroadcastStudio() {
     setSubject(`[${eventName}] Celebration: Up to ${disc}% Off Site-Wide`);
     setHeadline(`${eventName.toUpperCase()} SPECIAL SALE`);
     setSubtitle('Store-Wide Price Reduction Across All Fonts');
-    setBodyText(`To celebrate ${eventName}, we are offering a limited-time site-wide holiday promotion. All font licenses and family bundles are automatically discounted at checkout — no coupon code required.\n\nElevate your visual identity projects with our latest typographic specimens.`);
+    setBodyText(`To celebrate ${eventName}, we are offering a limited-time site-wide holiday promotion. All font licenses and family bundles are automatically discounted — no coupon code required.\n\nElevate your visual identity projects with our latest typographic specimens.`);
     setButtonText(`EXPLORE ${eventName.toUpperCase()} DEALS`);
   };
 
@@ -1621,20 +1621,22 @@ export default function BroadcastStudio() {
                     const pUrgency = block.promoEndDate ? `VALID UNTIL ${new Date(block.promoEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}` : '';
                     return (
                       <div key={block.id || idx} className="border-2 border-black bg-orange-50 p-6 text-center my-6 shadow-[4px_4px_0px_#000000]">
-                        <div className="text-[10px] uppercase tracking-[0.2em] font-black text-[#ff5c00] mb-1">
+                        <div className="inline-block bg-black text-white px-3 py-1 text-[10px] font-mono font-black uppercase tracking-[0.15em] mb-3">
                           {pName}
                         </div>
-                        <div className="font-sans font-black text-3xl text-black my-2">
-                          {pDiscount}
+                        <div>
+                          <div className="inline-block bg-[#ff5c00] text-black border-2 border-black shadow-[4px_4px_0px_#000000] px-6 py-2.5 font-sans font-black text-3xl sm:text-4xl tracking-tight leading-none">
+                            {pDiscount}
+                          </div>
                         </div>
-                        <div className="text-xs font-mono font-black uppercase tracking-wider text-black mb-1">
+                        <div className="text-xs font-mono font-black uppercase tracking-wider text-black mt-3.5 mb-1">
                           {pScope}
                         </div>
-                        <div className="text-[11px] font-mono font-bold text-gray-700 mt-1 uppercase">
-                          No coupon code required &bull; Discount automatically applied at checkout.
+                        <div className="text-[11px] font-mono font-black text-black/80 mt-1 uppercase tracking-wide">
+                          No coupon code required.
                         </div>
                         {pUrgency && (
-                          <div className="mt-2.5 text-[10px] font-mono font-black text-black bg-[#ffeedd] inline-block px-3 py-1 border-2 border-black">
+                          <div className="mt-3 text-[10px] font-mono font-black text-black bg-[#ffeedd] inline-block px-3 py-1 border-2 border-black shadow-[2px_2px_0px_#000000]">
                             ⏳ {pUrgency}
                           </div>
                         )}

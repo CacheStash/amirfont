@@ -523,12 +523,14 @@ function generateBroadcastEmailHtml({ preset, title, subtitle, bodyText, bannerU
         const promoScope = block.promoTarget === 'global' ? 'STORE-WIDE ON ALL TYPEFACES' : 'ON SELECTED TYPEFACES';
         const promoUrgency = block.promoEndDate ? `VALID UNTIL ${new Date(block.promoEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}` : '';
         return `
-          <div style="background-color: #ffffff; border: 3px dashed #000000; padding: 20px; margin: 24px 0; text-align: center;">
-            <div style="font-size: 11px; font-family: monospace; text-transform: uppercase; letter-spacing: 0.1em; color: #ff5c00; font-weight: 900; margin-bottom: 4px;">${promoName}</div>
-            <div style="font-size: 34px; font-weight: 900; color: #000000; font-family: sans-serif; margin: 6px 0;">${promoDiscount}</div>
-            <div style="font-size: 11px; font-family: monospace; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: #000000; margin-bottom: 6px;">${promoScope}</div>
-            <div style="font-size: 11px; font-family: monospace; font-weight: bold; color: #555555; margin-top: 6px;">NO COUPON CODE REQUIRED &bull; DISCOUNT APPLIED AUTOMATICALLY AT CHECKOUT</div>
-            ${promoUrgency ? `<div style="margin-top: 10px; font-size: 10px; font-family: monospace; font-weight: 900; color: #000000; background-color: #ffeedd; display: inline-block; padding: 4px 10px; border: 1px solid #000000;">⏳ ${promoUrgency}</div>` : ''}
+          <div style="background-color: #fffaf5; border: 2px solid #000000; box-shadow: 4px 4px 0px #000000; padding: 24px 20px; margin: 24px 0; text-align: center;">
+            <div style="display: inline-block; background-color: #000000; color: #ffffff; padding: 4px 12px; font-weight: 900; letter-spacing: 0.15em; font-family: monospace; font-size: 11px; text-transform: uppercase; margin-bottom: 12px;">${promoName}</div>
+            <div style="margin: 8px 0 12px 0;">
+              <div style="display: inline-block; background-color: #ff5c00; color: #000000; border: 3px solid #000000; box-shadow: 4px 4px 0px #000000; padding: 8px 24px; font-size: 38px; font-weight: 900; line-height: 1; font-family: sans-serif;">${promoDiscount}</div>
+            </div>
+            <div style="font-size: 12px; font-family: monospace; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: #000000; margin: 12px 0 4px 0;">${promoScope}</div>
+            <div style="font-size: 11px; font-family: monospace; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 6px;">NO COUPON CODE REQUIRED.</div>
+            ${promoUrgency ? `<div style="margin-top: 12px; font-size: 10px; font-family: monospace; font-weight: 900; color: #000000; background-color: #ffeedd; display: inline-block; padding: 4px 12px; border: 2px solid #000000;">⏳ ${promoUrgency}</div>` : ''}
           </div>
         `;
       }
