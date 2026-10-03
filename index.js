@@ -475,24 +475,26 @@ function generateBroadcastEmailHtml({ preset, title, subtitle, bodyText, bannerU
     </div>
   ` : '';
 
-  const blocksHtml = (Array.isArray(blocks) ? blocks : []).map(block => {
+  const isModular = Array.isArray(blocks) && blocks.length > 0;
+
+  const blocksHtml = (isModular ? blocks : []).map(block => {
     if (!block) return '';
     if (block.type === 'heading') {
       const hTitle = block.title || '';
       const hSub = block.subtitle || '';
       return `
-        <div style="margin: 32px 0 16px 0; text-align: center; border-top: 1px solid #e5e5e5; padding-top: 24px;">
-          <h2 style="font-size: 18px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; color: #000000; margin: 0 0 6px 0; line-height: 1.3;">
+        <div style="margin: 28px 0 16px 0; text-align: center;">
+          <h2 style="font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; color: #000000; margin: 0 0 6px 0; line-height: 1.3;">
             ${hTitle}
           </h2>
-          ${hSub ? `<div style="font-size: 12px; font-weight: 700; color: #ff5c00; text-transform: uppercase; letter-spacing: 0.05em;">${hSub}</div>` : ''}
+          ${hSub ? `<div style="font-size: 13px; font-weight: 700; color: #ff5c00; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px;">${hSub}</div>` : ''}
         </div>
       `;
     }
     if (block.type === 'text') {
       const formattedTxt = (block.text || '').replace(/\n/g, '<br/>');
       return `
-        <div style="font-size: 14px; color: #262626; line-height: 1.7; margin: 16px 0;">
+        <div style="font-size: 14px; color: #262626; line-height: 1.7; margin: 18px 0;">
           ${formattedTxt}
         </div>
       `;
@@ -500,8 +502,8 @@ function generateBroadcastEmailHtml({ preset, title, subtitle, bodyText, bannerU
     if (block.type === 'button') {
       if (!block.buttonText || !block.buttonUrl) return '';
       return `
-        <div style="text-align: center; margin: 24px 0 16px 0;">
-          <a href="${block.buttonUrl}" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: 900; font-size: 12px; text-decoration: none; padding: 12px 28px; border: 2px solid #000000; box-shadow: 4px 4px 0px #ff5c00; text-transform: uppercase; letter-spacing: 0.08em;">
+        <div style="text-align: center; margin: 26px 0 16px 0;">
+          <a href="${block.buttonUrl}" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: 900; font-size: 12px; text-decoration: none; padding: 14px 32px; border: 2px solid #000000; box-shadow: 4px 4px 0px #ff5c00; text-transform: uppercase; letter-spacing: 0.08em;">
             ${block.buttonText} →
           </a>
         </div>
@@ -573,26 +575,27 @@ function generateBroadcastEmailHtml({ preset, title, subtitle, bodyText, bannerU
             </td>
           </tr>
 
-          ${bannerHtml}
+          ${!isModular ? bannerHtml : ''}
 
           <!-- Content Body -->
           <tr>
             <td style="padding: 32px;">
-              <h1 style="font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; color: #000000; margin: 0 0 8px 0; text-align: center; line-height: 1.3;">
-                ${mainTitle}
-              </h1>
+              ${isModular ? blocksHtml : `
+                <h1 style="font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; color: #000000; margin: 0 0 8px 0; text-align: center; line-height: 1.3;">
+                  ${mainTitle}
+                </h1>
 
-              ${subtitle ? `
-              <div style="font-size: 13px; font-weight: 700; text-align: center; color: #ff5c00; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 24px;">
-                ${subtitle}
-              </div>` : '<div style="margin-bottom: 20px;"></div>'}
+                ${subtitle ? `
+                <div style="font-size: 13px; font-weight: 700; text-align: center; color: #ff5c00; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 24px;">
+                  ${subtitle}
+                </div>` : '<div style="margin-bottom: 20px;"></div>'}
 
-              <div style="font-size: 14px; color: #262626; line-height: 1.7; margin-bottom: 16px;">
-                ${formattedBody}
-              </div>
+                <div style="font-size: 14px; color: #262626; line-height: 1.7; margin-bottom: 16px;">
+                  ${formattedBody}
+                </div>
 
-              ${buttonHtml}
-              ${blocksHtml}
+                ${buttonHtml}
+              `}
             </td>
           </tr>
 

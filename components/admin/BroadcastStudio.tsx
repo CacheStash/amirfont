@@ -156,6 +156,207 @@ const PRESETS = [
   }
 ];
 
+export const getDefaultPresetBlocks = (
+  presetId: string,
+  fontName = '',
+  buyerName = '',
+  eventName = '',
+  discount = ''
+): BroadcastBlock[] => {
+  const fName = fontName || '[FONT_NAME]';
+  const bName = buyerName || '[BUYER_NAME]';
+  const eName = eventName || '[EVENT_NAME]';
+  const disc = discount || '25';
+
+  switch (presetId) {
+    case 'new_release':
+      return [
+        {
+          id: `blk_head_${Date.now()}_1`,
+          type: 'heading',
+          title: `NEW TYPEFACE RELEASE: ${fName}`,
+          subtitle: 'Contemporary Display & Editorial Typeface System'
+        },
+        {
+          id: `blk_text_${Date.now()}_2`,
+          type: 'text',
+          text: `We are excited to introduce our latest typeface release, ${fName}. Crafted with precision geometry, extensive OpenType features, expressive stylistic alternates, and variable axes ready for high-impact visual identity projects.`
+        },
+        {
+          id: `blk_btn_${Date.now()}_3`,
+          type: 'button',
+          buttonText: 'TEST & BUY LICENSE',
+          buttonUrl: 'https://subqi.com/fonts'
+        }
+      ];
+
+    case 'update_typeface':
+      return [
+        {
+          id: `blk_head_${Date.now()}_1`,
+          type: 'heading',
+          title: `TYPEFACE UPDATE: ${fName}`,
+          subtitle: 'Expanded Glyph Set, Kerning Refinements & Bug Fixes'
+        },
+        {
+          id: `blk_text_${Date.now()}_2`,
+          type: 'text',
+          text: `We have released an important update for ${fName}. This update includes refined kerning pairs, expanded language support, new stylistic ligatures, and structural outline optimizations for enhanced display rendering.`
+        },
+        {
+          id: `blk_btn_${Date.now()}_3`,
+          type: 'button',
+          buttonText: 'EXPLORE UPDATE',
+          buttonUrl: 'https://subqi.com/fonts'
+        }
+      ];
+
+    case 'new_feature':
+      return [
+        {
+          id: `blk_head_${Date.now()}_1`,
+          type: 'heading',
+          title: 'INTRODUCING FONTCANVAS',
+          subtitle: 'Real-Time Typographic Layout & Composition Suite'
+        },
+        {
+          id: `blk_text_${Date.now()}_2`,
+          type: 'text',
+          text: 'Explore, compose, and test fonts in a live interactive design workspace. FontCanvas brings advanced vector manipulation, chromatic layer stacking, and high-res asset generation directly to your browser.'
+        },
+        {
+          id: `blk_btn_${Date.now()}_3`,
+          type: 'button',
+          buttonText: 'LAUNCH FONTCANVAS',
+          buttonUrl: 'https://subqi.com/canvas'
+        }
+      ];
+
+    case 'maintenance':
+      return [
+        {
+          id: `blk_head_${Date.now()}_1`,
+          type: 'heading',
+          title: 'SCHEDULED MAINTENANCE NOTICE',
+          subtitle: 'Edge Network & Delivery Upgrades'
+        },
+        {
+          id: `blk_text_${Date.now()}_2`,
+          type: 'text',
+          text: 'Subqi digital storefront and licensing endpoints will undergo brief scheduled maintenance to optimize edge caching and global font delivery performance. Services will resume shortly.'
+        },
+        {
+          id: `blk_btn_${Date.now()}_3`,
+          type: 'button',
+          buttonText: 'CHECK STATUS',
+          buttonUrl: 'https://subqi.com'
+        }
+      ];
+
+    case 'back_live':
+      return [
+        {
+          id: `blk_head_${Date.now()}_1`,
+          type: 'heading',
+          title: 'WE ARE BACK ONLINE',
+          subtitle: 'System Upgrades Successfully Deployed'
+        },
+        {
+          id: `blk_text_${Date.now()}_2`,
+          type: 'text',
+          text: 'Our scheduled infrastructure upgrades are complete. All services, type testers, downloads, and FontCanvas are live with maximum edge speed worldwide. Thank you for your patience.'
+        },
+        {
+          id: `blk_btn_${Date.now()}_3`,
+          type: 'button',
+          buttonText: 'EXPLORE FOUNDRY',
+          buttonUrl: 'https://subqi.com/fonts'
+        }
+      ];
+
+    case 'new_coupon':
+      return [
+        {
+          id: `blk_head_${Date.now()}_1`,
+          type: 'heading',
+          title: 'EXCLUSIVE CLIENT PRIVILEGE',
+          subtitle: 'Private Typographic License Voucher'
+        },
+        {
+          id: `blk_text_${Date.now()}_2`,
+          type: 'text',
+          text: `Dear ${bName},\n\nThank you for your interest in our typeface library. As negotiated, we are pleased to grant you an exclusive ${disc}% discount privilege on your upcoming font licensing purchase.\n\nPlease apply your personal voucher code at checkout to claim this special rate.`
+        },
+        {
+          id: `blk_coup_${Date.now()}_3`,
+          type: 'coupon',
+          dealKind: 'coupon',
+          couponCode: 'VIP25OFF',
+          couponDiscount: parseFloat(disc) || 25,
+          couponUrgencyText: '⏳ Limited Time Exclusive • 1 Use Only'
+        },
+        {
+          id: `blk_btn_${Date.now()}_4`,
+          type: 'button',
+          buttonText: 'CLAIM PRIVILEGE & BROWSE FONTS',
+          buttonUrl: 'https://subqi.com/fonts'
+        }
+      ];
+
+    case 'new_promotion':
+      return [
+        {
+          id: `blk_head_${Date.now()}_1`,
+          type: 'heading',
+          title: `${(eName || 'SEASONAL').toUpperCase()} SPECIAL SALE`,
+          subtitle: 'Store-Wide Price Reduction Across All Fonts'
+        },
+        {
+          id: `blk_text_${Date.now()}_2`,
+          type: 'text',
+          text: `To celebrate ${eName || 'the season'}, we are offering a limited-time site-wide holiday promotion. All font licenses and family bundles are automatically discounted — no coupon code required.\n\nElevate your visual identity projects with our latest typographic specimens.`
+        },
+        {
+          id: `blk_coup_${Date.now()}_3`,
+          type: 'coupon',
+          dealKind: 'promotion',
+          promoName: eName || 'Seasonal Promotion',
+          promoDiscount: parseFloat(disc) || 30,
+          promoTarget: 'global',
+          couponCode: ''
+        },
+        {
+          id: `blk_btn_${Date.now()}_4`,
+          type: 'button',
+          buttonText: `EXPLORE ${(eName || 'SALE').toUpperCase()} DEALS`,
+          buttonUrl: 'https://subqi.com/fonts'
+        }
+      ];
+
+    case 'custom':
+    default:
+      return [
+        {
+          id: `blk_head_${Date.now()}_1`,
+          type: 'heading',
+          title: 'FOUNDRY ANNOUNCEMENT',
+          subtitle: 'News, Design Notes & Exclusive Privileges'
+        },
+        {
+          id: `blk_text_${Date.now()}_2`,
+          type: 'text',
+          text: 'Hello,\n\nHere are the latest design developments, catalog additions, and curated typographic insights from Subqi Studio.'
+        },
+        {
+          id: `blk_btn_${Date.now()}_3`,
+          type: 'button',
+          buttonText: 'VIEW CATALOG',
+          buttonUrl: 'https://subqi.com'
+        }
+      ];
+  }
+};
+
 export default function BroadcastStudio() {
   const [activeTab, setActiveTab] = useState<'compose' | 'campaigns' | 'logs'>('compose');
   const [loading, setLoading] = useState(true);
@@ -175,13 +376,6 @@ export default function BroadcastStudio() {
   const [audience, setAudience] = useState<'all' | 'buyers' | 'subscribers'>('all');
   const [campaignTitle, setCampaignTitle] = useState('');
   const [subject, setSubject] = useState(PRESETS[0].subject);
-  const [headline, setHeadline] = useState(PRESETS[0].title);
-  const [subtitle, setSubtitle] = useState(PRESETS[0].subtitle);
-  const [bodyText, setBodyText] = useState(PRESETS[0].bodyText);
-  const [bannerUrl, setBannerUrl] = useState('');
-  const [buttonText, setButtonText] = useState(PRESETS[0].buttonText);
-  const [buttonUrl, setButtonUrl] = useState(PRESETS[0].buttonUrl);
-  const [couponCode, setCouponCode] = useState('');
 
   // Search & Filter
   const [logSearch, setLogSearch] = useState('');
@@ -224,10 +418,6 @@ export default function BroadcastStudio() {
   const [newPromoEndDate, setNewPromoEndDate] = useState('');
   const [isSavingNewPromo, setIsSavingNewPromo] = useState(false);
 
-  // Banner Upload & Google Drive Auto-Converter State
-  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
-  const [isDraggingBanner, setIsDraggingBanner] = useState(false);
-
   // Helper to generate promotional urgency text
   const computeUrgencyText = (c: any) => {
     const parts: string[] = [];
@@ -245,12 +435,12 @@ export default function BroadcastStudio() {
     return parts.length > 0 ? parts.join(' • ') : '⏳ Limited Availability • Claim at Checkout';
   };
 
-  // Email Builder: Modular Content Blocks
-  const [blocks, setBlocks] = useState<BroadcastBlock[]>([]);
+  // Email Builder: 100% Modular Content Blocks Initialized from Preset
+  const [blocks, setBlocks] = useState<BroadcastBlock[]>(() => getDefaultPresetBlocks('new_release'));
 
   const addBlock = (type: 'heading' | 'text' | 'button' | 'image' | 'coupon') => {
-    let initialCouponCode = couponCode || 'SUBQIVIP20';
-    let initialDiscount = 20;
+    let initialCouponCode = 'VIP25OFF';
+    let initialDiscount = 25;
     let initialEndDate: string | undefined = undefined;
     let initialMaxUses: number | undefined = 1;
     let initialUrgency = '⏳ Limited Time Promotion • Apply at Checkout';
@@ -258,7 +448,7 @@ export default function BroadcastStudio() {
     if (type === 'coupon' && dbCoupons.length > 0) {
       const topCoupon = dbCoupons[0];
       initialCouponCode = topCoupon.code;
-      initialDiscount = topCoupon.discount_value || 20;
+      initialDiscount = topCoupon.discount_value || 25;
       initialEndDate = topCoupon.end_date;
       initialMaxUses = topCoupon.max_uses;
       initialUrgency = computeUrgencyText(topCoupon);
@@ -269,20 +459,18 @@ export default function BroadcastStudio() {
       type,
       title: type === 'heading' ? 'NEW SECTION HEADING' : undefined,
       subtitle: type === 'heading' ? 'Section Subtitle' : undefined,
-      text: type === 'text' ? 'Write additional announcement or details here...' : undefined,
-      buttonText: type === 'button' ? 'LEARN MORE' : undefined,
+      text: type === 'text' ? 'Write announcement or message here...' : undefined,
+      buttonText: type === 'button' ? 'EXPLORE CATALOG' : undefined,
       buttonUrl: type === 'button' ? 'https://subqi.com' : undefined,
       imageUrl: type === 'image' ? '' : undefined,
       imageCaption: type === 'image' ? '' : undefined,
+      dealKind: type === 'coupon' ? 'coupon' : undefined,
       couponCode: type === 'coupon' ? initialCouponCode : undefined,
       couponDiscount: type === 'coupon' ? initialDiscount : undefined,
       couponEndDate: type === 'coupon' ? initialEndDate : undefined,
       couponMaxUses: type === 'coupon' ? initialMaxUses : undefined,
       couponUrgencyText: type === 'coupon' ? initialUrgency : undefined,
     };
-    if (type === 'coupon') {
-      setCouponCode(initialCouponCode);
-    }
     setBlocks(prev => [...prev, newBlock]);
   };
 
@@ -315,13 +503,13 @@ export default function BroadcastStudio() {
 
       const urgency = computeUrgencyText(payload);
       updateBlock(blockId, {
+        dealKind: 'coupon',
         couponCode: codeUpper,
         couponDiscount: discNum,
         couponEndDate: newCouponEndDate,
         couponMaxUses: usesNum,
         couponUrgencyText: urgency
       });
-      setCouponCode(codeUpper);
       setIsAddingNewCoupon(null);
       setNewCouponCode('');
       setNewCouponDiscount('20');
@@ -364,15 +552,13 @@ export default function BroadcastStudio() {
         const { data: updatedCoupons } = await supabase.from('coupons').select('*').order('created_at', { ascending: false });
         if (updatedCoupons) setDbCoupons(updatedCoupons);
 
-        setCouponCode(suggestedCode);
         setSubject(prev => prev.replace(/\[DISCOUNT\]/g, `${percent}`).replace(/\[COUPON_CODE\]/g, suggestedCode));
-        setHeadline(prev => prev.replace(/\[DISCOUNT\]/g, `${percent}`));
-        setBodyText(prev => prev.replace(/\[DISCOUNT\]/g, `${percent}`));
 
         // Update or add coupon block
         const existingCouponBlock = blocks.find(b => b.type === 'coupon');
         if (existingCouponBlock) {
           updateBlock(existingCouponBlock.id, {
+            dealKind: 'coupon',
             couponCode: suggestedCode,
             couponDiscount: percent,
             couponEndDate: defaultEndDate,
@@ -383,6 +569,7 @@ export default function BroadcastStudio() {
           setBlocks(prev => [...prev, {
             id: `blk_deal_${Date.now()}`,
             type: 'coupon',
+            dealKind: 'coupon',
             couponCode: suggestedCode,
             couponDiscount: percent,
             couponEndDate: defaultEndDate,
@@ -405,8 +592,23 @@ export default function BroadcastStudio() {
     setShowBuyerSuggestions(false);
 
     setSubject(prev => prev.replace(/\[BUYER_NAME\]/g, name));
-    setHeadline(prev => prev.replace(/\[BUYER_NAME\]/g, name));
-    setBodyText(prev => prev.replace(/\[BUYER_NAME\]/g, name));
+    setCampaignTitle(`Private Deal - ${name}`);
+
+    // Update tokens in blocks
+    setBlocks(prev => prev.map(b => {
+      const replacer = (val?: string) => {
+        if (!val) return val;
+        if (val.includes('[BUYER_NAME]')) return val.replace(/\[BUYER_NAME\]/g, name);
+        if (selectedBuyerName && val.includes(selectedBuyerName)) return val.split(selectedBuyerName).join(name);
+        return val;
+      };
+      return {
+        ...b,
+        title: replacer(b.title),
+        subtitle: replacer(b.subtitle),
+        text: replacer(b.text)
+      };
+    }));
   };
 
   const fetchPromotions = async () => {
@@ -430,37 +632,56 @@ export default function BroadcastStudio() {
     const urgency = promo.end_date ? `Valid until ${new Date(promo.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : '';
 
     setSubject(`[${promo.name}] Celebration: Up to ${promo.discount_percent}% Off ${promo.type === 'global' ? 'Site-Wide' : 'Special Selection'}`);
-    setHeadline(`${promo.name.toUpperCase()} SPECIAL SALE`);
-    setSubtitle(`${promo.discount_percent}% Price Reduction • ${scopeText}`);
-    setBodyText(`To celebrate ${promo.name}, we are offering a limited-time ${promo.type === 'global' ? 'site-wide' : 'curated'} promotion. Font licenses ${promo.type === 'global' ? 'across our entire foundry catalog' : 'for selected specimens'} are automatically discounted by ${promo.discount_percent}% — no coupon code required.${urgency ? `\n\nThis promotional period ends on ${urgency}.` : ''}\n\nElevate your visual identity projects with our latest typographic specimens.`);
-    setButtonText(`EXPLORE ${promo.name.toUpperCase()} DEALS`);
     setCampaignTitle(`Event Sale - ${promo.name}`);
 
-    // Automatically update or create promotion block in blocks
-    const existingPromoBlock = blocks.find(b => b.type === 'coupon');
-    if (existingPromoBlock) {
-      updateBlock(existingPromoBlock.id, {
-        dealKind: 'promotion',
-        promoId: promo.id,
-        promoName: promo.name,
-        promoDiscount: promo.discount_percent,
-        promoEndDate: promo.end_date,
-        promoTarget: promo.type,
-        couponCode: ''
+    const promoHead = `${promo.name.toUpperCase()} SPECIAL SALE`;
+    const promoSub = `${promo.discount_percent}% Price Reduction • ${scopeText}`;
+    const promoBody = `To celebrate ${promo.name}, we are offering a limited-time ${promo.type === 'global' ? 'site-wide' : 'curated'} promotion. Font licenses ${promo.type === 'global' ? 'across our entire foundry catalog' : 'for selected specimens'} are automatically discounted by ${promo.discount_percent}% — no coupon code required.${urgency ? `\n\nThis promotional period ends on ${urgency}.` : ''}\n\nElevate your visual identity projects with our latest typographic specimens.`;
+    const promoBtn = `EXPLORE ${promo.name.toUpperCase()} DEALS`;
+
+    // Automatically update blocks
+    setBlocks(prev => {
+      const hasCoupon = prev.some(b => b.type === 'coupon');
+      const updated = prev.map(b => {
+        if (b.type === 'heading') {
+          return { ...b, title: promoHead, subtitle: promoSub };
+        }
+        if (b.type === 'text') {
+          return { ...b, text: promoBody };
+        }
+        if (b.type === 'button') {
+          return { ...b, buttonText: promoBtn };
+        }
+        if (b.type === 'coupon') {
+          return {
+            ...b,
+            dealKind: 'promotion' as const,
+            promoId: promo.id,
+            promoName: promo.name,
+            promoDiscount: promo.discount_percent,
+            promoEndDate: promo.end_date,
+            promoTarget: promo.type,
+            couponCode: ''
+          };
+        }
+        return b;
       });
-    } else {
-      setBlocks(prev => [...prev, {
-        id: `blk_promo_${Date.now()}`,
-        type: 'coupon',
-        dealKind: 'promotion',
-        promoId: promo.id,
-        promoName: promo.name,
-        promoDiscount: promo.discount_percent,
-        promoEndDate: promo.end_date,
-        promoTarget: promo.type,
-        couponCode: ''
-      }]);
-    }
+
+      if (!hasCoupon) {
+        updated.push({
+          id: `blk_promo_${Date.now()}`,
+          type: 'coupon',
+          dealKind: 'promotion',
+          promoId: promo.id,
+          promoName: promo.name,
+          promoDiscount: promo.discount_percent,
+          promoEndDate: promo.end_date,
+          promoTarget: promo.type,
+          couponCode: ''
+        });
+      }
+      return updated;
+    });
   };
 
   const handleCreateNewPromotion = async (linkToBlockId?: string) => {
@@ -528,10 +749,37 @@ export default function BroadcastStudio() {
     setSelectedPromoId('');
     const disc = promoDiscountPercent || '30';
     setSubject(`[${eventName}] Celebration: Up to ${disc}% Off Site-Wide`);
-    setHeadline(`${eventName.toUpperCase()} SPECIAL SALE`);
-    setSubtitle('Store-Wide Price Reduction Across All Fonts');
-    setBodyText(`To celebrate ${eventName}, we are offering a limited-time site-wide holiday promotion. All font licenses and family bundles are automatically discounted — no coupon code required.\n\nElevate your visual identity projects with our latest typographic specimens.`);
-    setButtonText(`EXPLORE ${eventName.toUpperCase()} DEALS`);
+    setCampaignTitle(`Event Sale - ${eventName}`);
+
+    setBlocks(prev => prev.map(b => {
+      if (b.type === 'heading') {
+        return {
+          ...b,
+          title: `${eventName.toUpperCase()} SPECIAL SALE`,
+          subtitle: 'Store-Wide Price Reduction Across All Fonts'
+        };
+      }
+      if (b.type === 'text') {
+        return {
+          ...b,
+          text: `To celebrate ${eventName}, we are offering a limited-time site-wide holiday promotion. All font licenses and family bundles are automatically discounted — no coupon code required.\n\nElevate your visual identity projects with our latest typographic specimens.`
+        };
+      }
+      if (b.type === 'button') {
+        return {
+          ...b,
+          buttonText: `EXPLORE ${eventName.toUpperCase()} DEALS`
+        };
+      }
+      if (b.type === 'coupon' && b.dealKind === 'promotion') {
+        return {
+          ...b,
+          promoName: eventName,
+          promoDiscount: parseFloat(disc) || 30
+        };
+      }
+      return b;
+    }));
   };
 
   const filteredBuyers = buyersList.filter(b => {
@@ -576,17 +824,11 @@ export default function BroadcastStudio() {
     return trimmed;
   };
 
-  const handleBannerUrlChange = (val: string) => {
-    const converted = convertDriveUrl(val);
-    setBannerUrl(converted);
-  };
-
-  const handleBannerUpload = async (file: File) => {
+  const handleBlockImageUpload = async (blockId: string, file: File) => {
     if (!file.type.startsWith('image/')) {
       alert('Please select a valid image file (PNG, JPG, WEBP, SVG).');
       return;
     }
-    setIsUploadingBanner(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Session expired. Please log in again.');
@@ -610,12 +852,10 @@ export default function BroadcastStudio() {
       }
 
       const publicUrl = `${window.location.origin}/api/images/${uniqueFileName}`;
-      setBannerUrl(publicUrl);
+      updateBlock(blockId, { imageUrl: publicUrl });
     } catch (err: any) {
-      console.error('Banner upload error:', err);
+      console.error('Image upload error:', err);
       alert('Failed to upload image: ' + err.message);
-    } finally {
-      setIsUploadingBanner(false);
     }
   };
 
@@ -730,9 +970,23 @@ export default function BroadcastStudio() {
     };
 
     setSubject(prev => replaceToken(prev, currentPresetObj.subject));
-    setHeadline(prev => replaceToken(prev, currentPresetObj.title));
-    setSubtitle(prev => replaceToken(prev, currentPresetObj.subtitle));
-    setBodyText(prev => replaceToken(prev, currentPresetObj.bodyText));
+
+    // Update tokens across blocks
+    setBlocks(prev => prev.map(b => {
+      const replacer = (val?: string) => {
+        if (!val) return val;
+        if (val.includes('[FONT_NAME]')) return val.replace(/\[FONT_NAME\]/g, fontName);
+        if (selectedFontName && val.includes(selectedFontName)) return val.split(selectedFontName).join(fontName);
+        return val;
+      };
+      return {
+        ...b,
+        title: replacer(b.title),
+        subtitle: replacer(b.subtitle),
+        text: replacer(b.text),
+        buttonText: replacer(b.buttonText)
+      };
+    }));
   };
 
   const handleApplyPreset = (presetId: string) => {
@@ -746,59 +1000,64 @@ export default function BroadcastStudio() {
     const isPromoPreset = presetId === 'new_promotion';
 
     let subj = p.subject;
-    let head = p.title;
-    let subt = p.subtitle;
-    let body = p.bodyText;
 
     if ((isRelease || isUpdate) && selectedFontName) {
       subj = subj.replace(/\[FONT_NAME\]/g, selectedFontName);
-      head = head.replace(/\[FONT_NAME\]/g, selectedFontName);
-      subt = subt.replace(/\[FONT_NAME\]/g, selectedFontName);
-      body = body.replace(/\[FONT_NAME\]/g, selectedFontName);
       setCampaignTitle(isRelease ? `${selectedFontName} - Release` : `${selectedFontName} - Update`);
     } else if (isRelease || isUpdate) {
       setCampaignTitle('');
     } else if (isCouponPreset) {
       const bName = selectedBuyerName || 'Client';
       subj = subj.replace(/\[BUYER_NAME\]/g, bName).replace(/\[DISCOUNT\]/g, '25');
-      head = head.replace(/\[BUYER_NAME\]/g, bName).replace(/\[DISCOUNT\]/g, '25');
-      body = body.replace(/\[BUYER_NAME\]/g, bName).replace(/\[DISCOUNT\]/g, '25');
       setCampaignTitle(`Private Deal - ${bName}`);
       setTargetMode('single');
-
-      // Auto ensure a coupon block exists in blocks
-      if (!blocks.some(b => b.type === 'coupon')) {
-        const topCoupon = dbCoupons[0];
-        const newBlk: BroadcastBlock = {
-          id: `blk_coupon_${Date.now()}`,
-          type: 'coupon',
-          couponCode: topCoupon ? topCoupon.code : 'VIP25OFF',
-          couponDiscount: topCoupon ? topCoupon.discount_value : 25,
-          couponEndDate: topCoupon ? topCoupon.end_date : undefined,
-          couponMaxUses: topCoupon ? topCoupon.max_uses : 1,
-          couponUrgencyText: topCoupon ? computeUrgencyText(topCoupon) : '⏳ Limited Time Exclusive • 1 Use Only'
-        };
-        setBlocks(prev => [...prev, newBlk]);
-        setCouponCode(newBlk.couponCode || 'VIP25OFF');
-      }
     } else if (isPromoPreset) {
       const evt = selectedEventName || 'Eid Mubarak';
       const disc = promoDiscountPercent || '30';
       subj = subj.replace(/\[EVENT_NAME\]/g, evt).replace(/\[DISCOUNT\]/g, disc);
-      head = head.replace(/\[EVENT_NAME\]/g, evt).replace(/\[DISCOUNT\]/g, disc);
-      subt = subt.replace(/\[EVENT_NAME\]/g, evt);
-      body = body.replace(/\[EVENT_NAME\]/g, evt);
       setCampaignTitle(`Event Sale - ${evt}`);
-      setButtonText(`EXPLORE ${evt.toUpperCase()} DEALS`);
     }
 
     setSubject(subj);
-    setHeadline(head);
-    setSubtitle(subt);
-    setBodyText(body);
-    setButtonText(p.buttonText);
-    setButtonUrl(p.buttonUrl);
-    setCouponCode(p.couponCode);
+
+    // Populate modular blocks from preset
+    const presetBlocks = getDefaultPresetBlocks(
+      presetId,
+      selectedFontName,
+      selectedBuyerName || 'Client',
+      selectedEventName,
+      isCouponPreset ? '25' : promoDiscountPercent
+    );
+
+    // If new_coupon and DB coupons exist, attach first DB coupon
+    if (isCouponPreset && dbCoupons.length > 0) {
+      const topCoupon = dbCoupons[0];
+      const couponBlock = presetBlocks.find(b => b.type === 'coupon');
+      if (couponBlock) {
+        couponBlock.couponCode = topCoupon.code;
+        couponBlock.couponDiscount = topCoupon.discount_value;
+        couponBlock.couponEndDate = topCoupon.end_date;
+        couponBlock.couponMaxUses = topCoupon.max_uses;
+        couponBlock.couponUrgencyText = computeUrgencyText(topCoupon);
+      }
+    }
+
+    // If new_promotion and DB promotions exist, attach selected or first DB promo
+    if (isPromoPreset && dbPromotions.length > 0) {
+      const promoToUse = dbPromotions.find(p => p.id === selectedPromoId) || dbPromotions[0];
+      const promoBlock = presetBlocks.find(b => b.type === 'coupon');
+      if (promoBlock && promoToUse) {
+        promoBlock.dealKind = 'promotion';
+        promoBlock.promoId = promoToUse.id;
+        promoBlock.promoName = promoToUse.name;
+        promoBlock.promoDiscount = promoToUse.discount_percent;
+        promoBlock.promoEndDate = promoToUse.end_date;
+        promoBlock.promoTarget = promoToUse.type;
+        promoBlock.couponCode = '';
+      }
+    }
+
+    setBlocks(presetBlocks);
   };
 
   const getTargetAudienceCount = () => {
@@ -840,6 +1099,12 @@ export default function BroadcastStudio() {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
+      const firstHeading = blocks.find(b => b.type === 'heading');
+      const firstText = blocks.find(b => b.type === 'text');
+      const firstBtn = blocks.find(b => b.type === 'button');
+      const firstImg = blocks.find(b => b.type === 'image');
+      const firstCoupon = blocks.find(b => b.type === 'coupon' && b.dealKind !== 'promotion');
+
       const res = await fetch('/api/admin/broadcast-send', {
         method: 'POST',
         headers: {
@@ -848,20 +1113,20 @@ export default function BroadcastStudio() {
         },
         body: JSON.stringify({
           campaignId: campId,
-          campaignTitle: campaignTitle || headline || subject,
+          campaignTitle: campaignTitle || firstHeading?.title || subject,
           audience: isSingleMode ? 'single' : audience,
           recipientEmail: isSingleMode ? selectedBuyerEmail : undefined,
           recipientName: isSingleMode ? selectedBuyerName : undefined,
           subject,
           preset: selectedPreset,
           templateData: {
-            title: headline,
-            subtitle,
-            bodyText,
-            bannerUrl,
-            buttonText,
-            buttonUrl,
-            couponCode,
+            title: firstHeading?.title || subject,
+            subtitle: firstHeading?.subtitle || '',
+            bodyText: firstText?.text || '',
+            bannerUrl: firstImg?.imageUrl || '',
+            buttonText: firstBtn?.buttonText || '',
+            buttonUrl: firstBtn?.buttonUrl || '',
+            couponCode: firstCoupon?.couponCode || '',
             blocks
           }
         })
@@ -1216,10 +1481,18 @@ export default function BroadcastStudio() {
                         type="text"
                         value={selectedBuyerName}
                         onChange={(e) => {
-                          setSelectedBuyerName(e.target.value);
-                          setSubject(prev => prev.replace(/\[BUYER_NAME\]/g, e.target.value));
-                          setHeadline(prev => prev.replace(/\[BUYER_NAME\]/g, e.target.value));
-                          setBodyText(prev => prev.replace(/\[BUYER_NAME\]/g, e.target.value));
+                          const val = e.target.value;
+                          setSelectedBuyerName(val);
+                          setSubject(prev => prev.replace(/\[BUYER_NAME\]/g, val));
+                          setBlocks(prev => prev.map(b => {
+                            const replacer = (s?: string) => s ? s.replace(/\[BUYER_NAME\]/g, val) : s;
+                            return {
+                              ...b,
+                              title: replacer(b.title),
+                              subtitle: replacer(b.subtitle),
+                              text: replacer(b.text)
+                            };
+                          }));
                         }}
                         placeholder="Recipient Name (e.g. Alex Studio)"
                         className="w-full sm:w-56 border-2 border-black p-2.5 text-xs bg-white outline-none font-bold"
@@ -1563,145 +1836,125 @@ export default function BroadcastStudio() {
                 </div>
               </div>
 
-              {/* Banner Image */}
-              {bannerUrl && (
-                <div className="mb-5 border-2 border-black overflow-hidden">
-                  <img src={bannerUrl} alt="Banner" className="w-full h-auto object-cover" />
+              {/* Modular Blocks Preview (Stacked in Exact Order) */}
+              {blocks.length === 0 ? (
+                <div className="text-center py-8 text-xs font-mono text-gray-400">
+                  No content sections added yet. Add sections in the builder below.
                 </div>
-              )}
-
-              {/* Title & Subtitle */}
-              <div className="text-center mb-5">
-                <h2 className="font-sans font-black text-xl uppercase tracking-tight leading-tight">
-                  {headline || "MAIN HEADLINE"}
-                </h2>
-                {subtitle && (
-                  <p className="text-xs font-bold text-[#ff5c00] uppercase tracking-wider mt-1">
-                    {subtitle}
-                  </p>
-                )}
-              </div>
-
-              {/* Body */}
-              <div className="text-xs leading-relaxed text-black/80 whitespace-pre-line mb-6 font-sans">
-                {bodyText || "Your broadcast announcement will appear here with clean contemporary styling."}
-              </div>
-
-              {/* CTA Button */}
-              {buttonText && (
-                <div className="text-center my-6">
-                  <span className="inline-block bg-black text-white text-[11px] font-black uppercase tracking-[0.1em] px-6 py-3 border-2 border-black shadow-[3px_3px_0px_#ff5c00]">
-                    {buttonText} &rarr;
-                  </span>
-                </div>
-              )}
-
-              {/* Additional Modular Blocks Preview */}
-              {blocks.map((block, idx) => {
-                if (block.type === 'coupon') {
-                  if (block.dealKind === 'promotion') {
-                    const pName = block.promoName || selectedEventName || 'FOUNDRY PROMOTION EVENT';
-                    const pDiscount = block.promoDiscount ? `${block.promoDiscount}% OFF` : `${promoDiscountPercent}% OFF`;
-                    const pScope = block.promoTarget === 'bundle' ? 'ON SELECTED CONTEMPORARY TYPEFACES' : 'STORE-WIDE ON ALL TYPEFACES';
-                    const pUrgency = block.promoEndDate ? `VALID UNTIL ${new Date(block.promoEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}` : '';
+              ) : (
+                blocks.map((block, idx) => {
+                  if (block.type === 'heading') {
                     return (
-                      <div key={block.id || idx} className="border-2 border-black bg-orange-50 p-6 text-center my-6 shadow-[4px_4px_0px_#000000]">
-                        <div className="inline-block bg-black text-white px-3 py-1 text-[10px] font-mono font-black uppercase tracking-[0.15em] mb-3">
-                          {pName}
+                      <div key={block.id || idx} className="text-center my-6">
+                        <h2 className="font-sans font-black text-xl uppercase tracking-tight leading-tight">
+                          {block.title || "SECTION HEADING"}
+                        </h2>
+                        {block.subtitle && (
+                          <p className="text-xs font-bold text-[#ff5c00] uppercase tracking-wider mt-1.5">
+                            {block.subtitle}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  if (block.type === 'text') {
+                    return (
+                      <div key={block.id || idx} className="text-xs sm:text-sm leading-relaxed text-black/80 whitespace-pre-line my-4 font-sans">
+                        {block.text || "Your announcement text will appear here."}
+                      </div>
+                    );
+                  }
+
+                  if (block.type === 'button') {
+                    return (
+                      <div key={block.id || idx} className="text-center my-6">
+                        <span className="inline-block bg-black text-white text-[11px] font-black uppercase tracking-[0.1em] px-6 py-3 border-2 border-black shadow-[3px_3px_0px_#ff5c00]">
+                          {block.buttonText || "TEST & BUY LICENSE"} &rarr;
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  if (block.type === 'image') {
+                    return block.imageUrl ? (
+                      <div key={block.id || idx} className="my-6 text-center">
+                        <div className="border-2 border-black overflow-hidden inline-block w-full shadow-[2px_2px_0px_#000000]">
+                          <img src={block.imageUrl} alt={block.imageCaption || "Studio image"} className="w-full h-auto object-cover" />
                         </div>
-                        <div>
-                          <div className="inline-block bg-[#ff5c00] text-black border-2 border-black shadow-[4px_4px_0px_#000000] px-6 py-2.5 font-sans font-black text-3xl sm:text-4xl tracking-tight leading-none">
-                            {pDiscount}
+                        {block.imageCaption && (
+                          <div className="text-[10px] font-mono text-black/60 uppercase tracking-wider mt-1.5 font-bold">
+                            {block.imageCaption}
                           </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div key={block.id || idx} className="my-4 border-2 border-dashed border-black/30 p-6 text-center text-xs font-mono text-gray-400">
+                        [Image placeholder: Upload or paste URL in section editor below]
+                      </div>
+                    );
+                  }
+
+                  if (block.type === 'coupon') {
+                    if (block.dealKind === 'promotion') {
+                      const pName = block.promoName || selectedEventName || 'FOUNDRY PROMOTION EVENT';
+                      const pDiscount = block.promoDiscount ? `${block.promoDiscount}% OFF` : `${promoDiscountPercent}% OFF`;
+                      const pScope = block.promoTarget === 'bundle' ? 'ON SELECTED CONTEMPORARY TYPEFACES' : 'STORE-WIDE ON ALL TYPEFACES';
+                      const pUrgency = block.promoEndDate ? `VALID UNTIL ${new Date(block.promoEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}` : '';
+                      return (
+                        <div key={block.id || idx} className="border-2 border-black bg-orange-50 p-6 text-center my-6 shadow-[4px_4px_0px_#000000]">
+                          <div className="inline-block bg-black text-white px-3 py-1 text-[10px] font-mono font-black uppercase tracking-[0.15em] mb-3">
+                            {pName}
+                          </div>
+                          <div>
+                            <div className="inline-block bg-[#ff5c00] text-black border-2 border-black shadow-[4px_4px_0px_#000000] px-6 py-2.5 font-sans font-black text-3xl sm:text-4xl tracking-tight leading-none">
+                              {pDiscount}
+                            </div>
+                          </div>
+                          <div className="text-xs font-mono font-black uppercase tracking-wider text-black mt-3.5 mb-1">
+                            {pScope}
+                          </div>
+                          <div className="text-[11px] font-mono font-black text-black/80 mt-1 uppercase tracking-wide">
+                            No coupon code required.
+                          </div>
+                          {pUrgency && (
+                            <div className="mt-3 text-[10px] font-mono font-black text-black bg-[#ffeedd] inline-block px-3 py-1 border-2 border-black shadow-[2px_2px_0px_#000000]">
+                              ⏳ {pUrgency}
+                            </div>
+                          )}
                         </div>
-                        <div className="text-xs font-mono font-black uppercase tracking-wider text-black mt-3.5 mb-1">
-                          {pScope}
+                      );
+                    }
+                    const cCode = block.couponCode || 'VIP25OFF';
+                    const cDiscount = block.couponDiscount ? `${block.couponDiscount}% OFF` : '';
+                    const cUrgency = block.couponUrgencyText || '';
+                    return (
+                      <div key={block.id || idx} className="border-2 border-black bg-orange-50 p-5 text-center my-6 shadow-[4px_4px_0px_#000000]">
+                        <div className="text-[10px] uppercase tracking-[0.2em] font-black text-[#ff5c00] mb-1">
+                          EXCLUSIVE CLIENT PRIVILEGE VOUCHER
                         </div>
-                        <div className="text-[11px] font-mono font-black text-black/80 mt-1 uppercase tracking-wide">
-                          No coupon code required.
+                        {cDiscount && (
+                          <div className="font-sans font-black text-2xl text-black my-1">
+                            {cDiscount}
+                          </div>
+                        )}
+                        <div className="font-mono text-xl font-black text-black bg-white inline-block px-4 py-1.5 border-2 border-black tracking-widest my-1 shadow-[2px_2px_0px_#000000]">
+                          {cCode}
                         </div>
-                        {pUrgency && (
-                          <div className="mt-3 text-[10px] font-mono font-black text-black bg-[#ffeedd] inline-block px-3 py-1 border-2 border-black shadow-[2px_2px_0px_#000000]">
-                            ⏳ {pUrgency}
+                        <div className="text-[10px] font-bold text-black/70 mt-1.5 uppercase">
+                          Apply this voucher at checkout to claim your privileged rate.
+                        </div>
+                        {cUrgency && (
+                          <div className="mt-2 text-[9px] font-black text-black bg-[#ff5c00] inline-block px-2.5 py-1 border border-black uppercase tracking-wider">
+                            {cUrgency}
                           </div>
                         )}
                       </div>
                     );
                   }
-                  const cCode = block.couponCode || couponCode || '';
-                  const cDiscount = block.couponDiscount ? `${block.couponDiscount}% OFF` : '';
-                  const cUrgency = block.couponUrgencyText || '';
-                  if (!cCode) return null;
-                  return (
-                    <div key={block.id || idx} className="border-2 border-black bg-orange-50 p-5 text-center my-6 shadow-[4px_4px_0px_#000000]">
-                      <div className="text-[10px] uppercase tracking-[0.2em] font-black text-[#ff5c00] mb-1">
-                        EXCLUSIVE CLIENT PRIVILEGE VOUCHER
-                      </div>
-                      {cDiscount && (
-                        <div className="font-sans font-black text-2xl text-black my-1">
-                          {cDiscount}
-                        </div>
-                      )}
-                      <div className="font-mono text-xl font-black text-black bg-white inline-block px-4 py-1.5 border-2 border-black tracking-widest my-1 shadow-[2px_2px_0px_#000000]">
-                        {cCode}
-                      </div>
-                      <div className="text-[10px] font-bold text-black/70 mt-1.5 uppercase">
-                        Apply this voucher at checkout to claim your privileged rate.
-                      </div>
-                      {cUrgency && (
-                        <div className="mt-2 text-[9px] font-black text-black bg-[#ff5c00] inline-block px-2.5 py-1 border border-black uppercase tracking-wider">
-                          {cUrgency}
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-                if (block.type === 'heading') {
-                  return (
-                    <div key={block.id || idx} className="text-center my-6 pt-5 border-t border-black/20">
-                      <h3 className="font-sans font-black text-base uppercase tracking-tight leading-tight">
-                        {block.title || 'SECTION HEADING'}
-                      </h3>
-                      {block.subtitle && (
-                        <p className="text-[11px] font-bold text-[#ff5c00] uppercase tracking-wider mt-1">
-                          {block.subtitle}
-                        </p>
-                      )}
-                    </div>
-                  );
-                }
-                if (block.type === 'text') {
-                  return (
-                    <div key={block.id || idx} className="text-xs leading-relaxed text-black/80 whitespace-pre-line my-4 font-sans">
-                      {block.text || 'Message paragraph...'}
-                    </div>
-                  );
-                }
-                if (block.type === 'button') {
-                  return (
-                    <div key={block.id || idx} className="text-center my-5">
-                      <span className="inline-block bg-black text-white text-[11px] font-black uppercase tracking-[0.1em] px-5 py-2.5 border-2 border-black shadow-[3px_3px_0px_#ff5c00]">
-                        {block.buttonText || 'BUTTON'} &rarr;
-                      </span>
-                    </div>
-                  );
-                }
-                if (block.type === 'image') {
-                  return block.imageUrl ? (
-                    <div key={block.id || idx} className="my-5 text-center">
-                      <div className="border-2 border-black overflow-hidden inline-block w-full">
-                        <img src={block.imageUrl} alt={block.imageCaption || 'Studio image'} className="w-full h-auto object-cover" />
-                      </div>
-                      {block.imageCaption && (
-                        <div className="text-[10px] font-mono text-black/60 uppercase tracking-wider mt-1 font-bold">
-                          {block.imageCaption}
-                        </div>
-                      )}
-                    </div>
-                  ) : null;
-                }
-                return null;
-              })}
+                  return null;
+                })
+              )}
 
               {/* Footer */}
               <div className="text-center pt-4 border-t-2 border-black text-[10px] text-black/60 leading-relaxed font-bold">
@@ -1713,8 +1966,15 @@ export default function BroadcastStudio() {
             </div>
           </div>
 
-            {/* EMAIL FIELDS */}
-            <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4 text-xs">
+          {/* 4. CAMPAIGN METADATA & MODULAR EMAIL BUILDER */}
+          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b-2 border-black pb-2">
+              <span className="uppercase tracking-widest font-black text-xs flex items-center gap-2">
+                <Megaphone size={14} className="text-[#ff5c00]" /> Campaign Subject & Reference
+              </span>
+              <span className="text-[10px] font-bold text-gray-500">Email Metadata</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="uppercase tracking-widest font-black block mb-1">Campaign Reference Name</label>
                 <input
@@ -1725,7 +1985,6 @@ export default function BroadcastStudio() {
                   className="w-full border-2 border-black p-2.5 bg-white outline-none font-bold"
                 />
               </div>
-
               <div>
                 <label className="uppercase tracking-widest font-black block mb-1">Email Subject Line</label>
                 <input
@@ -1736,169 +1995,27 @@ export default function BroadcastStudio() {
                   required
                 />
               </div>
+            </div>
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="uppercase tracking-widest font-black block mb-1">Main Heading</label>
-                  <input
-                    type="text"
-                    value={headline}
-                    onChange={(e) => setHeadline(e.target.value)}
-                    className="w-full border-2 border-black p-2.5 bg-white outline-none font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="uppercase tracking-widest font-black block mb-1">Subtitle / Tagline</label>
-                  <input
-                    type="text"
-                    value={subtitle}
-                    onChange={(e) => setSubtitle(e.target.value)}
-                    className="w-full border-2 border-black p-2.5 bg-white outline-none"
-                  />
-                </div>
-              </div>
-
+          {/* EMAIL BUILDER: 100% CUSTOMIZABLE CONTENT SECTIONS */}
+          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4 text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-black gap-2">
               <div>
-                <label className="uppercase tracking-widest font-black block mb-1">Message Body</label>
-                <textarea
-                  rows={6}
-                  value={bodyText}
-                  onChange={(e) => setBodyText(e.target.value)}
-                  className="w-full border-2 border-black p-2.5 bg-white outline-none font-sans text-sm leading-relaxed"
-                />
+                <label className="uppercase tracking-widest font-black text-xs flex items-center gap-2">
+                  <Layers size={14} className="text-[#ff5c00]" /> Email Content Sections (100% Customizable Builder)
+                </label>
+                <p className="text-[10px] text-gray-500 font-bold mt-0.5">
+                  Preset sections are loaded below. Reorder (▲ / ▼), edit inline, delete (🗑️), or append any section to customize email layout.
+                </p>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="uppercase tracking-widest font-black block mb-1">CTA Button Label</label>
-                  <input
-                    type="text"
-                    value={buttonText}
-                    onChange={(e) => setButtonText(e.target.value)}
-                    className="w-full border-2 border-black p-2.5 bg-white outline-none font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="uppercase tracking-widest font-black block mb-1">Target Action URL</label>
-                  <input
-                    type="url"
-                    value={buttonUrl}
-                    onChange={(e) => setButtonUrl(e.target.value)}
-                    className="w-full border-2 border-black p-2.5 bg-white outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* BANNER IMAGE UPLOAD / DRAG & DROP & URL */}
-              <div className="border-2 border-dashed border-black/40 p-4 bg-black/[0.02] space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="uppercase tracking-widest font-black text-xs flex items-center gap-2">
-                    <ImageIcon size={14} /> Header Banner Image (Optional)
-                  </label>
-                  {bannerUrl && (
-                    <button
-                      type="button"
-                      onClick={() => setBannerUrl('')}
-                      className="text-[10px] font-bold text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <X size={12} /> Remove
-                    </button>
-                  )}
-                </div>
-
-                {bannerUrl ? (
-                  <div className="flex items-center gap-3 bg-white p-2 border-2 border-black">
-                    <img src={bannerUrl} alt="Banner Preview" className="w-20 h-14 object-cover border border-black" />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[10px] font-black text-emerald-700 flex items-center gap-1">
-                        <Check size={12} /> Image Active
-                      </div>
-                      <div className="text-[9px] font-mono text-gray-500 truncate" title={bannerUrl}>
-                        {bannerUrl}
-                      </div>
-                    </div>
-                    <label className="px-3 py-1.5 bg-black text-white text-[9px] font-black uppercase cursor-pointer hover:bg-gray-800 transition-all">
-                      Change
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) handleBannerUpload(f);
-                        }}
-                      />
-                    </label>
-                  </div>
-                ) : (
-                  <div
-                    onDragOver={(e) => { e.preventDefault(); setIsDraggingBanner(true); }}
-                    onDragLeave={() => setIsDraggingBanner(false)}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      setIsDraggingBanner(false);
-                      const f = e.dataTransfer.files?.[0];
-                      if (f) handleBannerUpload(f);
-                    }}
-                    className={`border-2 border-dashed p-4 text-center transition-all cursor-pointer ${
-                      isDraggingBanner ? 'border-[#ff5c00] bg-orange-50' : 'border-black/30 hover:border-black bg-white'
-                    }`}
-                  >
-                    <input
-                      type="file"
-                      id="bannerFileInput"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) handleBannerUpload(f);
-                      }}
-                    />
-                    <label htmlFor="bannerFileInput" className="cursor-pointer block">
-                      <Upload size={20} className="mx-auto mb-1 text-gray-500" />
-                      <div className="font-bold text-xs">
-                        {isUploadingBanner ? 'Uploading to CDN...' : 'Drop image here, or click to browse'}
-                      </div>
-                      <div className="text-[9px] text-gray-400 mt-0.5">
-                        PNG, JPG, WEBP, SVG (Auto-uploaded to Cloudflare R2)
-                      </div>
-                    </label>
-                  </div>
-                )}
-
-                <div>
-                  <div className="text-[10px] font-bold text-gray-500 mb-1">
-                    Or paste direct image URL (Google Drive share links auto-convert):
-                  </div>
-                  <input
-                    type="url"
-                    value={bannerUrl}
-                    onChange={(e) => handleBannerUrlChange(e.target.value)}
-                    placeholder="https://... or Google Drive share link"
-                    className="w-full border-2 border-black p-2 text-xs bg-white outline-none font-mono"
-                  />
-                </div>
-              </div>
+              <span className="text-[10px] font-black bg-black text-white px-2 py-0.5 uppercase">
+                {blocks.length} {blocks.length === 1 ? 'Section' : 'Sections'}
+              </span>
             </div>
 
-            {/* EMAIL BUILDER: MODULAR ADDITIONAL CONTENT SECTIONS */}
-            <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4 text-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-black gap-2">
-                <div>
-                  <label className="uppercase tracking-widest font-black text-xs flex items-center gap-2">
-                    <Layers size={14} className="text-[#ff5c00]" /> Additional Sections (Email Builder)
-                  </label>
-                  <p className="text-[10px] text-gray-500 font-bold mt-0.5">
-                    Add extra announcements, messages, coupons, secondary CTAs, or imagery to this broadcast
-                  </p>
-                </div>
-                <span className="text-[10px] font-black bg-black text-white px-2 py-0.5 uppercase">
-                  {blocks.length} {blocks.length === 1 ? 'Section' : 'Sections'}
-                </span>
-              </div>
-
-              {/* ACTION TOOLBAR: ADD BUTTONS */}
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {/* ACTION TOOLBAR: ADD BUTTONS */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 <button
                   type="button"
                   onClick={() => addBlock('heading')}
