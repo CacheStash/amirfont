@@ -75,7 +75,7 @@ const PRESETS = [
     bodyText: 'We are excited to introduce our latest typeface release, [FONT_NAME]. Crafted with precision geometry, extensive OpenType features, expressive stylistic alternates, and variable axes ready for high-impact visual identity projects.',
     buttonText: 'TEST & BUY LICENSE',
     buttonUrl: 'https://subqi.com/fonts',
-    couponCode: 'SUBQIVIP20'
+    couponCode: ''
   },
   {
     id: 'update_typeface',
@@ -86,7 +86,7 @@ const PRESETS = [
     bodyText: 'We have released an important update for [FONT_NAME]. This update includes refined kerning pairs, expanded language support, new stylistic ligatures, and structural outline optimizations for enhanced display rendering.',
     buttonText: 'EXPLORE UPDATE',
     buttonUrl: 'https://subqi.com/fonts',
-    couponCode: 'UPDATE20'
+    couponCode: ''
   },
   {
     id: 'new_feature',
@@ -119,7 +119,7 @@ const PRESETS = [
     bodyText: 'Our scheduled infrastructure upgrades are complete. All services, type testers, downloads, and FontCanvas are live with maximum edge speed worldwide. Thank you for your patience.',
     buttonText: 'EXPLORE FOUNDRY',
     buttonUrl: 'https://subqi.com/fonts',
-    couponCode: 'RESUME15'
+    couponCode: ''
   },
   {
     id: 'new_coupon',
@@ -146,10 +146,10 @@ const PRESETS = [
   {
     id: 'custom',
     name: 'Custom Announcement',
-    subject: 'An Update from Subqi Type Studio',
+    subject: 'An Update from Subqi Studio',
     title: 'FOUNDRY ANNOUNCEMENT',
     subtitle: 'News, Design Notes & Exclusive Privileges',
-    bodyText: 'Hello,\n\nHere are the latest design developments, catalog additions, and curated typographic insights from Subqi Type Studio.',
+    bodyText: 'Hello,\n\nHere are the latest design developments, catalog additions, and curated typographic insights from Subqi Studio.',
     buttonText: 'VIEW CATALOG',
     buttonUrl: 'https://subqi.com',
     couponCode: ''
@@ -181,7 +181,7 @@ export default function BroadcastStudio() {
   const [bannerUrl, setBannerUrl] = useState('');
   const [buttonText, setButtonText] = useState(PRESETS[0].buttonText);
   const [buttonUrl, setButtonUrl] = useState(PRESETS[0].buttonUrl);
-  const [couponCode, setCouponCode] = useState(PRESETS[0].couponCode);
+  const [couponCode, setCouponCode] = useState('');
 
   // Search & Filter
   const [logSearch, setLogSearch] = useState('');
@@ -1556,7 +1556,7 @@ export default function BroadcastStudio() {
                   OFFICIAL FOUNDRY DISPATCH
                 </div>
                 <div className="font-sans font-black text-2xl tracking-tight uppercase mt-1">
-                  SUBQI TYPE FOUNDRY
+                  SUBQI STUDIO
                 </div>
                 <div className="text-[9px] font-mono tracking-widest text-black/60 uppercase mt-1 font-bold">
                   CONTEMPORARY &amp; EDITORIAL TYPE DESIGN
@@ -1586,21 +1586,6 @@ export default function BroadcastStudio() {
               <div className="text-xs leading-relaxed text-black/80 whitespace-pre-line mb-6 font-sans">
                 {bodyText || "Your broadcast announcement will appear here with clean contemporary styling."}
               </div>
-
-              {/* Default Coupon Box (only if no modular coupon block is added) */}
-              {!blocks.some(b => b.type === 'coupon') && couponCode && (
-                <div className="bg-[#ff5c00] border-2 border-black shadow-[4px_4px_0px_#000000] p-4 text-center my-5 text-white">
-                  <div className="text-[10px] uppercase tracking-[0.15em] font-black mb-1">
-                    VIP EXCLUSIVE VOUCHER
-                  </div>
-                  <div className="font-mono text-lg font-black text-black bg-white inline-block px-3 py-1 border-2 border-black tracking-widest">
-                    {couponCode}
-                  </div>
-                  <div className="text-[10px] font-bold text-white uppercase tracking-wider mt-1">
-                    Redeem at checkout for an instant discount.
-                  </div>
-                </div>
-              )}
 
               {/* CTA Button */}
               {buttonText && (
@@ -1721,7 +1706,7 @@ export default function BroadcastStudio() {
               {/* Footer */}
               <div className="text-center pt-4 border-t-2 border-black text-[10px] text-black/60 leading-relaxed font-bold">
                 <div className="text-black uppercase tracking-wider mb-0.5">
-                  Subqi Type Studio
+                  Subqi Studio
                 </div>
                 <div>You are receiving this communication as a registered buyer or subscriber.</div>
               </div>

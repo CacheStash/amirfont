@@ -568,7 +568,7 @@ function generateBroadcastEmailHtml({ preset, title, subtitle, bodyText, bannerU
           <tr>
             <td style="padding: 24px 32px; border-bottom: 2px solid #000000; background-color: #ffffff; text-align: center;">
               <div style="font-size: 10px; font-weight: 900; letter-spacing: 0.25em; text-transform: uppercase; color: #ff5c00; margin-bottom: 4px;">OFFICIAL FOUNDRY DISPATCH</div>
-              <div style="font-size: 26px; font-weight: 900; letter-spacing: -0.02em; text-transform: uppercase; color: #000000;">SUBQI TYPE FOUNDRY</div>
+              <div style="font-size: 26px; font-weight: 900; letter-spacing: -0.02em; text-transform: uppercase; color: #000000;">SUBQI STUDIO</div>
               <div style="font-size: 10px; font-family: monospace; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #525252; margin-top: 4px;">CONTEMPORARY &amp; EDITORIAL TYPE DESIGN</div>
             </td>
           </tr>
@@ -591,7 +591,6 @@ function generateBroadcastEmailHtml({ preset, title, subtitle, bodyText, bannerU
                 ${formattedBody}
               </div>
 
-              ${couponHtml}
               ${buttonHtml}
               ${blocksHtml}
             </td>
@@ -600,7 +599,7 @@ function generateBroadcastEmailHtml({ preset, title, subtitle, bodyText, bannerU
           <!-- Footer -->
           <tr>
             <td style="padding: 24px 32px; border-top: 2px solid #000000; background-color: #fafaf9; text-align: center; font-size: 11px; font-weight: 600; color: #737373; line-height: 1.7;">
-              <div style="font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #000000; margin-bottom: 4px;">Subqi Type Studio</div>
+              <div style="font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #000000; margin-bottom: 4px;">Subqi Studio</div>
               <div>You are receiving this communication as a registered buyer or subscriber.</div>
               <div style="margin-top: 8px;">
                 <a href="${siteUrl}" style="color: #000000; font-weight: 900; text-decoration: underline;">subqi.com</a> &bull; 
