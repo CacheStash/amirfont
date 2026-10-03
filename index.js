@@ -517,6 +517,21 @@ function generateBroadcastEmailHtml({ preset, title, subtitle, bodyText, bannerU
       `;
     }
     if (block.type === 'coupon') {
+      if (block.dealKind === 'promotion') {
+        const promoName = block.promoName || 'SPECIAL STORE PROMOTION';
+        const promoDiscount = block.promoDiscount ? `${block.promoDiscount}% OFF` : 'SPECIAL DISCOUNT';
+        const promoScope = block.promoTarget === 'global' ? 'STORE-WIDE ON ALL TYPEFACES' : 'ON SELECTED TYPEFACES';
+        const promoUrgency = block.promoEndDate ? `VALID UNTIL ${new Date(block.promoEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}` : '';
+        return `
+          <div style="background-color: #ffffff; border: 3px dashed #000000; padding: 20px; margin: 24px 0; text-align: center;">
+            <div style="font-size: 11px; font-family: monospace; text-transform: uppercase; letter-spacing: 0.1em; color: #ff5c00; font-weight: 900; margin-bottom: 4px;">${promoName}</div>
+            <div style="font-size: 34px; font-weight: 900; color: #000000; font-family: sans-serif; margin: 6px 0;">${promoDiscount}</div>
+            <div style="font-size: 11px; font-family: monospace; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: #000000; margin-bottom: 6px;">${promoScope}</div>
+            <div style="font-size: 11px; font-family: monospace; font-weight: bold; color: #555555; margin-top: 6px;">NO COUPON CODE REQUIRED &bull; DISCOUNT APPLIED AUTOMATICALLY AT CHECKOUT</div>
+            ${promoUrgency ? `<div style="margin-top: 10px; font-size: 10px; font-family: monospace; font-weight: 900; color: #000000; background-color: #ffeedd; display: inline-block; padding: 4px 10px; border: 1px solid #000000;">⏳ ${promoUrgency}</div>` : ''}
+          </div>
+        `;
+      }
       const cCode = block.couponCode || couponCode || '';
       const cDiscount = block.couponDiscount ? `${block.couponDiscount}% OFF` : '';
       const cUrgency = block.couponUrgencyText || '';
@@ -848,7 +863,7 @@ export default {
           headers.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
           headers.set('Access-Control-Expose-Headers', '*');
           headers.set('Vary', 'Origin');
-          headers.set('Cache-Control', 'public, max-age=0, s-maxage=31536000, must-revalidate');
+          headers.set('Cache-Control', 'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=604800');
           return new Response(cachedResponse.body, {
             status: cachedResponse.status,
             headers
@@ -872,7 +887,7 @@ export default {
         baseHeaders.set('X-Content-Type-Options', 'nosniff');
         baseHeaders.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
         baseHeaders.set('X-Font-Protection', isRawRequested ? 'none' : 'subqi-shield-v1');
-        baseHeaders.set('Cache-Control', 'public, max-age=0, s-maxage=31536000, must-revalidate');
+        baseHeaders.set('Cache-Control', 'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=604800');
 
         const responseToCache = new Response(finalBody, { headers: baseHeaders });
         ctx.waitUntil(cache.put(cacheKey, responseToCache.clone()));
