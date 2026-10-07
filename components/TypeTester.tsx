@@ -1329,23 +1329,27 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                     <button
                       type="button"
                       onClick={() => applyAlternate({ char: text.charAt(selectedCharIndex), glyphIndex: 0, featureTag: '' })}
-                      className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all ${
+                      className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all group shrink-0 ${
                         !charOverrides[selectedCharIndex] 
                           ? 'bg-black text-white border-black' 
-                          : 'border-transparent hover:border-black hover:bg-black/5 bg-transparent text-black'
+                          : 'border-transparent hover:border-black hover:bg-black hover:text-white bg-transparent text-black'
                       }`}
                       title="Default Style"
                     >
                       <div className="h-6 flex items-center justify-center">
-                        {renderGlyphSvg(
-                          loadedFontObj ? loadedFontObj.charToGlyphIndex(text.charAt(selectedCharIndex)) : 0, 
-                          20,
-                          !charOverrides[selectedCharIndex] ? '#ffffff' : '#000000'
-                        ) || (
-                          <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: 'normal' }}>
-                            {text.charAt(selectedCharIndex)}
-                          </span>
-                        )}
+                        <div className={`flex items-center justify-center transition-all ${
+                          !charOverrides[selectedCharIndex] ? 'invert' : 'group-hover:invert'
+                        }`}>
+                          {renderGlyphSvg(
+                            loadedFontObj ? loadedFontObj.charToGlyphIndex(text.charAt(selectedCharIndex)) : 0, 
+                            20,
+                            '#000000'
+                          ) || (
+                            <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: 'normal' }}>
+                              {text.charAt(selectedCharIndex)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </button>
 
@@ -1356,21 +1360,27 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                           key={idx}
                           type="button"
                           onClick={() => applyAlternate(alt)}
-                          className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all shrink-0 ${
+                          className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all group shrink-0 ${
                             isSelected 
                               ? 'bg-black text-white border-black' 
-                              : 'border-transparent hover:border-black hover:bg-black/5 bg-transparent text-black'
+                              : 'border-transparent hover:border-black hover:bg-black hover:text-white bg-transparent text-black'
                           }`}
                           title={`Glyph #${alt.glyphIndex}`}
                         >
                           <div className="h-6 flex items-center justify-center">
-                            {renderGlyphSvg(alt.glyphIndex, 20, isSelected ? '#ffffff' : '#000000') || (
-                              <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: `"${alt.featureTag}" 1` }}>
-                                {alt.char}
-                              </span>
-                            )}
+                            <div className={`flex items-center justify-center transition-all ${
+                              isSelected ? 'invert' : 'group-hover:invert'
+                            }`}>
+                              {renderGlyphSvg(alt.glyphIndex, 20, '#000000') || (
+                                <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: `"${alt.featureTag}" 1` }}>
+                                  {alt.char}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <span className="text-[7px] uppercase font-sans mt-0.5 opacity-60">
+                          <span className={`text-[7px] uppercase font-sans mt-0.5 transition-opacity ${
+                            isSelected ? 'opacity-80' : 'opacity-60 group-hover:opacity-90'
+                          }`}>
                             {alt.featureTag}
                           </span>
                         </button>
