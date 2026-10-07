@@ -98,12 +98,24 @@ export default function EmailStudio() {
   const [modalPreviewDevice, setModalPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const sentItemsPerPage = 10;
 
-  const fetchGasPool = async () => {
+  // Lock background scroll when sent order preview modal is open
+  useEffect(() => {
+    if (selectedSentOrder) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedSentOrder]);
+
+  const fetchGasPool = async (forceRefresh = false) => {
     setCheckingGas(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-      const res = await fetch('/api/admin/gas-status', {
+      const res = await fetch(`/api/admin/gas-status${forceRefresh ? '?refresh=true' : ''}`, {
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       });
       if (res.ok) {
@@ -119,7 +131,7 @@ export default function EmailStudio() {
 
   useEffect(() => {
     fetchTemplate();
-    fetchGasPool();
+    fetchGasPool(false);
     fetchSentOrders();
   }, []);
 
@@ -674,7 +686,7 @@ export default function EmailStudio() {
               </strong>
             </div>
             <button
-              onClick={fetchGasPool}
+              onClick={() => fetchGasPool(true)}
               disabled={checkingGas}
               title="Query remaining quotas"
               className="px-2.5 py-1 text-[10px] font-black uppercase border border-black bg-gray-100 hover:bg-black hover:text-white flex items-center gap-1 shadow-[2px_2px_0px_#000] active:shadow-none transition-all disabled:opacity-40 cursor-pointer"
@@ -1244,7 +1256,7 @@ export default function EmailStudio() {
       {/* MODAL: LIVE DESIGN EMAIL PREVIEW WITH BUYER INFO */}
       {/* ========================================================================= */}
       {selectedSentOrder && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+        <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-hidden">
           <div className="bg-white border-3 border-black shadow-[10px_10px_0px_#000] w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in duration-200">
             
             {/* Modal Header */}

@@ -379,6 +379,26 @@ export default function BroadcastStudio() {
 
   // Search & Filter
   const [logSearch, setLogSearch] = useState('');
+  const [selectedLog, setSelectedLog] = useState<{
+    email: string;
+    gas: string;
+    sent_at: string;
+    campaignTitle: string;
+    campaignId: string;
+  } | null>(null);
+  const [logPreviewDevice, setLogPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
+
+  // Lock background page scroll when sent delivery audit modal is open
+  useEffect(() => {
+    if (selectedLog) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedLog]);
 
   const [fontsList, setFontsList] = useState<Array<{ id: string; name: string; slug?: string }>>([]);
   const [selectedFontName, setSelectedFontName] = useState('');
@@ -908,12 +928,12 @@ export default function BroadcastStudio() {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = async (forceRefresh = false) => {
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
-      const res = await fetch('/api/admin/broadcast-data', {
+      const res = await fetch(`/api/admin/broadcast-data${forceRefresh ? '?refresh=true' : ''}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -1183,7 +1203,7 @@ export default function BroadcastStudio() {
           </div>
           <div className="h-8 w-px bg-black/20" />
           <button 
-            onClick={fetchData} 
+            onClick={() => fetchData(true)} 
             disabled={loading}
             title="Refresh Real-Time Quota"
             className="p-2 border-2 border-black hover:bg-[#ff5c00] hover:text-white transition-all disabled:opacity-50 cursor-pointer"
@@ -2680,19 +2700,25 @@ export default function BroadcastStudio() {
                   <th className="p-3">Campaign</th>
                   <th className="p-3">Recipient Email</th>
                   <th className="p-3">Sender Account</th>
-                  <th className="p-3 text-right">Delivery Status</th>
+                  <th className="p-3 text-center">Delivery Status</th>
+                  <th className="p-3 text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/10">
                 {filteredLogs.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center opacity-50">
+                    <td colSpan={6} className="p-8 text-center opacity-50">
                       NO DELIVERY LOGS MATCHING CRITERIA.
                     </td>
                   </tr>
                 ) : (
                   filteredLogs.map((log, i) => (
-                    <tr key={i} className="hover:bg-black/5">
+                    <tr 
+                      key={i} 
+                      onClick={() => setSelectedLog(log)}
+                      className="hover:bg-black/5 cursor-pointer transition-colors"
+                      title="Click to preview exact delivered email design"
+                    >
                       <td className="p-3 whitespace-nowrap opacity-70">
                         {new Date(log.sent_at).toLocaleString()}
                       </td>
@@ -2705,10 +2731,24 @@ export default function BroadcastStudio() {
                       <td className="p-3 text-black/70">
                         {log.gas}
                       </td>
-                      <td className="p-3 text-right whitespace-nowrap">
+                      <td className="p-3 text-center whitespace-nowrap">
                         <span className="inline-flex items-center gap-1 text-black bg-emerald-300 px-2 py-0.5 border border-black font-black text-[10px]">
                           <Check size={11} /> DELIVERED
                         </span>
+                      </td>
+                      <td className="p-3 text-center whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedLog(log);
+                          }}
+                          className="px-2.5 py-1 border border-black bg-white hover:bg-black hover:text-white text-[9px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 transition-all cursor-pointer shadow-[2px_2px_0px_#000]"
+                          title="View live broadcast email preview"
+                        >
+                          <Eye size={12} />
+                          <span>View Email</span>
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -2718,6 +2758,239 @@ export default function BroadcastStudio() {
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: LIVE BROADCAST DISPATCH EMAIL PREVIEW */}
+      {/* ========================================================================= */}
+      {selectedLog && (() => {
+        const camp = (data.campaigns || []).find(c => c.id === selectedLog.campaignId);
+        const tData = camp?.templateData || {};
+        const pPreset = camp?.preset || 'custom';
+        const pBlocks: BroadcastBlock[] = Array.isArray(tData.blocks) && tData.blocks.length > 0 
+          ? tData.blocks 
+          : getDefaultPresetBlocks(pPreset);
+
+        return (
+          <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-hidden">
+            <div className="bg-white border-3 border-black shadow-[10px_10px_0px_#000] w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in duration-200">
+              
+              {/* Modal Header */}
+              <div className="p-4 sm:p-5 border-b-3 border-black bg-black text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono uppercase px-2 py-0.5 bg-[#ff5c00] text-black font-black">
+                      DELIVERED BROADCAST
+                    </span>
+                    <span className="font-mono text-xs font-black tracking-wider text-white">
+                      {selectedLog.campaignTitle}
+                    </span>
+                  </div>
+                  <div className="text-xs font-sans mt-1 opacity-90 flex flex-wrap items-center gap-x-3 gap-y-1 font-bold">
+                    <span>Recipient: <strong>{selectedLog.email}</strong></span>
+                    <span>•</span>
+                    <span>Sender: <strong className="text-yellow-300 font-mono">{selectedLog.gas}</strong></span>
+                    <span>•</span>
+                    <span>Sent: <strong>{new Date(selectedLog.sent_at).toLocaleString()}</strong></span>
+                  </div>
+                </div>
+
+                {/* View Controls & Close */}
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <div className="flex items-center border border-white p-0.5 bg-zinc-800">
+                    <button
+                      type="button"
+                      onClick={() => setLogPreviewDevice('desktop')}
+                      className={`px-2.5 py-1 text-[10px] uppercase font-black transition-all cursor-pointer ${
+                        logPreviewDevice === 'desktop'
+                          ? 'bg-white text-black'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      Desktop
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLogPreviewDevice('mobile')}
+                      className={`px-2.5 py-1 text-[10px] uppercase font-black transition-all cursor-pointer ${
+                        logPreviewDevice === 'mobile'
+                          ? 'bg-white text-black'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      Mobile
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedLog(null)}
+                    className="p-1.5 hover:bg-zinc-800 border border-white text-white cursor-pointer ml-1"
+                    title="Close preview"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body: Authentic Rendered Broadcast Container */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-zinc-900 flex justify-center min-h-[500px]">
+                <div 
+                  className={`transition-all duration-300 bg-white border-2 border-black p-6 sm:p-8 font-sans text-black shadow-[6px_6px_0px_#000] ${
+                    logPreviewDevice === 'desktop' ? 'w-full max-w-[620px]' : 'w-[375px]'
+                  }`}
+                >
+                  {/* Header Branding */}
+                  <div className="text-center pb-5 mb-5 border-b-2 border-black">
+                    <div className="text-[10px] font-black uppercase tracking-[0.25em] text-[#ff5c00] mb-1">
+                      OFFICIAL FOUNDRY DISPATCH
+                    </div>
+                    <div className="font-black text-2xl tracking-tight uppercase">
+                      SUBQI STUDIO
+                    </div>
+                    <div className="text-[9px] font-mono tracking-widest text-zinc-600 uppercase mt-1">
+                      CONTEMPORARY &amp; EDITORIAL TYPE DESIGN
+                    </div>
+                  </div>
+
+                  {/* Rendered Modular Blocks */}
+                  {pBlocks.map((block, idx) => {
+                    if (block.type === 'heading') {
+                      return (
+                        <div key={block.id || idx} className="text-center my-6">
+                          <h2 className="font-black text-xl uppercase tracking-tight leading-tight">
+                            {block.title || tData.title || "MAIN HEADLINE"}
+                          </h2>
+                          {(block.subtitle || tData.subtitle) && (
+                            <p className="text-xs font-bold text-[#ff5c00] mt-1 tracking-wide uppercase">
+                              {block.subtitle || tData.subtitle}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    if (block.type === 'text') {
+                      return (
+                        <div key={block.id || idx} className="text-xs leading-relaxed text-zinc-800 whitespace-pre-line my-4 font-normal">
+                          {block.text || tData.bodyText || "Broadcast message content."}
+                        </div>
+                      );
+                    }
+
+                    if (block.type === 'button') {
+                      return (
+                        <div key={block.id || idx} className="text-center my-6">
+                          <span className="inline-block bg-black text-white text-[10px] font-black uppercase tracking-[0.15em] px-6 py-3 border border-black shadow-[3px_3px_0px_#ff5c00]">
+                            {block.buttonText || tData.buttonText || "EXPLORE ARCHIVE"} &rarr;
+                          </span>
+                        </div>
+                      );
+                    }
+
+                    if (block.type === 'image') {
+                      const img = block.imageUrl || tData.bannerUrl;
+                      return img ? (
+                        <div key={block.id || idx} className="my-6 text-center">
+                          <div className="border-2 border-black overflow-hidden inline-block w-full">
+                            <img src={img} alt={block.imageCaption || "Specimen image"} className="w-full h-auto object-cover" />
+                          </div>
+                          {block.imageCaption && (
+                            <div className="text-[10px] font-mono text-zinc-600 mt-1">
+                              {block.imageCaption}
+                            </div>
+                          )}
+                        </div>
+                      ) : null;
+                    }
+
+                    if (block.type === 'coupon') {
+                      if (block.dealKind === 'promotion') {
+                        const pName = block.promoName || 'SPECIAL STORE PROMOTION';
+                        const pDiscount = block.promoDiscount ? `${block.promoDiscount}% OFF` : 'SPECIAL DISCOUNT';
+                        const pScope = block.promoTarget === 'bundle' ? 'ON SELECTED EDITORIAL TYPEFACES' : 'STORE-WIDE ON ALL TYPEFACES';
+                        const pUrgency = block.promoEndDate ? `Valid until ${new Date(block.promoEndDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : '';
+                        return (
+                          <div key={block.id || idx} className="border-2 border-black bg-zinc-50 p-6 text-center my-6 shadow-[4px_4px_0px_#ff5c00]">
+                            <div className="text-[10px] uppercase tracking-[0.25em] text-[#ff5c00] font-black mb-3">
+                              {pName}
+                            </div>
+                            <div>
+                              <div className="inline-block bg-black text-white border-2 border-black px-6 py-2.5 font-black text-3xl sm:text-4xl tracking-tight leading-none shadow-[3px_3px_0px_#ff5c00]">
+                                {pDiscount}
+                              </div>
+                            </div>
+                            <div className="text-xs font-black uppercase tracking-wider text-black mt-3.5 mb-1">
+                              {pScope}
+                            </div>
+                            <div className="text-[11px] font-mono font-bold text-zinc-600 mt-1 uppercase tracking-wide">
+                              No coupon code required.
+                            </div>
+                            {pUrgency && (
+                              <div className="mt-3 text-[10px] font-black text-black bg-yellow-300 inline-block px-3 py-1 border border-black">
+                                ⏳ {pUrgency}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                      const cCode = block.couponCode || tData.couponCode || 'VIP25OFF';
+                      const cDiscount = block.couponDiscount ? `${block.couponDiscount}% OFF` : '';
+                      const cUrgency = block.couponUrgencyText || '';
+                      return (
+                        <div key={block.id || idx} className="border-2 border-dashed border-black bg-white p-5 text-center my-6 shadow-[4px_4px_0px_#000]">
+                          <div className="text-[9px] uppercase tracking-[0.2em] text-[#ff5c00] font-black mb-1">
+                            EXCLUSIVE PRIVILEGE VOUCHER
+                          </div>
+                          {cDiscount && (
+                            <div className="font-black text-2xl text-black my-1">
+                              {cDiscount}
+                            </div>
+                          )}
+                          <div className="font-mono text-xl font-black text-black bg-yellow-300 inline-block px-4 py-1.5 border border-black tracking-widest my-1">
+                            {cCode}
+                          </div>
+                          <div className="text-[10px] font-bold text-zinc-600 mt-1.5">
+                            Apply this token at checkout to claim your archival discount.
+                          </div>
+                          {cUrgency && (
+                            <div className="mt-2 text-[9px] font-black text-black bg-zinc-100 inline-block px-2.5 py-1 border border-black">
+                              {cUrgency}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+
+                  {/* Footer */}
+                  <div className="text-center pt-4 border-t-2 border-black text-[10px] text-zinc-600 font-bold leading-relaxed">
+                    <div className="font-black text-black uppercase tracking-wider mb-0.5">
+                      Subqi Studio
+                    </div>
+                    <div>You are receiving this communication as a registered buyer or subscriber.</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer info */}
+              <div className="p-3 border-t-2 border-black bg-gray-100 text-[10px] font-mono font-bold text-gray-700 flex items-center justify-between">
+                <div>
+                  Delivered To: <strong className="text-black">{selectedLog.email}</strong> •{' '}
+                  Via Relay: <strong className="text-black">{selectedLog.gas}</strong>
+                </div>
+                <button
+                  onClick={() => setSelectedLog(null)}
+                  className="text-black font-black hover:underline cursor-pointer uppercase tracking-wider"
+                >
+                  Close Viewer ✕
+                </button>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
     </div>
   );
 }
