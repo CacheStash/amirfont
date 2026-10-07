@@ -970,7 +970,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
   };
 
   return (
-    <div className="w-full h-full relative group bg-transparent selection:bg-black selection:text-white">
+    <div className="w-full h-full relative bg-transparent selection:bg-black selection:text-white">
       <div className="relative z-10 h-full flex flex-col">
         <div className="grid grid-cols-2 lg:flex lg:flex-nowrap items-stretch justify-between border-b border-black bg-white/10 backdrop-blur-[2px] relative z-50">
 
@@ -1329,17 +1329,13 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                     <button
                       type="button"
                       onClick={() => applyAlternate({ char: text.charAt(selectedCharIndex), glyphIndex: 0, featureTag: '' })}
-                      className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all group shrink-0 ${
-                        !charOverrides[selectedCharIndex] 
-                          ? 'bg-black text-white border-black' 
-                          : 'border-transparent hover:border-black hover:bg-black hover:text-white bg-transparent text-black'
+                      className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center shrink-0 alt-popover-btn ${
+                        !charOverrides[selectedCharIndex] ? 'active' : ''
                       }`}
                       title="Default Style"
                     >
                       <div className="h-6 flex items-center justify-center">
-                        <div className={`flex items-center justify-center transition-all ${
-                          !charOverrides[selectedCharIndex] ? 'invert' : 'group-hover:invert'
-                        }`}>
+                        <div className="flex items-center justify-center alt-glyph-preview">
                           {renderGlyphSvg(
                             loadedFontObj ? loadedFontObj.charToGlyphIndex(text.charAt(selectedCharIndex)) : 0, 
                             20,
@@ -1360,17 +1356,13 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                           key={idx}
                           type="button"
                           onClick={() => applyAlternate(alt)}
-                          className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center border transition-all group shrink-0 ${
-                            isSelected 
-                              ? 'bg-black text-white border-black' 
-                              : 'border-transparent hover:border-black hover:bg-black hover:text-white bg-transparent text-black'
+                          className={`h-10 min-w-10 px-2 flex flex-col items-center justify-center shrink-0 alt-popover-btn ${
+                            isSelected ? 'active' : ''
                           }`}
                           title={`Glyph #${alt.glyphIndex}`}
                         >
                           <div className="h-6 flex items-center justify-center">
-                            <div className={`flex items-center justify-center transition-all ${
-                              isSelected ? 'invert' : 'group-hover:invert'
-                            }`}>
+                            <div className="flex items-center justify-center alt-glyph-preview">
                               {renderGlyphSvg(alt.glyphIndex, 20, '#000000') || (
                                 <span style={{ ...commonFontStyle, fontSize: '16px', fontFeatureSettings: `"${alt.featureTag}" 1` }}>
                                   {alt.char}
@@ -1378,9 +1370,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
                               )}
                             </div>
                           </div>
-                          <span className={`text-[7px] uppercase font-sans mt-0.5 transition-opacity ${
-                            isSelected ? 'opacity-80' : 'opacity-60 group-hover:opacity-90'
-                          }`}>
+                          <span className="text-[7px] uppercase font-sans mt-0.5 alt-label">
                             {alt.featureTag}
                           </span>
                         </button>

@@ -55,3 +55,47 @@ body {
   /* Geser titik tengahnya ke arah pojok kiri bawah keluar layar */
   transform: translate(-40%, 40%);
 }
+
+/* Alternate Popover Buttons in TypeTester */
+.alt-popover-btn {
+  background-color: transparent !important;
+  color: #000000 !important;
+  border: 1px solid rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.15s ease-in-out;
+}
+.alt-popover-btn .alt-glyph-preview {
+  color: #000000;
+  filter: none;
+  transition: filter 0.15s ease-in-out;
+}
+.alt-popover-btn .alt-label {
+  color: #000000;
+  opacity: 0.6;
+  transition: opacity 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.alt-popover-btn:hover {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
+}
+.alt-popover-btn:hover .alt-glyph-preview {
+  filter: invert(1) !important;
+}
+.alt-popover-btn:hover .alt-label {
+  color: #ffffff !important;
+  opacity: 0.9 !important;
+}
+
+.alt-popover-btn.active {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
+}
+.alt-popover-btn.active .alt-glyph-preview {
+  filter: invert(1) !important;
+}
+.alt-popover-btn.active .alt-label {
+  color: #ffffff !important;
+  opacity: 0.9 !important;
+}
