@@ -330,16 +330,16 @@ const CanvasLanding: React.FC = () => {
                   href={CANVAS_APP_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-black text-white hover:bg-[#FF5C00] hover:text-black transition-all px-7 py-4 text-xs font-bold uppercase tracking-widest text-center border border-black flex items-center justify-center gap-2"
+                  className="group bg-black text-white border-2 border-black hover:bg-transparent hover:border-black transition-all px-7 py-4 text-xs font-bold uppercase tracking-widest text-center flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>Launch FontCanvas Editor</span>
-                  <ArrowUpRight size={16} />
+                  <span className="text-white group-hover:text-black transition-colors">Launch FontCanvas Editor</span>
+                  <ArrowUpRight size={16} className="text-white group-hover:text-black transition-colors" />
                 </a>
                 <Link
                   to="/fonts"
-                  className="bg-[#FF5C00] text-black hover:bg-black hover:text-white transition-all px-7 py-4 text-xs font-bold uppercase tracking-widest text-center border border-black"
+                  className="group bg-[#FF5C00] text-black border-2 border-black hover:bg-transparent hover:border-black transition-all px-7 py-4 text-xs font-bold uppercase tracking-widest text-center cursor-pointer"
                 >
-                  Buy Now
+                  <span className="text-black group-hover:text-black transition-colors">Buy Now</span>
                 </Link>
               </div>
             </div>
