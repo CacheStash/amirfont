@@ -305,7 +305,7 @@ const CanvasLanding: React.FC = () => {
       {/* 4. LICENSING & COMMERCIAL POLICY */}
       <section className="relative z-10 px-4 md:px-8 py-16 md:py-20 border-b border-black bg-white/40 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto">
-          <div className="border border-black bg-white/90 backdrop-blur-xs p-8 md:p-14 relative">
+          <div className="border border-black bg-white/90 backdrop-blur-xs p-8 md:p-12 relative mb-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
               <div className="max-w-2xl">
                 <div className="flex items-center gap-2 mb-4">
@@ -318,23 +318,11 @@ const CanvasLanding: React.FC = () => {
                   Free In-Browser Access & Crucial Pro Workflows
                 </h2>
                 <p className="text-xs sm:text-sm leading-relaxed text-black/80 normal-case mb-3">
-                  FontCanvas Studio is free for anyone to use and experiment without restriction (*). Designers and typographers can freely draft custom lettering layouts, explore stylistic alternates, test warping envelopes, and preview typography directly in their browser.
+                  FontCanvas Studio is free for anyone to use and experiment without restriction. Designers and typographers can freely draft custom lettering layouts, explore stylistic alternates, test warping envelopes, and preview typography directly in their browser.
                 </p>
-                <p className="text-xs sm:text-sm leading-relaxed text-black/80 normal-case mb-4">
-                  To unlock crucial production capabilities—including clean unwatermarked vector SVG & high-res PNG exports, access to full font families, chromatic layer stacking, and all extra ornaments—simply purchase at least one paid font from our collection.
+                <p className="text-xs sm:text-sm leading-relaxed text-black/80 normal-case">
+                  To unlock crucial production capabilities—including clean unwatermarked vector SVG & high-res PNG exports, chromatic layer stacking, and full access to all accompanying ornament fonts and SVG assets—simply purchase at least one paid font from our collection. Please note that FontCanvas specifically unlocks and loads your purchased fonts.
                 </p>
-                <p className="text-[11px] leading-relaxed text-black/60 italic normal-case border-l-2 border-[#FF5C00] pl-3 py-0.5">
-                  * Continuous Development & In-Browser Simplicity: We actively maintain and update FontCanvas regularly to resolve critical bugs and introduce refined tools. FontCanvas is intentionally engineered to stay clean, fast, and focused on essential typographic design workflows—allowing our buyers to compose, customize, and export production-ready vector artwork directly in-browser without requiring complex 3rd-party graphic software.
-                </p>
-
-                <div className="mt-4 p-4 border border-black/15 bg-black/5 text-xs leading-relaxed text-black/80 normal-case">
-                  <div className="font-bold uppercase tracking-wider text-[#FF5C00] text-[11px] mb-1 flex items-center gap-1.5">
-                    <span>Direct Store Exclusive Facility</span>
-                  </div>
-                  <p>
-                    <strong>Please note:</strong> FontCanvas VIP access, full font family unlocking, and creator perks are exclusively reserved for orders placed directly on <strong>subqi.com</strong>. We sincerely apologize, but purchases made through third-party marketplaces (such as Creative Market, Envato, MyFonts, etc.) are not eligible for this facility, as it is an exclusive benefit created solely for our direct website patrons.
-                  </p>
-                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
@@ -354,6 +342,26 @@ const CanvasLanding: React.FC = () => {
                   Buy Now
                 </Link>
               </div>
+            </div>
+          </div>
+
+          {/* Supplementary Notices: Direct Store Exclusive Facility & Continuous Development */}
+          <div className="space-y-4">
+            {/* Direct Store Exclusive Facility */}
+            <div className="p-5 border border-black/15 bg-white/70 text-xs leading-relaxed text-black/80 normal-case">
+              <div className="font-bold uppercase tracking-wider text-[#FF5C00] text-[11px] mb-1.5 flex items-center gap-1.5">
+                <span>Direct Store Exclusive Facility</span>
+              </div>
+              <p>
+                <strong>Please note:</strong> FontCanvas VIP access, full font family unlocking, and creator perks are exclusively reserved for orders placed directly on <strong>subqi.com</strong>. We sincerely apologize, but purchases made through third-party marketplaces (such as Creative Market, Envato, MyFonts, etc.) are not eligible for this facility, as it is an exclusive benefit created solely for our direct website patrons.
+              </p>
+            </div>
+
+            {/* Continuous Development & In-Browser Simplicity */}
+            <div className="p-4 border-l-2 border-[#FF5C00] bg-white/40 text-[11px] leading-relaxed text-black/60 italic normal-case">
+              <p>
+                <strong>* Continuous Development & In-Browser Simplicity:</strong> We actively maintain and update FontCanvas regularly to resolve critical bugs and introduce refined tools. FontCanvas is intentionally engineered to stay clean, fast, and focused on essential typographic design workflows—allowing our buyers to compose, customize, and export production-ready vector artwork directly in-browser without requiring complex 3rd-party graphic software.
+              </p>
             </div>
           </div>
         </div>
