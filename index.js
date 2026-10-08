@@ -3286,6 +3286,7 @@ export default {
           
           // DETEKSI R2: Harus diawali timestamp (10+ angka) diikuti tanda hubung
           const isR2File = /^\d{10,}-/.test(fName);
+          const cleanBase = (txData.actual_name || cleanFontName.replace(/\.[^/.]+$/, '') || "Font").replace(/\s+/g, '_');
           let finalFileName = "";
 
           if (isR2File) {
@@ -3294,7 +3295,6 @@ export default {
             // JIKA DRIVE ID: Gunakan nama Typeface asli + Indeks
             // Paksa extension .ttf jika tipe generic untuk mendukung Variable Font di OS
             const ext = fileData.contentType?.includes('ttf') ? 'ttf' : 'otf';
-            const cleanBase = (txData.actual_name || "Font").replace(/\s+/g, '_');
             
             finalFileName = fontFilesToFetch.length > 1 
               ? `${cleanBase}_${index + 1}.${ext}` 
@@ -3374,7 +3374,10 @@ export default {
         }
 
         return new Response(zipData, { headers });
-      } catch (e) { return new Response("Download Failed", { status: 500 }); }
+      } catch (e) {
+        console.error("DOWNLOAD_ZIP_ERROR:", e);
+        return new Response("Download Failed: " + (e?.message || e), { status: 500 });
+      }
     }
 
     // --- 9. API Backdoor Password Reset (Transaction ID as Key) ---
