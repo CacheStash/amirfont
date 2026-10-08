@@ -570,6 +570,12 @@ const fetchOrders = async () => {
         </div>
       </div>
 
+      {searchTerm && searchTerm.toUpperCase().includes('SPEC-W01') && (
+        <div className="mb-6 p-4 border-2 border-black bg-amber-100 text-xs font-bold text-black flex items-center justify-between shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase">
+          <span>⚠️ {searchTerm.toUpperCase()}: Web Specimen Tag (TypeTester Engine Asset). This build tag is generated for live online testing and is not associated with any commercial purchase order.</span>
+        </div>
+      )}
+
       {/* TABLE */}
       <div className="border-2 border-black bg-white overflow-x-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <table className="w-full text-left border-collapse min-w-[1000px]">

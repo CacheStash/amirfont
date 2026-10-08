@@ -1504,11 +1504,13 @@ export default {
         
         let processedBody = fileData.body;
         if (!isRawRequested && (lowerFontName.endsWith('.otf') || lowerFontName.endsWith('.ttf'))) {
+          const cleanBase = fontName.replace(/\.[^/.]+$/, "");
           processedBody = stampFontMetadata(processedBody, {
-            uniqueId: "Subqi Web Tester Engine - Not For Commercial Use",
-            licenseDescription: "Web Preview Tester Only. Unauthorized distribution or commercial extraction is strictly prohibited. Subqi Studio - https://subqi.com",
-            vendorUrl: "https://subqi.com",
-            licenseUrl: "https://subqi.com"
+            uniqueId: `1.000;SQ;${cleanBase};SQ-SPEC-W01`,
+            licenseDescription: `Digital Specimen Typeface Software. Build Ref: SQ-SPEC-W01. Subqi Studio.`,
+            trademark: `Subqi is a trademark of Subqi Studio.`,
+            vendorUrl: `https://subqi.com`,
+            licenseUrl: `https://subqi.com/licenses`
           });
         }
         const finalBody = isRawRequested ? processedBody : maskFontBuffer(processedBody);
