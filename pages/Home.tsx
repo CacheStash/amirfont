@@ -244,7 +244,7 @@ const Home: React.FC = () => {
         const primaryFile = files[pIdx] || files[0];
         if (!primaryFile) return;
         const version = new Date(f.updated_at || f.created_at || Date.now()).getTime();
-        loadProtectedFontFace(`${f.name}-${pIdx}`, `/api/fonts/${primaryFile}?v=s2_${version}`);
+        loadProtectedFontFace(`${f.name}-${pIdx}`, `/api/fonts/${primaryFile}?v=s3_${version}`);
       });
 
       // 2. Idle Phase: Defer secondary weights to prevent network bottlenecks
@@ -255,7 +255,7 @@ const Home: React.FC = () => {
           const version = new Date(f.updated_at || f.created_at || Date.now()).getTime();
           files.forEach((file: string, idx: number) => {
             if (!file || idx === pIdx) return;
-            loadProtectedFontFace(`${f.name}-${idx}`, `/api/fonts/${file}?v=s2_${version}`);
+            loadProtectedFontFace(`${f.name}-${idx}`, `/api/fonts/${file}?v=s3_${version}`);
           });
         });
       }, 600);

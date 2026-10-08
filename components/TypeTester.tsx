@@ -297,7 +297,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     const loadStyle = (index: number) => {
       const file = files[index];
       if (!file) return;
-      const url = file.startsWith('http') || file.startsWith('/') ? file : `/api/fonts/${file}?v=s2_${version}`;
+      const url = file.startsWith('http') || file.startsWith('/') ? file : `/api/fonts/${file}?v=s3_${version}`;
       const fontNameIdentifier = `${config.name}-${index}`;
 
       loadProtectedFontFace(fontNameIdentifier, url).catch((err) => console.error(err));
@@ -343,7 +343,7 @@ const TypeTester: React.FC<TypeTesterProps> = ({
       const f = files[activeStyleIndex];
       const configAny = config as any;
       const version = new Date(configAny.updated_at || configAny.created_at || Date.now()).getTime();
-      targetFile = f.startsWith('http') || f.startsWith('/') ? f : `/api/fonts/${f}?v=s2_${version}`;
+      targetFile = f.startsWith('http') || f.startsWith('/') ? f : `/api/fonts/${f}?v=s3_${version}`;
     }
     if (!targetFile) return;
 
