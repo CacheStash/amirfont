@@ -7,6 +7,7 @@ import Navbar from './components/Navbar';
 import BackToTop from './components/BackToTop';
 import Footer from './components/Footer';
 import CartCard from './components/CartCard';
+import ContextMenu from './components/ContextMenu';
 
 // Admin Components
 import Login from './components/admin/Login';
@@ -214,6 +215,7 @@ const App: React.FC = () => {
             </main>
 
             <CartConfiguratorModal />
+            <ContextMenu />
 
             {!isNavActive && <BackToTop />}
             
