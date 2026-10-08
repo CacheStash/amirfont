@@ -161,33 +161,59 @@ const Home: React.FC = () => {
   };
 
   useEffect(() => {
+    // 1. Coba baca cache cepat dari sessionStorage jika tersedia agar instan tanpa loading screen
+    try {
+      const cached = sessionStorage.getItem('subqi_collection_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.fonts && parsed.fonts.length > 0) {
+          setFonts(parsed.fonts);
+          if (parsed.promos) setPromos(parsed.promos);
+          setLoading(false);
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fetch data terbaru dari database secara asynchronous
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    const [fontsRes, promosRes, historyRes] = await Promise.all([
-      // Ambil berdasarkan display_order (Stacking)
-      supabase.from('fonts').select('*').order('display_order', { ascending: true }),
-      supabase.from('promotions').select('*').eq('is_active', true),
-      // Ambil data history untuk hitung sales/popularity
-      supabase.from('font_history').select('font_id')
-    ]);
-    
-    if (fontsRes.data) {
-      // Hitung total sales (Trial + Paid) per Font ID
-      const salesCounts = (historyRes.data || []).reduce((acc: Record<string, number>, curr: any) => {
-        acc[curr.font_id] = (acc[curr.font_id] || 0) + 1;
-        return acc;
-      }, {});
+    try {
+      const [fontsRes, promosRes, historyRes] = await Promise.all([
+        // Ambil berdasarkan display_order (Stacking)
+        supabase.from('fonts').select('*').order('display_order', { ascending: true }),
+        supabase.from('promotions').select('*').eq('is_active', true),
+        // Ambil data history untuk hitung sales/popularity
+        supabase.from('font_history').select('font_id')
+      ]);
+      
+      if (fontsRes.data) {
+        // Hitung total sales (Trial + Paid) per Font ID
+        const salesCounts = (historyRes.data || []).reduce((acc: Record<string, number>, curr: any) => {
+          acc[curr.font_id] = (acc[curr.font_id] || 0) + 1;
+          return acc;
+        }, {});
 
-      const enrichedFonts = fontsRes.data.map(f => ({
-        ...f,
-        dynamic_sales: salesCounts[f.id] || 0
-      }));
-      setFonts(enrichedFonts);
+        const enrichedFonts = fontsRes.data.map(f => ({
+          ...f,
+          dynamic_sales: salesCounts[f.id] || 0
+        }));
+        setFonts(enrichedFonts);
+
+        try {
+          sessionStorage.setItem('subqi_collection_cache', JSON.stringify({
+            fonts: enrichedFonts,
+            promos: promosRes.data || []
+          }));
+        } catch (_) {}
+      }
+      if (promosRes.data) setPromos(promosRes.data);
+    } catch (err) {
+      console.warn("fetchData error:", err);
+    } finally {
+      setLoading(false);
     }
-    if (promosRes.data) setPromos(promosRes.data);
-    setLoading(false);
   };
 
   const getActivePromo = (fontId: string) => {

@@ -293,7 +293,10 @@ const TypeTester: React.FC<TypeTesterProps> = ({
     const configAny = config as any;
     const version = new Date(configAny.updated_at || configAny.created_at || Date.now()).getTime();
 
-    files.forEach((file, index) => {
+    // 1. PRIORITAS UTAMA: Muat style yang sedang aktif langsung agar teks instan muncul
+    const loadStyle = (index: number) => {
+      const file = files[index];
+      if (!file) return;
       const url = file.startsWith('http') || file.startsWith('/') ? file : `/api/fonts/${file}?v=s2_${version}`;
       const fontNameIdentifier = `${config.name}-${index}`;
 
@@ -314,8 +317,21 @@ const TypeTester: React.FC<TypeTesterProps> = ({
           setLoadedFontsMap(prev => ({ ...prev, [index]: font }));
         }
       }).catch((err) => console.error("Error loading protected font with opentype:", err));
-    });
-  }, [config.font_files]);
+    };
+
+    loadStyle(activeStyleIndex);
+
+    // 2. LAZY LOAD: Tunda muat style sekunder agar tidak membebani jaringan di awal
+    const idleTimer = setTimeout(() => {
+      files.forEach((_, idx) => {
+        if (idx !== activeStyleIndex) {
+          loadStyle(idx);
+        }
+      });
+    }, isLayeredMode ? 100 : 1800);
+
+    return () => clearTimeout(idleTimer);
+  }, [config.font_files, activeStyleIndex, isLayeredMode]);
 
   useEffect(() => {
     let targetFile = '';
