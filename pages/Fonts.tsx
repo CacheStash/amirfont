@@ -121,14 +121,14 @@ const Fonts: React.FC = () => {
 
   useEffect(() => {
     if (fonts.length > 0) {
-      // 1. Immediate Phase: Load primary font for each typeface
+      // 1. Immediate Phase: Load primary font for each typeface (subset=basic for non-editable dummy text)
       fonts.forEach((f) => {
         const files = Array.isArray(f.font_files) ? f.font_files : [f.file_url];
         const pIdx = f.metadata?.primary_font_index || 0;
         const primaryFile = files[pIdx] || files[0];
         if (!primaryFile) return;
         const version = new Date(f.updated_at || f.created_at || Date.now()).getTime();
-        loadProtectedFontFace(`${f.name}-${pIdx}`, `/api/fonts/${primaryFile}?v=s3_${version}`);
+        loadProtectedFontFace(`${f.name}-${pIdx}`, `/api/fonts/${primaryFile}?subset=basic&v=s4_${version}`);
       });
 
       // 2. Idle Phase: Defer secondary weights to prevent network bottlenecks
@@ -139,7 +139,7 @@ const Fonts: React.FC = () => {
           const version = new Date(f.updated_at || f.created_at || Date.now()).getTime();
           files.forEach((file: string, idx: number) => {
             if (!file || idx === pIdx) return;
-            loadProtectedFontFace(`${f.name}-${idx}`, `/api/fonts/${file}?v=s3_${version}`);
+            loadProtectedFontFace(`${f.name}-${idx}`, `/api/fonts/${file}?subset=basic&v=s4_${version}`);
           });
         });
       }, 600);
