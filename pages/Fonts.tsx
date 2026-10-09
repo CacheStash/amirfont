@@ -128,7 +128,7 @@ const Fonts: React.FC = () => {
         const primaryFile = files[pIdx] || files[0];
         if (!primaryFile) return;
         const version = new Date(f.updated_at || f.created_at || Date.now()).getTime();
-        loadProtectedFontFace(`${f.name}-${pIdx}`, `/api/fonts/${primaryFile}?subset=basic&v=s4_${version}`);
+        loadProtectedFontFace(`${f.name}-preview-${pIdx}`, `/api/fonts-preview/${primaryFile}?subset=basic&v=s4_${version}`);
       });
 
       // 2. Idle Phase: Defer secondary weights to prevent network bottlenecks
@@ -139,7 +139,7 @@ const Fonts: React.FC = () => {
           const version = new Date(f.updated_at || f.created_at || Date.now()).getTime();
           files.forEach((file: string, idx: number) => {
             if (!file || idx === pIdx) return;
-            loadProtectedFontFace(`${f.name}-${idx}`, `/api/fonts/${file}?subset=basic&v=s4_${version}`);
+            loadProtectedFontFace(`${f.name}-preview-${idx}`, `/api/fonts-preview/${file}?subset=basic&v=s4_${version}`);
           });
         });
       }, 600);
@@ -274,7 +274,7 @@ const Fonts: React.FC = () => {
               const basePrice = font.price || 25;
               const randomText = DUMMY_LIBRARY[idx % DUMMY_LIBRARY.length];
               const primaryIdx = font.metadata?.primary_font_index || 0;
-              const fontFamilyStyle = `"${font.name}-${primaryIdx}"`;
+              const fontFamilyStyle = `"${font.name}-preview-${primaryIdx}"`;
 
               return (
                 <section key={font.id || idx} className="relative grid grid-cols-1 lg:grid-cols-[380px_1fr_120px] border-b border-black group transition-colors hover:bg-white/50 overflow-hidden">
