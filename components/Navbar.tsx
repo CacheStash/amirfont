@@ -4,6 +4,8 @@ import { Menu, X, Search, ArrowRight, ArrowLeft, ShoppingCart, ChevronDown } fro
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { createMetricSyncTicket, openFontopsyWithAuth } from '../lib/fontopsySession';
+import { openCanvasWithSession } from '../lib/canvasSession';
 
 interface NavbarProps {
   onStateChange?: (isActive: boolean) => void;
@@ -24,6 +26,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isToolsDrawerOpen, setIsToolsDrawerOpen] = useState(true);
   
@@ -33,19 +36,47 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
   const menuItems = ['Fonts', 'Canvas', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Tools'];
 
   const toolLinks = [
-    { name: 'Canvas', href: 'https://canvas.subqi.com', badge: 'BETA' },
-    { name: 'FontShift', href: 'https://fontshift.subqi.com', badge: 'FREE' },
-    { name: 'Fontopsy', href: 'https://fontopsy.subqi.com', badge: 'FREE' },
+    { name: 'Canvas', href: 'https://canvas.subqi.com', badge: 'BETA', isFontopsy: false },
+    { name: 'FontShift', href: 'https://fontshift.subqi.com', badge: 'FREE', isFontopsy: false },
+    {
+      name: 'Fontopsy',
+      href: isAdmin
+        ? `https://fontopsy.subqi.com?metrics_sync=${createMetricSyncTicket()}`
+        : 'https://fontopsy.subqi.com',
+      badge: 'FREE',
+      isFontopsy: true,
+    },
   ];
 
   // AUTH LOGIC
   useEffect(() => {
+    const checkAdmin = async (u: User | null) => {
+      if (!u) {
+        setIsAdmin(false);
+        return;
+      }
+      try {
+        const { data } = await supabase
+          .from('fontadmin')
+          .select('id')
+          .eq('id', u.id)
+          .maybeSingle();
+        setIsAdmin(!!data);
+      } catch {
+        setIsAdmin(false);
+      }
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      checkAdmin(currentUser);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      checkAdmin(currentUser);
     });
 
     return () => subscription.unsubscribe();
@@ -169,7 +200,16 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                     href={tool.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => setIsToolsOpen(false)}
+                    onClick={(e) => {
+                      if (tool.isFontopsy && isAdmin) {
+                        e.preventDefault();
+                        openFontopsyWithAuth('https://fontopsy.subqi.com');
+                      } else if (tool.name.toLowerCase() === 'canvas') {
+                        e.preventDefault();
+                        openCanvasWithSession('https://canvas.subqi.com');
+                      }
+                      setIsToolsOpen(false);
+                    }}
                     className="px-3 py-2 hover:bg-black hover:text-white transition-colors flex items-center justify-between text-[10px] font-bold tracking-widest uppercase"
                   >
                     <span>{tool.name}</span>
@@ -358,7 +398,16 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                                       href={tool.href}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      onClick={() => setIsOpen(false)}
+                                      onClick={(e) => {
+                                        if (tool.isFontopsy && isAdmin) {
+                                          e.preventDefault();
+                                          openFontopsyWithAuth('https://fontopsy.subqi.com');
+                                        } else if (tool.name.toLowerCase() === 'canvas') {
+                                          e.preventDefault();
+                                          openCanvasWithSession('https://canvas.subqi.com');
+                                        }
+                                        setIsOpen(false);
+                                      }}
                                       className="px-6 lg:px-12 py-4 hover:bg-black hover:text-white transition-all flex justify-between items-center group/tool"
                                     >
                                       <span className="flex items-center gap-3 font-mono text-sm lg:text-lg font-bold tracking-widest uppercase">

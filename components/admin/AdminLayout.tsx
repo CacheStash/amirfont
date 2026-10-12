@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Type, ShoppingCart, LogOut, Tag, 
-  Menu, X, Mail, FileText, Power, Loader2, CreditCard, SendHorizontal, Megaphone
+  Menu, X, Mail, FileText, Power, Loader2, CreditCard, SendHorizontal, Megaphone,
+  Sparkles, ExternalLink
 } from 'lucide-react';
+import { openCanvasWithSession } from '../../lib/canvasSession';
 import { Globe } from 'lucide-react';
 import WebAnalytics from './WebAnalytics';
 import ProductManager from './ProductManager';
@@ -184,8 +186,21 @@ const AdminDashboard = () => {
           <button onClick={() => handleTabChange('content')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'content' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <FileText size={18} /> Content Mgr
           </button>
-       <button onClick={() => handleTabChange('analytics')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'analytics' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+          <button onClick={() => handleTabChange('analytics')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'analytics' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <Globe size={18} /> Web Analytics
+          </button>
+
+          {/* Quick External Link: FontCanvas Studio with auto-login / God Mode */}
+          <button
+            onClick={() => openCanvasWithSession('https://canvas.subqi.com')}
+            className="w-full flex items-center justify-between px-4 py-3 font-bold uppercase text-xs transition-all bg-black/5 hover:bg-black hover:text-white border border-dashed border-black/30 mt-3 group"
+            title="Launch FontCanvas with Admin God Mode"
+          >
+            <div className="flex items-center gap-3">
+              <Sparkles size={18} className="text-[#FF5C00]" />
+              <span>FontCanvas Studio</span>
+            </div>
+            <ExternalLink size={14} className="opacity-50 group-hover:opacity-100 transition-opacity" />
           </button>
         </nav>
 

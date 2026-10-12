@@ -4,7 +4,7 @@ set -e
 
 PROJECT_NAME=$(basename "$PWD")
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
-TARGET_DIR="../backups/$PROJECT_NAME"
+TARGET_DIR="backups"
 BACKUP_FILE="$TARGET_DIR/${PROJECT_NAME}_$TIMESTAMP.tar.gz"
 
 # 1. Konfirmasi Backup

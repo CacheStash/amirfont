@@ -11,6 +11,7 @@ import { AlignLeft, AlignCenter, AlignRight, Grid, Keyboard, ChevronDown, Chevro
 import { FontConfig } from '../types';
 import opentype from 'opentype.js';
 import { loadProtectedFontFace, loadProtectedOpenType } from '../utils/secureFontLoader';
+import { getCanvasUrlWithSession } from '../lib/canvasSession';
 
 interface RasterMetricTileProps {
   glyphIdx: number;
@@ -1013,6 +1014,12 @@ const TypeTester: React.FC<TypeTesterProps> = ({
               href={`https://canvas.subqi.com/?font=${encodeURIComponent(config.name)}&font_id=${encodeURIComponent(config.id || '')}&style=${activeStyleIndex}&layered=${isLayeredMode ? '1' : '0'}${isLayeredMode ? `&layers=${encodeURIComponent(JSON.stringify(layers.filter(l => l.isVisible).map(l => ({ fontIndex: l.fontIndex, color: l.color }))))}` : ''}`}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={async (e) => {
+                e.preventDefault();
+                const rawUrl = `https://canvas.subqi.com/?font=${encodeURIComponent(config.name)}&font_id=${encodeURIComponent(config.id || '')}&style=${activeStyleIndex}&layered=${isLayeredMode ? '1' : '0'}${isLayeredMode ? `&layers=${encodeURIComponent(JSON.stringify(layers.filter(l => l.isVisible).map(l => ({ fontIndex: l.fontIndex, color: l.color }))))}` : ''}`;
+                const targetUrl = await getCanvasUrlWithSession(rawUrl);
+                window.open(targetUrl, '_blank', 'noopener,noreferrer');
+              }}
               className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold uppercase transition-colors border border-black bg-white hover:bg-[#FF5C00] hover:text-black text-black shrink-0 sm:ml-auto lg:ml-0"
               title="Open active font in FontCanvas Studio"
             >

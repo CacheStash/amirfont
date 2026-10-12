@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { openFontopsyWithAuth } from '../lib/fontopsySession';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -144,6 +145,10 @@ const Footer = () => {
             href="https://fontopsy.subqi.com" 
             target="_blank" 
             rel="noopener noreferrer" 
+            onClick={(e) => {
+              e.preventDefault();
+              openFontopsyWithAuth('https://fontopsy.subqi.com');
+            }}
             className="hover:underline tracking-widest w-fit flex items-center gap-1.5"
           >
             <span>FONTOPSY</span>
