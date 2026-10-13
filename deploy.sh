@@ -4,7 +4,7 @@ set -e
 
 PROJECT_NAME=$(basename "$PWD")
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
-TARGET_DIR="backups"
+TARGET_DIR="../backups/$PROJECT_NAME"
 BACKUP_FILE="$TARGET_DIR/${PROJECT_NAME}_$TIMESTAMP.tar.gz"
 
 # 1. Konfirmasi Backup
@@ -13,7 +13,7 @@ read -r answer
 if [[ "$answer" =~ ^[Yy]$ ]]; then
     mkdir -p "$TARGET_DIR"
     echo "📦 Memulai Backup ke $BACKUP_FILE..."
-    tar --exclude='node_modules' --exclude='.git' --exclude='dist' -czf "$BACKUP_FILE" .
+    tar --exclude='node_modules' --exclude='.git' --exclude='dist' --exclude='backups' -czf "$BACKUP_FILE" .
     
     echo "🧹 Rotasi: Menyimpan 5 backup terbaru..."
     ls -t "$TARGET_DIR/${PROJECT_NAME}"_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm 2>/dev/null || true

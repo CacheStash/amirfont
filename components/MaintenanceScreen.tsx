@@ -44,12 +44,12 @@ const MaintenanceScreen: React.FC = () => {
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-orange-600 animate-pulse" />
           <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-black">Status: Under Construction</span>
         </div>
-        <Link 
-          to="/admin" 
-          className="text-[11px] font-bold uppercase tracking-[0.2em] text-black/50 hover:text-black hover:underline transition-all"
+        <button 
+          onClick={() => window.dispatchEvent(new CustomEvent('open-admin-auth'))}
+          className="text-[11px] font-bold uppercase tracking-[0.2em] text-black/50 hover:text-black hover:underline transition-all bg-transparent border-none cursor-pointer p-0"
         >
           Staff Portal →
-        </Link>
+        </button>
       </header>
 
       {/* Main Content Area */}

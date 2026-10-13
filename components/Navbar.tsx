@@ -89,6 +89,14 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
 
     const handleSearch = async (query: string) => {
     setSearchQuery(query);
+    const cleanQuery = query.trim().toLowerCase();
+    if (cleanQuery === '/godmode') {
+      setSearchQuery('');
+      setSuggestions([]);
+      setIsSearchOpen(false);
+      window.dispatchEvent(new CustomEvent('open-admin-auth'));
+      return;
+    }
     if (query.length < 2) {
       setSuggestions([]);
       return;
@@ -292,11 +300,30 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                     type="text" 
                     value={searchQuery}
                     onChange={(e) => handleSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && searchQuery.trim().toLowerCase() === '/godmode') {
+                        e.preventDefault();
+                        setSearchQuery('');
+                        setSuggestions([]);
+                        setIsSearchOpen(false);
+                        window.dispatchEvent(new CustomEvent('open-admin-auth'));
+                      }
+                    }}
                     placeholder="TYPE TO SEARCH ANYTHING AT THIS SITE..." 
                     className="w-full p-4 md:text-2xl font-normal uppercase bg-transparent outline-none placeholder:text-gray-400"
                     autoFocus={isSearchOpen}
                   />
-                  <button className="p-4 px-6 hover:bg-black hover:text-white border-l border-black transition-colors md:text-xl font-bold">
+                  <button 
+                    onClick={() => {
+                      if (searchQuery.trim().toLowerCase() === '/godmode') {
+                        setSearchQuery('');
+                        setSuggestions([]);
+                        setIsSearchOpen(false);
+                        window.dispatchEvent(new CustomEvent('open-admin-auth'));
+                      }
+                    }}
+                    className="p-4 px-6 hover:bg-black hover:text-white border-l border-black transition-colors md:text-xl font-bold"
+                  >
                       {isSearching ? '...' : 'SEARCH'}
                   </button>
               </div>

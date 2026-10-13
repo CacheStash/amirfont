@@ -32,7 +32,7 @@ const Login = () => {
       // Login Biasa
       const { error, data } = await supabase.auth.signInWithPassword({ email, password });
       if (error) alert(error.message);
-      else if (data.session) navigate('/admin');
+      else if (data.session) navigate('/backstage');
     }
     setLoading(false);
   };

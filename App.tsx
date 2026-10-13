@@ -12,6 +12,7 @@ import ContextMenu from './components/ContextMenu';
 // Admin Components
 import Login from './components/admin/Login';
 import AdminDashboard from './components/admin/AdminLayout';
+import AdminLoginModal from './components/admin/AdminLoginModal';
 
 // Maintenance Screen
 import MaintenanceScreen from './components/MaintenanceScreen';
@@ -79,6 +80,13 @@ const App: React.FC = () => {
   const [isNavActive, setIsNavActive] = React.useState(false);
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [isMaintenance, setIsMaintenance] = React.useState(false);
+  const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleOpenAdminAuth = () => setIsAdminLoginModalOpen(true);
+    window.addEventListener('open-admin-auth', handleOpenAdminAuth);
+    return () => window.removeEventListener('open-admin-auth', handleOpenAdminAuth);
+  }, []);
 
   React.useEffect(() => {
     const fetchMaintenanceStatus = async () => {
@@ -148,21 +156,27 @@ const App: React.FC = () => {
       <Router>
         <ScrollToHash />
         {isMaintenance && !isAdmin ? (
-          <Routes>
-            <Route 
-              path="/admin" 
-              element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/login" />} 
+          <>
+            <Routes>
+              <Route 
+                path="/backstage" 
+                element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
+              />
+              <Route 
+                path="/backstage/*" 
+                element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
+              />
+              {/* Silent Decoy Redirects */}
+              <Route path="/admin" element={<Navigate to="/" replace />} />
+              <Route path="/admin/*" element={<Navigate to="/" replace />} />
+              <Route path="/login" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<MaintenanceScreen />} />
+            </Routes>
+            <AdminLoginModal 
+              isOpen={isAdminLoginModalOpen} 
+              onClose={() => setIsAdminLoginModalOpen(false)} 
             />
-            <Route 
-              path="/admin/*" 
-              element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/login" />} 
-            />
-            <Route 
-              path="/login" 
-              element={!session ? <Login /> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/" />)} 
-            />
-            <Route path="*" element={<MaintenanceScreen />} />
-          </Routes>
+          </>
         ) : (
           <div className="min-h-screen bg-[#EDEBE6] text-black font-sans selection:bg-black selection:text-white relative flex flex-col">
             <Navbar onStateChange={setIsNavActive} />
@@ -191,24 +205,25 @@ const App: React.FC = () => {
                 />
                 <Route 
                   path="/user/dashboard/*" 
-                  element={session && !isAdmin ? <UserDashboard /> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/user/auth" />)} 
+                  element={session && !isAdmin ? <UserDashboard /> : (isAdmin ? <Navigate to="/backstage" /> : <Navigate to="/user/auth" />)} 
                 />
 
                 <Route path="/user/receipt/:orderId" element={<LicenseReceipt />} />
                 
-                {/* ADMIN ROUTES */}
+                {/* ADMIN ROUTES (Stealth: /backstage) */}
                 <Route 
-                  path="/login" 
-                  element={!session ? <Login /> : (isAdmin ? <Navigate to="/admin" /> : <Navigate to="/user/dashboard" />)} 
+                  path="/backstage" 
+                  element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
                 />
                 <Route 
-                  path="/admin" 
-                  element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/login" />} 
+                  path="/backstage/*" 
+                  element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
                 />
-                <Route 
-                  path="/admin/*" 
-                  element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/login" />} 
-                />
+
+                {/* Silent Decoy Redirects for /admin and /login */}
+                <Route path="/admin" element={<Navigate to="/" replace />} />
+                <Route path="/admin/*" element={<Navigate to="/" replace />} />
+                <Route path="/login" element={<Navigate to="/" replace />} />
 
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
@@ -222,6 +237,11 @@ const App: React.FC = () => {
             <footer className="relative z-50 bg-[#EDEBE6]">
               <Footer />
             </footer>
+
+            <AdminLoginModal 
+              isOpen={isAdminLoginModalOpen} 
+              onClose={() => setIsAdminLoginModalOpen(false)} 
+            />
           </div>
         )}
       </Router>
