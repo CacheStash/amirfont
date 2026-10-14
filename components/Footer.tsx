@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { openFontopsyWithAuth } from '../lib/fontopsySession';
@@ -7,8 +7,18 @@ const Footer = () => {
   const [email, setEmail] = useState('');
   const [honeypot, setHoneypot] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ'];
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const { data } = await supabase.from('fontadmin').select('id').eq('id', session.user.id).maybeSingle();
+        setIsAdmin(!!data);
+      }
+    });
+  }, []);
+
+  const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ', ...(isAdmin ? ['Affiliate'] : [])];
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();

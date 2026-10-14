@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Type, ShoppingCart, LogOut, Tag, 
   Menu, X, Mail, FileText, Power, Loader2, CreditCard, SendHorizontal, Megaphone,
-  Sparkles, ExternalLink
+  Sparkles, ExternalLink, Share2
 } from 'lucide-react';
 import { openCanvasWithSession } from '../../lib/canvasSession';
 import { Globe } from 'lucide-react';
@@ -14,6 +14,7 @@ import Orders from './Orders';
 import Statistics from './Statistics';
 import BroadcastStudio from './BroadcastStudio';
 import EmailStudio from './EmailStudio';
+import AffiliateManager from './AffiliateManager';
 import { supabase } from '../../lib/supabase';
 
 const AdminDashboard = () => {
@@ -177,6 +178,9 @@ const AdminDashboard = () => {
           <button onClick={() => handleTabChange('promotions')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'promotions' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <Tag size={18} /> Promotions
           </button>
+          <button onClick={() => handleTabChange('affiliates')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'affiliates' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+            <Share2 size={18} /> Affiliates
+          </button>
           <button onClick={() => handleTabChange('orders')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'orders' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <ShoppingCart size={18} /> Orders
           </button>
@@ -266,6 +270,7 @@ const AdminDashboard = () => {
       <main className="flex-grow p-6 md:p-10 overflow-x-hidden overflow-y-auto w-full">
         {activeTab === 'products' && <ProductManager />}
         {activeTab === 'promotions' && <PromotionsManager onNavigateTab={setActiveTab} />}
+        {activeTab === 'affiliates' && <AffiliateManager />}
         {activeTab === 'content' && <ContentManager />}
         {activeTab === 'stats' && <Statistics />}
         {(activeTab === 'broadcast' || activeTab === 'inbox') && <BroadcastStudio />}

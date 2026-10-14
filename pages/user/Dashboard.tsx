@@ -1,27 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Library, Settings, LogOut, ArrowLeft, Menu, X } from 'lucide-react';
+import { Library, Settings, LogOut, ArrowLeft, Menu, X, Share2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import MyFontsHistory from './MyFontsHistory';
 import AccountSettings from './AccountSettings'; 
+import AffiliatePortal from './AffiliatePortal';
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('library');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [fullName, setFullName] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchInitialData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserEmail(user.email || '');
-        const { data } = await supabase
-          .from('fontbuyer')
-          .select('full_name')
-          .eq('id', user.id)
-          .maybeSingle();
+        const [{ data }, { data: adminCheck }] = await Promise.all([
+          supabase.from('fontbuyer').select('full_name').eq('id', user.id).maybeSingle(),
+          supabase.from('fontadmin').select('id').eq('id', user.id).maybeSingle()
+        ]);
         if (data?.full_name) setFullName(data.full_name);
+        setIsAdmin(!!adminCheck);
       }
     };
     fetchInitialData();
@@ -87,6 +89,15 @@ const UserDashboard = () => {
           >
             <Settings size={18} /> Settings
           </button>
+
+          {isAdmin && (
+            <button 
+              onClick={() => handleTabChange('affiliate')} 
+              className={`w-full flex items-center gap-3 px-4 py-3 font-bold text-xs transition-all ${activeTab === 'affiliate' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+            >
+              <Share2 size={18} /> Affiliate Hub
+            </button>
+          )}
         </nav>
 
         <div className="p-4 border-t border-black">
@@ -108,6 +119,7 @@ const UserDashboard = () => {
       <main className="flex-grow p-6 md:p-10 overflow-y-auto w-full">
         {activeTab === 'library' && <MyFontsHistory />}
         {activeTab === 'settings' && <AccountSettings />}
+        {activeTab === 'affiliate' && <AffiliatePortal />}
       </main>
     </div>
   );

@@ -18,19 +18,33 @@ const FontDetail: React.FC = () => {
   const { openConfigurator } = useCart(); 
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [affiliateCode, setAffiliateCode] = useState('');
+  const [affiliateCopied, setAffiliateCopied] = useState(false);
 
   useEffect(() => {
     fetchData();
   }, [id]);
 
   const fetchData = async () => {
-    const [fontRes, promosRes] = await Promise.all([
+    const [fontRes, promosRes, { data: { session } }] = await Promise.all([
       supabase.from('fonts').select('*').eq('id', id).single(),
-      supabase.from('promotions').select('*').eq('is_active', true)
+      supabase.from('promotions').select('*').eq('is_active', true),
+      supabase.auth.getSession()
     ]);
     
     if (fontRes.data) setFont(fontRes.data);
     if (promosRes.data) setPromos(promosRes.data);
+
+    if (session?.user) {
+      const [{ data: adminCheck }, { data: affData }] = await Promise.all([
+        supabase.from('fontadmin').select('id').eq('id', session.user.id).maybeSingle(),
+        supabase.from('affiliates').select('affiliate_code').eq('user_id', session.user.id).maybeSingle()
+      ]);
+      if (adminCheck) setIsAdmin(true);
+      if (affData) setAffiliateCode(affData.affiliate_code);
+    }
+
     setLoading(false);
   };
 
@@ -64,6 +78,26 @@ const FontDetail: React.FC = () => {
       {/* BACKGROUND ORBS - Selaras dengan Home */}
       <div className="grain-orb-base orb-top-right" />
       <div className="grain-orb-base orb-bottom-left" />
+
+      {/* STEALTH AFFILIATE BAR (Admin Only) */}
+      {isAdmin && affiliateCode && (
+        <div className="w-full border-b border-black bg-white p-3 px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center gap-2">
+            <span className="font-bold uppercase tracking-wider text-black/50 text-[10px]">AFFILIATE_SHARE:</span>
+            <code className="font-bold">{`${window.location.origin}/c/${affiliateCode}/${font.id}`}</code>
+          </div>
+          <button 
+            onClick={() => {
+              navigator.clipboard.writeText(`${window.location.origin}/c/${affiliateCode}/${font.id}`);
+              setAffiliateCopied(true);
+              setTimeout(() => setAffiliateCopied(false), 2000);
+            }}
+            className="bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest shrink-0 hover:bg-neutral-800"
+          >
+            {affiliateCopied ? 'COPIED' : 'COPY LINK'}
+          </button>
+        </div>
+      )}
 
       {/* 1. HEADER: CLEAN SECTION (No Images) */}
       <header className="relative w-full border-b border-black bg-transparent overflow-hidden">
