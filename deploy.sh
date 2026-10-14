@@ -38,7 +38,7 @@ echo "🔨 Memulai Build..."
 pnpm run build
 
 echo "🚀 Deploy ke Cloudflare..."
-echo "y" | npx wrangler deploy
+echo "y" | npx wrangler deploy --keep-vars
 
 # 3. Git Push
 if [[ -n $(git status -s) ]]; then

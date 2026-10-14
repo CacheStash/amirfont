@@ -11,6 +11,11 @@ node_modules
 dist
 dist-ssr
 *.local
+.wrangler/
+backups/
+sentclaude/
+*.zip
+*.tar.gz
 
 
 # Editor directories and files
