@@ -3762,7 +3762,7 @@ export default {
       const contentType = response.headers.get('content-type') || '';
       if (contentType.includes('text/html') || url.pathname === '/' || !url.pathname.includes('.')) {
         const newHeaders = new Headers(response.headers);
-        newHeaders.set('Cache-Control', 'public, max-age=60, s-maxage=3600, stale-while-revalidate=86400');
+        newHeaders.set('Cache-Control', 'public, max-age=0, must-revalidate');
         newHeaders.set('X-Edge-Cache-Shield', 'Active');
         return new Response(response.body, {
           status: response.status,
