@@ -25,6 +25,8 @@ const UserAuth = () => {
     const cleanEmail = email.toLowerCase().trim();
     const cleanPassword = password.trim();
 
+    const redirectTarget = searchParams.get('redirect') || '/user/dashboard';
+
     // 1. ATTEMPT STANDARD LOGIN
     const { error: signInError, data: signInData } = await supabase.auth.signInWithPassword({ 
       email: cleanEmail, 
@@ -32,7 +34,7 @@ const UserAuth = () => {
     });
     
     if (!signInError && signInData.session) {
-      navigate('/user/dashboard');
+      navigate(redirectTarget);
       setLoading(false);
       return;
     }
@@ -57,7 +59,7 @@ const UserAuth = () => {
           });
           
           if (!retryLogin.error) {
-            navigate('/user/dashboard');
+            navigate(redirectTarget);
             setLoading(false);
             return;
           }

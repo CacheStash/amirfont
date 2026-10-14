@@ -12,18 +12,23 @@ const UserDashboard = () => {
   const [userEmail, setUserEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAffiliateAllowed, setIsAffiliateAllowed] = useState(false);
 
   useEffect(() => {
     const fetchInitialData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserEmail(user.email || '');
-        const [{ data }, { data: adminCheck }] = await Promise.all([
+        const isTrainer = user.email?.toLowerCase() === 'gotrainer19@gmail.com';
+        const [{ data }, { data: adminCheck }, { data: affCheck }] = await Promise.all([
           supabase.from('fontbuyer').select('full_name').eq('id', user.id).maybeSingle(),
-          supabase.from('fontadmin').select('id').eq('id', user.id).maybeSingle()
+          supabase.from('fontadmin').select('id').eq('id', user.id).maybeSingle(),
+          supabase.from('affiliates').select('id').eq('user_id', user.id).maybeSingle()
         ]);
         if (data?.full_name) setFullName(data.full_name);
-        setIsAdmin(!!adminCheck);
+        const admin = !!adminCheck;
+        setIsAdmin(admin);
+        setIsAffiliateAllowed(admin || isTrainer || !!affCheck);
       }
     };
     fetchInitialData();
@@ -90,7 +95,7 @@ const UserDashboard = () => {
             <Settings size={18} /> Settings
           </button>
 
-          {isAdmin && (
+          {isAffiliateAllowed && (
             <button 
               onClick={() => handleTabChange('affiliate')} 
               className={`w-full flex items-center gap-3 px-4 py-3 font-bold text-xs transition-all ${activeTab === 'affiliate' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}

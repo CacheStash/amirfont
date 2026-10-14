@@ -8,17 +8,21 @@ const Footer = () => {
   const [honeypot, setHoneypot] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAffiliateVisible, setIsAffiliateVisible] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
+        const isTrainer = session.user.email?.toLowerCase() === 'gotrainer19@gmail.com';
         const { data } = await supabase.from('fontadmin').select('id').eq('id', session.user.id).maybeSingle();
-        setIsAdmin(!!data);
+        const admin = !!data;
+        setIsAdmin(admin);
+        setIsAffiliateVisible(admin || isTrainer);
       }
     });
   }, []);
 
-  const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ', ...(isAdmin ? ['Affiliate'] : [])];
+  const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ', ...(isAffiliateVisible ? ['Affiliate'] : [])];
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();

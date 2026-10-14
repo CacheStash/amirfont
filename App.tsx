@@ -83,6 +83,10 @@ const App: React.FC = () => {
   const [isMaintenance, setIsMaintenance] = React.useState(false);
   const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = React.useState(false);
 
+  const isAffiliateAllowed = Boolean(
+    isAdmin || (session?.user?.email && session.user.email.toLowerCase() === 'gotrainer19@gmail.com')
+  );
+
   React.useEffect(() => {
     const handleOpenAdminAuth = () => setIsAdminLoginModalOpen(true);
     window.addEventListener('open-admin-auth', handleOpenAdminAuth);
@@ -118,27 +122,29 @@ const App: React.FC = () => {
     const checkAdminStatus = async (user: any) => {
       if (!user) {
         setIsAdmin(false);
-        return;
+        return false;
       }
       const { data } = await supabase
         .from('fontadmin')
         .select('id')
         .eq('id', user.id)
         .maybeSingle();
-      setIsAdmin(!!data);
+      const admin = !!data;
+      setIsAdmin(admin);
+      return admin;
     };
 
     fetchMaintenanceStatus();
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
-      checkAdminStatus(session?.user);
+      await checkAdminStatus(session?.user);
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
-      checkAdminStatus(session?.user);
+      await checkAdminStatus(session?.user);
     });
 
     const maintenanceChannel = supabase
@@ -221,10 +227,16 @@ const App: React.FC = () => {
 
                 <Route path="/user/receipt/:orderId" element={<LicenseReceipt />} />
                 
-                {/* Stealth Affiliate Route (Hidden from public, admin only) */}
+                {/* Stealth Affiliate Route (Hidden from public, only admin & gotrainer19 can view) */}
                 <Route 
                   path="/affiliate" 
-                  element={session && isAdmin ? <AffiliateLanding /> : <Navigate to="/" replace />} 
+                  element={
+                    session ? (
+                      isAffiliateAllowed ? <AffiliateLanding /> : <Navigate to="/" replace />
+                    ) : (
+                      <Navigate to="/user/auth?redirect=/affiliate" replace />
+                    )
+                  } 
                 />
 
                 {/* ADMIN ROUTES (Stealth: /backstage) */}
