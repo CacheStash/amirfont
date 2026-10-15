@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Copy } from 'lucide-react';
+import { ArrowLeft, Plus, Copy, Sparkles } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { supabase } from '../../lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { calculateAffiliateMilestone, getClaimedMilestones, markMilestoneClaimed } from '../../utils/affiliateMilestone';
 
 const Checkout: React.FC = () => {
 
@@ -30,6 +31,15 @@ const Checkout: React.FC = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [couponMessage, setCouponMessage] = useState<{type: 'error' | 'success', text: string} | null>(null);
+
+  // CREATOR MILESTONE REWARD STATE
+  const [creatorMilestone, setCreatorMilestone] = useState<{
+    affiliateId: string;
+    discountPercent: number;
+    rawTier: number;
+    currentCycle: number;
+    grossSales: number;
+  } | null>(null);
 
   // Dynamic PayPal Mode States
   const [isSandbox, setIsSandbox] = useState(false);
@@ -57,6 +67,39 @@ const Checkout: React.FC = () => {
 
   // AUTH & PRE-FILL
   useEffect(() => {
+    const checkCreatorMilestoneReward = async (userId: string) => {
+      try {
+        const { data: aff } = await supabase
+          .from('affiliates')
+          .select('id, affiliate_code')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (aff) {
+          const { data: comms } = await supabase
+            .from('affiliate_commissions')
+            .select('gross_amount')
+            .eq('affiliate_id', aff.id);
+          
+          const gross = (comms || []).reduce((sum, c) => sum + Number(c.gross_amount || 0), 0);
+          const claimed = getClaimedMilestones(aff.id, Math.floor(gross / 1000));
+          const info = calculateAffiliateMilestone(gross, claimed);
+
+          if (info.activeDiscountPercent > 0) {
+            setCreatorMilestone({
+              affiliateId: aff.id,
+              discountPercent: info.activeDiscountPercent,
+              rawTier: info.rawTier,
+              currentCycle: info.currentCycle,
+              grossSales: gross
+            });
+          }
+        }
+      } catch (e) {
+        console.warn("Could not check creator milestone:", e);
+      }
+    };
+
     const fetchBuyerProfile = async (userId: string) => {
       const { data, error } = await supabase
         .from('fontbuyer')
@@ -75,6 +118,7 @@ const Checkout: React.FC = () => {
         setUser(session.user);
         setEmail(session.user.email || '');
         fetchBuyerProfile(session.user.id);
+        checkCreatorMilestoneReward(session.user.id);
       }
     });
 
@@ -83,11 +127,13 @@ const Checkout: React.FC = () => {
         setUser(session.user);
         setEmail(session.user.email || '');
         fetchBuyerProfile(session.user.id);
+        checkCreatorMilestoneReward(session.user.id);
       } else {
         setUser(null);
         setEmail('');
         setName('');
         setAddress('');
+        setCreatorMilestone(null);
       }
     });
 
@@ -113,16 +159,28 @@ const Checkout: React.FC = () => {
   const total = cart.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0);
  
   const finalTotal = useMemo(() => {
-    if (!appliedCoupon) return total;
-    let discountAmount = 0;
-    if (appliedCoupon.discount_type === 'percentage') {
-      discountAmount = total * (appliedCoupon.discount_value / 100);
-    } else {
-      discountAmount = appliedCoupon.discount_value;
+    let discountPercent = 0;
+    let fixedDiscount = 0;
+
+    if (appliedCoupon) {
+      if (appliedCoupon.discount_type === 'percentage') {
+        discountPercent = Number(appliedCoupon.discount_value) || 0;
+      } else {
+        fixedDiscount = Number(appliedCoupon.discount_value) || 0;
+      }
+    } else if (creatorMilestone) {
+      discountPercent = creatorMilestone.discountPercent;
     }
-    const calculatedTotal = total - discountAmount;
-    return calculatedTotal > 0 ? calculatedTotal : 0;
-  }, [total, appliedCoupon]);
+
+    let calculated = total;
+    if (discountPercent > 0) {
+      calculated = total - (total * (discountPercent / 100));
+    } else if (fixedDiscount > 0) {
+      calculated = total - fixedDiscount;
+    }
+
+    return calculated > 0 ? Number(calculated.toFixed(2)) : 0;
+  }, [total, appliedCoupon, creatorMilestone]);
 
   const handleApplyCoupon = async () => {
     if (!couponCodeInput.trim()) return;
@@ -186,8 +244,9 @@ const Checkout: React.FC = () => {
             cart_items: cart,
             paypal_breakdown: paypalBreakdown || null,
             affiliate_ref: storedRef,
-            coupon_code: appliedCoupon?.code || null,
-            coupon_id: appliedCoupon?.id || null
+            coupon_code: appliedCoupon?.code || (creatorMilestone ? `CREATOR-${creatorMilestone.discountPercent}OFF` : null),
+            coupon_id: appliedCoupon?.id || null,
+            creator_milestone_discount: creatorMilestone ? `${creatorMilestone.discountPercent}%` : null
           }
         })
       });
@@ -223,6 +282,8 @@ const Checkout: React.FC = () => {
           .eq('id', appliedCoupon.id);
         
         if (couponUpdateError) console.error("COUPON_UPDATE_ERROR:", couponUpdateError);
+      } else if (creatorMilestone) {
+        markMilestoneClaimed(creatorMilestone.affiliateId, creatorMilestone.currentCycle, creatorMilestone.rawTier);
       }
       
     } catch (err: any) {
@@ -423,18 +484,23 @@ const Checkout: React.FC = () => {
             </div>
 
             {/* Discount Row (If Any) */}
-            {appliedCoupon && (
+            {appliedCoupon ? (
               <div className="flex justify-between items-center mb-6 text-orange-600 font-bold text-lg md:text-xl border-b border-black border-dashed pb-6">
                 <span>DISCOUNT ({appliedCoupon.code})</span>
                 <span>-${(total - finalTotal).toFixed(2)}</span>
               </div>
-            )}
+            ) : creatorMilestone ? (
+              <div className="flex justify-between items-center mb-6 text-black font-black text-base md:text-lg border-b border-black border-dashed pb-6 bg-yellow-200 px-3 py-2 border border-black">
+                <span className="flex items-center gap-1.5"><Sparkles size={16} className="text-[#FF5C00]" /> CREATOR MILESTONE REWARD ({creatorMilestone.discountPercent}% OFF)</span>
+                <span>-${(total - finalTotal).toFixed(2)}</span>
+              </div>
+            ) : null}
 
             {/* Final Total */}
             <div className="border-y-4 border-double border-black py-8 flex justify-between items-center mb-12">
               <span className="text-xl md:text-2xl font-black tracking-[0.2em]">GRAND TOTAL</span>
               <div className="text-right">
-                {appliedCoupon && (
+                {(appliedCoupon || creatorMilestone) && (
                   <span className="text-lg md:text-2xl font-bold tracking-tighter line-through opacity-40 block -mb-2 text-black">
                     ${total.toFixed(2)}
                   </span>
@@ -582,8 +648,29 @@ const Checkout: React.FC = () => {
 
             {/* COUPON / PROMO CODE SECTION */}
             {!isPaid && total > 0 && (
-              <div className="mb-10 p-6 md:p-8 border-2 border-black bg-[#FFE500] text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                <div className="flex items-center justify-between mb-4">
+              <div className="mb-10 p-6 md:p-8 border-2 border-black bg-[#FFE500] text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4">
+                {/* CREATOR MILESTONE ACTIVE BANNER */}
+                {creatorMilestone && !appliedCoupon && (
+                  <div className="p-4 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-xs uppercase tracking-wider flex items-center gap-1.5 text-black">
+                        <Sparkles size={14} className="text-[#FF5C00]" />
+                        EXCLUSIVE CREATOR REWARD: {creatorMilestone.discountPercent}% OFF AUTO-APPLIED!
+                      </span>
+                      <span className="font-mono font-black text-xs bg-yellow-300 px-2 py-0.5 border border-black">
+                        -${(total - finalTotal).toFixed(2)} USD
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-gray-800 leading-relaxed font-sans normal-case">
+                      As a verified affiliate creator who unlocked the <strong>{creatorMilestone.rawTier}% tier milestone</strong> (${creatorMilestone.grossSales.toFixed(2)} gross referral sales), your exclusive personal discount is automatically applied to this checkout.
+                    </p>
+                    <div className="text-[10px] text-gray-500 font-mono italic border-t border-black/10 pt-1">
+                      * Single-use per tier and does not stack with store coupons.
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between">
                   <span className="bg-black text-white px-2 py-1 text-[10px] font-black tracking-[0.2em] uppercase">
                     BARGAIN / PROMO CODE
                   </span>
