@@ -22,7 +22,7 @@ const Footer = () => {
     });
   }, []);
 
-  const menuItems = ['Fonts', 'License', 'About', 'Contact', 'Policy', 'FAQ', ...(isAffiliateVisible ? ['Affiliate'] : [])];
+  const menuItems = ['Fonts', 'License', 'Affiliate', 'Contact', 'Policy', 'FAQ'];
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
