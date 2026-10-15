@@ -9,7 +9,7 @@ import {
   Share2, Users, DollarSign, Clock, CheckCircle2, 
   AlertCircle, Download, Check, ShieldCheck, RefreshCw, 
   ExternalLink, Calendar, Eye, FileText, ArrowUpRight, 
-  Search, X, Filter, ChevronRight, Wallet, Zap
+  Search, X, Filter, ChevronRight, Wallet, Zap, Tag
 } from 'lucide-react';
 import { AFFILIATE_MIN_PAYOUT_USD, getNextMonthlyPayoutDate } from '../../utils/affiliateGeo';
 
