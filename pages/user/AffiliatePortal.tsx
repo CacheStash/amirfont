@@ -9,7 +9,7 @@ import {
   Copy, Check, ArrowRight, Clock, CheckCircle2, DollarSign, 
   AlertCircle, Share2, ExternalLink, Settings, Save, Mail, Hash,
   Tag, MapPin, Phone, Calendar, Wallet, ChevronRight, FileText,
-  Zap, RefreshCw, X
+  Zap, RefreshCw, X, Sparkles, Info, ShieldCheck, Percent
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
@@ -17,6 +17,7 @@ import {
   PROVINCES_BY_COUNTRY, 
   getDummyAffiliateData, 
   syncAffiliateCoupon, 
+  checkCouponAvailability,
   findCountryByName,
   getNextMonthlyPayoutDate,
   AFFILIATE_MIN_PAYOUT_USD
@@ -64,6 +65,13 @@ const AffiliatePortal: React.FC = () => {
   const [withdrawError, setWithdrawError] = useState('');
   const [settingsSuccess, setSettingsSuccess] = useState('');
   const [settingsError, setSettingsError] = useState('');
+
+  // Custom Coupon & Discount State (10% to 30%)
+  const [affiliateCoupon, setAffiliateCoupon] = useState<any>(null);
+  const [couponCodeCustom, setCouponCodeCustom] = useState('');
+  const [couponDiscountPercent, setCouponDiscountPercent] = useState<number>(10);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
+  const [availabilityResult, setAvailabilityResult] = useState<{ available: boolean; message: string } | null>(null);
 
   const nextPayoutInfo = getNextMonthlyPayoutDate();
 
@@ -118,6 +126,30 @@ const AffiliatePortal: React.FC = () => {
             setEditPostalCode(dummy.postal_code);
             setEditStreetAddress(dummy.street_address);
           }
+        }
+
+        // Fetch active affiliate coupon
+        try {
+          const { data: couponRow } = await supabase
+            .from('coupons')
+            .select('*')
+            .eq('affiliate_id', affData.id)
+            .eq('is_active', true)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (couponRow) {
+            setAffiliateCoupon(couponRow);
+            setCouponCodeCustom(couponRow.code);
+            setCouponDiscountPercent(Number(couponRow.discount_percentage || couponRow.discount_value || 10));
+          } else {
+            setCouponCodeCustom(`${affData.affiliate_code || ''}10`);
+            setCouponDiscountPercent(10);
+          }
+        } catch (_) {
+          setCouponCodeCustom(`${affData.affiliate_code || ''}10`);
+          setCouponDiscountPercent(10);
         }
 
         // Fetch commissions
@@ -256,6 +288,23 @@ const AffiliatePortal: React.FC = () => {
     }
   };
 
+  const handleCheckCouponAvailability = async () => {
+    if (!couponCodeCustom || couponCodeCustom.trim().length < 3) {
+      setAvailabilityResult({ available: false, message: 'Please enter at least 3 characters.' });
+      return;
+    }
+    setCheckingAvailability(true);
+    setAvailabilityResult(null);
+    try {
+      const res = await checkCouponAvailability(supabase, couponCodeCustom, affiliate?.id);
+      setAvailabilityResult(res);
+    } catch (e: any) {
+      setAvailabilityResult({ available: false, message: e.message || 'Check failed.' });
+    } finally {
+      setCheckingAvailability(false);
+    }
+  };
+
   const handleUpdateSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setSettingsSuccess('');
@@ -341,11 +390,20 @@ const AffiliatePortal: React.FC = () => {
       }
 
       localStorage.setItem(`aff_auto_payout_${affiliate.id}`, autoPayoutEnabled ? '1' : '0');
-      await syncAffiliateCoupon(supabase, affiliate.id, cleanCode);
+      const syncedCoupon = await syncAffiliateCoupon(
+        supabase, 
+        affiliate.id, 
+        cleanCode,
+        couponCodeCustom.trim().toUpperCase(),
+        couponDiscountPercent
+      );
 
       setAffiliate(updatedData);
       setEditPaypalEmail(updatedData.paypal_email);
       setEditVanityCode(updatedData.affiliate_code);
+      if (syncedCoupon) {
+        setCouponCodeCustom(syncedCoupon);
+      }
       setSettingsSuccess('Affiliate profile and promo coupon updated successfully!');
     } catch (err: any) {
       setSettingsError(err.message || 'Failed to update account settings.');
@@ -381,7 +439,7 @@ const AffiliatePortal: React.FC = () => {
   }
 
   const shareUrl = `${window.location.origin}/c/${affiliate.affiliate_code}`;
-  const couponCode = `${affiliate.affiliate_code}10`;
+  const couponCode = couponCodeCustom || (affiliateCoupon?.code) || `${affiliate.affiliate_code}${couponDiscountPercent}`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl);
@@ -570,7 +628,7 @@ const AffiliatePortal: React.FC = () => {
             <div className="border-2 border-black p-6 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black uppercase tracking-wider text-[#FF5C00] block flex items-center gap-1">
-                  <Tag size={12} /> 2. Audience 10% OFF Promo Code
+                  <Tag size={12} /> 2. Audience {couponDiscountPercent}% OFF Promo Code
                 </label>
                 <span className="text-[9px] font-black text-green-950 bg-green-200 px-2 py-0.5 border border-black uppercase">
                   Active in Checkout
@@ -593,11 +651,78 @@ const AffiliatePortal: React.FC = () => {
                 </button>
               </div>
 
-              <div className="text-xs text-gray-600">
-                Gives your audience 10% discount while directly crediting your 20% Net commission.
+              <div className="flex items-center justify-between text-xs text-gray-600">
+                <span>Gives your audience {couponDiscountPercent}% instant discount. Commission (20%) is calculated on the discounted checkout total.</span>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('settings')}
+                  className="underline hover:text-[#FF5C00] font-bold uppercase text-[10px] shrink-0 ml-2 cursor-pointer"
+                >
+                  Customize &rarr;
+                </button>
               </div>
             </div>
 
+          </div>
+
+          {/* STRATEGY COMPARISON: REFERRAL LINK VS PROMO COUPON */}
+          <div className="border-2 border-black bg-orange-50/70 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4">
+            <div className="flex items-center gap-2">
+              <Sparkles size={16} className="text-[#FF5C00]" />
+              <h4 className="text-xs font-black uppercase tracking-wider text-black">
+                Campaign Strategy: Referral Link vs Promo Coupon
+              </h4>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 border-2 border-black bg-white space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-black uppercase tracking-wider text-[11px] text-black">1. Referral Link (/c/...)</span>
+                  <span className="text-[9px] font-black bg-gray-100 px-2 py-0.5 border border-black uppercase">Full Rate</span>
+                </div>
+                <p className="text-[11px] text-gray-700 leading-relaxed">
+                  <strong>Buyer pays full catalog price (100%).</strong> Your 20% Net commission is credited on the full transaction value (minus PayPal fees).
+                </p>
+                <div className="text-[10px] text-gray-500 font-bold space-y-0.5">
+                  <div className="text-green-700">✓ Advantage: Maximum profit per individual transaction.</div>
+                  <div className="text-gray-500">✕ Consideration: No discount incentive for price-sensitive buyers.</div>
+                </div>
+              </div>
+
+              <div className="p-4 border-2 border-black bg-white space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-black uppercase tracking-wider text-[11px] text-black">2. Promo Coupon ({couponDiscountPercent}% OFF)</span>
+                  <span className="text-[9px] font-black bg-green-200 text-green-950 px-2 py-0.5 border border-black uppercase">High Conversion</span>
+                </div>
+                <p className="text-[11px] text-gray-700 leading-relaxed">
+                  <strong>Buyer gets {couponDiscountPercent}% instant discount.</strong> Your 20% Net commission is computed from the discounted checkout total.
+                </p>
+                <div className="text-[10px] text-gray-500 font-bold space-y-0.5">
+                  <div className="text-green-700">✓ Advantage: Drastically higher purchase conversion & instant impulse buy.</div>
+                  <div className="text-gray-500">✕ Consideration: Dollar commission is slightly lower due to the discount.</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-[11px] text-gray-600 bg-white p-3 border border-black/20 flex items-start gap-2">
+              <Info size={14} className="text-[#FF5C00] shrink-0 mt-0.5" />
+              <span>
+                <strong>Flexibility Note:</strong> You can adjust your promo discount between <strong>10% (Default)</strong> and <strong>30% (Max)</strong> under the <strong>Settings</strong> tab. Offering 20%–30% discount attracts substantially more buyers, multiplying overall earnings!
+              </span>
+            </div>
+          </div>
+
+          {/* 14-DAY WARRANTY HOLD CLARITY BANNER */}
+          <div className="border-2 border-black bg-amber-50 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3">
+            <Clock size={20} className="text-amber-700 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <span className="text-xs font-black uppercase tracking-wider text-amber-950 block">
+                Why is there a 14-Day Clearance Period on new sales?
+              </span>
+              <p className="text-[11px] text-amber-900/90 leading-relaxed max-w-3xl">
+                To protect our creator network and partner payouts against fraudulent card use, unauthorized disputes, and chargebacks, every new sale is held in a 14-day warranty clearance window. Once the 14 days expire without customer dispute, funds automatically clear into <strong>Ready For Payout</strong> and can be withdrawn immediately to your PayPal account.
+              </p>
+            </div>
           </div>
 
           {/* 3 FINANCIAL RECONCILIATION CARDS */}
@@ -1085,8 +1210,104 @@ const AffiliatePortal: React.FC = () => {
                   />
                 </div>
                 <span className="text-[11px] text-gray-500 block">
-                  Alphanumeric only (3–20 chars). Updating your code syncs your vanity URL and promo coupon (<code className="font-bold">{editVanityCode || 'CODE'}10</code>).
+                  Alphanumeric only (3–20 chars). Updating your code sets your custom referral link (<code>subqifont.com/c/{editVanityCode || 'CODE'}</code>).
                 </span>
+              </div>
+
+              {/* Promo Coupon Customization & Availability Check */}
+              <div className="p-5 border-2 border-black bg-yellow-50 space-y-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Tag size={16} className="text-[#FF5C00]" />
+                    <span className="text-xs font-black uppercase tracking-wider">
+                      Audience Promo Coupon & Discount Percentage
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-white px-2 py-0.5 border border-black">
+                    Current: {couponDiscountPercent}% OFF
+                  </span>
+                </div>
+
+                {/* Coupon Code Input + Check Availability Button */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-gray-700 block">
+                    Custom Coupon Code
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input 
+                      type="text"
+                      value={couponCodeCustom}
+                      onChange={(e) => {
+                        setCouponCodeCustom(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''));
+                        setAvailabilityResult(null);
+                      }}
+                      placeholder="MYSTUDIO10"
+                      className="grow px-4 py-2.5 font-mono text-sm font-black uppercase bg-white border-2 border-black outline-none focus:bg-yellow-100"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCheckCouponAvailability}
+                      disabled={checkingAvailability || !couponCodeCustom}
+                      className="px-4 py-2.5 bg-black text-white hover:bg-[#FF5C00] hover:text-black border-2 border-black text-xs font-black uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer whitespace-nowrap flex items-center justify-center gap-1.5"
+                    >
+                      {checkingAvailability ? (
+                        <>
+                          <RefreshCw size={12} className="animate-spin" /> Checking...
+                        </>
+                      ) : (
+                        'Check Availability'
+                      )}
+                    </button>
+                  </div>
+
+                  {availabilityResult && (
+                    <div className={`p-2.5 border-2 border-black text-xs font-bold flex items-center gap-2 mt-2 ${
+                      availabilityResult.available ? 'bg-green-100 text-green-950' : 'bg-red-100 text-red-950'
+                    }`}>
+                      {availabilityResult.available ? <Check size={14} className="text-green-700 shrink-0" /> : <AlertCircle size={14} className="text-red-700 shrink-0" />}
+                      <span>{availabilityResult.message}</span>
+                    </div>
+                  )}
+                  <span className="text-[10px] text-gray-500 block">
+                    Check if your desired promo code is available before publishing.
+                  </span>
+                </div>
+
+                {/* Discount Percentage Selector (10% to 30%) */}
+                <div className="space-y-2 pt-2 border-t border-black/10">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-gray-700 block flex items-center justify-between">
+                    <span>Discount Percentage Offered (10% Min – 30% Max)</span>
+                    <span className="font-mono font-black text-black">{couponDiscountPercent}% OFF</span>
+                  </label>
+
+                  <div className="grid grid-cols-5 gap-2">
+                    {[10, 15, 20, 25, 30].map((pct) => (
+                      <button
+                        key={pct}
+                        type="button"
+                        onClick={() => {
+                          const oldPct = couponDiscountPercent;
+                          setCouponDiscountPercent(pct);
+                          if (couponCodeCustom === `${editVanityCode}${oldPct}` || !couponCodeCustom) {
+                            setCouponCodeCustom(`${editVanityCode}${pct}`);
+                          }
+                          setAvailabilityResult(null);
+                        }}
+                        className={`py-2 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer ${
+                          couponDiscountPercent === pct 
+                            ? 'bg-[#FF5C00] text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
+                            : 'bg-white text-black hover:bg-gray-100'
+                        }`}
+                      >
+                        {pct}%{pct === 10 ? ' (Default)' : pct === 30 ? ' (Max)' : ''}
+                      </button>
+                    ))}
+                  </div>
+
+                  <p className="text-[11px] text-gray-600 leading-relaxed bg-white/80 p-2.5 border border-black/15">
+                    <strong>Economic Trade-off:</strong> Default is 10% OFF. You may raise it up to 30% OFF to make font purchases irresistible to your audience. While higher discounts slightly reduce net commission per sale, they dramatically boost checkout conversion rate and overall sales volume!
+                  </p>
+                </div>
               </div>
 
               {/* Phone Field */}
