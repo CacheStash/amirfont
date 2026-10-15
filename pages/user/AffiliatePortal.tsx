@@ -725,9 +725,9 @@ const AffiliatePortal: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-gray-600">
-                <span>Visitors clicking this link are tagged for 30 days.</span>
-                <Link to="/fonts" className="underline hover:text-[#FF5C00] font-bold flex items-center gap-1 uppercase text-[10px]">
+              <div className="flex items-center justify-between text-xs text-gray-600 pt-1">
+                <span className="truncate pr-2">Visitors clicking this link are tagged for 30 days.</span>
+                <Link to="/fonts" className="underline hover:text-[#FF5C00] font-bold flex items-center gap-1 uppercase text-[10px] whitespace-nowrap shrink-0">
                   View Catalog <ExternalLink size={10} />
                 </Link>
               </div>
