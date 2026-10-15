@@ -27,8 +27,17 @@ const FontDetail: React.FC = () => {
   }, [id]);
 
   const fetchData = async () => {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id || '');
+    let fontQuery = supabase.from('fonts').select('*');
+    if (isUuid) {
+      fontQuery = fontQuery.eq('id', id);
+    } else {
+      const cleanName = (id || '').replace(/-/g, ' ').trim();
+      fontQuery = fontQuery.ilike('name', cleanName);
+    }
+
     const [fontRes, promosRes, { data: { session } }] = await Promise.all([
-      supabase.from('fonts').select('*').eq('id', id).single(),
+      fontQuery.maybeSingle(),
       supabase.from('promotions').select('*').eq('is_active', true),
       supabase.auth.getSession()
     ]);

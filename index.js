@@ -1500,7 +1500,9 @@ export default {
       const fontTarget = parts[1] ? parts[1].trim() : '';
 
       const targetPath = fontTarget ? `/font/${fontTarget}` : '/';
-      const cookieHeader = `__ctx_ref=${encodeURIComponent(affCode)}; Max-Age=2592000; Path=/; SameSite=Lax; HttpOnly; Secure`;
+      const rootHost = url.hostname.replace(/^www\./i, '');
+      const domainAttr = (rootHost === 'subqi.com' || rootHost === 'bombastype.com') ? `; Domain=.${rootHost}` : '';
+      const cookieHeader = `__ctx_ref=${encodeURIComponent(affCode)}; Max-Age=2592000; Path=/; SameSite=Lax; HttpOnly; Secure${domainAttr}`;
 
       const redirectUrl = new URL(targetPath, url.origin);
       return new Response(null, {
