@@ -1,39 +1,40 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 
-// Layout & Global Components
+// Layout & Global Components (Static for immediate layout shell)
 import Navbar from './components/Navbar';
 import BackToTop from './components/BackToTop';
 import Footer from './components/Footer';
 import CartCard from './components/CartCard';
 import ContextMenu from './components/ContextMenu';
-
-// Admin Components
-import Login from './components/admin/Login';
-import AdminDashboard from './components/admin/AdminLayout';
-import AdminLoginModal from './components/admin/AdminLoginModal';
-
-// Maintenance Screen
-import MaintenanceScreen from './components/MaintenanceScreen';
-
-// Pages
-import Home from './pages/Home';
-import Fonts from './pages/Fonts';
-import License from './pages/License';
-import FAQ from './pages/Faq'; 
-import Policy from './pages/Policy';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import UserAuth from './pages/user/UserAuth';
-import UserDashboard from './pages/user/Dashboard';
 import { CartProvider, useCart } from './context/CartContext';
-import CartPage from './pages/shop/CartPage';
-import Checkout from './pages/shop/Checkout';
-import LicenseReceipt from './pages/user/LicenseReceipt';
-import FontDetail from './pages/FontDetail';
-import CanvasLanding from './pages/CanvasLanding';
-import AffiliateLanding from './pages/AffiliateLanding';
+
+// Core Public Pages (Home loaded directly for instant paint)
+import Home from './pages/Home';
+
+// Lazy-Loaded Public Store Pages
+const Fonts = lazy(() => import('./pages/Fonts'));
+const FontDetail = lazy(() => import('./pages/FontDetail'));
+const CartPage = lazy(() => import('./pages/shop/CartPage'));
+const License = lazy(() => import('./pages/License'));
+const FAQ = lazy(() => import('./pages/Faq')); 
+const Policy = lazy(() => import('./pages/Policy'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Checkout = lazy(() => import('./pages/shop/Checkout'));
+const CanvasLanding = lazy(() => import('./pages/CanvasLanding'));
+const AffiliateLanding = lazy(() => import('./pages/AffiliateLanding'));
+
+// Lazy-Loaded User Account Pages
+const UserAuth = lazy(() => import('./pages/user/UserAuth'));
+const UserDashboard = lazy(() => import('./pages/user/Dashboard'));
+const LicenseReceipt = lazy(() => import('./pages/user/LicenseReceipt'));
+
+// Lazy-Loaded Admin & Maintenance Components (Completely decoupled from public visitor bundle)
+const AdminDashboard = lazy(() => import('./components/admin/AdminLayout'));
+const AdminLoginModal = lazy(() => import('./components/admin/AdminLoginModal'));
+const MaintenanceScreen = lazy(() => import('./components/MaintenanceScreen'));
 
 const ScrollToHash = () => {
   const { hash } = useLocation();
@@ -50,6 +51,14 @@ const ScrollToHash = () => {
   }, [hash]);
   return null;
 };
+
+const PageLoader: React.FC = () => (
+  <div className="w-full min-h-[40vh] flex flex-col items-center justify-center p-8 space-y-3">
+    <div className="font-mono text-xs uppercase tracking-[0.3em] text-neutral-500 animate-pulse font-bold">
+      Loading...
+    </div>
+  </div>
+);
 
 const CartConfiguratorModal = () => {
   const { isModalOpen, selectedFont, closeConfigurator } = useCart();
@@ -174,72 +183,8 @@ const App: React.FC = () => {
         <ScrollToHash />
         {isMaintenance && !isAdmin ? (
           <>
-            <Routes>
-              <Route 
-                path="/backstage" 
-                element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
-              />
-              <Route 
-                path="/backstage/*" 
-                element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
-              />
-              {/* Silent Decoy Redirects */}
-              <Route path="/admin" element={<Navigate to="/" replace />} />
-              <Route path="/admin/*" element={<Navigate to="/" replace />} />
-              <Route path="/login" element={<Navigate to="/" replace />} />
-              <Route path="*" element={<MaintenanceScreen />} />
-            </Routes>
-            <AdminLoginModal 
-              isOpen={isAdminLoginModalOpen} 
-              onClose={() => setIsAdminLoginModalOpen(false)} 
-            />
-          </>
-        ) : (
-          <div className="min-h-screen bg-[#EDEBE6] text-black font-sans selection:bg-black selection:text-white relative flex flex-col">
-            <Navbar onStateChange={setIsNavActive} />
-            
-            <main className="flex-grow">
+            <Suspense fallback={<PageLoader />}>
               <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/fonts" element={<Fonts />} />
-                <Route path="/canvas" element={<CanvasLanding />} />
-                <Route path="/license" element={<License />} />
-                <Route path="/faq" element={<FAQ />} />
-                <Route path="/policy" element={<Policy />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/insights" element={<Navigate to="/" replace />} />
-                <Route path="/insight/:id" element={<Navigate to="/" replace />} />
-
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/font/:id" element={<FontDetail />} />
-
-                {/* USER / BUYER ROUTES */}
-                <Route 
-                  path="/user/auth" 
-                  element={!session ? <UserAuth /> : <Navigate to="/user/dashboard" />} 
-                />
-                <Route 
-                  path="/user/dashboard/*" 
-                  element={session ? <UserDashboard /> : <Navigate to="/user/auth" />} 
-                />
-
-                <Route path="/user/receipt/:orderId" element={<LicenseReceipt />} />
-                
-                {/* Stealth Affiliate Route (Hidden from public, only admin & gotrainer19 can view) */}
-                <Route 
-                  path="/affiliate" 
-                  element={
-                    session ? (
-                      isAffiliateAllowed ? <AffiliateLanding /> : <Navigate to="/" replace />
-                    ) : (
-                      <Navigate to="/user/auth?redirect=/affiliate" replace />
-                    )
-                  } 
-                />
-
-                {/* ADMIN ROUTES (Stealth: /backstage) */}
                 <Route 
                   path="/backstage" 
                   element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
@@ -248,14 +193,86 @@ const App: React.FC = () => {
                   path="/backstage/*" 
                   element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
                 />
-
-                {/* Silent Decoy Redirects for /admin and /login */}
+                {/* Silent Decoy Redirects */}
                 <Route path="/admin" element={<Navigate to="/" replace />} />
                 <Route path="/admin/*" element={<Navigate to="/" replace />} />
                 <Route path="/login" element={<Navigate to="/" replace />} />
-
-                <Route path="*" element={<Navigate to="/" />} />
+                <Route path="*" element={<MaintenanceScreen />} />
               </Routes>
+            </Suspense>
+            {isAdminLoginModalOpen && (
+              <Suspense fallback={null}>
+                <AdminLoginModal 
+                  isOpen={isAdminLoginModalOpen} 
+                  onClose={() => setIsAdminLoginModalOpen(false)} 
+                />
+              </Suspense>
+            )}
+          </>
+        ) : (
+          <div className="min-h-screen bg-[#EDEBE6] text-black font-sans selection:bg-black selection:text-white relative flex flex-col">
+            <Navbar onStateChange={setIsNavActive} />
+            
+            <main className="flex-grow">
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/fonts" element={<Fonts />} />
+                  <Route path="/canvas" element={<CanvasLanding />} />
+                  <Route path="/license" element={<License />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/policy" element={<Policy />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/insights" element={<Navigate to="/" replace />} />
+                  <Route path="/insight/:id" element={<Navigate to="/" replace />} />
+
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/font/:id" element={<FontDetail />} />
+
+                  {/* USER / BUYER ROUTES */}
+                  <Route 
+                    path="/user/auth" 
+                    element={!session ? <UserAuth /> : <Navigate to="/user/dashboard" />} 
+                  />
+                  <Route 
+                    path="/user/dashboard/*" 
+                    element={session ? <UserDashboard /> : <Navigate to="/user/auth" />} 
+                  />
+
+                  <Route path="/user/receipt/:orderId" element={<LicenseReceipt />} />
+                  
+                  {/* Stealth Affiliate Route (Hidden from public, only admin & gotrainer19 can view) */}
+                  <Route 
+                    path="/affiliate" 
+                    element={
+                      session ? (
+                        isAffiliateAllowed ? <AffiliateLanding /> : <Navigate to="/" replace />
+                      ) : (
+                        <Navigate to="/user/auth?redirect=/affiliate" replace />
+                      )
+                    } 
+                  />
+
+                  {/* ADMIN ROUTES (Stealth: /backstage) */}
+                  <Route 
+                    path="/backstage" 
+                    element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
+                  />
+                  <Route 
+                    path="/backstage/*" 
+                    element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
+                  />
+
+                  {/* Silent Decoy Redirects for /admin and /login */}
+                  <Route path="/admin" element={<Navigate to="/" replace />} />
+                  <Route path="/admin/*" element={<Navigate to="/" replace />} />
+                  <Route path="/login" element={<Navigate to="/" replace />} />
+
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+              </Suspense>
             </main>
 
             <CartConfiguratorModal />
@@ -267,10 +284,14 @@ const App: React.FC = () => {
               <Footer />
             </footer>
 
-            <AdminLoginModal 
-              isOpen={isAdminLoginModalOpen} 
-              onClose={() => setIsAdminLoginModalOpen(false)} 
-            />
+            {isAdminLoginModalOpen && (
+              <Suspense fallback={null}>
+                <AdminLoginModal 
+                  isOpen={isAdminLoginModalOpen} 
+                  onClose={() => setIsAdminLoginModalOpen(false)} 
+                />
+              </Suspense>
+            )}
           </div>
         )}
       </Router>
