@@ -145,6 +145,8 @@ const Home: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null); // Tetap simpan URL untuk trigger modal
   const [activeGallery, setActiveGallery] = useState<string[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [affiliateCode, setAffiliateCode] = useState<string | null>(null);
+  const [copiedFontId, setCopiedFontId] = useState<string | null>(null);
 
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -180,12 +182,13 @@ const Home: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const [fontsRes, promosRes, historyRes] = await Promise.all([
+      const [fontsRes, promosRes, historyRes, { data: { session } }] = await Promise.all([
         // Ambil berdasarkan display_order (Stacking)
         supabase.from('fonts').select('*').order('display_order', { ascending: true }),
         supabase.from('promotions').select('*').eq('is_active', true),
         // Ambil data history untuk hitung sales/popularity
-        supabase.from('font_history').select('font_id')
+        supabase.from('font_history').select('font_id'),
+        supabase.auth.getSession()
       ]);
       
       if (fontsRes.data) {
@@ -209,6 +212,14 @@ const Home: React.FC = () => {
         } catch (_) {}
       }
       if (promosRes.data) setPromos(promosRes.data);
+      if (session?.user) {
+        const { data: affData } = await supabase
+          .from('affiliates')
+          .select('affiliate_code')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+        if (affData?.affiliate_code) setAffiliateCode(affData.affiliate_code);
+      }
     } catch (err) {
       console.warn("fetchData error:", err);
     } finally {
@@ -605,12 +616,32 @@ const Home: React.FC = () => {
                        className="flex items-center justify-center gap-4 py-8 hover:bg-black hover:text-white transition-all group/view text-black"
                      >
                         <Eye size={32} strokeWidth={1} className="transition-transform duration-300 group-hover/view:scale-125 flex-shrink-0" />
-                        <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
-                     </button>
-                  </div>
+                        <span className="text-[11px] font-normal uppercase tracking-widest whitespace-nowrap">Font Details</span>
+                      </button>
+                  </div>
 
-                  {/* 3. SPACER: Muncul di semua ukuran layar (Mobile, Tablet, & Desktop) */}
-                  <div className="h-12 border-t border-black w-full bg-orange-500/10" />
+                  {/* AFFILIATE BAR (Active Affiliate Session) */}
+                  {Boolean(affiliateCode) && (
+                    <div className="w-full border-t border-black bg-white/90 backdrop-blur-md p-3 px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono relative z-20">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold uppercase tracking-wider text-black/50 text-[10px]">AFFILIATE_SHARE:</span>
+                        <code className="font-bold text-[#FF5C00]">{`${window.location.origin}/c/${affiliateCode}/${font.id}`}</code>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/c/${affiliateCode}/${font.id}`);
+                          setCopiedFontId(font.id);
+                          setTimeout(() => setCopiedFontId(null), 2000);
+                        }}
+                        className="bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest shrink-0 hover:bg-[#FF5C00] hover:text-black transition-all cursor-pointer"
+                      >
+                        {copiedFontId === font.id ? 'COPIED' : 'COPY LINK'}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 3. SPACER: Muncul di semua ukuran layar (Mobile, Tablet, & Desktop) */}
+                  <div className="h-12 border-t border-black w-full bg-orange-500/10" />
 
                 </section>
               );

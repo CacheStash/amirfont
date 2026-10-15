@@ -100,6 +100,8 @@ const Fonts: React.FC = () => {
   const [promos, setPromos] = useState<any[]>([]);
   const navigate = useNavigate();
   const [activePromoId, setActivePromoId] = useState<string | null>(null);
+  const [affiliateCode, setAffiliateCode] = useState<string | null>(null);
+  const [copiedFontId, setCopiedFontId] = useState<string | null>(null);
 
   const { openConfigurator } = useCart();
 
@@ -150,13 +152,22 @@ const Fonts: React.FC = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [fontsRes, promosRes] = await Promise.all([
+    const [fontsRes, promosRes, { data: { session } }] = await Promise.all([
       supabase.from('fonts').select('*').order('display_order', { ascending: true }),
-      supabase.from('promotions').select('*').eq('is_active', true)
+      supabase.from('promotions').select('*').eq('is_active', true),
+      supabase.auth.getSession()
     ]);
     
     if (fontsRes.data) setFonts(fontsRes.data);
     if (promosRes.data) setPromos(promosRes.data);
+    if (session?.user) {
+      const { data: affData } = await supabase
+        .from('affiliates')
+        .select('affiliate_code')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+      if (affData?.affiliate_code) setAffiliateCode(affData.affiliate_code);
+    }
     setLoading(false);
   };
 
@@ -387,8 +398,28 @@ const Fonts: React.FC = () => {
                     </button>
                   </div>
 
+                  {/* AFFILIATE BAR (Active Affiliate Session) */}
+                  {Boolean(affiliateCode) && (
+                    <div className="col-span-full border-t border-black bg-white/90 backdrop-blur-md p-3 px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono relative z-20">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold uppercase tracking-wider text-black/50 text-[10px]">AFFILIATE_SHARE:</span>
+                        <code className="font-bold text-[#FF5C00]">{`${window.location.origin}/c/${affiliateCode}/${font.id}`}</code>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/c/${affiliateCode}/${font.id}`);
+                          setCopiedFontId(font.id);
+                          setTimeout(() => setCopiedFontId(null), 2000);
+                        }}
+                        className="bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest shrink-0 hover:bg-[#FF5C00] hover:text-black transition-all cursor-pointer"
+                      >
+                        {copiedFontId === font.id ? 'COPIED' : 'COPY LINK'}
+                      </button>
+                    </div>
+                  )}
+
                   {/* 4. MOBILE SPACER */}
-                  <div className="md:hidden h-12 border-t border-black w-full bg-orange-500/10" />
+                  <div className="md:hidden h-12 border-t border-black w-full bg-orange-500/10 col-span-full" />
                 </section>
               );
             })

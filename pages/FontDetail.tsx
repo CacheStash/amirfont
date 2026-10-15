@@ -157,7 +157,7 @@ const FontDetail: React.FC = () => {
               setAffiliateCopied(true);
               setTimeout(() => setAffiliateCopied(false), 2000);
             }}
-            className="bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest shrink-0 hover:bg-[#FF5C00] hover:text-black transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+            className="bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest shrink-0 hover:bg-[#FF5C00] hover:text-black transition-all cursor-pointer"
           >
             {affiliateCopied ? 'COPIED' : 'COPY LINK'}
           </button>
