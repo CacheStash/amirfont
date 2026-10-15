@@ -1849,8 +1849,8 @@ const AffiliatePortal: React.FC = () => {
 
       {/* WITHDRAWAL CONFIRMATION MODAL (SUBQI NEO-BRUTALIST) */}
       {showWithdrawModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-md w-full p-6 space-y-5 text-black">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-md w-full p-6 space-y-5 text-black max-h-[90vh] overflow-y-auto">
             
             {/* Header */}
             <div className="flex items-center justify-between border-b-2 border-black pb-3">
