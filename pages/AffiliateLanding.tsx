@@ -10,7 +10,7 @@ import {
   ArrowLeft, ArrowRight, ArrowUpRight, Sparkles, 
   Coins, CheckCircle2, Copy, Check, TrendingUp, Layers, 
   DollarSign, Clock, ShieldCheck, Zap, HeartHandshake, MousePointerClick,
-  Tag, MapPin, Phone, UserCheck
+  Tag, MapPin, Phone, UserCheck, User, RefreshCw, AlertCircle
 } from 'lucide-react';
 import { COUNTRIES, PROVINCES_BY_COUNTRY, getDummyAffiliateData, syncAffiliateCoupon, findCountryByName } from '../utils/affiliateGeo';
 import { CountryCombobox } from '../components/CountryCombobox';
@@ -19,7 +19,9 @@ import { PhoneDialCombobox } from '../components/PhoneDialCombobox';
 const AffiliateLanding: React.FC = () => {
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [existingAffiliate, setExistingAffiliate] = useState<any>(null);
+  const [fullName, setFullName] = useState('');
   const [affiliateCode, setAffiliateCode] = useState('');
+  const [codeAvailability, setCodeAvailability] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [paypalEmail, setPaypalEmail] = useState('');
 
   // Phone & Address State
@@ -45,6 +47,18 @@ const AffiliateLanding: React.FC = () => {
       setSessionUser(user);
       if (user) {
         setPaypalEmail(user.email || '');
+
+        // Pre-fill legal full name & address from user profile
+        const { data: buyer } = await supabase
+          .from('fontbuyer')
+          .select('full_name, address')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (buyer?.full_name) {
+          setFullName(buyer.full_name);
+        }
+
         const { data } = await supabase
           .from('affiliates')
           .select('*')
@@ -84,6 +98,42 @@ const AffiliateLanding: React.FC = () => {
     checkAuthAndAffiliate();
   }, []);
 
+  // Real-time custom vanity slug availability check
+  useEffect(() => {
+    const clean = affiliateCode.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+    if (!clean || clean.length < 3) {
+      setCodeAvailability('idle');
+      return;
+    }
+
+    if (existingAffiliate?.affiliate_code && clean === existingAffiliate.affiliate_code.toUpperCase()) {
+      setCodeAvailability('available');
+      return;
+    }
+
+    setCodeAvailability('checking');
+    const timer = setTimeout(async () => {
+      try {
+        const { data } = await supabase
+          .from('affiliates')
+          .select('id, user_id')
+          .ilike('affiliate_code', clean)
+          .maybeSingle();
+
+        if (data && (!sessionUser || data.user_id !== sessionUser.id)) {
+          setCodeAvailability('taken');
+        } else {
+          setCodeAvailability('available');
+        }
+      } catch (err) {
+        console.warn('Vanity slug availability check error:', err);
+        setCodeAvailability('idle');
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [affiliateCode, existingAffiliate, sessionUser]);
+
   const handleCountryChange = (selectedCountry: string, dialCode?: string) => {
     setCountry(selectedCountry);
     if (dialCode) {
@@ -112,9 +162,19 @@ const AffiliateLanding: React.FC = () => {
       return;
     }
 
+    if (!fullName.trim() || fullName.trim().length < 2) {
+      setErrorMsg('Legal Full Name is required for partner compliance and payout verification.');
+      return;
+    }
+
     const cleanCode = affiliateCode.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
     if (cleanCode.length < 3 || cleanCode.length > 20) {
       setErrorMsg('Affiliate code must be 3-20 alphanumeric characters (A-Z, 0-9, dash, underscore).');
+      return;
+    }
+
+    if (codeAvailability === 'taken') {
+      setErrorMsg(`The partner code "${cleanCode}" is already taken by another creator. Please pick another.`);
       return;
     }
 
@@ -129,8 +189,8 @@ const AffiliateLanding: React.FC = () => {
       return;
     }
 
-    if (!streetAddress.trim() || !city.trim() || !postalCode.trim()) {
-      setErrorMsg('Complete physical address details (Street, City, Postal Code) are required.');
+    if (!country.trim() || !stateProvince.trim() || !city.trim() || !postalCode.trim() || !streetAddress.trim()) {
+      setErrorMsg('Complete physical address details (Country, State/Province, City, Postal Code, Street Address) are required.');
       return;
     }
 
@@ -197,6 +257,20 @@ const AffiliateLanding: React.FC = () => {
       } else {
         affRecord = data;
       }
+
+      // Two-Way Sync to fontbuyer (Primary User Profile)
+      const fullAddress = [
+        streetAddress.trim(),
+        city.trim(),
+        [stateProvince.trim(), postalCode.trim()].filter(Boolean).join(' '),
+        country.trim()
+      ].filter(Boolean).join(', ');
+
+      await supabase.from('fontbuyer').upsert({
+        id: sessionUser.id,
+        full_name: fullName.trim(),
+        address: fullAddress
+      });
 
       // Auto-generate/sync promo coupon for audience
       await syncAffiliateCoupon(supabase, affRecord.id, cleanCode);
@@ -609,6 +683,24 @@ const AffiliateLanding: React.FC = () => {
 
                 <form onSubmit={handleRegisterAffiliate} className="space-y-6">
                   
+                  {/* LEGAL FULL NAME */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-black block flex items-center gap-1.5">
+                      <User size={14} className="text-[#FF5C00]" /> Legal Full Name
+                    </label>
+                    <input 
+                      type="text" 
+                      required
+                      value={fullName} 
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="e.g. Johnathan Doe" 
+                      className="w-full border-2 border-black px-4 py-3 font-sans text-sm bg-white outline-none"
+                    />
+                    <span className="text-[11px] text-black/50 block font-mono">
+                      Your legal personal or company name for financial compliance, tax records, and account profile sync.
+                    </span>
+                  </div>
+
                   {/* 1. VANITY SLUG */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-black block">
@@ -626,7 +718,27 @@ const AffiliateLanding: React.FC = () => {
                         placeholder="STUDIO_NAME" 
                         className="grow px-4 py-3 font-mono text-sm font-bold uppercase bg-transparent outline-none"
                       />
+                      {codeAvailability === 'checking' && (
+                        <span className="px-3 text-xs text-black/60 font-mono flex items-center gap-1">
+                          <RefreshCw size={12} className="animate-spin" /> Checking...
+                        </span>
+                      )}
+                      {codeAvailability === 'available' && (
+                        <span className="px-3 text-xs text-green-700 font-bold font-mono flex items-center gap-1">
+                          <Check size={14} className="text-green-700" /> Available
+                        </span>
+                      )}
+                      {codeAvailability === 'taken' && (
+                        <span className="px-3 text-xs text-red-600 font-bold font-mono flex items-center gap-1">
+                          <AlertCircle size={14} className="text-red-600" /> Taken
+                        </span>
+                      )}
                     </div>
+                    {codeAvailability === 'taken' && (
+                      <span className="text-xs text-red-600 font-bold font-mono block">
+                        This vanity code is already reserved by another creator. Please pick another code.
+                      </span>
+                    )}
                     <span className="text-[11px] text-black/50 block font-mono">
                       Creates link <code className="font-bold">subqi.com/c/{affiliateCode || 'STUDIO'}</code> and audience coupon <code className="font-bold">{(affiliateCode || 'STUDIO')}10</code> (10% OFF).
                     </span>

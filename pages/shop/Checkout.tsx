@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Copy, Sparkles } from 'lucide-react';
+import { ArrowLeft, Plus, Copy, Sparkles, Lock } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { supabase } from '../../lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -512,30 +512,55 @@ const Checkout: React.FC = () => {
             {/* 00. MANDATORY PURCHASER INFO */}
             {!isPaid && (
               <div className="mb-10 p-6 border border-black bg-[#FF5C00] text-black">
-                <label className="block text-[10px] font-black tracking-[0.2em] mb-4 italic">00. PROVIDE_PURCHASER_INFO*</label>
+                <div className="flex items-center justify-between mb-4">
+                  <label className="block text-[10px] font-black tracking-[0.2em] italic">00. PROVIDE_PURCHASER_INFO*</label>
+                  {Boolean(user) && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-black text-white text-[9px] font-black tracking-wider uppercase font-mono">
+                      <Lock size={11} className="text-[#FF5C00]" /> PROFILE_LOCKED
+                    </span>
+                  )}
+                </div>
+
+                {Boolean(user) && (
+                  <div className="mb-4 p-3 bg-white/90 border border-black text-xs font-mono text-black flex items-start gap-2.5 leading-relaxed">
+                    <Lock size={14} className="text-black shrink-0 mt-0.5" />
+                    <span>
+                      Profile details are locked to your authenticated buyer account. To update name, email, or billing address, please visit <Link to="/dashboard" className="underline font-bold text-black hover:text-[#FF5C00]">Account Settings</Link> in your dashboard.
+                    </span>
+                  </div>
+                )}
                 
                 <div className="flex flex-col gap-1 overflow-hidden border border-black bg-white mb-4">
                   <input 
                     type="text" 
                     value={name}
-                    onChange={(e) => setName(e.target.value.replace(/\b\w/g, l => l.toUpperCase()))}
-                    className="w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30"
+                    readOnly={Boolean(user)}
+                    onChange={(e) => !user && setName(e.target.value.replace(/\b\w/g, l => l.toUpperCase()))}
+                    className={`w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30 ${
+                      user ? 'cursor-not-allowed bg-gray-100 text-black/80 select-none' : ''
+                    }`}
                     placeholder="FULL NAME"
                     required
                   />
                   <input 
                     type="email" 
                     value={email}
-                    onChange={(e) => setEmail(e.target.value.toLowerCase())}
-                    className="w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30"
+                    readOnly={Boolean(user)}
+                    onChange={(e) => !user && setEmail(e.target.value.toLowerCase())}
+                    className={`w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30 ${
+                      user ? 'cursor-not-allowed bg-gray-100 text-black/80 select-none' : ''
+                    }`}
                     placeholder="EMAIL@DOMAIN.COM WILL BE YOUR USERNAME TO YOUR ACCOUNT DASHBOARD"
                     required
                   />
                   <textarea 
                     value={address}
-                    onChange={(e) => setAddress(e.target.value.replace(/\b\w/g, l => l.toUpperCase()))}
-                    className="w-full p-4 font-mono font-bold outline-none text-sm placeholder:text-black/30 min-h-[80px] resize-none"
-                    placeholder="COMPLETE ADDRESS (STREET, CITY, ZIP CODE) — OPTIONAL"
+                    readOnly={Boolean(user)}
+                    onChange={(e) => !user && setAddress(e.target.value.replace(/\b\w/g, l => l.toUpperCase()))}
+                    className={`w-full p-4 font-mono font-bold outline-none text-sm placeholder:text-black/30 min-h-[80px] resize-none ${
+                      user ? 'cursor-not-allowed bg-gray-100 text-black/80 select-none' : ''
+                    }`}
+                    placeholder={user ? "NO BILLING ADDRESS RECORDED (OPTIONAL)" : "COMPLETE ADDRESS (STREET, CITY, ZIP CODE) — OPTIONAL"}
                   />
                 </div>
 
