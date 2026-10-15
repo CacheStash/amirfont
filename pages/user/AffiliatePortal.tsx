@@ -30,6 +30,8 @@ interface PayoutItem {
   id: string;
   paid_at: string;
   amount: number;
+  fee?: number;
+  net_amount?: number;
   currency: string;
   payout_batch_id: string;
   commission_count: number;
@@ -45,6 +47,8 @@ const AffiliatePortal: React.FC = () => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCoupon, setCopiedCoupon] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'payouts' | 'settings'>('overview');
+  const [salesPage, setSalesPage] = useState(1);
+  const SALES_PER_PAGE = 10;
 
   // Account Settings Form State
   const [editFullName, setEditFullName] = useState('');
@@ -243,16 +247,23 @@ const AffiliatePortal: React.FC = () => {
             .order('paid_at', { ascending: false });
 
           if (pData && pData.length > 0) {
-            setPayoutHistory(pData.map((p: any) => ({
-              id: p.id,
-              paid_at: p.paid_at || p.created_at,
-              amount: Number(p.amount || 0),
-              currency: p.currency || 'USD',
-              payout_batch_id: p.payout_batch_id || 'PP-BATCH',
-              commission_count: Array.isArray(p.commission_ids) ? p.commission_ids.length : 1,
-              status: p.status || 'completed',
-              notes: p.notes
-            })));
+            setPayoutHistory(pData.map((p: any) => {
+              const amount = Number(p.amount || 0);
+              const fee = Number(p.payout_fee ?? p.fee ?? Math.min(20, +(amount * 0.02).toFixed(2)));
+              const netAmount = Number(p.net_amount ?? Math.max(0, +(amount - fee).toFixed(2)));
+              return {
+                id: p.id,
+                paid_at: p.paid_at || p.created_at,
+                amount,
+                fee,
+                net_amount: netAmount,
+                currency: p.currency || 'USD',
+                payout_batch_id: p.payout_batch_id || 'PP-BATCH',
+                commission_count: Array.isArray(p.commission_ids) ? p.commission_ids.length : 1,
+                status: p.status || 'completed',
+                notes: p.notes
+              };
+            }));
           } else {
             synthesizePayoutHistory(loadedComms);
           }
@@ -320,15 +331,22 @@ const AffiliatePortal: React.FC = () => {
       groupMap.set(dateKey, existing);
     });
 
-    const list = Array.from(groupMap.values()).map(g => ({
-      id: g.id,
-      paid_at: g.paid_at,
-      amount: g.amount,
-      currency: 'USD',
-      payout_batch_id: g.reference,
-      commission_count: g.count,
-      status: 'completed'
-    }));
+    const list = Array.from(groupMap.values()).map(g => {
+      const total = Number(g.amount || 0);
+      const fee = +(Math.min(20, total * 0.02)).toFixed(2);
+      const netAmount = +(Math.max(0, total - fee)).toFixed(2);
+      return {
+        id: g.id,
+        paid_at: g.paid_at,
+        amount: total,
+        fee,
+        net_amount: netAmount,
+        currency: 'USD',
+        payout_batch_id: g.reference,
+        commission_count: g.count,
+        status: 'completed'
+      };
+    });
 
     list.sort((a, b) => new Date(b.paid_at).getTime() - new Date(a.paid_at).getTime());
     setPayoutHistory(list);
@@ -645,6 +663,9 @@ const AffiliatePortal: React.FC = () => {
     }
   };
 
+  const totalSalesPages = Math.ceil(commissions.length / SALES_PER_PAGE) || 1;
+  const paginatedCommissions = commissions.slice((salesPage - 1) * SALES_PER_PAGE, salesPage * SALES_PER_PAGE);
+
   return (
     <div className="space-y-8 font-sans text-black">
       
@@ -757,6 +778,230 @@ const AffiliatePortal: React.FC = () => {
       {activeTab === 'overview' && (
         <div className="space-y-8 animate-in fade-in duration-300">
           
+          {/* 3 FINANCIAL RECONCILIATION CARDS */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="p-6 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-gray-500">
+                <span>Clearance Holding</span>
+                <Clock size={16} className="text-amber-600" />
+              </div>
+              <div className="text-3xl font-black font-mono text-amber-600">
+                ${pendingAmount.toFixed(2)}
+              </div>
+              <p className="text-xs text-gray-500">14-day warranty hold against refund disputes</p>
+              {countdownStr ? (
+                <div className="mt-3 pt-2 border-t border-black/10 flex items-center gap-1.5 text-[11px] font-mono font-bold text-amber-900">
+                  <Timer size={13} className="text-amber-700" />
+                  <span>Earliest release: {countdownStr}</span>
+                </div>
+              ) : (
+                <div className="mt-3 pt-2 border-t border-black/10 text-[10px] text-gray-400 italic">
+                  No active clearance holds
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-2 border-black bg-yellow-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2 flex flex-col justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-black">
+                  <span>Ready For Payout (Due)</span>
+                  <CheckCircle2 size={16} className="text-black" />
+                </div>
+                <div className="text-3xl font-black font-mono text-black">
+                  ${readyAmount.toFixed(2)}
+                </div>
+                <p className="text-xs text-black/80 font-bold">
+                  {isQualifiedForPayout 
+                    ? `Passed 14-day warranty. Ready for immediate withdrawal!` 
+                    : `$${remainingForThreshold.toFixed(2)} more needed to unlock withdrawal ($50 min).`}
+                </p>
+              </div>
+
+              <button
+                onClick={handleOpenWithdrawModal}
+                disabled={!isQualifiedForPayout || isWithdrawing}
+                className={`w-full mt-2 py-2.5 px-3 border-2 border-black text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  isQualifiedForPayout
+                    ? 'bg-[#FF5C00] text-black hover:bg-black hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none'
+                    : 'bg-black/10 text-black/40 border-black/20 cursor-not-allowed shadow-none'
+                }`}
+                title={isQualifiedForPayout ? "Withdraw cleared funds instantly to PayPal" : "Requires $50.00 minimum cleared balance"}
+              >
+                {isWithdrawing ? (
+                  <>
+                    <RefreshCw size={13} className="animate-spin" /> Transferring...
+                  </>
+                ) : (
+                  <>
+                    <Zap size={13} /> {isQualifiedForPayout ? `Instant Withdraw ($${readyAmount.toFixed(2)})` : `Withdraw ($50 Min)`}
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="p-6 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-gray-500">
+                <span>Total Disbursed</span>
+                <CircleDollarSign size={16} className="text-black" />
+              </div>
+              <div className="text-3xl font-black font-mono text-black">
+                ${totalPaidAmount.toFixed(2)}
+              </div>
+              <p className="text-xs text-gray-500">Lifetime payouts received to PayPal</p>
+            </div>
+          </div>
+
+          {/* 14-DAY WARRANTY HOLD CLARITY BANNER */}
+          <div className="border-2 border-black bg-amber-50 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3">
+            <Clock size={20} className="text-amber-700 shrink-0 mt-0.5" />
+            <div className="space-y-1 grow">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <span className="text-xs font-black uppercase tracking-wider text-amber-950 block">
+                  Why is there a 14-Day Clearance Period on new sales?
+                </span>
+                {countdownStr && (
+                  <span className="text-[11px] font-mono font-bold bg-amber-100 text-amber-950 px-2 py-0.5 border border-black inline-flex items-center gap-1 shrink-0 self-start sm:self-auto">
+                    <Timer size={12} /> Next Release: {countdownStr}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-amber-900/90 leading-relaxed max-w-3xl font-sans">
+                To protect our creator network and partner payouts against fraudulent card use, unauthorized disputes, and chargebacks, every new sale is held in a 14-day warranty clearance window. Once the 14 days expire without customer dispute, funds automatically clear into <strong>Ready For Payout</strong> and can be withdrawn immediately to your PayPal account.
+              </p>
+            </div>
+          </div>
+
+          {/* COMMISSIONS & SALES TRANSACTION TABLE (AT THE TOP WITH AUTO-PAGINATION) */}
+          <div className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+            <div className="p-4 border-b-2 border-black bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-wider">
+                  Referral Sales & Commission Ledger
+                </h3>
+                <span className="text-[11px] text-gray-500">
+                  Transactions referred via your vanity slug or promo coupon code
+                </span>
+              </div>
+              <span className="text-xs font-mono font-black px-2 py-1 bg-black text-white">
+                {commissions.length} Sales Recorded
+              </span>
+            </div>
+
+            {commissions.length === 0 ? (
+              <div className="p-16 text-center space-y-2">
+                <AlertCircle size={32} className="mx-auto text-gray-400" />
+                <p className="text-sm font-black uppercase">No referred orders recorded yet</p>
+                <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                  Share your vanity link or discount coupon on your social platforms and portfolio to begin recording 20% net earnings.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b-2 border-black bg-gray-100 font-mono uppercase text-[10px] text-gray-600 font-bold">
+                      <th className="p-3">Date</th>
+                      <th className="p-3">Typeface / Order</th>
+                      <th className="p-3">Attribution</th>
+                      <th className="p-3 text-right">Gross</th>
+                      <th className="p-3 text-right">Net Store</th>
+                      <th className="p-3 text-right">Your 20% Net</th>
+                      <th className="p-3 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black/20 font-mono">
+                    {paginatedCommissions.map((comm) => (
+                      <tr key={comm.id} className="hover:bg-yellow-50 transition-colors">
+                        <td className="p-3 text-gray-600 text-xs whitespace-nowrap">
+                          {new Date(comm.created_at).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </td>
+                        <td className="p-3">
+                          <span className="font-black font-sans text-xs uppercase block">
+                            {comm.font_name || 'Specimen License'}
+                          </span>
+                          <span className="text-[10px] text-gray-400 truncate block max-w-[200px]">
+                            ID: {comm.order_id}
+                          </span>
+                        </td>
+                        <td className="p-3 whitespace-nowrap">
+                          {comm.coupon_code || comm.attribution_type === 'coupon' ? (
+                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-purple-100 text-purple-950 font-sans shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                              <Tag size={10} className="text-[#FF5C00]" /> Coupon: {comm.coupon_code || 'PROMO'}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-gray-100 text-gray-800 font-sans">
+                              <Share2 size={10} className="text-gray-500" /> Shared Link
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-3 text-right">
+                          ${Number(comm.gross_amount || 0).toFixed(2)}
+                        </td>
+                        <td className="p-3 text-right text-gray-600">
+                          ${Number(comm.net_store_amount || 0).toFixed(2)}
+                        </td>
+                        <td className="p-3 text-right font-black text-black text-sm">
+                          +${Number(comm.commission_amount || 0).toFixed(2)}
+                        </td>
+                        <td className="p-3 text-center">
+                          {comm.status === 'pending_clearance' && (
+                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-amber-200 text-amber-950">
+                              <Clock size={10} /> Holding
+                            </span>
+                          )}
+                          {comm.status === 'approved' && (
+                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-green-200 text-green-950">
+                              <CheckCircle2 size={10} /> Cleared
+                            </span>
+                          )}
+                          {comm.status === 'paid' && (
+                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-blue-200 text-blue-950">
+                              <DollarSign size={10} /> Paid Out
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* AUTO PAGINATION CONTROLS */}
+                {commissions.length > SALES_PER_PAGE && (
+                  <div className="p-3 border-t-2 border-black bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-sans">
+                    <span className="text-gray-600 font-medium">
+                      Showing <strong className="text-black font-black">{(salesPage - 1) * SALES_PER_PAGE + 1}</strong> to <strong className="text-black font-black">{Math.min(salesPage * SALES_PER_PAGE, commissions.length)}</strong> of <strong className="text-black font-black">{commissions.length}</strong> sales
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setSalesPage(p => Math.max(1, p - 1))}
+                        disabled={salesPage === 1}
+                        className="px-3 py-1 border border-black bg-white hover:bg-black hover:text-white transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer uppercase font-black text-[10px]"
+                      >
+                        Prev
+                      </button>
+                      <span className="px-2 font-mono font-black text-black text-[11px]">
+                        Page {salesPage} of {totalSalesPages}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSalesPage(p => Math.min(totalSalesPages, p + 1))}
+                        disabled={salesPage >= totalSalesPages}
+                        className="px-3 py-1 border border-black bg-white hover:bg-black hover:text-white transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer uppercase font-black text-[10px]"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* DUAL PROMO TOOLS: VANITY LINK + AUDIENCE COUPON */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
@@ -993,200 +1238,6 @@ const AffiliatePortal: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* 14-DAY WARRANTY HOLD CLARITY BANNER */}
-          <div className="border-2 border-black bg-amber-50 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3">
-            <Clock size={20} className="text-amber-700 shrink-0 mt-0.5" />
-            <div className="space-y-1 grow">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <span className="text-xs font-black uppercase tracking-wider text-amber-950 block">
-                  Why is there a 14-Day Clearance Period on new sales?
-                </span>
-                {countdownStr && (
-                  <span className="text-[11px] font-mono font-bold bg-amber-100 text-amber-950 px-2 py-0.5 border border-black inline-flex items-center gap-1 shrink-0 self-start sm:self-auto">
-                    <Timer size={12} /> Next Release: {countdownStr}
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-amber-900/90 leading-relaxed max-w-3xl font-sans">
-                To protect our creator network and partner payouts against fraudulent card use, unauthorized disputes, and chargebacks, every new sale is held in a 14-day warranty clearance window. Once the 14 days expire without customer dispute, funds automatically clear into <strong>Ready For Payout</strong> and can be withdrawn immediately to your PayPal account.
-              </p>
-            </div>
-          </div>
-
-          {/* 3 FINANCIAL RECONCILIATION CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="p-6 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-gray-500">
-                <span>Clearance Holding</span>
-                <Clock size={16} className="text-amber-600" />
-              </div>
-              <div className="text-3xl font-black font-mono text-amber-600">
-                ${pendingAmount.toFixed(2)}
-              </div>
-              <p className="text-xs text-gray-500">14-day warranty hold against refund disputes</p>
-              {countdownStr ? (
-                <div className="mt-3 pt-2 border-t border-black/10 flex items-center gap-1.5 text-[11px] font-mono font-bold text-amber-900">
-                  <Timer size={13} className="text-amber-700" />
-                  <span>Earliest release: {countdownStr}</span>
-                </div>
-              ) : (
-                <div className="mt-3 pt-2 border-t border-black/10 text-[10px] text-gray-400 italic">
-                  No active clearance holds
-                </div>
-              )}
-            </div>
-
-            <div className="p-6 border-2 border-black bg-yellow-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2 flex flex-col justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-black">
-                  <span>Ready For Payout (Due)</span>
-                  <CheckCircle2 size={16} className="text-black" />
-                </div>
-                <div className="text-3xl font-black font-mono text-black">
-                  ${readyAmount.toFixed(2)}
-                </div>
-                <p className="text-xs text-black/80 font-bold">
-                  {isQualifiedForPayout 
-                    ? `Passed 14-day warranty. Ready for immediate withdrawal!` 
-                    : `$${remainingForThreshold.toFixed(2)} more needed to unlock withdrawal ($50 min).`}
-                </p>
-              </div>
-
-              <button
-                onClick={handleOpenWithdrawModal}
-                disabled={!isQualifiedForPayout || isWithdrawing}
-                className={`w-full mt-2 py-2.5 px-3 border-2 border-black text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  isQualifiedForPayout
-                    ? 'bg-[#FF5C00] text-black hover:bg-black hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none'
-                    : 'bg-black/10 text-black/40 border-black/20 cursor-not-allowed shadow-none'
-                }`}
-                title={isQualifiedForPayout ? "Withdraw cleared funds instantly to PayPal" : "Requires $50.00 minimum cleared balance"}
-              >
-                {isWithdrawing ? (
-                  <>
-                    <RefreshCw size={13} className="animate-spin" /> Transferring...
-                  </>
-                ) : (
-                  <>
-                    <Zap size={13} /> {isQualifiedForPayout ? `Instant Withdraw ($${readyAmount.toFixed(2)})` : `Withdraw ($50 Min)`}
-                  </>
-                )}
-              </button>
-            </div>
-
-            <div className="p-6 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-gray-500">
-                <span>Total Disbursed</span>
-                <CircleDollarSign size={16} className="text-black" />
-              </div>
-              <div className="text-3xl font-black font-mono text-black">
-                ${totalPaidAmount.toFixed(2)}
-              </div>
-              <p className="text-xs text-gray-500">Lifetime payouts received to PayPal</p>
-            </div>
-          </div>
-
-          {/* COMMISSIONS & SALES TRANSACTION TABLE */}
-          <div className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-            <div className="p-4 border-b-2 border-black bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <h3 className="text-xs font-black uppercase tracking-wider">
-                  Referral Sales & Commission Ledger
-                </h3>
-                <span className="text-[11px] text-gray-500">
-                  Transactions referred via your vanity slug or promo coupon code
-                </span>
-              </div>
-              <span className="text-xs font-mono font-black px-2 py-1 bg-black text-white">
-                {commissions.length} Sales Recorded
-              </span>
-            </div>
-
-            {commissions.length === 0 ? (
-              <div className="p-16 text-center space-y-2">
-                <AlertCircle size={32} className="mx-auto text-gray-400" />
-                <p className="text-sm font-black uppercase">No referred orders recorded yet</p>
-                <p className="text-xs text-gray-500 max-w-sm mx-auto">
-                  Share your vanity link or discount coupon on your social platforms and portfolio to begin recording 20% net earnings.
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="border-b-2 border-black bg-gray-100 font-mono uppercase text-[10px] text-gray-600 font-bold">
-                      <th className="p-3">Date</th>
-                      <th className="p-3">Typeface / Order</th>
-                      <th className="p-3">Attribution</th>
-                      <th className="p-3 text-right">Gross</th>
-                      <th className="p-3 text-right">Net Store</th>
-                      <th className="p-3 text-right">Your 20% Net</th>
-                      <th className="p-3 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-black/20 font-mono">
-                    {commissions.map((comm) => (
-                      <tr key={comm.id} className="hover:bg-yellow-50 transition-colors">
-                        <td className="p-3 text-gray-600 text-xs whitespace-nowrap">
-                          {new Date(comm.created_at).toLocaleDateString(undefined, {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </td>
-                        <td className="p-3">
-                          <span className="font-black font-sans text-xs uppercase block">
-                            {comm.font_name || 'Specimen License'}
-                          </span>
-                          <span className="text-[10px] text-gray-400 truncate block max-w-[200px]">
-                            ID: {comm.order_id}
-                          </span>
-                        </td>
-                        <td className="p-3 whitespace-nowrap">
-                          {comm.coupon_code || comm.attribution_type === 'coupon' ? (
-                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-purple-100 text-purple-950 font-sans shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-                              <Tag size={10} className="text-[#FF5C00]" /> Coupon: {comm.coupon_code || 'PROMO'}
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-gray-100 text-gray-800 font-sans">
-                              <Share2 size={10} className="text-gray-500" /> Shared Link
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-3 text-right">
-                          ${Number(comm.gross_amount || 0).toFixed(2)}
-                        </td>
-                        <td className="p-3 text-right text-gray-600">
-                          ${Number(comm.net_store_amount || 0).toFixed(2)}
-                        </td>
-                        <td className="p-3 text-right font-black text-black text-sm">
-                          +${Number(comm.commission_amount || 0).toFixed(2)}
-                        </td>
-                        <td className="p-3 text-center">
-                          {comm.status === 'pending_clearance' && (
-                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-amber-200 text-amber-950">
-                              <Clock size={10} /> Holding
-                            </span>
-                          )}
-                          {comm.status === 'approved' && (
-                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-green-200 text-green-950">
-                              <CheckCircle2 size={10} /> Cleared
-                            </span>
-                          )}
-                          {comm.status === 'paid' && (
-                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-blue-200 text-blue-950">
-                              <DollarSign size={10} /> Paid Out
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
         </div>
       )}
 
@@ -1375,45 +1426,57 @@ const AffiliatePortal: React.FC = () => {
                       <th className="p-3">Payout Date</th>
                       <th className="p-3">Reference / Batch ID</th>
                       <th className="p-3">Destination</th>
-                      <th className="p-3 text-right">Amount</th>
+                      <th className="p-3 text-right">Gross Sent</th>
+                      <th className="p-3 text-right">PayPal Fee (2% max $20)</th>
+                      <th className="p-3 text-right">Net Received</th>
                       <th className="p-3 text-center">Orders Settled</th>
                       <th className="p-3 text-center">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black/20 font-mono">
-                    {payoutHistory.map((p) => (
-                      <tr key={p.id} className="hover:bg-yellow-50 transition-colors">
-                        <td className="p-3 text-gray-600 text-xs whitespace-nowrap">
-                          {new Date(p.paid_at).toLocaleDateString(undefined, {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </td>
-                        <td className="p-3 font-mono font-black text-black truncate max-w-[180px]">
-                          {p.payout_batch_id}
-                        </td>
-                        <td className="p-3 text-gray-700 truncate max-w-[200px]">
-                          {affiliate.paypal_email}
-                        </td>
-                        <td className="p-3 text-right">
-                          <div className="font-black text-green-700 text-sm">
-                            ${p.amount.toFixed(2)} {p.currency}
-                          </div>
-                          <div className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">
-                            Gross Sent (PayPal Fee May Apply)
-                          </div>
-                        </td>
-                        <td className="p-3 text-center font-bold">
-                          {p.commission_count}
-                        </td>
-                        <td className="p-3 text-center">
-                          <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-green-200 text-green-950">
-                            <Check size={10} /> Completed
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {payoutHistory.map((p) => {
+                      const fee = p.fee ?? Math.min(20, +(p.amount * 0.02).toFixed(2));
+                      const netReceived = p.net_amount ?? Math.max(0, +(p.amount - fee).toFixed(2));
+                      return (
+                        <tr key={p.id} className="hover:bg-yellow-50 transition-colors">
+                          <td className="p-3 text-gray-600 text-xs whitespace-nowrap">
+                            {new Date(p.paid_at).toLocaleDateString(undefined, {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </td>
+                          <td className="p-3 font-mono font-black text-black truncate max-w-[180px]">
+                            {p.payout_batch_id}
+                          </td>
+                          <td className="p-3 text-gray-700 truncate max-w-[200px]">
+                            {affiliate.paypal_email}
+                          </td>
+                          <td className="p-3 text-right font-bold text-gray-800">
+                            ${p.amount.toFixed(2)}
+                          </td>
+                          <td className="p-3 text-right font-mono font-bold text-amber-700">
+                            -${fee.toFixed(2)}
+                          </td>
+                          <td className="p-3 text-right">
+                            <span className="font-black text-green-700 text-sm font-mono">
+                              ${netReceived.toFixed(2)}
+                            </span>
+                            <span className="text-[9px] text-gray-500 font-bold block">
+                              {p.currency}
+                            </span>
+                          </td>
+                          <td className="p-3 text-center font-bold">
+                            {p.commission_count}
+                          </td>
+                          <td className="p-3 text-center">
+                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-green-200 text-green-950">
+                              <Check size={10} /> Completed
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

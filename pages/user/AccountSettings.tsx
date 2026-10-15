@@ -60,19 +60,21 @@ const AccountSettings = () => {
       setUserEmail(emailVal);
       setEditEmail(emailVal);
 
-      // 1. Fetch from fontbuyer (User Profile & Base Address)
+      // 1. Fetch from fontbuyer (User Profile & Base Address), fallback to user metadata
       const { data: buyer } = await supabase
         .from('fontbuyer')
         .select('full_name, address, email')
         .eq('id', user.id)
         .maybeSingle();
 
-      if (buyer) {
-        if (buyer.full_name) setFullName(buyer.full_name);
-        if (buyer.email && !emailVal) {
-          setUserEmail(buyer.email);
-          setEditEmail(buyer.email);
-        }
+      const resolvedFullName = buyer?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || '';
+      if (resolvedFullName) {
+        setFullName(resolvedFullName);
+      }
+
+      if (buyer?.email && !emailVal) {
+        setUserEmail(buyer.email);
+        setEditEmail(buyer.email);
       }
 
       // 2. Fetch from affiliates to sync structured address if user is also an affiliate
@@ -190,10 +192,15 @@ const AccountSettings = () => {
           .eq('user_id', currentUser.id);
       }
 
-      // 3. If email changed, update Supabase Auth User (Login Credential)
+      // 3. Update Supabase Auth user metadata & login credential if changed
+      const authUpdatePayload: any = { data: { full_name: fullName.trim() } };
       if (cleanEmail !== userEmail) {
-        const { error: authError } = await supabase.auth.updateUser({ email: cleanEmail });
-        if (authError) throw authError;
+        authUpdatePayload.email = cleanEmail;
+      }
+      const { error: authError } = await supabase.auth.updateUser(authUpdatePayload);
+      if (authError) throw authError;
+
+      if (cleanEmail !== userEmail) {
         setUserEmail(cleanEmail);
         setProfileSuccess('PROFILE & LOGIN EMAIL UPDATED. FUTURE LICENSES WILL REFLECT THIS INFO, AND YOU CAN RE-DOWNLOAD CERTIFICATES IN PURCHASE HISTORY.');
       } else {

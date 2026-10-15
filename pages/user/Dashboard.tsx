@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Library, Settings, LogOut, ArrowLeft, Menu, X, Share2 } from 'lucide-react';
+import { Library, Settings, LogOut, ArrowLeft, Menu, X, Share2, LifeBuoy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import MyFontsHistory from './MyFontsHistory';
 import AccountSettings from './AccountSettings'; 
 import AffiliatePortal from './AffiliatePortal';
+import Support from './Support';
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('library');
@@ -108,6 +109,13 @@ const UserDashboard = () => {
               <Share2 size={18} /> Affiliate Hub
             </button>
           )}
+
+          <button 
+            onClick={() => handleTabChange('support')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 font-bold text-xs transition-all ${activeTab === 'support' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+          >
+            <LifeBuoy size={18} /> Support
+          </button>
         </nav>
 
         <div className="p-4 border-t border-black">
@@ -130,6 +138,7 @@ const UserDashboard = () => {
         {activeTab === 'library' && <MyFontsHistory />}
         {activeTab === 'settings' && <AccountSettings />}
         {activeTab === 'affiliate' && <AffiliatePortal />}
+        {activeTab === 'support' && <Support />}
       </main>
     </div>
   );
