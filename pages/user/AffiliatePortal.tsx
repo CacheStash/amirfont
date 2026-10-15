@@ -59,6 +59,7 @@ const AffiliatePortal: React.FC = () => {
   const [savingSettings, setSavingSettings] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawInputAmount, setWithdrawInputAmount] = useState('50.00');
   const [withdrawSuccess, setWithdrawSuccess] = useState<{ amount: number; receiver: string; batchId: string } | null>(null);
   const [withdrawError, setWithdrawError] = useState('');
   const [settingsSuccess, setSettingsSuccess] = useState('');
@@ -422,6 +423,7 @@ const AffiliatePortal: React.FC = () => {
       alert(`Minimum withdrawal amount is $${AFFILIATE_MIN_PAYOUT_USD.toFixed(2)} USD. Your cleared balance is currently $${readyAmount.toFixed(2)} USD.`);
       return;
     }
+    setWithdrawInputAmount(readyAmount.toFixed(2));
     setWithdrawError('');
     setWithdrawSuccess(null);
     setShowWithdrawModal(true);
@@ -431,6 +433,16 @@ const AffiliatePortal: React.FC = () => {
   const handleInstantWithdraw = handleOpenWithdrawModal;
 
   const executeWithdrawal = async () => {
+    const targetAmt = Number(withdrawInputAmount);
+    if (isNaN(targetAmt) || targetAmt < AFFILIATE_MIN_PAYOUT_USD) {
+      setWithdrawError(`Minimum withdrawal amount is $${AFFILIATE_MIN_PAYOUT_USD.toFixed(2)} USD.`);
+      return;
+    }
+    if (targetAmt > readyAmount + 0.001) {
+      setWithdrawError(`Requested amount ($${targetAmt.toFixed(2)}) exceeds your cleared balance ($${readyAmount.toFixed(2)}).`);
+      return;
+    }
+
     setIsWithdrawing(true);
     setWithdrawError('');
     try {
@@ -442,7 +454,8 @@ const AffiliatePortal: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
-        }
+        },
+        body: JSON.stringify({ amount: targetAmt })
       });
 
       const data = await res.json() as any;
@@ -450,7 +463,7 @@ const AffiliatePortal: React.FC = () => {
 
       await fetchAffiliateData();
       setWithdrawSuccess({
-        amount: Number(data.amount || readyAmount),
+        amount: Number(data.amount || targetAmt),
         receiver: data.receiver || affiliate.paypal_email,
         batchId: data.payoutBatchId || ''
       });
@@ -959,8 +972,13 @@ const AffiliatePortal: React.FC = () => {
                         <td className="p-3 text-gray-700 truncate max-w-[200px]">
                           {affiliate.paypal_email}
                         </td>
-                        <td className="p-3 text-right font-black text-green-700 text-sm">
-                          ${p.amount.toFixed(2)} {p.currency}
+                        <td className="p-3 text-right">
+                          <div className="font-black text-green-700 text-sm">
+                            ${p.amount.toFixed(2)} {p.currency}
+                          </div>
+                          <div className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">
+                            Gross Sent (PayPal Fee May Apply)
+                          </div>
                         </td>
                         <td className="p-3 text-center font-bold">
                           {p.commission_count}
@@ -1296,15 +1314,62 @@ const AffiliatePortal: React.FC = () => {
               </div>
             ) : (
               <>
-                {/* Amount Card */}
-                <div className="p-4 border-2 border-black bg-yellow-50 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-600 block">Payout Amount</span>
-                    <span className="text-2xl font-black font-mono text-black">${readyAmount.toFixed(2)} USD</span>
+                {/* Editable Amount Input Card */}
+                <div className="p-4 border-2 border-black bg-yellow-50 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-gray-700 block">
+                      Withdrawal Amount (USD)
+                    </label>
+                    <span className="text-[10px] font-mono font-bold text-gray-600">
+                      Available: <span className="text-black font-black">${readyAmount.toFixed(2)}</span>
+                    </span>
                   </div>
-                  <span className="text-[10px] font-black uppercase px-2 py-1 bg-green-200 border border-black text-green-950">
-                    Cleared Balance
-                  </span>
+
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono font-black text-lg text-black">
+                      $
+                    </span>
+                    <input 
+                      type="number"
+                      step="0.01"
+                      min={AFFILIATE_MIN_PAYOUT_USD}
+                      max={readyAmount}
+                      value={withdrawInputAmount}
+                      onChange={(e) => setWithdrawInputAmount(e.target.value)}
+                      disabled={isWithdrawing}
+                      className="w-full pl-8 pr-4 py-2 border-2 border-black font-mono font-black text-xl text-black bg-white focus:outline-hidden focus:bg-yellow-100"
+                    />
+                  </div>
+
+                  {/* Preset Quick Buttons */}
+                  <div className="flex gap-2 text-[10px] font-black uppercase">
+                    <button
+                      type="button"
+                      onClick={() => setWithdrawInputAmount('50.00')}
+                      disabled={isWithdrawing || readyAmount < 50}
+                      className="px-2.5 py-1 border border-black bg-white hover:bg-black hover:text-white transition-colors cursor-pointer"
+                    >
+                      $50.00 Min
+                    </button>
+                    {readyAmount >= 100 && (
+                      <button
+                        type="button"
+                        onClick={() => setWithdrawInputAmount('100.00')}
+                        disabled={isWithdrawing}
+                        className="px-2.5 py-1 border border-black bg-white hover:bg-black hover:text-white transition-colors cursor-pointer"
+                      >
+                        $100.00
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setWithdrawInputAmount(readyAmount.toFixed(2))}
+                      disabled={isWithdrawing}
+                      className="px-2.5 py-1 border border-black bg-white hover:bg-black hover:text-white transition-colors cursor-pointer ml-auto"
+                    >
+                      Max (${readyAmount.toFixed(2)})
+                    </button>
+                  </div>
                 </div>
 
                 {/* Recipient Account Detail */}
@@ -1319,6 +1384,17 @@ const AffiliatePortal: React.FC = () => {
                     <span className="font-bold text-gray-600 uppercase text-[11px]">Partner Code</span>
                     <span className="font-mono font-bold text-black">{affiliate.affiliate_code}</span>
                   </div>
+                </div>
+
+                {/* PayPal Outbound Fee Disclosure */}
+                <div className="p-3 border-2 border-black bg-blue-50 space-y-1 text-xs">
+                  <div className="flex items-center gap-1.5 font-black uppercase text-blue-950 text-[11px]">
+                    <DollarSign size={14} className="text-blue-700 shrink-0" />
+                    <span>PayPal Processing & Receiving Fee</span>
+                  </div>
+                  <p className="text-[11px] text-blue-900 leading-snug">
+                    Standard PayPal transfer fees apply upon sending. Depending on your recipient PayPal account type and country, PayPal may deduct their transaction fee so the net amount received in PayPal may reflect PayPal's deductions.
+                  </p>
                 </div>
 
                 {/* Warning Callout */}
