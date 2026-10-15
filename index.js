@@ -3787,7 +3787,7 @@ export default {
         }
 
         // 2. Query Eligible Commissions from Database (Server-Side Recalculation)
-        const commRes = await fetch(`${supabaseUrl}/rest/v1/affiliate_commissions?affiliate_id=eq.${affiliate.id}&status=in.(pending_clearance,approved)&select=id,commission_amount,status,cleared_at`, {
+        const commRes = await fetch(`${supabaseUrl}/rest/v1/affiliate_commissions?affiliate_id=eq.${affiliate.id}&status=in.(pending_clearance,approved)&select=*`, {
           headers: { 'apikey': serviceRoleKey, 'Authorization': `Bearer ${serviceRoleKey}` }
         });
         const allComms = commRes.ok ? await commRes.json() : [];
@@ -3982,7 +3982,7 @@ export default {
           payoutBatchId: paypalBatchId,
           batchStatus: payoutResult.batch_header?.batch_status || 'PENDING',
           receiver: paypalEmail,
-          settledOrders: commissionIds.length
+          settledOrders: commissionsToMarkPaid.length
         }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
