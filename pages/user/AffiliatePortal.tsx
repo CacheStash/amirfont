@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { 
-  Copy, Check, ArrowRight, Clock, CheckCircle2, DollarSign, 
+  Copy, Check, ArrowRight, Clock, CheckCircle2, DollarSign, CircleDollarSign,
   AlertCircle, Share2, ExternalLink, Settings, Save, Mail, Hash,
   Tag, MapPin, Phone, Calendar, Wallet, ChevronRight, FileText,
   Zap, RefreshCw, X, Sparkles, Info, ShieldCheck, Percent, Timer, Award, Star
@@ -1007,7 +1007,7 @@ const AffiliatePortal: React.FC = () => {
             <div className="p-6 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
               <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-gray-500">
                 <span>Total Disbursed</span>
-                <DollarSign size={16} className="text-black" />
+                <CircleDollarSign size={16} className="text-black" />
               </div>
               <div className="text-3xl font-black font-mono text-black">
                 ${totalPaidAmount.toFixed(2)}
