@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Type, ShoppingCart, LogOut, Tag, 
   Menu, X, Mail, FileText, Power, Loader2, CreditCard, SendHorizontal, Megaphone,
-  Sparkles, ExternalLink, Share2
+  Sparkles, ExternalLink, Share2, Users
 } from 'lucide-react';
 import { openCanvasWithSession } from '../../lib/canvasSession';
 import { Globe } from 'lucide-react';
@@ -15,6 +15,7 @@ import Statistics from './Statistics';
 import BroadcastStudio from './BroadcastStudio';
 import EmailStudio from './EmailStudio';
 import AffiliateManager from './AffiliateManager';
+import AudienceDirectory from './AudienceDirectory';
 import { supabase } from '../../lib/supabase';
 
 const AdminDashboard = () => {
@@ -172,6 +173,9 @@ const AdminDashboard = () => {
           <button onClick={() => handleTabChange('broadcast')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'broadcast' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <Megaphone size={18} /> Broadcast Studio
           </button>
+          <button onClick={() => handleTabChange('audience')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'audience' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+            <Users size={18} /> Audience Directory
+          </button>
           <button onClick={() => handleTabChange('products')} className={`w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-xs transition-all ${activeTab === 'products' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             <Type size={18} /> Products
           </button>
@@ -274,6 +278,7 @@ const AdminDashboard = () => {
         {activeTab === 'content' && <ContentManager />}
         {activeTab === 'stats' && <Statistics />}
         {(activeTab === 'broadcast' || activeTab === 'inbox') && <BroadcastStudio />}
+        {activeTab === 'audience' && <AudienceDirectory />}
         {activeTab === 'orders' && <Orders />}
         {activeTab === 'email_studio' && <EmailStudio />}
         {activeTab === 'analytics' && <WebAnalytics />}

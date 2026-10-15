@@ -99,15 +99,16 @@ const AffiliateManager: React.FC = () => {
   const [payoutBatchId, setPayoutBatchId] = useState('');
   const [payoutNotes, setPayoutNotes] = useState('');
   const [isSubmittingPayout, setIsSubmittingPayout] = useState(false);
+  const [isSandboxMode, setIsSandboxMode] = useState<boolean>(true);
 
   const nextPayoutInfo = getNextMonthlyPayoutDate();
 
   useEffect(() => {
     fetchData();
-    fetchPayPalBalance();
+    fetchPayPalBalance(false);
   }, []);
 
-  const fetchPayPalBalance = async () => {
+  const fetchPayPalBalance = async (isManual = false) => {
     setIsFetchingBalance(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -116,6 +117,9 @@ const AffiliateManager: React.FC = () => {
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       });
       const data = await res.json() as any;
+      if (typeof data.is_sandbox === 'boolean') {
+        setIsSandboxMode(data.is_sandbox);
+      }
       if (data.success) {
         setPaypalLiveBalance({
           available: Number(data.available_balance || 0),
@@ -123,9 +127,19 @@ const AffiliateManager: React.FC = () => {
           asOf: data.as_of_time,
           isSandbox: data.is_sandbox
         });
+        if (isManual) {
+          alert(`PayPal Balance Synced:\nEnvironment: ${data.is_sandbox ? 'SANDBOX' : 'LIVE'}\nAvailable Balance: $${Number(data.available_balance || 0).toFixed(2)} USD\nTotal Balance: $${Number(data.total_balance || 0).toFixed(2)} USD`);
+        }
+      } else {
+        if (isManual) {
+          alert(`PayPal Balance Notice:\nEnvironment: ${data.is_sandbox ? 'SANDBOX' : 'LIVE'}\nStatus: ${data.message || data.error || 'Unable to retrieve live balance from PayPal API.'}`);
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn("Could not fetch live PayPal balance:", err);
+      if (isManual) {
+        alert("PayPal Balance Sync Error: " + (err.message || "Network error"));
+      }
     } finally {
       setIsFetchingBalance(false);
     }
@@ -134,6 +148,18 @@ const AffiliateManager: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // Sync site settings for paypal_sandbox_mode
+      try {
+        const { data: settingData } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'paypal_sandbox_mode')
+          .maybeSingle();
+        if (settingData) {
+          setIsSandboxMode(settingData.value === true || settingData.value === 'true');
+        }
+      } catch (_) {}
+
       const [{ data: affData }, { data: commData }] = await Promise.all([
         supabase.from('affiliates').select('*').order('created_at', { ascending: false }),
         supabase.from('affiliate_commissions').select('*').order('created_at', { ascending: false })
@@ -295,7 +321,9 @@ const AffiliateManager: React.FC = () => {
 
   const safeToWithdraw = paypalLiveBalance !== null
     ? Math.max(0, paypalLiveBalance.available - affiliateReservedPool)
-    : Math.max(0, totalNetStore - affiliateReservedPool);
+    : isSandboxMode
+      ? Math.max(0, totalNetStore - affiliateReservedPool)
+      : 0.00;
 
   // Group due balances by affiliate
   const now = new Date();
@@ -692,16 +720,14 @@ const AffiliateManager: React.FC = () => {
               <span className="text-[10px] font-black uppercase tracking-wider text-black block">
                 SAFE TO WITHDRAW (PROFIT)
               </span>
-              {paypalLiveBalance && (
-                <span className={`text-[8px] font-black uppercase px-1 py-0.2 border border-black ${
-                  paypalLiveBalance.isSandbox ? 'bg-amber-400 text-black' : 'bg-emerald-400 text-black'
-                }`}>
-                  {paypalLiveBalance.isSandbox ? 'SANDBOX' : 'LIVE'}
-                </span>
-              )}
+              <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 border border-black ${
+                isSandboxMode ? 'bg-amber-400 text-black' : 'bg-emerald-400 text-black'
+              }`}>
+                {isSandboxMode ? 'SANDBOX' : 'LIVE'}
+              </span>
             </div>
             <button
-              onClick={fetchPayPalBalance}
+              onClick={() => fetchPayPalBalance(true)}
               disabled={isFetchingBalance}
               title="Sync live PayPal balance"
               className="text-[9px] font-black uppercase flex items-center gap-1 px-1.5 py-0.5 border border-black bg-white hover:bg-black hover:text-white transition-all cursor-pointer shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
@@ -715,7 +741,9 @@ const AffiliateManager: React.FC = () => {
           <p className="text-[11px] font-bold text-black/70 uppercase tracking-wide">
             {paypalLiveBalance !== null
               ? `${paypalLiveBalance.isSandbox ? 'Sandbox' : 'Live'} PayPal ($${paypalLiveBalance.available.toFixed(2)}) - Pool ($${affiliateReservedPool.toFixed(2)})`
-              : 'Store net safe to sweep to bank'}
+              : isSandboxMode
+                ? `Simulated Net ($${Math.max(0, totalNetStore - affiliateReservedPool).toFixed(2)}) - Pool ($${affiliateReservedPool.toFixed(2)})`
+                : 'Live Account Balance: $0.00 (Click Sync PP)'}
           </p>
         </div>
       </div>
