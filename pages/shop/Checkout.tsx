@@ -509,9 +509,78 @@ const Checkout: React.FC = () => {
               </div>
             </div>
              
-            {/* 00. MANDATORY PURCHASER INFO */}
-            {!isPaid && (
-              <div className="mb-10 p-6 border border-black bg-[#FF5C00] text-black">
+            {/* COUPON / PROMO CODE SECTION */}
+            {!isPaid && total > 0 && (
+              <div className="mb-10 p-6 md:p-8 border-2 border-black bg-[#FFE500] text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4">
+                    {/* CREATOR MILESTONE ACTIVE BANNER */}
+                    {creatorMilestone && !appliedCoupon && (
+                      <div className="p-4 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-black text-xs uppercase tracking-wider flex items-center gap-1.5 text-black">
+                            <Sparkles size={14} className="text-[#FF5C00]" />
+                            EXCLUSIVE CREATOR REWARD: {creatorMilestone.discountPercent}% OFF AUTO-APPLIED!
+                          </span>
+                          <span className="font-mono font-black text-xs bg-yellow-300 px-2 py-0.5 border border-black">
+                            -${(total - finalTotal).toFixed(2)} USD
+                          </span>
+                        </div>
+                        <p className="text-xs font-bold text-gray-800 leading-relaxed font-sans normal-case">
+                          As a verified affiliate creator who unlocked the <strong>{creatorMilestone.rawTier}% tier milestone</strong> (${creatorMilestone.grossSales.toFixed(2)} gross referral sales), your exclusive personal discount is automatically applied to this checkout.
+                        </p>
+                        <div className="text-[10px] text-gray-500 font-mono italic border-t border-black/10 pt-1">
+                          * Single-use per tier and does not stack with store coupons.
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <span className="bg-black text-white px-2 py-1 text-[10px] font-black tracking-[0.2em] uppercase">
+                        BARGAIN / PROMO CODE
+                      </span>
+                      <span className="text-[10px] font-black italic tracking-widest opacity-70">
+                        CLAIM NEGOTIATED DEAL*
+                      </span>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={couponCodeInput}
+                        onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase().replace(/\s/g, ''))}
+                        disabled={!!appliedCoupon || isApplyingCoupon}
+                        className="flex-1 border-2 border-black p-4 font-mono font-bold uppercase text-sm outline-none bg-white placeholder:text-black/40 disabled:bg-gray-200"
+                        placeholder="PASTE COUPON CODE HERE"
+                      />
+                      {!appliedCoupon ? (
+                        <button 
+                          onClick={handleApplyCoupon}
+                          disabled={isApplyingCoupon || !couponCodeInput.trim()}
+                          className="bg-black text-white px-6 md:px-8 font-black uppercase tracking-widest text-xs hover:bg-white hover:text-black border-2 border-black disabled:opacity-50 transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+                        >
+                          {isApplyingCoupon ? 'VERIFYING...' : 'APPLY'}
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={handleRemoveCoupon}
+                          className="bg-red-600 text-white px-6 md:px-8 font-black uppercase tracking-widest text-xs hover:bg-black border-2 border-black transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                        >
+                          REMOVE
+                        </button>
+                      )}
+                    </div>
+                    
+                    {couponMessage && (
+                      <div className={`mt-4 p-3 border-2 border-black font-black text-[10px] tracking-widest uppercase flex items-center gap-2 ${couponMessage.type === 'success' ? 'bg-green-400 text-black' : 'bg-red-500 text-white'}`}>
+                        <span>{couponMessage.type === 'success' ? '🎉' : '⚠️'}</span>
+                        <span>{couponMessage.text}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 00. MANDATORY PURCHASER INFO */}
+                {!isPaid && (
+                  <div className="mb-10 p-6 border border-black bg-[#FF5C00] text-black">
                 <div className="flex items-center justify-between mb-4">
                   <label className="block text-[10px] font-black tracking-[0.2em] italic">00. PROVIDE_PURCHASER_INFO*</label>
                   {Boolean(user) && (
@@ -668,75 +737,6 @@ const Checkout: React.FC = () => {
                     You can change your password in account settings at any time. However, your **Order ID** will remain your **Permanent Password Resetter** forever if you forget your custom password.
                   </p>
                 </div>
-              </div>
-            )}
-
-            {/* COUPON / PROMO CODE SECTION */}
-            {!isPaid && total > 0 && (
-              <div className="mb-10 p-6 md:p-8 border-2 border-black bg-[#FFE500] text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4">
-                {/* CREATOR MILESTONE ACTIVE BANNER */}
-                {creatorMilestone && !appliedCoupon && (
-                  <div className="p-4 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-xs uppercase tracking-wider flex items-center gap-1.5 text-black">
-                        <Sparkles size={14} className="text-[#FF5C00]" />
-                        EXCLUSIVE CREATOR REWARD: {creatorMilestone.discountPercent}% OFF AUTO-APPLIED!
-                      </span>
-                      <span className="font-mono font-black text-xs bg-yellow-300 px-2 py-0.5 border border-black">
-                        -${(total - finalTotal).toFixed(2)} USD
-                      </span>
-                    </div>
-                    <p className="text-xs font-bold text-gray-800 leading-relaxed font-sans normal-case">
-                      As a verified affiliate creator who unlocked the <strong>{creatorMilestone.rawTier}% tier milestone</strong> (${creatorMilestone.grossSales.toFixed(2)} gross referral sales), your exclusive personal discount is automatically applied to this checkout.
-                    </p>
-                    <div className="text-[10px] text-gray-500 font-mono italic border-t border-black/10 pt-1">
-                      * Single-use per tier and does not stack with store coupons.
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <span className="bg-black text-white px-2 py-1 text-[10px] font-black tracking-[0.2em] uppercase">
-                    BARGAIN / PROMO CODE
-                  </span>
-                  <span className="text-[10px] font-black italic tracking-widest opacity-70">
-                    CLAIM NEGOTIATED DEAL*
-                  </span>
-                </div>
-                
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    value={couponCodeInput}
-                    onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase().replace(/\s/g, ''))}
-                    disabled={!!appliedCoupon || isApplyingCoupon}
-                    className="flex-1 border-2 border-black p-4 font-mono font-bold uppercase text-sm outline-none bg-white placeholder:text-black/40 disabled:bg-gray-200"
-                    placeholder="PASTE COUPON CODE HERE"
-                  />
-                  {!appliedCoupon ? (
-                    <button 
-                      onClick={handleApplyCoupon}
-                      disabled={isApplyingCoupon || !couponCodeInput.trim()}
-                      className="bg-black text-white px-6 md:px-8 font-black uppercase tracking-widest text-xs hover:bg-white hover:text-black border-2 border-black disabled:opacity-50 transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
-                    >
-                      {isApplyingCoupon ? 'VERIFYING...' : 'APPLY'}
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={handleRemoveCoupon}
-                      className="bg-red-600 text-white px-6 md:px-8 font-black uppercase tracking-widest text-xs hover:bg-black border-2 border-black transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
-                    >
-                      REMOVE
-                    </button>
-                  )}
-                </div>
-                
-                {couponMessage && (
-                  <div className={`mt-4 p-3 border-2 border-black font-black text-[10px] tracking-widest uppercase flex items-center gap-2 ${couponMessage.type === 'success' ? 'bg-green-400 text-black' : 'bg-red-500 text-white'}`}>
-                    <span>{couponMessage.type === 'success' ? '🎉' : '⚠️'}</span>
-                    <span>{couponMessage.text}</span>
-                  </div>
-                )}
               </div>
             )}
 

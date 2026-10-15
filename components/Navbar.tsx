@@ -33,7 +33,7 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
   const location = useLocation();
   const { cartCount } = useCart();
 
-  const menuItems = ['Fonts', 'Canvas', 'License', 'About', 'Contact', 'Policy', 'FAQ', 'Tools'];
+  const menuItems = ['Fonts', 'Canvas', 'License', 'Affiliate', 'Contact', 'Policy', 'FAQ', 'Tools'];
 
   const toolLinks = [
     { name: 'Canvas', href: 'https://canvas.subqi.com', badge: 'BETA', isFontopsy: false },
@@ -229,6 +229,10 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
               </div>
             )}
           </div>
+
+          <Link to="/affiliate" className="hover:text-[#FF5C00] transition-colors py-2">
+            AFFILIATE
+          </Link>
         </div>
 
         {/* Right: Search & Cart */}

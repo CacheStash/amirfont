@@ -101,14 +101,12 @@ const UserDashboard = () => {
             <Settings size={18} /> Settings
           </button>
 
-          {isAffiliateAllowed && (
-            <button 
-              onClick={() => handleTabChange('affiliate')} 
-              className={`w-full flex items-center gap-3 px-4 py-3 font-bold text-xs transition-all ${activeTab === 'affiliate' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
-            >
-              <Share2 size={18} /> Affiliate Hub
-            </button>
-          )}
+          <button 
+            onClick={() => handleTabChange('affiliate')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 font-bold text-xs transition-all ${activeTab === 'affiliate' ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+          >
+            <Share2 size={18} /> Affiliate Hub
+          </button>
 
           <button 
             onClick={() => handleTabChange('support')} 
