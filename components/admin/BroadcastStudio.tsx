@@ -363,17 +363,17 @@ export default function BroadcastStudio() {
   const [sending, setSending] = useState(false);
   const [data, setData] = useState<{
     gas: { accounts: GasAccount[]; totalRemaining: number; safetyReserve: number; allowedToday: number };
-    audience: { buyersCount: number; subscribersCount: number; totalUniqueCount: number };
+    audience: { buyersCount: number; subscribersCount: number; affiliatesCount?: number; totalUniqueCount: number };
     campaigns: Campaign[];
   }>({
     gas: { accounts: [], totalRemaining: 0, safetyReserve: 15, allowedToday: 0 },
-    audience: { buyersCount: 0, subscribersCount: 0, totalUniqueCount: 0 },
+    audience: { buyersCount: 0, subscribersCount: 0, affiliatesCount: 0, totalUniqueCount: 0 },
     campaigns: []
   });
 
   // Compose State
   const [selectedPreset, setSelectedPreset] = useState('new_release');
-  const [audience, setAudience] = useState<'all' | 'buyers' | 'subscribers'>('all');
+  const [audience, setAudience] = useState<'all' | 'buyers' | 'subscribers' | 'affiliates'>('all');
   const [campaignTitle, setCampaignTitle] = useState('');
   const [subject, setSubject] = useState(PRESETS[0].subject);
 
@@ -1083,6 +1083,7 @@ export default function BroadcastStudio() {
   const getTargetAudienceCount = () => {
     if (audience === 'buyers') return data.audience.buyersCount;
     if (audience === 'subscribers') return data.audience.subscribersCount;
+    if (audience === 'affiliates') return data.audience.affiliatesCount || 0;
     return data.audience.totalUniqueCount;
   };
 
@@ -1316,7 +1317,7 @@ export default function BroadcastStudio() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-3 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <button
                   type="button"
                   onClick={() => setAudience('all')}
@@ -1352,6 +1353,18 @@ export default function BroadcastStudio() {
                 >
                   <div className="font-black">SUBSCRIBERS</div>
                   <div className="text-[10px] opacity-70 mt-1">{data.audience.subscribersCount} Active Readers</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAudience('affiliates')}
+                  className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${
+                    audience === 'affiliates' 
+                      ? 'bg-black text-white shadow-[2px_2px_0px_#ff5c00]' 
+                      : 'bg-white hover:bg-black/5'
+                  }`}
+                >
+                  <div className="font-black">AFFILIATES</div>
+                  <div className="text-[10px] opacity-70 mt-1">{data.audience.affiliatesCount || 0} Partners (Excl. Buyers)</div>
                 </button>
               </div>
             )}

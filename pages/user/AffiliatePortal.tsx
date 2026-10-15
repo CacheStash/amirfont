@@ -58,6 +58,7 @@ const AffiliatePortal: React.FC = () => {
   const [autoPayoutEnabled, setAutoPayoutEnabled] = useState(true);
 
   const [savingSettings, setSavingSettings] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawInputAmount, setWithdrawInputAmount] = useState('50.00');
@@ -83,6 +84,7 @@ const AffiliatePortal: React.FC = () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
+      setUserEmail(user.email || '');
       const { data: affData } = await supabase
         .from('affiliates')
         .select('*')
@@ -544,6 +546,15 @@ const AffiliatePortal: React.FC = () => {
           <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight">
             Guild Code: <span className="font-mono bg-yellow-200 px-2 py-0.5 border border-black">{affiliate.affiliate_code}</span>
           </h2>
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            <span className="text-xs font-mono font-bold text-black flex items-center gap-1.5 bg-black/5 px-2.5 py-1 border border-black">
+              <Mail size={13} className="text-[#FF5C00]" />
+              Account: <span className="font-black text-black">{userEmail || affiliate.paypal_email}</span>
+            </span>
+            <span className="text-xs font-mono font-bold text-black flex items-center gap-1.5 bg-black/5 px-2.5 py-1 border border-black">
+              PayPal: <span className="font-black text-black">{affiliate.paypal_email}</span>
+            </span>
+          </div>
         </div>
 
         {/* SUB TAB CONTROLS */}
@@ -1151,6 +1162,25 @@ const AffiliatePortal: React.FC = () => {
 
             <form onSubmit={handleUpdateSettings} className="space-y-6">
               
+              {/* Account Username & Authentication Info Card */}
+              <div className="p-4 border-2 border-black bg-yellow-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[3px_3px_0px_#000000]">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#FF5C00] block">
+                    Registered Login Account (Username)
+                  </span>
+                  <div className="text-sm font-black font-mono text-black flex items-center gap-1.5 mt-0.5">
+                    <Mail size={14} className="text-[#FF5C00]" />
+                    {userEmail || affiliate.paypal_email}
+                  </div>
+                  <span className="text-[11px] text-gray-600 font-bold block mt-0.5">
+                    This is your primary login identity. Payout disbursements are sent to your PayPal email below.
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono font-black uppercase px-2.5 py-1 bg-black text-white border border-black self-start sm:self-center">
+                  Verified Account
+                </span>
+              </div>
+
               {/* PayPal Email Field */}
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider block flex items-center gap-1.5 text-gray-700">

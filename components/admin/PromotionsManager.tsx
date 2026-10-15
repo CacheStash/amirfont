@@ -365,7 +365,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
                 activeTab === 'coupons' ? 'border-black text-black' : 'border-transparent text-gray-400'
               }`}
             >
-              Buyer Coupons (Bargain)
+              Store Coupons ({coupons.filter(c => !c.affiliate_id).length})
             </button>
             <button 
               onClick={() => setActiveTab('affiliate_coupons')}
@@ -472,43 +472,48 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {coupons.length === 0 ? (
-            <div className="col-span-2 p-20 border-2 border-dashed border-gray-300 text-center text-gray-400 font-bold text-xs uppercase tracking-widest">
-              No coupons generated yet.
-            </div>
-          ) : (
-            coupons.map(c => (
-              <div key={c.id} className="border-2 border-black p-6 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="bg-orange-500 text-white px-2 py-1 text-xs font-black uppercase border border-black tracking-widest">
-                      {c.code}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
-                      Ends: {c.end_date}
-                    </span>
+          {(() => {
+            const storeCoupons = coupons.filter(c => !c.affiliate_id);
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {storeCoupons.length === 0 ? (
+                  <div className="col-span-2 p-20 border-2 border-dashed border-gray-300 text-center text-gray-400 font-bold text-xs uppercase tracking-widest">
+                    No store coupons generated yet.
                   </div>
-                  <h3 className="text-2xl font-black uppercase mb-1">{c.discount_value}% OFF</h3>
-                  <p className="text-[10px] font-bold text-gray-500 mb-4 uppercase tracking-wide">
-                    Usage: {c.used_count} / {c.max_uses || '∞'} Redemptions
-                  </p>
-                </div>
-                <div className="flex justify-between items-center pt-4 border-t border-black/10">
-                  <button 
-                    onClick={() => handleOpenSendModal(c)}
-                    className="text-xs font-black uppercase text-black hover:text-orange-600 flex items-center gap-1.5 transition-colors"
-                  >
-                    <Send size={13} /> Send to Buyer
-                  </button>
-                  <button onClick={() => handleDeleteCoupon(c.id)} className="text-red-500 font-bold uppercase text-xs border-b-2 border-red-500">
-                    Revoke
-                  </button>
-                </div>
+                ) : (
+                  storeCoupons.map(c => (
+                    <div key={c.id} className="border-2 border-black p-6 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start mb-4">
+                          <span className="bg-orange-500 text-white px-2 py-1 text-xs font-black uppercase border border-black tracking-widest">
+                            {c.code}
+                          </span>
+                          <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                            Ends: {c.end_date}
+                          </span>
+                        </div>
+                        <h3 className="text-2xl font-black uppercase mb-1">{c.discount_value}% OFF</h3>
+                        <p className="text-[10px] font-bold text-gray-500 mb-4 uppercase tracking-wide">
+                          Usage: {c.used_count} / {c.max_uses || '∞'} Redemptions
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center pt-4 border-t border-black/10">
+                        <button 
+                          onClick={() => handleOpenSendModal(c)}
+                          className="text-xs font-black uppercase text-black hover:text-orange-600 flex items-center gap-1.5 transition-colors"
+                        >
+                          <Send size={13} /> Send to Buyer
+                        </button>
+                        <button onClick={() => handleDeleteCoupon(c.id)} className="text-red-500 font-bold uppercase text-xs border-b-2 border-red-500">
+                          Revoke
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-            ))
-          )}
-        </div>
+            );
+          })()}
       </div>
     )}
 
