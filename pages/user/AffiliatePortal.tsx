@@ -66,7 +66,13 @@ const AffiliatePortal: React.FC = () => {
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawInputAmount, setWithdrawInputAmount] = useState('50.00');
-  const [withdrawSuccess, setWithdrawSuccess] = useState<{ amount: number; receiver: string; batchId: string } | null>(null);
+  const [withdrawSuccess, setWithdrawSuccess] = useState<{
+    grossAmount: number;
+    feeAmount: number;
+    netAmount: number;
+    receiver: string;
+    batchId: string;
+  } | null>(null);
   const [withdrawError, setWithdrawError] = useState('');
   const [settingsSuccess, setSettingsSuccess] = useState('');
   const [settingsError, setSettingsError] = useState('');
@@ -640,7 +646,9 @@ const AffiliatePortal: React.FC = () => {
 
       await fetchAffiliateData();
       setWithdrawSuccess({
-        amount: Number(data.amount || targetAmt),
+        grossAmount: Number(data.grossAmount || targetAmt),
+        feeAmount: Number(data.feeAmount || 0),
+        netAmount: Number(data.netAmount || data.amount || targetAmt),
         receiver: data.receiver || affiliate.paypal_email,
         batchId: data.payoutBatchId || ''
       });
@@ -1874,18 +1882,36 @@ const AffiliatePortal: React.FC = () => {
 
             {withdrawSuccess ? (
               <div className="space-y-4 py-2">
-                <div className="p-4 border-2 border-black bg-green-100 space-y-2 text-center">
+                <div className="p-4 border-2 border-black bg-green-100 space-y-3 text-center">
                   <CheckCircle2 size={36} className="text-green-700 mx-auto" />
                   <h4 className="text-sm font-black uppercase text-green-950">Transfer Completed!</h4>
                   <p className="text-xs text-green-900 leading-relaxed font-sans font-medium">
-                    <span className="font-bold">${withdrawSuccess.amount.toFixed(2)} USD</span> has been sent to your PayPal account:
+                    <span className="font-black font-mono text-base text-green-950">${withdrawSuccess.netAmount.toFixed(2)} USD</span> has been sent to your PayPal account:
                   </p>
-                  <p className="font-mono text-xs font-bold bg-white/90 border border-black py-1 px-3 inline-block">
+                  <p className="font-mono text-xs font-bold bg-white border-2 border-black py-1 px-3 inline-block">
                     {withdrawSuccess.receiver}
                   </p>
+
+                  <div className="pt-2 border-t border-black/20 text-[11px] font-sans text-green-950 space-y-1 text-left px-2">
+                    <div className="flex justify-between">
+                      <span className="font-bold">Settled from Cleared Balance:</span>
+                      <span className="font-mono font-black">${withdrawSuccess.grossAmount.toFixed(2)} USD</span>
+                    </div>
+                    {withdrawSuccess.feeAmount > 0 && (
+                      <div className="flex justify-between text-amber-900 font-bold">
+                        <span>PayPal Gateway Transfer Fee:</span>
+                        <span className="font-mono font-black">-${withdrawSuccess.feeAmount.toFixed(2)} USD</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-black text-green-950 pt-1 border-t border-black/10">
+                      <span>Net Transferred to PayPal:</span>
+                      <span className="font-mono font-black">${withdrawSuccess.netAmount.toFixed(2)} USD</span>
+                    </div>
+                  </div>
+
                   {withdrawSuccess.batchId && (
-                    <p className="text-[10px] font-mono text-green-900 opacity-75">
-                      Batch Ref: {withdrawSuccess.batchId}
+                    <p className="text-[10px] font-mono text-green-900 opacity-75 pt-1">
+                      PayPal Batch ID: {withdrawSuccess.batchId}
                     </p>
                   )}
                 </div>
@@ -1956,6 +1982,35 @@ const AffiliatePortal: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Dynamic Fee & Net Payout Calculation (Subqi Neo-Brutalist) */}
+                {(() => {
+                  const targetNum = Number(withdrawInputAmount) || 0;
+                  const calcFee = targetNum >= AFFILIATE_MIN_PAYOUT_USD ? Math.min(20.00, Math.round(targetNum * 0.02 * 100) / 100) : 0;
+                  const calcNet = Math.max(0, Math.round((targetNum - calcFee) * 100) / 100);
+
+                  return (
+                    <div className="p-3.5 border-2 border-black bg-white space-y-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-gray-700 block">
+                        Payout Breakdown Summary
+                      </span>
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex justify-between items-center text-black">
+                          <span className="text-[11px] font-bold text-gray-700">Gross Settled from Balance:</span>
+                          <span className="font-mono font-black">${targetNum.toFixed(2)} USD</span>
+                        </div>
+                        <div className="flex justify-between items-center text-amber-900">
+                          <span className="text-[11px] font-bold">PayPal Gateway Outbound Fee (2%, max $20):</span>
+                          <span className="font-mono font-black">-${calcFee.toFixed(2)} USD</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-1.5 border-t border-black/20 text-green-950 font-black">
+                          <span className="text-[11px] uppercase tracking-wider">Estimated Net Received in PayPal:</span>
+                          <span className="font-mono text-sm text-green-900 font-black">~${calcNet.toFixed(2)} USD</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Recipient Account Detail */}
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between items-center py-1.5 border-b border-black/10">
@@ -1970,14 +2025,14 @@ const AffiliatePortal: React.FC = () => {
                   </div>
                 </div>
 
-                {/* PayPal Outbound Fee Disclosure */}
-                <div className="p-3 border-2 border-black bg-blue-50 space-y-1 text-xs">
-                  <div className="flex items-center gap-1.5 font-black uppercase text-blue-950 text-[11px]">
-                    <DollarSign size={14} className="text-blue-700 shrink-0" />
-                    <span>PayPal Processing & Receiving Fee</span>
+                {/* Transparent Payment Gateway Fee Disclosure (Subqi Neo-Brutalist) */}
+                <div className="p-3 border-2 border-black bg-yellow-100/70 space-y-1 text-xs">
+                  <div className="flex items-center gap-1.5 font-black uppercase text-black text-[11px]">
+                    <Info size={14} className="text-[#FF5C00] shrink-0" />
+                    <span>Transparent Payment Gateway Fee Notice</span>
                   </div>
-                  <p className="text-[11px] text-blue-900 leading-snug">
-                    Standard PayPal transfer fees apply upon sending. Depending on your recipient PayPal account type and country, PayPal may deduct their transaction fee so the net amount received in PayPal may reflect PayPal's deductions.
+                  <p className="text-[11px] text-gray-800 leading-relaxed font-medium">
+                    As an independent indie type foundry, PayPal charges an outbound transfer fee (standard 2% cross-border transfer, capped at $20.00 USD) on direct payouts. To keep our indie store sustainable, this payment gateway fee is deducted from the withdrawal amount, similar to creator platforms like FontBundles, Envato, and Gumroad. We sincerely apologize for the gateway fee and deeply appreciate your support and partnership!
                   </p>
                 </div>
 
