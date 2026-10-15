@@ -338,8 +338,8 @@ const fetchOrders = async () => {
       // 2. Susun isi LICENSE.txt sesuai protokol resmi Subqi Studio
       let licenseBody = `SUBQI STUDIO — OFFICIAL LICENSE CERTIFICATE\n`;
       licenseBody += `========================================================================\n`;
-      licenseBody += `ORDER ID       : ${order.transaction_id || 'N/A'} (USE AS PASSWORD RESETTER)\n`;
-      licenseBody += `LICENSE HOLDER : ${buyerEmail} (USERNAME)\n`;
+      licenseBody += `ORDER ID       : ${order.transaction_id || 'N/A'}\n`;
+      licenseBody += `LICENSE HOLDER : ${buyerEmail}\n`;
       licenseBody += `LICENSEE NAME  : ${buyerName}\n`;
       licenseBody += `ADDRESS        : ${buyerAddress}\n`;
       licenseBody += `ISSUE DATE     : ${issueDate}\n`;
