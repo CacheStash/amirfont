@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CountryCombobox } from '../../components/CountryCombobox';
-import { COUNTRIES, PROVINCES_BY_COUNTRY, findCountryByName } from '../../utils/affiliateGeo';
+import { COUNTRIES, PROVINCES_BY_COUNTRY, findCountryByName, getCitiesForState, detectClientLocation } from '../../utils/affiliateGeo';
 import { validateLegitEmail } from '../../lib/emailValidator';
 
 const AccountSettings = () => {
@@ -35,13 +35,13 @@ const AccountSettings = () => {
   const [checkoutCodes, setCheckoutCodes] = useState<string[]>([]);
   const [selectedCode, setSelectedCode] = useState('');
 
-  // Profile Details State
+  // Profile Details State (Defaulted to US)
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [userEmail, setUserEmail] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [fullName, setFullName] = useState('');
-  const [country, setCountry] = useState('Indonesia');
-  const [stateProvince, setStateProvince] = useState('DKI Jakarta');
+  const [country, setCountry] = useState('United States');
+  const [stateProvince, setStateProvince] = useState('California');
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [streetAddress, setStreetAddress] = useState('');
@@ -93,6 +93,13 @@ const AccountSettings = () => {
         if (aff.street_address) setStreetAddress(aff.street_address);
       } else if (buyer?.address) {
         setStreetAddress(buyer.address);
+      } else {
+        detectClientLocation().then(geo => {
+          setCountry(prev => (prev === 'United States' ? geo.country : prev));
+          if (geo.stateProvince) {
+            setStateProvince(prev => (prev === 'California' ? geo.stateProvince : prev));
+          }
+        }).catch(() => {});
       }
 
       // 3. Fetch purchase history transaction codes
@@ -120,6 +127,7 @@ const AccountSettings = () => {
     } else {
       setStateProvince('');
     }
+    setCity('');
   };
 
   const handleCopy = () => {
@@ -240,6 +248,7 @@ const AccountSettings = () => {
   };
 
   const provinceOptions = PROVINCES_BY_COUNTRY[country] || [];
+  const cityOptions = getCitiesForState(country, stateProvince);
 
   return (
     <div className="max-w-2xl font-mono space-y-10 uppercase pb-20">
@@ -374,11 +383,19 @@ const AccountSettings = () => {
                 <label className="text-[9px] font-black text-black block">CITY</label>
                 <input 
                   type="text" 
+                  list="subqi-account-city-list"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="CITY" 
+                  placeholder="e.g. San Francisco" 
                   className="w-full p-2.5 border-2 border-black bg-white font-mono text-xs font-bold outline-none text-black"
                 />
+                {cityOptions.length > 0 && (
+                  <datalist id="subqi-account-city-list">
+                    {cityOptions.map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -387,7 +404,7 @@ const AccountSettings = () => {
                   type="text" 
                   value={postalCode}
                   onChange={(e) => setPostalCode(e.target.value)}
-                  placeholder="ZIP CODE" 
+                  placeholder="e.g. 94105" 
                   className="w-full p-2.5 border-2 border-black bg-white font-mono text-xs font-bold outline-none text-black"
                 />
               </div>
@@ -399,7 +416,7 @@ const AccountSettings = () => {
                 type="text" 
                 value={streetAddress}
                 onChange={(e) => setStreetAddress(e.target.value)}
-                placeholder="STREET ADDRESS, SUITE, BUILDING" 
+                placeholder="e.g. 525 Market St, Suite 3200" 
                 className="w-full p-2.5 border-2 border-black bg-white font-mono text-xs font-bold outline-none text-black"
               />
             </div>
