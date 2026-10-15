@@ -18,17 +18,22 @@ const UserDashboard = () => {
     const fetchInitialData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        // Admin belongs in /backstage, not user dashboard
+        const { data: adminCheck } = await supabase.from('fontadmin').select('id').eq('id', user.id).maybeSingle();
+        if (adminCheck) {
+          window.location.replace('/backstage');
+          return;
+        }
+
         setUserEmail(user.email || '');
         const isTrainer = user.email?.toLowerCase() === 'gotrainer19@gmail.com';
-        const [{ data }, { data: adminCheck }, { data: affCheck }] = await Promise.all([
+        const [{ data }, { data: affCheck }] = await Promise.all([
           supabase.from('fontbuyer').select('full_name').eq('id', user.id).maybeSingle(),
-          supabase.from('fontadmin').select('id').eq('id', user.id).maybeSingle(),
           supabase.from('affiliates').select('id').eq('user_id', user.id).maybeSingle()
         ]);
         if (data?.full_name) setFullName(data.full_name);
-        const admin = !!adminCheck;
-        setIsAdmin(admin);
-        setIsAffiliateAllowed(admin || isTrainer || !!affCheck);
+        setIsAdmin(false);
+        setIsAffiliateAllowed(isTrainer || !!affCheck);
       }
     };
     fetchInitialData();

@@ -251,10 +251,10 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                     {/* Account Dropdown Menu (Appears on Hover) */}
                     <div className="absolute top-full right-[-1px] w-48 bg-[#EDEBE6] border-x border-b border-black hidden group-hover/acc:block z-[140] animate-in slide-in-from-top-1 duration-200">
                       <Link 
-                        to="/user/dashboard" 
+                        to={isAdmin ? "/backstage" : "/user/dashboard"} 
                         className="flex items-center justify-between p-4 border-b border-black hover:bg-black hover:text-white transition-all group/item"
                       >
-                        <span>DASHBOARD</span>
+                        <span>{isAdmin ? "BACKSTAGE" : "DASHBOARD"}</span>
                         <ArrowRight size={16} className="opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all" />
                       </Link>
                       <button 
