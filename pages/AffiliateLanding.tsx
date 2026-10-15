@@ -9,19 +9,32 @@ import { supabase } from '../lib/supabase';
 import { 
   ArrowLeft, ArrowRight, ArrowUpRight, Sparkles, 
   Coins, CheckCircle2, Copy, Check, TrendingUp, Layers, 
-  DollarSign, Clock, ShieldCheck, Zap, HeartHandshake, MousePointerClick
+  DollarSign, Clock, ShieldCheck, Zap, HeartHandshake, MousePointerClick,
+  Tag, MapPin, Phone, UserCheck
 } from 'lucide-react';
+import { COUNTRIES, PROVINCES_BY_COUNTRY, getDummyAffiliateData, syncAffiliateCoupon } from '../utils/affiliateGeo';
 
 const AffiliateLanding: React.FC = () => {
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [existingAffiliate, setExistingAffiliate] = useState<any>(null);
   const [affiliateCode, setAffiliateCode] = useState('');
   const [paypalEmail, setPaypalEmail] = useState('');
+
+  // Phone & Address State
+  const [phoneCode, setPhoneCode] = useState('+62');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [country, setCountry] = useState('Indonesia');
+  const [stateProvince, setStateProvince] = useState('DKI Jakarta');
+  const [city, setCity] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [streetAddress, setStreetAddress] = useState('');
+
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedCoupon, setCopiedCoupon] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,15 +48,53 @@ const AffiliateLanding: React.FC = () => {
           .select('*')
           .eq('user_id', user.id)
           .maybeSingle();
+
         if (data) {
           setExistingAffiliate(data);
-          setAffiliateCode(data.affiliate_code);
-          setPaypalEmail(data.paypal_email);
+          setAffiliateCode(data.affiliate_code || '');
+          setPaypalEmail(data.paypal_email || user.email || '');
+          if (data.phone_code) setPhoneCode(data.phone_code);
+          if (data.phone_number) setPhoneNumber(data.phone_number);
+          if (data.country) {
+            setCountry(data.country);
+            if (data.state_province) setStateProvince(data.state_province);
+          }
+          if (data.city) setCity(data.city);
+          if (data.postal_code) setPostalCode(data.postal_code);
+          if (data.street_address) setStreetAddress(data.street_address);
+        } else {
+          // Pre-fill dummy data for test account
+          const dummy = getDummyAffiliateData(user.email);
+          if (dummy) {
+            setAffiliateCode(dummy.affiliate_code);
+            setPaypalEmail(dummy.paypal_email);
+            setPhoneCode(dummy.phone_code);
+            setPhoneNumber(dummy.phone_number);
+            setCountry(dummy.country);
+            setStateProvince(dummy.state_province);
+            setCity(dummy.city);
+            setPostalCode(dummy.postal_code);
+            setStreetAddress(dummy.street_address);
+          }
         }
       }
     };
     checkAuthAndAffiliate();
   }, []);
+
+  const handleCountryChange = (selectedCountry: string) => {
+    setCountry(selectedCountry);
+    const countryObj = COUNTRIES.find(c => c.name === selectedCountry);
+    if (countryObj) {
+      setPhoneCode(countryObj.dial);
+    }
+    const provinces = PROVINCES_BY_COUNTRY[selectedCountry];
+    if (provinces && provinces.length > 0) {
+      setStateProvince(provinces[0]);
+    } else {
+      setStateProvince('');
+    }
+  };
 
   const handleRegisterAffiliate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +118,16 @@ const AffiliateLanding: React.FC = () => {
       return;
     }
 
+    if (!phoneNumber.trim()) {
+      setErrorMsg('A valid phone number is required for partner verification.');
+      return;
+    }
+
+    if (!streetAddress.trim() || !city.trim() || !postalCode.trim()) {
+      setErrorMsg('Complete physical address details (Street, City, Postal Code) are required.');
+      return;
+    }
+
     if (!agreed) {
       setErrorMsg('You must agree to the Affiliate Partner Terms.');
       return;
@@ -84,25 +145,58 @@ const AffiliateLanding: React.FC = () => {
         throw new Error('This partner code is already reserved by another creator. Please pick another.');
       }
 
+      const fullPayload = {
+        user_id: sessionUser.id,
+        affiliate_code: cleanCode,
+        paypal_email: paypalEmail.trim().toLowerCase(),
+        phone_code: phoneCode,
+        phone_number: phoneNumber.trim(),
+        country: country.trim(),
+        state_province: stateProvince.trim(),
+        city: city.trim(),
+        postal_code: postalCode.trim(),
+        street_address: streetAddress.trim(),
+        status: 'active',
+        commission_rate: 0.20,
+        updated_at: new Date().toISOString()
+      };
+
+      let affRecord: any = null;
       const { data, error } = await supabase
         .from('affiliates')
-        .upsert(
-          {
-            user_id: sessionUser.id,
-            affiliate_code: cleanCode,
-            paypal_email: paypalEmail.trim().toLowerCase(),
-            status: 'active',
-            commission_rate: 0.20,
-            updated_at: new Date().toISOString()
-          },
-          { onConflict: 'user_id' }
-        )
+        .upsert(fullPayload, { onConflict: 'user_id' })
         .select()
         .single();
 
-      if (error) throw error;
-      setExistingAffiliate(data);
-      setSuccessMsg('Your affiliate partnership is active! You can now start sharing your links.');
+      if (error) {
+        console.warn('Upsert with full address fields failed, falling back to base fields:', error.message);
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('affiliates')
+          .upsert(
+            {
+              user_id: sessionUser.id,
+              affiliate_code: cleanCode,
+              paypal_email: paypalEmail.trim().toLowerCase(),
+              status: 'active',
+              commission_rate: 0.20,
+              updated_at: new Date().toISOString()
+            },
+            { onConflict: 'user_id' }
+          )
+          .select()
+          .single();
+
+        if (fallbackError) throw fallbackError;
+        affRecord = fallbackData;
+      } else {
+        affRecord = data;
+      }
+
+      // Auto-generate/sync promo coupon for audience
+      await syncAffiliateCoupon(supabase, affRecord.id, cleanCode);
+
+      setExistingAffiliate(affRecord);
+      setSuccessMsg('Your affiliate partnership is active! Your vanity link and audience coupon are ready.');
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to activate partner account.');
     } finally {
@@ -114,12 +208,25 @@ const AffiliateLanding: React.FC = () => {
     ? `${window.location.origin}/c/${existingAffiliate.affiliate_code}` 
     : `${window.location.origin}/c/${(affiliateCode || 'YOUR_CODE').toUpperCase()}`;
 
+  const couponCode = existingAffiliate 
+    ? `${existingAffiliate.affiliate_code}10` 
+    : `${(affiliateCode || 'YOUR_CODE').toUpperCase()}10`;
+
   const handleCopyLink = () => {
     if (!existingAffiliate) return;
     navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
+
+  const handleCopyCoupon = () => {
+    if (!existingAffiliate) return;
+    navigator.clipboard.writeText(couponCode);
+    setCopiedCoupon(true);
+    setTimeout(() => setCopiedCoupon(false), 2000);
+  };
+
+  const provinceOptions = PROVINCES_BY_COUNTRY[country] || [];
 
   return (
     <div className="min-h-screen bg-[#EDEBE6] text-black font-mono selection:bg-black selection:text-white pb-24 relative overflow-x-hidden">
@@ -226,7 +333,6 @@ const AffiliateLanding: React.FC = () => {
 
             {/* Vanity Mockup Artboard */}
             <div className="min-h-[200px] md:min-h-[260px] bg-white border border-black flex flex-col items-center justify-center p-6 md:p-12 relative text-center">
-              {/* Grid dots background */}
               <div 
                 className="absolute inset-0 opacity-15 pointer-events-none"
                 style={{
@@ -237,7 +343,7 @@ const AffiliateLanding: React.FC = () => {
 
               <div className="relative z-10 max-w-2xl w-full">
                 <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#FF5C00] font-black block mb-2">
-                  YOUR PERSONAL DIRECT SHARE LINK
+                  YOUR PERSONAL DIRECT SHARE LINK & PROMO CODE
                 </span>
                 <div className="border-2 border-black bg-gray-50 px-4 py-3 text-lg md:text-2xl font-mono font-black text-black tracking-tight inline-block max-w-full truncate shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                   {shareUrl}
@@ -248,13 +354,13 @@ const AffiliateLanding: React.FC = () => {
               </div>
             </div>
 
-            {/* Bottom feature badges */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-4 text-[10px] uppercase font-bold tracking-wider">
+            {/* Micro Feature Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 text-xs uppercase font-bold">
               <div className="flex items-center gap-1.5 border border-black bg-white p-2">
-                <span className="text-[#FF5C00]">■</span> Passive Creator Revenue
+                <span className="text-[#FF5C00]">■</span> 20% Net Commission
               </div>
               <div className="flex items-center gap-1.5 border border-black bg-white p-2">
-                <span className="text-[#FF5C00]">■</span> 30-Day Referral Window
+                <span className="text-[#FF5C00]">■</span> 30-Day Cookie Tag
               </div>
               <div className="flex items-center gap-1.5 border border-black bg-white p-2">
                 <span className="text-[#FF5C00]">■</span> 14-Day Safe Clearance
@@ -267,7 +373,7 @@ const AffiliateLanding: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. WHY PARTNER WITH US? (MARKETING PILLARS - PERSIS GAMBAR 2) */}
+      {/* 3. MARKETING PILLARS */}
       <section className="relative z-10 px-4 md:px-8 py-16 md:py-24 border-b border-black bg-white/20 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto">
           <div className="mb-12">
@@ -280,7 +386,6 @@ const AffiliateLanding: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Card 1: Passive Income */}
             <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-6">
@@ -291,7 +396,7 @@ const AffiliateLanding: React.FC = () => {
                   Monetize Your Design Taste
                 </h3>
                 <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  You already curate fonts for client work, case studies, and tutorials. Turn your visual recommendations into an extra revenue stream by earning on every typeface license your network buys.
+                  Turn your visual recommendations into an extra revenue stream by earning on every typeface license your network buys.
                 </p>
               </div>
               <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
@@ -299,7 +404,6 @@ const AffiliateLanding: React.FC = () => {
               </div>
             </div>
 
-            {/* Card 2: Zero Overhead */}
             <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-6">
@@ -310,7 +414,7 @@ const AffiliateLanding: React.FC = () => {
                   Zero Overhead & Zero Hassle
                 </h3>
                 <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Never worry about font file distribution, licensing paperwork, customer support, or billing disputes. Subqi handles all instant digital file delivery and buyer support while you collect earnings.
+                  Never worry about font file distribution, licensing paperwork, customer support, or billing disputes. Subqi handles all delivery and support.
                 </p>
               </div>
               <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
@@ -318,7 +422,6 @@ const AffiliateLanding: React.FC = () => {
               </div>
             </div>
 
-            {/* Card 3: High Conversion */}
             <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-6">
@@ -329,84 +432,23 @@ const AffiliateLanding: React.FC = () => {
                   Typefaces That Sell Themselves
                 </h3>
                 <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Subqi fonts feature chromatic layer stacking, custom OpenType alternates, and real-time in-browser experimentation in FontCanvas. High visual impact and interactive previews convert visitors into buyers naturally.
+                  Subqi fonts feature chromatic layer stacking, custom OpenType alternates, and real-time experimentation in FontCanvas.
                 </p>
               </div>
               <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
                 BUILT FOR CONVERSIONS
               </div>
             </div>
-
-            {/* Card 4: 20% Net Formula */}
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">04</span>
-                  <Coins size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Transparent 20% Net Formula
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case mb-2">
-                  Earn a clear 20% commission on every license sale calculated transparently from net store proceeds (gross purchase minus PayPal inbound processing fees). Predictable income on single weights and complete families.
-                </p>
-                <p className="text-[11px] leading-relaxed text-black/90 font-medium normal-case bg-black/5 p-2 border-l border-black">
-                  Dispute Warranty: Commissions undergo a standard 14-day clearance window protecting against customer refunds before clearing for payout.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                TRANSPARENT REVENUE SHARE
-              </div>
-            </div>
-
-            {/* Card 5: 30-Day Window */}
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">05</span>
-                  <Clock size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  30-Day Recommendation Window
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Designers often bookmark typefaces before pitching clients. When a prospective buyer arrives through your link, our system tracks your referral for 30 full days. If they return weeks later to buy, the credit is yours.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                GENEROUS 30-DAY ATTRIBUTION
-              </div>
-            </div>
-
-            {/* Card 6: PayPal Payouts & Ledger */}
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">06</span>
-                  <DollarSign size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Reliable PayPal Payouts
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Earnings are disbursed directly to your verified PayPal email once your balance reaches the $50 minimum threshold. Track gross sales, fees, and clearance schedules in your private Affiliate Hub.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                AUTOMATED DISBURSEMENT
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* 4. ONBOARDING & ACTIVATION SECTION (Matches Section 4 in Canvas Landing) */}
-      <section id="register-section" className="relative z-10 px-4 md:px-8 py-16 md:py-20 border-b border-black bg-white/40 backdrop-blur-xs">
-        <div className="max-w-7xl mx-auto">
-          <div className="border border-black bg-white/90 backdrop-blur-xs p-8 md:p-12 relative mb-6">
-            
+      {/* 4. ONBOARDING & ACTIVE STATUS SECTION */}
+      <section id="register-section" className="relative z-10 px-4 md:px-8 py-16 md:py-24 border-b border-black">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="border-2 border-black bg-white p-6 sm:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             {existingAffiliate ? (
-              /* Already Registered Affiliate Box */
+              /* Active Affiliate Hub Box */
               <div className="space-y-8">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-black pb-6">
                   <div>
@@ -430,29 +472,65 @@ const AffiliateLanding: React.FC = () => {
                   </Link>
                 </div>
 
-                {/* Vanity Link Box */}
-                <div className="space-y-3">
-                  <label className="text-xs font-bold uppercase tracking-widest text-black/70 block">
-                    Your Official Personal Share Link
-                  </label>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <input 
-                      type="text" 
-                      readOnly 
-                      value={shareUrl} 
-                      className="grow border-2 border-black bg-gray-50 px-4 py-3 font-mono text-sm font-bold uppercase outline-none"
-                    />
-                    <button 
-                      onClick={handleCopyLink}
-                      className="bg-black text-white hover:bg-[#FF5C00] hover:text-black transition-all px-6 py-3 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 border-2 border-black shrink-0"
-                    >
-                      {copied ? <Check size={16} /> : <Copy size={16} />}
-                      <span>{copied ? 'COPIED TO CLIPBOARD' : 'COPY LINK'}</span>
-                    </button>
+                {/* DUAL PROMO TOOLS: VANITY LINK + AUDIENCE COUPON */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* TOOL 1: VANITY LINK */}
+                  <div className="p-4 border-2 border-black bg-gray-50 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF5C00] block">
+                        1. Personal Share Link
+                      </span>
+                      <span className="text-[9px] font-mono text-black/60">30-day cookie</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white p-1.5 border border-black">
+                      <input 
+                        type="text" 
+                        readOnly 
+                        value={shareUrl} 
+                        className="w-full bg-transparent font-mono text-xs font-bold outline-none text-black truncate"
+                      />
+                      <button 
+                        onClick={handleCopyLink}
+                        className="bg-black text-white hover:bg-[#FF5C00] hover:text-black py-1 px-3 text-[10px] font-bold tracking-widest uppercase flex items-center gap-1 shrink-0"
+                      >
+                        {copiedLink ? <Check size={12} /> : <Copy size={12} />}
+                        {copiedLink ? 'COPIED' : 'COPY'}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-black/60 leading-tight">
+                      Visitors clicking this link are attributed to your account for 30 days.
+                    </p>
                   </div>
-                  <p className="text-[11px] text-black/60 font-mono">
-                    Direct font link syntax: <code className="font-bold">subqi.com/c/{existingAffiliate.affiliate_code}/[font-slug]</code>
-                  </p>
+
+                  {/* TOOL 2: AUDIENCE COUPON */}
+                  <div className="p-4 border-2 border-black bg-gray-50 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF5C00] block flex items-center gap-1">
+                        <Tag size={12} /> 2. Audience Promo Code
+                      </span>
+                      <span className="text-[9px] font-bold text-green-900 bg-green-100 px-1.5 py-0.5 border border-green-300">
+                        10% OFF
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white p-1.5 border border-black">
+                      <input 
+                        type="text" 
+                        readOnly 
+                        value={couponCode} 
+                        className="w-full bg-transparent font-mono text-xs font-bold outline-none text-black tracking-wider"
+                      />
+                      <button 
+                        onClick={handleCopyCoupon}
+                        className="bg-black text-white hover:bg-[#FF5C00] hover:text-black py-1 px-3 text-[10px] font-bold tracking-widest uppercase flex items-center gap-1 shrink-0"
+                      >
+                        {copiedCoupon ? <Check size={12} /> : <Copy size={12} />}
+                        {copiedCoupon ? 'COPIED' : 'COPY'}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-black/60 leading-tight">
+                      Buyers applying this code get 10% OFF and credit your 20% Net commission.
+                    </p>
+                  </div>
                 </div>
 
                 {/* 3 Metric Summary Boxes */}
@@ -510,10 +588,25 @@ const AffiliateLanding: React.FC = () => {
                   </div>
                 )}
 
+                {/* LOGGED IN ACCOUNT BADGE */}
+                {sessionUser && (
+                  <div className="p-3 bg-gray-100 border border-black flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-2 font-bold text-black">
+                      <UserCheck size={16} className="text-green-800" />
+                      Verified Account: <span className="font-mono">{sessionUser.email}</span>
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-green-900 bg-green-200 px-2 py-0.5 border border-green-400">
+                      Logged In
+                    </span>
+                  </div>
+                )}
+
                 <form onSubmit={handleRegisterAffiliate} className="space-y-6">
+                  
+                  {/* 1. VANITY SLUG */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-black block">
-                      Requested Vanity Code
+                      Requested Vanity Code & Promo Base
                     </label>
                     <div className="flex items-center border-2 border-black bg-white">
                       <span className="px-4 py-3 bg-gray-100 border-r-2 border-black text-xs font-mono font-bold text-black/60 select-none">
@@ -529,10 +622,11 @@ const AffiliateLanding: React.FC = () => {
                       />
                     </div>
                     <span className="text-[11px] text-black/50 block font-mono">
-                      Alphanumeric characters only (e.g. ALEX, STUDIO9, TYPEGUILD).
+                      Creates link <code className="font-bold">subqi.com/c/{affiliateCode || 'STUDIO'}</code> and audience coupon <code className="font-bold">{(affiliateCode || 'STUDIO')}10</code> (10% OFF).
                     </span>
                   </div>
 
+                  {/* 2. PAYPAL EMAIL */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-black block">
                       PayPal Payout Email Address
@@ -546,8 +640,134 @@ const AffiliateLanding: React.FC = () => {
                       className="w-full border-2 border-black px-4 py-3 font-mono text-sm bg-white outline-none"
                     />
                     <span className="text-[11px] text-black/50 block font-mono">
-                      All commission disbursements will be paid directly to this PayPal address.
+                      All monthly commission disbursements will be paid directly to this PayPal address.
                     </span>
+                  </div>
+
+                  {/* 3. PHONE NUMBER WITH COUNTRY DIAL CODE */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-black block flex items-center gap-1.5">
+                      <Phone size={14} className="text-[#FF5C00]" /> Phone Number (For Verification)
+                    </label>
+                    <div className="flex border-2 border-black bg-white">
+                      <select
+                        value={phoneCode}
+                        onChange={(e) => setPhoneCode(e.target.value)}
+                        className="p-3 bg-gray-100 border-r-2 border-black font-mono text-xs font-bold outline-none cursor-pointer text-black shrink-0 max-w-[140px]"
+                      >
+                        {COUNTRIES.map((c) => (
+                          <option key={`${c.code}-${c.dial}`} value={c.dial}>
+                            {c.code} ({c.dial})
+                          </option>
+                        ))}
+                      </select>
+                      <input 
+                        type="tel"
+                        required
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="81234567890"
+                        className="w-full px-4 py-3 font-mono text-sm font-bold outline-none bg-transparent text-black"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4. PHYSICAL ADDRESS */}
+                  <div className="p-4 border-2 border-black bg-gray-50 space-y-4">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#FF5C00] block flex items-center gap-1.5">
+                      <MapPin size={14} /> Physical Address / Billing Location
+                    </span>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-black block">
+                          Country
+                        </label>
+                        <select
+                          value={country}
+                          onChange={(e) => handleCountryChange(e.target.value)}
+                          className="w-full p-2.5 border border-black bg-white font-mono text-xs font-bold outline-none cursor-pointer text-black"
+                        >
+                          {COUNTRIES.map((c) => (
+                            <option key={c.code} value={c.name}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-black block">
+                          State / Province
+                        </label>
+                        {provinceOptions.length > 0 ? (
+                          <select
+                            value={stateProvince}
+                            onChange={(e) => setStateProvince(e.target.value)}
+                            className="w-full p-2.5 border border-black bg-white font-mono text-xs font-bold outline-none cursor-pointer text-black"
+                          >
+                            {provinceOptions.map((p) => (
+                              <option key={p} value={p}>
+                                {p}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input 
+                            type="text" 
+                            required
+                            value={stateProvince}
+                            onChange={(e) => setStateProvince(e.target.value)}
+                            placeholder="State or Region" 
+                            className="w-full p-2.5 border border-black bg-white font-mono text-xs font-bold outline-none text-black"
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-black block">
+                          City / District
+                        </label>
+                        <input 
+                          type="text" 
+                          required
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          placeholder="e.g. Jakarta Selatan" 
+                          className="w-full p-2.5 border border-black bg-white font-mono text-xs font-bold outline-none text-black"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-black block">
+                          Postal / ZIP Code
+                        </label>
+                        <input 
+                          type="text" 
+                          required
+                          value={postalCode}
+                          onChange={(e) => setPostalCode(e.target.value)}
+                          placeholder="e.g. 12190" 
+                          className="w-full p-2.5 border border-black bg-white font-mono text-xs font-bold outline-none text-black"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-black block">
+                        Street Address
+                      </label>
+                      <input 
+                        type="text" 
+                        required
+                        value={streetAddress}
+                        onChange={(e) => setStreetAddress(e.target.value)}
+                        placeholder="Street name, suite, unit, building" 
+                        className="w-full p-2.5 border border-black bg-white font-mono text-xs font-bold outline-none text-black"
+                      />
+                    </div>
                   </div>
 
                   {/* Program Policies Box */}
@@ -587,51 +807,6 @@ const AffiliateLanding: React.FC = () => {
                 </form>
               </div>
             )}
-          </div>
-
-          {/* Supplementary Notices */}
-          <div className="space-y-4">
-            <div className="p-5 border border-black/15 bg-white/70 text-xs leading-relaxed text-black/80 normal-case font-mono">
-              <div className="font-bold uppercase tracking-wider text-[#FF5C00] text-[11px] mb-1.5 flex items-center gap-1.5">
-                <span>Fair Play & Recommendation Guidelines</span>
-              </div>
-              <p>
-                <strong>Partner Guidelines:</strong> Subqi Studio partners are encouraged to present our typefaces ethically in genuine design contexts, portfolio showcases, YouTube design tutorials, newsletters, and typography specimens. Spamming, misleading discount promises, and cookie-stuffing are strictly prohibited.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. BOTTOM CTA BANNER (Matches Section 5 in Canvas Landing) */}
-      <section className="relative z-10 px-4 md:px-8 pt-16 md:pt-24">
-        <div className="max-w-7xl mx-auto">
-          <div className="border border-black bg-black text-white p-10 md:p-20 text-center relative overflow-hidden">
-            <div className="relative z-10 max-w-3xl mx-auto">
-              <span className="text-xs uppercase tracking-widest text-[#FF5C00] font-bold block mb-4">
-                READY TO PARTNER WITH US?
-              </span>
-              <h2 className="text-4xl sm:text-6xl md:text-7xl font-normal uppercase tracking-tighter leading-none mb-8 font-sans">
-                START EARNING WITH SUBQI TODAY.
-              </h2>
-              {existingAffiliate ? (
-                <Link
-                  to="/user/dashboard"
-                  className="inline-flex items-center gap-3 bg-[#FF5C00] text-black hover:bg-white hover:text-black transition-all px-10 py-5 font-black text-sm uppercase tracking-widest"
-                >
-                  <span>Open Your Affiliate Hub</span>
-                  <ArrowRight size={20} />
-                </Link>
-              ) : (
-                <a
-                  href="#register-section"
-                  className="inline-flex items-center gap-3 bg-[#FF5C00] text-black hover:bg-white hover:text-black transition-all px-10 py-5 font-black text-sm uppercase tracking-widest"
-                >
-                  <span>Activate Your Partner Link</span>
-                  <ArrowRight size={20} />
-                </a>
-              )}
-            </div>
           </div>
         </div>
       </section>

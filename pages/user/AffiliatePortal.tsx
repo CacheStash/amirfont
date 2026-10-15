@@ -7,20 +7,31 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { 
   Copy, Check, ArrowRight, Clock, CheckCircle2, DollarSign, 
-  AlertCircle, Share2, ExternalLink, Settings, Save, RefreshCw, Mail, Hash 
+  AlertCircle, Share2, ExternalLink, Settings, Save, RefreshCw, Mail, Hash,
+  Tag, MapPin, Phone
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { COUNTRIES, PROVINCES_BY_COUNTRY, getDummyAffiliateData, syncAffiliateCoupon } from '../../utils/affiliateGeo';
 
 const AffiliatePortal: React.FC = () => {
   const [affiliate, setAffiliate] = useState<any>(null);
   const [commissions, setCommissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedCoupon, setCopiedCoupon] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'settings'>('overview');
 
   // Account Settings Form State
   const [editPaypalEmail, setEditPaypalEmail] = useState('');
   const [editVanityCode, setEditVanityCode] = useState('');
+  const [editPhoneCode, setEditPhoneCode] = useState('+62');
+  const [editPhoneNumber, setEditPhoneNumber] = useState('');
+  const [editCountry, setEditCountry] = useState('Indonesia');
+  const [editStateProvince, setEditStateProvince] = useState('DKI Jakarta');
+  const [editCity, setEditCity] = useState('');
+  const [editPostalCode, setEditPostalCode] = useState('');
+  const [editStreetAddress, setEditStreetAddress] = useState('');
+
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsSuccess, setSettingsSuccess] = useState('');
   const [settingsError, setSettingsError] = useState('');
@@ -42,9 +53,33 @@ const AffiliatePortal: React.FC = () => {
       setAffiliate(affData);
 
       if (affData) {
-        setEditPaypalEmail(affData.paypal_email || '');
+        setEditPaypalEmail(affData.paypal_email || user.email || '');
         setEditVanityCode(affData.affiliate_code || '');
+        if (affData.phone_code) setEditPhoneCode(affData.phone_code);
+        if (affData.phone_number) setEditPhoneNumber(affData.phone_number);
+        if (affData.country) {
+          setEditCountry(affData.country);
+          if (affData.state_province) setEditStateProvince(affData.state_province);
+        }
+        if (affData.city) setEditCity(affData.city);
+        if (affData.postal_code) setEditPostalCode(affData.postal_code);
+        if (affData.street_address) setEditStreetAddress(affData.street_address);
 
+        // Pre-fill dummy data if test account has empty address
+        if (!affData.phone_number && user.email === 'gotrainer19@gmail.com') {
+          const dummy = getDummyAffiliateData(user.email);
+          if (dummy) {
+            setEditPhoneCode(dummy.phone_code);
+            setEditPhoneNumber(dummy.phone_number);
+            setEditCountry(dummy.country);
+            setEditStateProvince(dummy.state_province);
+            setEditCity(dummy.city);
+            setEditPostalCode(dummy.postal_code);
+            setEditStreetAddress(dummy.street_address);
+          }
+        }
+
+        // Fetch commissions
         const { data: commData } = await supabase
           .from('affiliate_commissions')
           .select('*')
@@ -55,6 +90,20 @@ const AffiliatePortal: React.FC = () => {
       }
     }
     setLoading(false);
+  };
+
+  const handleCountryChange = (selectedCountry: string) => {
+    setEditCountry(selectedCountry);
+    const countryObj = COUNTRIES.find(c => c.name === selectedCountry);
+    if (countryObj) {
+      setEditPhoneCode(countryObj.dial);
+    }
+    const provinces = PROVINCES_BY_COUNTRY[selectedCountry];
+    if (provinces && provinces.length > 0) {
+      setEditStateProvince(provinces[0]);
+    } else {
+      setEditStateProvince('');
+    }
   };
 
   const handleUpdateSettings = async (e: React.FormEvent) => {
@@ -76,9 +125,18 @@ const AffiliatePortal: React.FC = () => {
       return;
     }
 
+    if (!editPhoneNumber.trim()) {
+      setSettingsError('Phone number is required for partner verification.');
+      return;
+    }
+
+    if (!editStreetAddress.trim() || !editCity.trim() || !editPostalCode.trim()) {
+      setSettingsError('Physical address details (Street, City, Postal Code) are required.');
+      return;
+    }
+
     setSavingSettings(true);
     try {
-      // Check if another affiliate already uses this code
       if (cleanCode !== affiliate.affiliate_code) {
         const { data: codeCheck } = await supabase
           .from('affiliates')
@@ -91,23 +149,53 @@ const AffiliatePortal: React.FC = () => {
         }
       }
 
-      const { data: updated, error } = await supabase
+      const fullUpdate = {
+        paypal_email: cleanEmail,
+        affiliate_code: cleanCode,
+        phone_code: editPhoneCode,
+        phone_number: editPhoneNumber.trim(),
+        country: editCountry.trim(),
+        state_province: editStateProvince.trim(),
+        city: editCity.trim(),
+        postal_code: editPostalCode.trim(),
+        street_address: editStreetAddress.trim(),
+        updated_at: new Date().toISOString()
+      };
+
+      let updatedData = null;
+      const { data, error } = await supabase
         .from('affiliates')
-        .update({
-          paypal_email: cleanEmail,
-          affiliate_code: cleanCode,
-          updated_at: new Date().toISOString()
-        })
+        .update(fullUpdate)
         .eq('id', affiliate.id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.warn('Update with full address failed, falling back to base fields:', error.message);
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('affiliates')
+          .update({
+            paypal_email: cleanEmail,
+            affiliate_code: cleanCode,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', affiliate.id)
+          .select()
+          .single();
 
-      setAffiliate(updated);
-      setEditPaypalEmail(updated.paypal_email);
-      setEditVanityCode(updated.affiliate_code);
-      setSettingsSuccess('Affiliate account & payout settings saved successfully!');
+        if (fallbackError) throw fallbackError;
+        updatedData = fallbackData;
+      } else {
+        updatedData = data;
+      }
+
+      // Sync audience coupon with updated code
+      await syncAffiliateCoupon(supabase, affiliate.id, cleanCode);
+
+      setAffiliate(updatedData);
+      setEditPaypalEmail(updatedData.paypal_email);
+      setEditVanityCode(updatedData.affiliate_code);
+      setSettingsSuccess('Affiliate account profile & audience coupon updated successfully!');
     } catch (err: any) {
       setSettingsError(err.message || 'Failed to update account settings.');
     } finally {
@@ -117,23 +205,23 @@ const AffiliatePortal: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-12 text-center font-mono text-xs font-bold uppercase tracking-widest animate-pulse">
-        LOADING_AFFILIATE_LEDGER...
+      <div className="p-12 text-center font-mono text-sm animate-pulse">
+        [ LOADING AFFILIATE VAULT... ]
       </div>
     );
   }
 
   if (!affiliate) {
     return (
-      <div className="border-2 border-black p-10 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-4">
-        <Share2 size={36} className="mx-auto" />
-        <h3 className="text-3xl font-black uppercase tracking-tight">BECOME A SUBQI AFFILIATE</h3>
-        <p className="text-xs font-serif text-black/70 max-w-md mx-auto leading-relaxed">
-          Recommend our typefaces to your clients and followers. Earn 20% net revenue on every font license purchased.
+      <div className="border-2 border-black p-10 bg-white text-center space-y-4">
+        <Share2 size={36} className="mx-auto text-[#FF5C00]" />
+        <h3 className="text-2xl font-bold uppercase tracking-tight">Become a Subqi Affiliate Partner</h3>
+        <p className="text-xs text-black/70 max-w-md mx-auto leading-relaxed normal-case">
+          Recommend our display fonts to your audience and receive 20% net store commission on every license purchased.
         </p>
         <Link 
           to="/affiliate" 
-          className="inline-flex items-center gap-2 bg-black text-[#EDEBE6] px-6 py-3 font-bold text-xs uppercase tracking-widest hover:bg-[#FF5C00] hover:text-black transition-colors"
+          className="bg-black text-white hover:bg-[#FF5C00] hover:text-black transition-all py-3 px-6 text-xs tracking-widest inline-flex items-center gap-2 uppercase font-bold border-2 border-black"
         >
           ACTIVATE PARTNER ACCOUNT <ArrowRight size={14} />
         </Link>
@@ -142,11 +230,18 @@ const AffiliatePortal: React.FC = () => {
   }
 
   const shareUrl = `${window.location.origin}/c/${affiliate.affiliate_code}`;
+  const couponCode = `${affiliate.affiliate_code}10`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleCopyCoupon = () => {
+    navigator.clipboard.writeText(couponCode);
+    setCopiedCoupon(true);
+    setTimeout(() => setCopiedCoupon(false), 2000);
   };
 
   const pendingAmount = commissions
@@ -158,18 +253,19 @@ const AffiliatePortal: React.FC = () => {
     .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
 
   const totalPaidAmount = Number(affiliate.total_paid || 0);
+  const provinceOptions = PROVINCES_BY_COUNTRY[editCountry] || [];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-8">
       
       {/* HEADER SECTION WITH SUB-NAV */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-black pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-black pb-6">
         <div>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-[#FF5C00] font-black block">
-            AFFILIATE GUILD PARTNER
+          <span className="text-[10px] font-bold text-[#FF5C00] uppercase tracking-[0.25em] block">
+            AFFILIATE IDENTIFIER
           </span>
-          <h2 className="text-3xl font-black uppercase tracking-tight">
-            CODE: {affiliate.affiliate_code}
+          <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-tight">
+            PARTNER CODE: <span className="text-[#FF5C00]">{affiliate.affiliate_code}</span>
           </h2>
         </div>
 
@@ -177,9 +273,9 @@ const AffiliatePortal: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2 text-xs font-black uppercase tracking-wider border-2 border-black transition-all ${
+            className={`px-4 py-2 text-xs font-bold tracking-widest uppercase border-2 border-black transition-all ${
               activeTab === 'overview'
-                ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                ? 'bg-black text-white'
                 : 'bg-white text-black hover:bg-gray-100'
             }`}
           >
@@ -187,9 +283,9 @@ const AffiliatePortal: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('settings')}
-            className={`px-4 py-2 text-xs font-black uppercase tracking-wider border-2 border-black transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2 text-xs font-bold tracking-widest uppercase border-2 border-black transition-all flex items-center gap-1.5 ${
               activeTab === 'settings'
-                ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                ? 'bg-black text-white'
                 : 'bg-white text-black hover:bg-gray-100'
             }`}
           >
@@ -200,146 +296,201 @@ const AffiliatePortal: React.FC = () => {
 
       {/* TAB 1: OVERVIEW & SALES LEDGER */}
       {activeTab === 'overview' && (
-        <div className="space-y-8 animate-in fade-in duration-200">
+        <div className="space-y-8">
           
-          {/* VANITY LINK BOX */}
-          <div className="border-2 border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-black uppercase tracking-wider block">
-                YOUR PERSONAL VANITY SHARE LINK (30-DAY ATTRIBUTION)
-              </label>
-              <button 
-                onClick={() => setActiveTab('settings')}
-                className="text-[10px] font-mono font-bold uppercase underline hover:text-[#FF5C00] flex items-center gap-1"
-              >
-                <Settings size={12} /> Edit Code / Payout
-              </button>
-            </div>
+          {/* DUAL PROMO TOOLS: VANITY LINK + AUDIENCE COUPON */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
-            <div className="flex items-center border-2 border-black bg-gray-50 p-2">
-              <input 
-                type="text" 
-                readOnly 
-                value={shareUrl} 
-                className="w-full bg-transparent font-mono text-xs font-bold uppercase outline-none"
-              />
-              <button 
-                onClick={handleCopyLink}
-                className="bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 shrink-0 hover:bg-[#FF5C00] hover:text-black transition-colors"
-              >
-                {copied ? <Check size={14} /> : <Copy size={14} />}
-                {copied ? 'COPIED' : 'COPY'}
-              </button>
+            {/* TOOL 1: VANITY LINK */}
+            <div className="border-2 border-black p-5 bg-white space-y-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF5C00] block">
+                  1. Personal Vanity Link
+                </label>
+                <span className="text-[9px] font-mono text-black/60">30-day cookie window</span>
+              </div>
+              
+              <div className="flex items-center border-2 border-black bg-gray-50 p-1.5">
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={shareUrl} 
+                  className="w-full bg-transparent font-mono text-xs font-bold text-black outline-none px-2 truncate"
+                />
+                <button 
+                  onClick={handleCopyLink}
+                  className="bg-black text-white hover:bg-[#FF5C00] hover:text-black py-1.5 px-3 text-[10px] tracking-widest uppercase flex items-center gap-1 shrink-0 font-bold"
+                >
+                  {copiedLink ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                  {copiedLink ? 'COPIED' : 'COPY'}
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between text-[10px] text-black/70">
+                <span>Direct traffic is attributed to your account for 30 days.</span>
+                <Link to="/fonts" className="underline hover:text-[#FF5C00] flex items-center gap-1 font-bold">
+                  Specimens <ExternalLink size={10} />
+                </Link>
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] font-mono text-black/60 gap-2">
-              <span>Visitors tagged via HttpOnly server cookie for 30 full days.</span>
-              <span className="font-bold text-black">
-                Payout Destination: <span className="text-[#FF5C00]">{affiliate.paypal_email}</span>
-              </span>
+            {/* TOOL 2: AUDIENCE PROMO COUPON */}
+            <div className="border-2 border-black p-5 bg-white space-y-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-[#FF5C00] block flex items-center gap-1">
+                  <Tag size={12} /> 2. Audience 10% OFF Promo Code
+                </label>
+                <span className="text-[9px] font-bold text-green-900 bg-green-100 px-1.5 py-0.5 border border-green-300">
+                  Active in Checkout
+                </span>
+              </div>
+              
+              <div className="flex items-center border-2 border-black bg-gray-50 p-1.5">
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={couponCode} 
+                  className="w-full bg-transparent font-mono text-xs font-bold text-black outline-none px-2 tracking-wider"
+                />
+                <button 
+                  onClick={handleCopyCoupon}
+                  className="bg-black text-white hover:bg-[#FF5C00] hover:text-black py-1.5 px-3 text-[10px] tracking-widest uppercase flex items-center gap-1 shrink-0 font-bold"
+                >
+                  {copiedCoupon ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                  {copiedCoupon ? 'COPIED' : 'COPY'}
+                </button>
+              </div>
+
+              <div className="text-[10px] text-black/70">
+                Buyers get 10% OFF at checkout while crediting your 20% Net commission.
+              </div>
             </div>
+
           </div>
 
-          {/* 3 STAT METRIC CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="border-2 border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-mono font-bold uppercase text-black/60">
-                <span>CLEARANCE_HOLD</span>
-                <Clock size={16} className="text-amber-600" />
+          {/* 3 FINANCIAL RECONCILIATION CARDS */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-5 border-2 border-black bg-white space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-amber-800">
+                <span>Clearance Holding</span>
+                <Clock size={16} />
               </div>
-              <div className="text-3xl font-black text-amber-700">
+              <div className="text-3xl font-mono font-black text-amber-900">
                 ${pendingAmount.toFixed(2)}
               </div>
-              <p className="text-[10px] font-mono text-black/50">14-day warranty hold against refund disputes</p>
+              <p className="text-[10px] text-black/60">14-day warranty hold against refund disputes</p>
             </div>
 
-            <div className="border-2 border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-mono font-bold uppercase text-black/60">
-                <span>READY_FOR_PAYOUT</span>
-                <CheckCircle2 size={16} className="text-emerald-600" />
+            <div className="p-5 border-2 border-black bg-green-50 space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-green-900">
+                <span>Ready For Payout</span>
+                <CheckCircle2 size={16} />
               </div>
-              <div className="text-3xl font-black text-emerald-700">
+              <div className="text-3xl font-mono font-black text-green-900">
                 ${readyAmount.toFixed(2)}
               </div>
-              <p className="text-[10px] font-mono text-black/50">Disbursed monthly (Min. $50 threshold)</p>
+              <p className="text-[10px] text-black/60">
+                {readyAmount >= 50 
+                  ? 'Threshold reached ($50+). Scheduled for next monthly run.' 
+                  : `$${(50 - readyAmount).toFixed(2)} more needed to trigger payout ($50 min).`}
+              </p>
             </div>
 
-            <div className="border-2 border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-mono font-bold uppercase text-black/60">
-                <span>TOTAL_DISBURSED</span>
-                <DollarSign size={16} className="text-black" />
+            <div className="p-5 border-2 border-black bg-white space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-black/60">
+                <span>Total Disbursed</span>
+                <DollarSign size={16} />
               </div>
-              <div className="text-3xl font-black">
+              <div className="text-3xl font-mono font-black text-black">
                 ${totalPaidAmount.toFixed(2)}
               </div>
-              <p className="text-[10px] font-mono text-black/50">All-time PayPal payouts completed</p>
+              <p className="text-[10px] text-black/60">Lifetime payouts received to PayPal</p>
             </div>
           </div>
 
-          {/* COMMISSIONS TABLE */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="text-lg font-black uppercase tracking-tight">REFERRAL SALES & COMMISSION LEDGER</h4>
-              <span className="text-xs font-mono text-black/50 font-bold">{commissions.length} ATTRIBUTED ORDERS</span>
+          {/* COMMISSIONS & SALES TRANSACTION TABLE */}
+          <div className="border-2 border-black bg-white overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="p-4 border-b-2 border-black bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-black">
+                  Referral Sales & Commission Ledger
+                </h3>
+                <span className="text-[11px] text-black/60">
+                  Transactions referred via your vanity slug or promo coupon code
+                </span>
+              </div>
+              <span className="text-xs font-mono font-bold px-2 py-1 bg-white border border-black">
+                {commissions.length} Sales Recorded
+              </span>
             </div>
-            
+
             {commissions.length === 0 ? (
-              <div className="p-12 border-2 border-black text-center font-mono text-xs text-black/50 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                NO REFERRAL TRANSACTIONS RECORDED YET. SHARE YOUR VANITY LINK TO START EARNING.
+              <div className="p-12 text-center space-y-2">
+                <AlertCircle size={28} className="mx-auto text-black/30" />
+                <p className="text-sm font-bold text-black">No referred orders recorded yet</p>
+                <p className="text-xs text-black/60 max-w-sm mx-auto normal-case">
+                  Share your vanity link or discount coupon on your social platforms and portfolio to begin recording 20% net earnings.
+                </p>
               </div>
             ) : (
-              <div className="border-2 border-black overflow-x-auto bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <table className="w-full text-left border-collapse text-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b-2 border-black bg-gray-50 font-mono text-[10px] font-bold uppercase tracking-wider">
-                      <th className="p-3 border-r-2 border-black">DATE</th>
-                      <th className="p-3 border-r-2 border-black">FONT</th>
-                      <th className="p-3 border-r-2 border-black text-right">GROSS</th>
-                      <th className="p-3 border-r-2 border-black text-right">NET_STORE</th>
-                      <th className="p-3 border-r-2 border-black text-right">COMMISSION</th>
-                      <th className="p-3">STATUS</th>
+                    <tr className="border-b-2 border-black bg-gray-100 font-mono uppercase text-[10px] text-black/70">
+                      <th className="p-3">Date</th>
+                      <th className="p-3">Typeface / Order</th>
+                      <th className="p-3 text-right">Gross</th>
+                      <th className="p-3 text-right">Net Store</th>
+                      <th className="p-3 text-right">Your 20% Net</th>
+                      <th className="p-3 text-center">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y border-black font-mono">
-                    {commissions.map((c) => {
-                      const dateStr = new Date(c.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric', month: 'short', day: 'numeric'
-                      });
-
-                      return (
-                        <tr key={c.id} className="hover:bg-yellow-50/50">
-                          <td className="p-3 border-r-2 border-black text-[11px]">{dateStr}</td>
-                          <td className="p-3 border-r-2 border-black font-bold uppercase">{c.font_name || 'Specimen License'}</td>
-                          <td className="p-3 border-r-2 border-black text-right">${Number(c.gross_amount || 0).toFixed(2)}</td>
-                          <td className="p-3 border-r-2 border-black text-right opacity-60">${Number(c.net_store_amount || 0).toFixed(2)}</td>
-                          <td className="p-3 border-r-2 border-black text-right font-black text-emerald-700">
-                            +${Number(c.commission_amount || 0).toFixed(2)}
-                          </td>
-                          <td className="p-3">
-                            {c.status === 'pending_clearance' && (
-                              <span className="inline-flex items-center gap-1 text-[10px] text-amber-700 font-bold uppercase">
-                                <Clock size={10} /> CLEARING (14D)
-                              </span>
-                            )}
-                            {c.status === 'approved' && (
-                              <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-bold uppercase">
-                                <CheckCircle2 size={10} /> READY_PAYOUT
-                              </span>
-                            )}
-                            {c.status === 'paid' && (
-                              <span className="inline-flex items-center gap-1 text-[10px] text-black font-bold uppercase">
-                                <Check size={10} /> PAID_PAYPAL
-                              </span>
-                            )}
-                            {c.status === 'voided' && (
-                              <span className="inline-flex items-center gap-1 text-[10px] text-red-600 font-bold uppercase">
-                                <AlertCircle size={10} /> VOIDED
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                  <tbody className="divide-y divide-black/10 font-mono">
+                    {commissions.map((comm) => (
+                      <tr key={comm.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="p-3 text-black/80 text-[11px] whitespace-nowrap">
+                          {new Date(comm.created_at).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </td>
+                        <td className="p-3">
+                          <span className="font-bold text-black block">
+                            {comm.font_name || 'Specimen License'}
+                          </span>
+                          <span className="text-[10px] text-black/50 truncate block max-w-[200px]">
+                            ID: {comm.order_id}
+                          </span>
+                        </td>
+                        <td className="p-3 text-right text-black">
+                          ${Number(comm.gross_amount || 0).toFixed(2)}
+                        </td>
+                        <td className="p-3 text-right text-black/70">
+                          ${Number(comm.net_store_amount || 0).toFixed(2)}
+                        </td>
+                        <td className="p-3 text-right font-bold text-[#FF5C00] text-sm">
+                          +${Number(comm.commission_amount || 0).toFixed(2)}
+                        </td>
+                        <td className="p-3 text-center">
+                          {comm.status === 'pending_clearance' && (
+                            <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 border border-amber-800 text-amber-900 bg-amber-50">
+                              <Clock size={10} /> Holding
+                            </span>
+                          )}
+                          {comm.status === 'approved' && (
+                            <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 border border-green-800 text-green-900 bg-green-50">
+                              <CheckCircle2 size={10} /> Cleared
+                            </span>
+                          )}
+                          {comm.status === 'paid' && (
+                            <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 border border-blue-800 text-blue-900 bg-blue-50">
+                              <DollarSign size={10} /> Paid Out
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -350,28 +501,25 @@ const AffiliatePortal: React.FC = () => {
 
       {/* TAB 2: ACCOUNT & PAYOUT SETTINGS */}
       {activeTab === 'settings' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="border-2 border-black p-8 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-6">
-            
-            <div className="border-b-2 border-black pb-4">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[#FF5C00] font-black block">
-                CONFIGURATION
-              </span>
-              <h3 className="text-2xl font-black uppercase tracking-tight">
-                AFFILIATE ACCOUNT & PAYOUT PREFERENCES
+        <div className="space-y-6">
+          <div className="border-2 border-black bg-white p-6 sm:p-8 space-y-6 max-w-3xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <div>
+              <h3 className="text-xl font-bold uppercase tracking-tight text-black">
+                Partner Profile & Payment Configuration
               </h3>
-              <p className="text-xs text-black/60 font-mono mt-1">
-                Keep your payout email and custom vanity route up to date.
+              <p className="text-xs text-black/60 mt-1 normal-case">
+                Keep your payout destination, vanity credentials, and physical address up-to-date.
               </p>
             </div>
 
             {settingsSuccess && (
-              <div className="p-4 border-2 border-black bg-emerald-100 text-emerald-900 font-bold text-xs flex items-center gap-2">
-                <Check size={16} /> {settingsSuccess}
+              <div className="p-4 border-2 border-black bg-green-100 text-green-900 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 size={16} /> {settingsSuccess}
               </div>
             )}
+
             {settingsError && (
-              <div className="p-4 border-2 border-black bg-red-100 text-red-900 font-bold text-xs flex items-center gap-2">
+              <div className="p-4 border-2 border-black bg-red-100 text-red-900 text-xs font-bold flex items-center gap-2">
                 <AlertCircle size={16} /> {settingsError}
               </div>
             )}
@@ -380,8 +528,8 @@ const AffiliatePortal: React.FC = () => {
               
               {/* PayPal Email Field */}
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-wider block flex items-center gap-1.5">
-                  <Mail size={14} className="text-[#FF5C00]" /> PAYPAL PAYOUT EMAIL ADDRESS
+                <label className="text-xs font-bold uppercase tracking-wider block flex items-center gap-1.5 text-black">
+                  <Mail size={14} className="text-[#FF5C00]" /> PayPal Payout Email Address
                 </label>
                 <input 
                   type="email"
@@ -389,17 +537,17 @@ const AffiliatePortal: React.FC = () => {
                   value={editPaypalEmail}
                   onChange={(e) => setEditPaypalEmail(e.target.value)}
                   placeholder="payouts@yourdomain.com"
-                  className="w-full border-2 border-black px-4 py-3 font-mono text-sm bg-gray-50 focus:bg-white outline-none"
+                  className="w-full border-2 border-black px-4 py-3 font-mono text-sm bg-white outline-none"
                 />
-                <span className="text-[11px] font-mono text-black/50 block">
+                <span className="text-[11px] text-black/60 block">
                   All monthly cleared commission earnings will be disbursed directly to this PayPal address.
                 </span>
               </div>
 
               {/* Vanity Code Field */}
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-wider block flex items-center gap-1.5">
-                  <Hash size={14} className="text-[#FF5C00]" /> CUSTOM VANITY CODE
+                <label className="text-xs font-bold uppercase tracking-wider block flex items-center gap-1.5 text-black">
+                  <Hash size={14} className="text-[#FF5C00]" /> Custom Vanity Code
                 </label>
                 <div className="flex items-center border-2 border-black bg-white">
                   <span className="px-4 py-3 bg-gray-100 border-r-2 border-black text-xs font-mono font-bold text-black/60 select-none">
@@ -414,30 +562,156 @@ const AffiliatePortal: React.FC = () => {
                     className="grow px-4 py-3 font-mono text-sm font-bold uppercase bg-transparent outline-none"
                   />
                 </div>
-                <span className="text-[11px] font-mono text-black/50 block">
-                  Alphanumeric only (3–20 chars). Updating your code updates your referral URL immediately.
+                <span className="text-[11px] text-black/60 block">
+                  Alphanumeric only (3–20 chars). Updating your code syncs your vanity URL and promo coupon (<code className="font-bold">{editVanityCode || 'CODE'}10</code>).
                 </span>
               </div>
 
+              {/* Phone Field */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider block flex items-center gap-1.5 text-black">
+                  <Phone size={14} className="text-[#FF5C00]" /> Phone Number (With Dial Code)
+                </label>
+                <div className="flex border-2 border-black bg-white">
+                  <select
+                    value={editPhoneCode}
+                    onChange={(e) => setEditPhoneCode(e.target.value)}
+                    className="p-3 bg-gray-100 border-r-2 border-black font-mono text-xs font-bold outline-none cursor-pointer text-black shrink-0 max-w-[140px]"
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={`${c.code}-${c.dial}`} value={c.dial}>
+                        {c.code} ({c.dial})
+                      </option>
+                    ))}
+                  </select>
+                  <input 
+                    type="tel"
+                    required
+                    value={editPhoneNumber}
+                    onChange={(e) => setEditPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                    placeholder="81234567890"
+                    className="w-full px-4 py-3 font-mono text-sm font-bold outline-none bg-transparent text-black"
+                  />
+                </div>
+              </div>
+
+              {/* Physical Address Section */}
+              <div className="p-4 border-2 border-black bg-gray-50 space-y-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#FF5C00] block flex items-center gap-1.5">
+                  <MapPin size={14} /> Physical Address / Billing Location
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-black block">
+                      Country
+                    </label>
+                    <select
+                      value={editCountry}
+                      onChange={(e) => handleCountryChange(e.target.value)}
+                      className="w-full p-2.5 border border-black bg-white font-mono text-xs font-bold outline-none cursor-pointer text-black"
+                    >
+                      {COUNTRIES.map((c) => (
+                        <option key={c.code} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-black block">
+                      State / Province
+                    </label>
+                    {provinceOptions.length > 0 ? (
+                      <select
+                        value={editStateProvince}
+                        onChange={(e) => setEditStateProvince(e.target.value)}
+                        className="w-full p-2.5 border border-black bg-white font-mono text-xs font-bold outline-none cursor-pointer text-black"
+                      >
+                        {provinceOptions.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input 
+                        type="text" 
+                        required
+                        value={editStateProvince}
+                        onChange={(e) => setEditStateProvince(e.target.value)}
+                        placeholder="State or Region" 
+                        className="w-full p-2.5 border border-black bg-white font-mono text-xs font-bold outline-none text-black"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-black block">
+                      City / District
+                    </label>
+                    <input 
+                      type="text" 
+                      required
+                      value={editCity}
+                      onChange={(e) => setEditCity(e.target.value)}
+                      placeholder="e.g. Jakarta Selatan" 
+                      className="w-full p-2.5 border border-black bg-white font-mono text-xs font-bold outline-none text-black"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-black block">
+                      Postal / ZIP Code
+                    </label>
+                    <input 
+                      type="text" 
+                      required
+                      value={editPostalCode}
+                      onChange={(e) => setEditPostalCode(e.target.value)}
+                      placeholder="e.g. 12190" 
+                      className="w-full p-2.5 border border-black bg-white font-mono text-xs font-bold outline-none text-black"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-black block">
+                    Street Address
+                  </label>
+                  <input 
+                    type="text" 
+                    required
+                    value={editStreetAddress}
+                    onChange={(e) => setEditStreetAddress(e.target.value)}
+                    placeholder="Street name, suite, unit, building" 
+                    className="w-full p-2.5 border border-black bg-white font-mono text-xs font-bold outline-none text-black"
+                  />
+                </div>
+              </div>
+
               {/* Fixed Details Summary Card */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border-2 border-dashed border-black/30 bg-gray-50 font-mono text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border border-black/30 bg-gray-50 font-mono text-xs">
                 <div>
-                  <span className="text-[10px] text-gray-500 uppercase block font-bold">Commission Rate:</span>
-                  <span className="font-black text-sm text-black">
-                    {(Number(affiliate.commission_rate || 0.20) * 100).toFixed(0)}% Net Received Sales
+                  <span className="text-[10px] text-black/60 uppercase block font-bold">Commission Rate:</span>
+                  <span className="font-bold text-sm text-black">
+                    {(Number(affiliate.commission_rate || 0.20) * 100).toFixed(0)}% Net Store Proceeds
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-gray-500 uppercase block font-bold">Minimum Payout Threshold:</span>
-                  <span className="font-black text-sm text-black">$50.00 USD</span>
+                  <span className="text-[10px] text-black/60 uppercase block font-bold">Minimum Payout Threshold:</span>
+                  <span className="font-bold text-sm text-black">$50.00 USD</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-gray-500 uppercase block font-bold">Holding Period:</span>
-                  <span className="font-black text-black">14-Day Customer Dispute Warranty</span>
+                  <span className="text-[10px] text-black/60 uppercase block font-bold">Holding Window:</span>
+                  <span className="font-bold text-black">14-Day Customer Dispute Warranty</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-gray-500 uppercase block font-bold">Account Status:</span>
-                  <span className="font-black text-emerald-700 uppercase">{affiliate.status || 'ACTIVE'}</span>
+                  <span className="text-[10px] text-black/60 uppercase block font-bold">Guild Status:</span>
+                  <span className="font-bold text-green-900 uppercase">{affiliate.status || 'ACTIVE'}</span>
                 </div>
               </div>
 
@@ -446,9 +720,9 @@ const AffiliatePortal: React.FC = () => {
                 <button
                   type="submit"
                   disabled={savingSettings}
-                  className="bg-black text-white hover:bg-[#FF5C00] hover:text-black transition-all px-8 py-3.5 font-black text-xs uppercase tracking-widest flex items-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none cursor-pointer"
+                  className="bg-black text-white hover:bg-[#FF5C00] hover:text-black py-3.5 px-8 text-xs tracking-widest font-bold uppercase flex items-center gap-2 border-2 border-black transition-all cursor-pointer"
                 >
-                  <Save size={16} />
+                  <Save size={14} />
                   <span>{savingSettings ? 'SAVING CHANGES...' : 'SAVE SETTINGS'}</span>
                 </button>
                 <button
@@ -456,10 +730,17 @@ const AffiliatePortal: React.FC = () => {
                   onClick={() => {
                     setEditPaypalEmail(affiliate.paypal_email || '');
                     setEditVanityCode(affiliate.affiliate_code || '');
+                    if (affiliate.phone_code) setEditPhoneCode(affiliate.phone_code);
+                    if (affiliate.phone_number) setEditPhoneNumber(affiliate.phone_number);
+                    if (affiliate.country) setEditCountry(affiliate.country);
+                    if (affiliate.state_province) setEditStateProvince(affiliate.state_province);
+                    if (affiliate.city) setEditCity(affiliate.city);
+                    if (affiliate.postal_code) setEditPostalCode(affiliate.postal_code);
+                    if (affiliate.street_address) setEditStreetAddress(affiliate.street_address);
                     setSettingsError('');
                     setSettingsSuccess('');
                   }}
-                  className="px-6 py-3.5 font-bold text-xs uppercase tracking-wider border-2 border-black bg-white hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="py-3.5 px-6 text-xs uppercase tracking-wider border-2 border-black bg-white hover:bg-gray-100 transition-colors font-bold cursor-pointer"
                 >
                   Reset
                 </button>

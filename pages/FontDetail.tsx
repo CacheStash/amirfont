@@ -79,8 +79,8 @@ const FontDetail: React.FC = () => {
       <div className="grain-orb-base orb-top-right" />
       <div className="grain-orb-base orb-bottom-left" />
 
-      {/* STEALTH AFFILIATE BAR (Admin Only) */}
-      {isAdmin && affiliateCode && (
+      {/* AFFILIATE BAR (Active Affiliate Session) */}
+      {Boolean(affiliateCode) && (
         <div className="w-full border-b border-black bg-white p-3 px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
           <div className="flex items-center gap-2">
             <span className="font-bold uppercase tracking-wider text-black/50 text-[10px]">AFFILIATE_SHARE:</span>
