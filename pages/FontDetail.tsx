@@ -79,26 +79,6 @@ const FontDetail: React.FC = () => {
       <div className="grain-orb-base orb-top-right" />
       <div className="grain-orb-base orb-bottom-left" />
 
-      {/* AFFILIATE BAR (Active Affiliate Session) */}
-      {Boolean(affiliateCode) && (
-        <div className="w-full border-b border-black bg-white p-3 px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
-          <div className="flex items-center gap-2">
-            <span className="font-bold uppercase tracking-wider text-black/50 text-[10px]">AFFILIATE_SHARE:</span>
-            <code className="font-bold">{`${window.location.origin}/c/${affiliateCode}/${font.id}`}</code>
-          </div>
-          <button 
-            onClick={() => {
-              navigator.clipboard.writeText(`${window.location.origin}/c/${affiliateCode}/${font.id}`);
-              setAffiliateCopied(true);
-              setTimeout(() => setAffiliateCopied(false), 2000);
-            }}
-            className="bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest shrink-0 hover:bg-neutral-800"
-          >
-            {affiliateCopied ? 'COPIED' : 'COPY LINK'}
-          </button>
-        </div>
-      )}
-
       {/* 1. HEADER: CLEAN SECTION (No Images) */}
       <header className="relative w-full border-b border-black bg-transparent overflow-hidden">
         {/* HEADER ORB EFFECT (Atas Kanan) - Identik dengan Home */}
@@ -163,6 +143,26 @@ const FontDetail: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* AFFILIATE BAR (Active Affiliate Session) - Diposisikan di bawah Header dan di atas TypeTester */}
+      {Boolean(affiliateCode) && (
+        <div className="w-full border-b border-black bg-white/90 backdrop-blur-md p-3 px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono relative z-20">
+          <div className="flex items-center gap-2">
+            <span className="font-bold uppercase tracking-wider text-black/50 text-[10px]">AFFILIATE_SHARE:</span>
+            <code className="font-bold text-[#FF5C00]">{`${window.location.origin}/c/${affiliateCode}/${font.id}`}</code>
+          </div>
+          <button 
+            onClick={() => {
+              navigator.clipboard.writeText(`${window.location.origin}/c/${affiliateCode}/${font.id}`);
+              setAffiliateCopied(true);
+              setTimeout(() => setAffiliateCopied(false), 2000);
+            }}
+            className="bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest shrink-0 hover:bg-[#FF5C00] hover:text-black transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+          >
+            {affiliateCopied ? 'COPIED' : 'COPY LINK'}
+          </button>
+        </div>
+      )}
 
       {/* 2. MAIN CONTENT GRID */}
       <main className="w-full">
