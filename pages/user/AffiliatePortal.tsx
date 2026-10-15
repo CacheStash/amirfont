@@ -9,7 +9,7 @@ import {
   Copy, Check, ArrowRight, Clock, CheckCircle2, DollarSign, 
   AlertCircle, Share2, ExternalLink, Settings, Save, Mail, Hash,
   Tag, MapPin, Phone, Calendar, Wallet, ChevronRight, FileText,
-  Zap, RefreshCw, X, Sparkles, Info, ShieldCheck, Percent, Timer, Award
+  Zap, RefreshCw, X, Sparkles, Info, ShieldCheck, Percent, Timer, Award, Star
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
@@ -22,7 +22,7 @@ import {
   getNextMonthlyPayoutDate,
   AFFILIATE_MIN_PAYOUT_USD
 } from '../../utils/affiliateGeo';
-import { calculateAffiliateMilestone, getClaimedMilestones } from '../../utils/affiliateMilestone';
+import { calculateAffiliateMilestone, getClaimedMilestones, getAffiliateEarningBadge } from '../../utils/affiliateMilestone';
 import { CountryCombobox } from '../../components/CountryCombobox';
 import { PhoneDialCombobox } from '../../components/PhoneDialCombobox';
 
@@ -510,6 +510,7 @@ const AffiliatePortal: React.FC = () => {
   const totalGrossSales = commissions.reduce((sum, c) => sum + Number(c.gross_amount || 0), 0);
   const claimedMilestones = affiliate ? getClaimedMilestones(affiliate.id, Math.floor(totalGrossSales / 1000)) : [];
   const milestoneInfo = calculateAffiliateMilestone(totalGrossSales, claimedMilestones);
+  const earningBadge = getAffiliateEarningBadge(totalGrossSales);
 
   const isQualifiedForPayout = readyAmount >= AFFILIATE_MIN_PAYOUT_USD;
   const thresholdPercentage = Math.min(100, (readyAmount / AFFILIATE_MIN_PAYOUT_USD) * 100);
@@ -578,13 +579,69 @@ const AffiliatePortal: React.FC = () => {
       
       {/* HEADER SECTION (SUBQI NEO-BRUTALIST) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-black pb-6">
-        <div>
-          <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#FF5C00] block">
-            Partner Identification
-          </span>
-          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight">
-            Guild Code: <span className="font-mono bg-yellow-200 px-2 py-0.5 border border-black">{affiliate.affiliate_code}</span>
-          </h2>
+        <div className="flex items-center gap-3.5">
+          {/* EARNING BADGE (Envato Style Star/Medal with Tier Number - Neo-Brutalist) */}
+          <div 
+            className="group relative flex items-center justify-center shrink-0 cursor-help"
+            title={earningBadge.hasEarned 
+              ? `${earningBadge.label} (Total Gross Sales: $${totalGrossSales.toFixed(2)})`
+              : `Creator Earning Badge: Reach $100 gross sales to unlock Level 1 (Current: $${totalGrossSales.toFixed(2)})`}
+          >
+            <div className={`relative w-12 h-12 flex flex-col items-center justify-center border-2 border-black transition-all ${
+              earningBadge.hasEarned 
+                ? 'bg-[#FFE500] text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'
+                : 'bg-gray-100 border-dashed border-gray-400 text-gray-400'
+            }`}>
+              <div className="flex items-center justify-center leading-none -mb-0.5">
+                <Star 
+                  size={11} 
+                  className={earningBadge.hasEarned ? "fill-black text-black" : "fill-gray-300 text-gray-400"} 
+                />
+              </div>
+              <span className={`text-lg font-black leading-none font-mono ${
+                earningBadge.hasEarned ? 'text-black' : 'text-gray-400'
+              }`}>
+                {earningBadge.level > 0 ? earningBadge.level : '0'}
+              </span>
+              <span className={`text-[7px] font-black uppercase tracking-tighter leading-none ${
+                earningBadge.hasEarned ? 'text-black' : 'text-gray-400'
+              }`}>
+                LVL
+              </span>
+            </div>
+
+            {/* Hover Tooltip Card */}
+            <div className="absolute left-0 top-full mt-2 hidden group-hover:flex flex-col z-30 w-60 p-3 bg-black text-white text-xs border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,229,0,1)] pointer-events-none font-sans">
+              <div className="flex items-center gap-1.5 font-black text-[#FFE500] text-[11px] uppercase tracking-wider mb-1">
+                <Award size={13} />
+                {earningBadge.hasEarned ? `Level ${earningBadge.level} Creator Badge` : 'Creator Earning Badge'}
+              </div>
+              <p className="text-[11px] leading-tight text-gray-200 mb-2">
+                {earningBadge.hasEarned 
+                  ? `Milestone earning badge unlocked based on gross referral sales.` 
+                  : `Reach $100 in gross referral sales to unlock Level 1 badge!`}
+              </p>
+              <div className="text-[10px] font-mono border-t border-gray-800 pt-1.5 flex justify-between">
+                <span className="text-gray-400">Total Gross:</span>
+                <span className="font-bold text-[#FFE500]">${totalGrossSales.toFixed(2)}</span>
+              </div>
+              {earningBadge.nextMinGross && (
+                <div className="text-[10px] font-mono flex justify-between mt-0.5">
+                  <span className="text-gray-400">Next (Lvl {earningBadge.level + 1}):</span>
+                  <span className="font-bold text-white">${earningBadge.nextMinGross}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#FF5C00] block">
+              Partner Identification
+            </span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-tight">
+              Partner Code: <span className="font-mono bg-yellow-200 px-2 py-0.5 border border-black">{affiliate.affiliate_code}</span>
+            </h2>
+          </div>
         </div>
 
         {/* SUB TAB CONTROLS */}
@@ -655,6 +712,17 @@ const AffiliatePortal: React.FC = () => {
                   {copiedLink ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
                   {copiedLink ? 'COPIED' : 'COPY'}
                 </button>
+              </div>
+
+              {/* ADDRESS BAR AUTO-CLEAN NOTICE */}
+              <div className="p-3 bg-yellow-50 border border-black text-xs text-black space-y-1">
+                <div className="flex items-center gap-1.5 font-black text-[#FF5C00] text-[10px] uppercase tracking-wider">
+                  <Info size={13} />
+                  <span>Address Bar Auto-Clean Notice</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-gray-800 font-medium">
+                  When visitors open your referral link in their address bar, the slug automatically cleans itself into a clean URL. This is our standard platform behavior—your referral cookie is instantly recorded and full tracking remains 100% active for 30 days!
+                </p>
               </div>
 
               <div className="flex items-center justify-between text-xs text-gray-600">
@@ -1388,8 +1456,8 @@ const AffiliatePortal: React.FC = () => {
                     className="grow px-4 py-3 font-mono text-sm font-black uppercase bg-transparent outline-none focus:bg-yellow-50"
                   />
                 </div>
-                <span className="text-[11px] text-gray-500 block">
-                  Alphanumeric only (3–20 chars). Updating your code sets your custom referral link (<code>subqifont.com/c/{editVanityCode || 'CODE'}</code>).
+                <span className="text-[11px] text-gray-500 block leading-relaxed">
+                  Alphanumeric only (3–20 chars). Updating your code sets your custom referral link (<code>subqifont.com/c/{editVanityCode || 'CODE'}</code>). Note: When opened in an address bar, the slug cleans itself to show a pristine link while retaining your 30-day referral attribution.
                 </span>
               </div>
 
