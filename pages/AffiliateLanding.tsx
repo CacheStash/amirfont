@@ -7,9 +7,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { 
-  ArrowLeft, ArrowRight, ArrowUpRight, ShieldCheck, Zap, 
-  Coins, CheckCircle2, Copy, Check, Sliders, Layers, 
-  DollarSign, Clock, Lock, Sparkles, ExternalLink 
+  ArrowLeft, ArrowRight, ArrowUpRight, Sparkles, 
+  Coins, CheckCircle2, Copy, Check, TrendingUp, Layers, 
+  DollarSign, Clock, ShieldCheck, Zap, HeartHandshake, MousePointerClick
 } from 'lucide-react';
 
 const AffiliateLanding: React.FC = () => {
@@ -156,20 +156,20 @@ const AffiliateLanding: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-wrap items-center gap-3 mb-6">
             <span className="bg-black text-[#FF5C00] px-3 py-1 text-xs font-black uppercase tracking-widest">
-              PARTNER PROGRAM
+              CREATOR PARTNER GUILD
             </span>
             <span className="text-xs uppercase tracking-widest text-black/60 font-semibold">
-              20% NET COMMISSION • 100% ANTI-ADBLOCKER
+              PASSIVE REVENUE • 20% NET STORE COMMISSION
             </span>
           </div>
 
           <h1 className="text-5xl sm:text-7xl lg:text-9xl font-normal uppercase tracking-tighter leading-[0.85] mb-8 font-sans">
-            AFFILIATE <br className="hidden sm:block" />
-            <span className="italic font-serif">PARTNERSHIP.</span>
+            MONETIZE <br className="hidden sm:block" />
+            <span className="italic font-serif">YOUR TASTE.</span>
           </h1>
 
           <p className="text-base md:text-xl font-normal max-w-3xl leading-relaxed text-black/80 mb-10 normal-case">
-            Recommend Subqi Studio typefaces to designers, agencies, and typographers worldwide. Enjoy clean vanity paths, 30-day first-party edge cookies, and transparent 20% net commissions deposited straight to your PayPal account.
+            Turn your typography recommendations into continuous passive income. Share Subqi Studio's distinctive display fonts with your design followers, YouTube audience, clients, and newsletters. Earn 20% on every license sale with zero inventory and zero customer support effort.
           </p>
 
           <div className="flex flex-wrap items-center gap-4">
@@ -200,7 +200,7 @@ const AffiliateLanding: React.FC = () => {
         </div>
       </header>
 
-      {/* 2. VANITY ROUTE SIMULATOR SHOWCASE */}
+      {/* 2. VANITY ROUTE PREVIEW SHOWCASE */}
       <section className="relative z-10 px-4 md:px-8 py-12 border-b border-black bg-white/40 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto">
           <div className="border border-black bg-[#EDEBE6]/80 p-4 md:p-8 relative overflow-hidden backdrop-blur-xs">
@@ -211,21 +211,21 @@ const AffiliateLanding: React.FC = () => {
                 <span className="w-3 h-3 rounded-full bg-black/40 inline-block"></span>
                 <span className="w-3 h-3 rounded-full bg-black/20 inline-block"></span>
                 <span className="text-xs uppercase font-bold tracking-widest ml-2 hidden sm:inline">
-                  EDGE_ROUTER_SIMULATOR
+                  CREATOR_VANITY_VIEWPORT
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="bg-[#FF5C00] text-black px-2 py-0.5 text-[10px] font-black uppercase">
-                  ANTI-ADBLOCK
+                  ACTIVE PARTNER
                 </span>
                 <span className="border border-black px-2 py-0.5 text-[10px] font-bold uppercase bg-white">
-                  COOKIE: 30-DAY
+                  WINDOW: 30-DAY
                 </span>
               </div>
             </div>
 
             {/* Vanity Mockup Artboard */}
-            <div className="min-h-[220px] md:min-h-[280px] bg-white border border-black flex flex-col items-center justify-center p-6 md:p-12 relative text-center">
+            <div className="min-h-[200px] md:min-h-[260px] bg-white border border-black flex flex-col items-center justify-center p-6 md:p-12 relative text-center">
               {/* Grid dots background */}
               <div 
                 className="absolute inset-0 opacity-15 pointer-events-none"
@@ -237,13 +237,13 @@ const AffiliateLanding: React.FC = () => {
 
               <div className="relative z-10 max-w-2xl w-full">
                 <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#FF5C00] font-black block mb-2">
-                  CLEAN VANITY PATH ARCHITECTURE
+                  YOUR PERSONAL DIRECT SHARE LINK
                 </span>
                 <div className="border-2 border-black bg-gray-50 px-4 py-3 text-lg md:text-2xl font-mono font-black text-black tracking-tight inline-block max-w-full truncate shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                   {shareUrl}
                 </div>
                 <p className="text-xs uppercase tracking-widest text-black/50 mt-4">
-                  [ NO SUSPICIOUS ?REF= STRINGS • CLOUDFLARE FIRST-PARTY ATTRIBUTION ]
+                  [ ZERO PRODUCT OVERHEAD • 30-DAY ATTRIBUTION • TRANSPARENT PAYOUTS ]
                 </p>
               </div>
             </div>
@@ -251,66 +251,107 @@ const AffiliateLanding: React.FC = () => {
             {/* Bottom feature badges */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-4 text-[10px] uppercase font-bold tracking-wider">
               <div className="flex items-center gap-1.5 border border-black bg-white p-2">
-                <span className="text-[#FF5C00]">■</span> Zero AdBlock Strip
+                <span className="text-[#FF5C00]">■</span> Passive Creator Revenue
               </div>
               <div className="flex items-center gap-1.5 border border-black bg-white p-2">
-                <span className="text-[#FF5C00]">■</span> 30-Day Edge Attribution
+                <span className="text-[#FF5C00]">■</span> 30-Day Referral Window
               </div>
               <div className="flex items-center gap-1.5 border border-black bg-white p-2">
-                <span className="text-[#FF5C00]">■</span> 14-Day Warranty Clearance
+                <span className="text-[#FF5C00]">■</span> 14-Day Safe Clearance
               </div>
               <div className="flex items-center gap-1.5 border border-black bg-white p-2">
-                <span className="text-[#FF5C00]">■</span> Automated PayPal Payout
+                <span className="text-[#FF5C00]">■</span> Monthly PayPal Payouts
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 3. CAPABILITIES / PROGRAM PILLARS (BRUTALIST CARDS) */}
+      {/* 3. WHY PARTNER WITH US? (MARKETING PILLARS - PERSIS GAMBAR 2) */}
       <section className="relative z-10 px-4 md:px-8 py-16 md:py-24 border-b border-black bg-white/20 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto">
           <div className="mb-12">
             <span className="text-xs uppercase tracking-widest text-[#FF5C00] font-bold">
-              PROGRAM PILLARS
+              WHY JOIN OUR GUILD?
             </span>
             <h2 className="text-3xl md:text-6xl font-normal uppercase tracking-tight mt-2 font-sans">
-              ENGINEERED FOR MODERN CREATORS
+              EFFORTLESS INCOME FOR DESIGNERS
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Card 1 */}
+            {/* Card 1: Passive Income */}
             <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-2xl font-black">01</span>
-                  <ShieldCheck size={24} className="text-[#FF5C00]" />
+                  <TrendingUp size={24} className="text-[#FF5C00]" />
                 </div>
                 <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Anti-AdBlocker Engine
+                  Monetize Your Design Taste
                 </h3>
                 <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Standard tracking queries like <code className="font-mono text-[11px] bg-black/5 px-1 py-0.5">?ref=</code> and <code className="font-mono text-[11px] bg-black/5 px-1 py-0.5">?aff=</code> are blocked by Brave, uBlock, and Safari ITP. Our clean vanity path (<code className="font-mono text-[11px] bg-black/5 px-1 py-0.5">/c/:code</code>) passes through edge routing without ever being stripped.
+                  You already curate fonts for client work, case studies, and tutorials. Turn your visual recommendations into an extra revenue stream by earning on every typeface license your network buys.
                 </p>
               </div>
               <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                VANITY EDGE ROUTING
+                HIGH EARNING POTENTIAL
               </div>
             </div>
 
-            {/* Card 2 */}
+            {/* Card 2: Zero Overhead */}
             <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-2xl font-black">02</span>
+                  <Zap size={24} className="text-[#FF5C00]" />
+                </div>
+                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
+                  Zero Overhead & Zero Hassle
+                </h3>
+                <p className="text-xs leading-relaxed text-black/70 normal-case">
+                  Never worry about font file distribution, licensing paperwork, customer support, or billing disputes. Subqi handles all instant digital file delivery and buyer support while you collect earnings.
+                </p>
+              </div>
+              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
+                NO SUPPORT HEADACHES
+              </div>
+            </div>
+
+            {/* Card 3: High Conversion */}
+            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-2xl font-black">03</span>
+                  <Sparkles size={24} className="text-[#FF5C00]" />
+                </div>
+                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
+                  Typefaces That Sell Themselves
+                </h3>
+                <p className="text-xs leading-relaxed text-black/70 normal-case">
+                  Subqi fonts feature chromatic layer stacking, custom OpenType alternates, and real-time in-browser experimentation in FontCanvas. High visual impact and interactive previews convert visitors into buyers naturally.
+                </p>
+              </div>
+              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
+                BUILT FOR CONVERSIONS
+              </div>
+            </div>
+
+            {/* Card 4: 20% Net Formula */}
+            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-2xl font-black">04</span>
                   <Coins size={24} className="text-[#FF5C00]" />
                 </div>
                 <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  20% Net Commission
+                  Transparent 20% Net Formula
                 </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Earn a clear 20% on every license sale. Commissions are calculated cleanly from the net store proceeds after PayPal inbound processing fees, ensuring fair and predictable income on single licenses and complete family bundles.
+                <p className="text-xs leading-relaxed text-black/70 normal-case mb-2">
+                  Earn a clear 20% commission on every license sale calculated transparently from net store proceeds (gross purchase minus PayPal inbound processing fees). Predictable income on single weights and complete families.
+                </p>
+                <p className="text-[11px] leading-relaxed text-black/90 font-medium normal-case bg-black/5 p-2 border-l border-black">
+                  Dispute Warranty: Commissions undergo a standard 14-day clearance window protecting against customer refunds before clearing for payout.
                 </p>
               </div>
               <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
@@ -318,82 +359,41 @@ const AffiliateLanding: React.FC = () => {
               </div>
             </div>
 
-            {/* Card 3 */}
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">03</span>
-                  <Clock size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  30-Day Edge Cookie Tag
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  When a prospective buyer visits through your link, Cloudflare Workers assign a secure, HttpOnly first-party cookie lasting 30 full days. If they come back anytime within a month to purchase, the attribution is credited to you.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                FIRST-PARTY ATTRIBUTION
-              </div>
-            </div>
-
-            {/* Card 4 */}
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">04</span>
-                  <CheckCircle2 size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  14-Day Warranty Window
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case mb-2">
-                  Commissions remain in a brief 14-day clearance hold protecting against customer payment disputes and refund claims before automatically clearing for payout.
-                </p>
-                <p className="text-[11px] leading-relaxed text-black/90 font-medium normal-case bg-black/5 p-2 border-l border-black">
-                  Minimum Payout: Cleared commissions are disbursed automatically once your available balance reaches $50.00 USD.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                DISPUTE-PROTECTED CLEARANCE
-              </div>
-            </div>
-
-            {/* Card 5 */}
+            {/* Card 5: 30-Day Window */}
             <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-2xl font-black">05</span>
-                  <DollarSign size={24} className="text-[#FF5C00]" />
+                  <Clock size={24} className="text-[#FF5C00]" />
                 </div>
                 <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  PayPal Automated Payouts
+                  30-Day Recommendation Window
                 </h3>
                 <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Monthly disbursements are sent straight to your verified PayPal account via batch Mass Payouts. No manual invoicing or waiting on complex overseas wire transfers.
+                  Designers often bookmark typefaces before pitching clients. When a prospective buyer arrives through your link, our system tracks your referral for 30 full days. If they return weeks later to buy, the credit is yours.
                 </p>
               </div>
               <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                DIRECT TO YOUR PAYPAL
+                GENEROUS 30-DAY ATTRIBUTION
               </div>
             </div>
 
-            {/* Card 6 */}
+            {/* Card 6: PayPal Payouts & Ledger */}
             <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-2xl font-black">06</span>
-                  <Layers size={24} className="text-[#FF5C00]" />
+                  <DollarSign size={24} className="text-[#FF5C00]" />
                 </div>
                 <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Real-Time Partner Ledger
+                  Reliable PayPal Payouts
                 </h3>
                 <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Access your private Affiliate Hub in the user dashboard anytime. Audit every sale down to the cent: gross purchase price, PayPal fees, exact commission earned, and clearance countdowns.
+                  Earnings are disbursed directly to your verified PayPal email once your balance reaches the $50 minimum threshold. Track gross sales, fees, and clearance schedules in your private Affiliate Hub.
                 </p>
               </div>
               <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                TRANSPARENT LEDGER AUDIT
+                AUTOMATED DISBURSEMENT
               </div>
             </div>
           </div>
@@ -433,7 +433,7 @@ const AffiliateLanding: React.FC = () => {
                 {/* Vanity Link Box */}
                 <div className="space-y-3">
                   <label className="text-xs font-bold uppercase tracking-widest text-black/70 block">
-                    Your Official Vanity Share Link
+                    Your Official Personal Share Link
                   </label>
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <input 
@@ -486,7 +486,7 @@ const AffiliateLanding: React.FC = () => {
               <div className="space-y-8">
                 <div className="border-b border-black pb-6">
                   <div className="flex items-center gap-2 mb-2">
-                    <ShieldCheck size={20} className="text-[#FF5C00]" />
+                    <HeartHandshake size={20} className="text-[#FF5C00]" />
                     <span className="text-xs uppercase font-bold tracking-widest text-[#FF5C00]">
                       PARTNER ACTIVATION
                     </span>
@@ -495,7 +495,7 @@ const AffiliateLanding: React.FC = () => {
                     Activate Your Affiliate Partnership
                   </h2>
                   <p className="text-xs sm:text-sm leading-relaxed text-black/70 normal-case mt-2">
-                    Reserve your unique vanity code to start earning 20% net commissions immediately.
+                    Reserve your unique vanity code to start earning 20% net commissions on your typography recommendations.
                   </p>
                 </div>
 
@@ -546,19 +546,19 @@ const AffiliateLanding: React.FC = () => {
                       className="w-full border-2 border-black px-4 py-3 font-mono text-sm bg-white outline-none"
                     />
                     <span className="text-[11px] text-black/50 block font-mono">
-                      Monthly commission earnings will be disbursed directly to this PayPal address.
+                      All commission disbursements will be paid directly to this PayPal address.
                     </span>
                   </div>
 
                   {/* Program Policies Box */}
                   <div className="p-4 border border-black bg-gray-50 text-xs text-black/80 space-y-1.5 normal-case font-mono">
                     <span className="font-bold text-[11px] uppercase tracking-wider block text-black">
-                      Program Policies:
+                      Program Terms & Policies:
                     </span>
                     <ul className="list-disc list-inside space-y-1 text-[11px] text-black/70">
-                      <li>Commission is <strong>20% of net received sales</strong> (after PayPal processing fees).</li>
-                      <li>All commissions are held in a <strong>14-day clearance window</strong> against refund claims.</li>
-                      <li>Minimum payout threshold is <strong>$50.00 USD</strong>. Outbound transfer fees are deducted at payout.</li>
+                      <li>Commission is <strong>20% of net received sales</strong> (calculated after PayPal processing fees).</li>
+                      <li>Earnings have a <strong>14-day warranty holding period</strong> against customer refund claims.</li>
+                      <li>Minimum payout threshold is <strong>$50.00 USD</strong> disbursed monthly via PayPal.</li>
                       <li>Self-referral purchases are strictly prohibited and will be voided.</li>
                     </ul>
                   </div>
@@ -593,10 +593,10 @@ const AffiliateLanding: React.FC = () => {
           <div className="space-y-4">
             <div className="p-5 border border-black/15 bg-white/70 text-xs leading-relaxed text-black/80 normal-case font-mono">
               <div className="font-bold uppercase tracking-wider text-[#FF5C00] text-[11px] mb-1.5 flex items-center gap-1.5">
-                <span>Fair Play & Quality Recommendation Standard</span>
+                <span>Fair Play & Recommendation Guidelines</span>
               </div>
               <p>
-                <strong>Partner Guidelines:</strong> Subqi Studio partners are encouraged to present our fonts ethically in genuine design contexts, portfolio showcases, YouTube tutorials, design newsletters, and typographic specimens. Cookie-stuffing, spamming, and misleading discounts are strictly prohibited.
+                <strong>Partner Guidelines:</strong> Subqi Studio partners are encouraged to present our typefaces ethically in genuine design contexts, portfolio showcases, YouTube design tutorials, newsletters, and typography specimens. Spamming, misleading discount promises, and cookie-stuffing are strictly prohibited.
               </p>
             </div>
           </div>
