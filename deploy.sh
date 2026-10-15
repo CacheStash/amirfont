@@ -21,6 +21,12 @@ else
     echo "⏭️  Skip backup..."
 fi
 
+# Auto-regenerate sentclaude clean zip
+if [ -f scripts/make_sentclaude_zip.py ]; then
+    echo "📦 Memperbarui sentclaude zip backup..."
+    python scripts/make_sentclaude_zip.py 2>/dev/null || python3 scripts/make_sentclaude_zip.py 2>/dev/null || true
+fi
+
 # 2. Force Export Env & Bersihkan Cache Build
 if [ ! -f .env ]; then
     echo "❌ ERROR: File .env tidak ditemukan di root folder!"
