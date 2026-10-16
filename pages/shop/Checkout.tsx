@@ -226,7 +226,12 @@ const Checkout: React.FC = () => {
     setCouponMessage(null);
   };
 
-  const handlePurchaseSuccess = async (finalOrderId: string, paypalBreakdown?: any) => {
+  const handlePurchaseSuccess = async (
+    finalOrderId: string, 
+    paypalBreakdown?: any,
+    paypalOrderId?: string,
+    paypalCaptureId?: string
+  ) => {
     setLoading(true);
     try {
       const storedRef = localStorage.getItem('affiliate_ref') || (appliedCoupon as any)?.affiliate_code || null;
@@ -241,6 +246,8 @@ const Checkout: React.FC = () => {
           type: 'full',
           metadata: { 
             order_id: finalOrderId,
+            paypal_order_id: paypalOrderId || null,
+            paypal_capture_id: paypalCaptureId || null,
             cart_items: cart,
             paypal_breakdown: paypalBreakdown || null,
             affiliate_ref: storedRef,
@@ -276,10 +283,9 @@ const Checkout: React.FC = () => {
       setSuccessfulOrderId(finalOrderId);
 
       if (appliedCoupon) {
-        const { error: couponUpdateError } = await supabase
-          .from('coupons')
-          .update({ used_count: appliedCoupon.used_count + 1 })
-          .eq('id', appliedCoupon.id);
+        const { error: couponUpdateError } = await supabase.rpc('increment_coupon_usage', {
+          p_coupon_id: appliedCoupon.id
+        });
         
         if (couponUpdateError) console.error("COUPON_UPDATE_ERROR:", couponUpdateError);
       } else if (creatorMilestone) {
@@ -849,7 +855,7 @@ const Checkout: React.FC = () => {
                             if (details && details.status === "COMPLETED") {
                               const capture = details?.purchase_units?.[0]?.payments?.captures?.[0];
                               const breakdown = capture?.seller_receivable_breakdown;
-                              await handlePurchaseSuccess(orderId, breakdown);
+                              await handlePurchaseSuccess(orderId, breakdown, details.id, capture?.id);
                               alert(`TRANSACTION SUCCESSFUL! WELCOME, ${details?.payer?.name?.given_name || 'BUYER'}.`);
                             }
                           } catch (captureError) {
