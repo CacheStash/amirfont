@@ -22,7 +22,7 @@ import {
   ArrowUpDown
 } from 'lucide-react';
 
-export type AudienceRole = 'buyer_paid' | 'buyer_trial' | 'subscriber' | 'partner';
+export type AudienceRole = 'buyer_paid' | 'buyer_trial' | 'subscriber' | 'partner' | 'payment';
 
 export interface AudienceMember {
   email: string;
@@ -37,7 +37,7 @@ export interface AudienceMember {
   lastActive: string;
 }
 
-type FilterTab = 'all' | 'buyer_paid' | 'buyer_trial' | 'subscriber' | 'partner' | 'multi_role';
+type FilterTab = 'all' | 'buyer_paid' | 'buyer_trial' | 'subscriber' | 'partner' | 'payment' | 'multi_role';
 
 export const AudienceDirectory: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -200,10 +200,10 @@ export const AudienceDirectory: React.FC = () => {
           rec.partnerCode = a.affiliate_code || undefined;
           updateDates(rec, a.created_at);
         }
-        // If paypal_email is different, ensure it's also tagged or linked
+        // If paypal_email is different, ensure it's tagged as dedicated 'payment' role
         if (a.paypal_email && (!authEmail || a.paypal_email.trim().toLowerCase() !== authEmail)) {
           const recPaypal = getOrCreate(a.paypal_email);
-          recPaypal.roles.add('partner');
+          recPaypal.roles.add('payment');
           recPaypal.partnerCode = a.affiliate_code || undefined;
           updateDates(recPaypal, a.created_at);
         }
@@ -242,6 +242,7 @@ export const AudienceDirectory: React.FC = () => {
     let trialCount = 0;
     let subCount = 0;
     let partnerCount = 0;
+    let paymentCount = 0;
     let multiRoleCount = 0;
     let totalRevenue = 0;
 
@@ -250,6 +251,7 @@ export const AudienceDirectory: React.FC = () => {
       if (m.roles.includes('buyer_trial')) trialCount++;
       if (m.roles.includes('subscriber')) subCount++;
       if (m.roles.includes('partner')) partnerCount++;
+      if (m.roles.includes('payment')) paymentCount++;
       if (m.roles.length >= 2) multiRoleCount++;
       totalRevenue += m.totalSpent;
     });
@@ -260,6 +262,7 @@ export const AudienceDirectory: React.FC = () => {
       trialCount,
       subCount,
       partnerCount,
+      paymentCount,
       multiRoleCount,
       totalRevenue
     };
@@ -273,6 +276,7 @@ export const AudienceDirectory: React.FC = () => {
       if (activeTab === 'buyer_trial' && !m.roles.includes('buyer_trial')) return false;
       if (activeTab === 'subscriber' && !m.roles.includes('subscriber')) return false;
       if (activeTab === 'partner' && !m.roles.includes('partner')) return false;
+      if (activeTab === 'payment' && !m.roles.includes('payment')) return false;
       if (activeTab === 'multi_role' && m.roles.length < 2) return false;
 
       // Search filter
@@ -536,6 +540,18 @@ export const AudienceDirectory: React.FC = () => {
         </button>
 
         <button
+          onClick={() => { setActiveTab('payment'); setCurrentPage(1); }}
+          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${
+            activeTab === 'payment' 
+              ? 'bg-blue-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
+              : 'bg-white hover:bg-blue-50'
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+          Payment ({metrics.paymentCount})
+        </button>
+
+        <button
           onClick={() => { setActiveTab('multi_role'); setCurrentPage(1); }}
           className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${
             activeTab === 'multi_role' 
@@ -677,6 +693,11 @@ export const AudienceDirectory: React.FC = () => {
                             PARTNER
                           </span>
                         )}
+                        {member.roles.includes('payment') && (
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-blue-300 text-black border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                            PAYMENT
+                          </span>
+                        )}
                       </div>
                     </td>
 
@@ -703,7 +724,10 @@ export const AudienceDirectory: React.FC = () => {
                         {member.partnerCode && (
                           <div className="flex items-center gap-1 text-amber-900 font-bold">
                             <Share2 size={11} className="text-amber-600" />
-                            <span>Code: <code className="bg-amber-100 px-1 py-0.2 border border-black font-mono text-[10px]">{member.partnerCode}</code></span>
+                            <span>
+                              {member.roles.includes('payment') && !member.roles.includes('partner') ? 'Payout: ' : 'Code: '}
+                              <code className="bg-amber-100 px-1 py-0.2 border border-black font-mono text-[10px]">{member.partnerCode}</code>
+                            </span>
                           </div>
                         )}
                         {member.subscriberStatus && (
