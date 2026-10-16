@@ -707,7 +707,7 @@ const AffiliateLanding: React.FC = () => {
                       className="w-full border-2 border-black px-4 py-3 font-sans text-sm bg-white outline-none"
                     />
                     <span className="text-[11px] text-black/50 block font-mono">
-                      Your legal personal or company name for financial compliance, tax records, and account profile sync.
+                      Your legal personal or company name for financial compliance.
                     </span>
                   </div>
 
@@ -925,7 +925,7 @@ const AffiliateLanding: React.FC = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-black text-white hover:bg-[#FF5C00] hover:text-black transition-all py-4 px-8 font-bold text-sm uppercase tracking-widest border-2 border-black cursor-pointer shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                    className="w-full py-4 px-8 font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 bg-[#FF5C00] text-black border-2 border-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {loading ? 'ACTIVATING PARTNERSHIP...' : 'ACTIVATE AFFILIATE ACCOUNT'}
                   </button>
