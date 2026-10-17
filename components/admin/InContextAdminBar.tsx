@@ -3,18 +3,42 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAdmin } from '../../context/AdminContext';
-import { Edit3, ExternalLink } from 'lucide-react';
+import { Edit3, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const InContextAdminBar: React.FC = () => {
   const { isAdmin, isLiveEditMode, toggleLiveEditMode } = useAdmin();
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    return localStorage.getItem('subqi_admin_bar_collapsed') === 'true';
+  });
+
+  const handleToggleCollapse = (collapsed: boolean) => {
+    setIsCollapsed(collapsed);
+    localStorage.setItem('subqi_admin_bar_collapsed', String(collapsed));
+  };
 
   if (!isAdmin) return null;
 
+  // Collapsed Minimalist State (icon > button matching BackToTop height)
+  if (isCollapsed) {
+    return (
+      <button
+        onClick={() => handleToggleCollapse(false)}
+        className="fixed bottom-4 left-4 md:bottom-8 md:left-8 z-[850] h-12 w-12 flex items-center justify-center bg-black text-white border border-white/20 hover:bg-[#FF5C00] hover:text-black transition-all cursor-pointer shadow-lg group animate-in fade-in zoom-in-90 duration-200"
+        title="Expand Admin Controls"
+        aria-label="Expand Admin Controls"
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-[#FF5C00] group-hover:bg-black absolute top-2 right-2 animate-pulse" />
+        <ChevronRight size={20} className="group-hover:translate-x-0.5 transition-transform" />
+      </button>
+    );
+  }
+
+  // Expanded In-Context Admin Bar
   return (
-    <div className="fixed bottom-4 right-18 md:bottom-8 md:right-22 z-[850] h-12 flex items-center gap-3 bg-black text-white border border-white/10 px-4 text-xs font-sans uppercase animate-in fade-in slide-in-from-bottom-3 duration-300">
+    <div className="fixed bottom-4 left-4 md:bottom-8 md:left-8 z-[850] h-12 flex items-center gap-3 bg-black text-white border border-white/10 px-4 text-xs font-sans uppercase shadow-lg animate-in fade-in slide-in-from-left-3 duration-300">
       <div className="flex items-center gap-2 pr-3 border-r border-white/20 h-5">
         <span className="w-2 h-2 rounded-full bg-[#FF5C00] animate-pulse" />
         <span className="font-bold tracking-widest text-[10px] text-[#FF5C00]">
@@ -24,7 +48,7 @@ export const InContextAdminBar: React.FC = () => {
 
       <button
         onClick={toggleLiveEditMode}
-        className={`flex items-center gap-1.5 px-3 py-1 font-bold tracking-wider text-[10px] transition-all cursor-pointer ${
+        className={`flex items-center gap-1.5 px-3 py-1.5 font-bold tracking-wider text-[10px] transition-all cursor-pointer ${
           isLiveEditMode
             ? 'bg-[#FF5C00] text-black shadow-sm'
             : 'bg-white/10 text-white hover:bg-white/20'
@@ -36,11 +60,21 @@ export const InContextAdminBar: React.FC = () => {
 
       <Link
         to="/backstage"
-        className="flex items-center gap-1 text-[10px] font-bold tracking-wider text-white/70 hover:text-white transition-colors pl-2"
+        className="flex items-center gap-1 text-[10px] font-bold tracking-wider text-white/70 hover:text-white transition-colors pl-1"
         title="Open Backstage Admin Panel"
       >
         BACKSTAGE <ExternalLink size={11} />
       </Link>
+
+      {/* Collapse < button */}
+      <button
+        onClick={() => handleToggleCollapse(true)}
+        className="ml-2 pl-2 border-l border-white/20 h-5 flex items-center text-white/50 hover:text-[#FF5C00] transition-colors cursor-pointer"
+        title="Minimize Admin Bar to Left"
+        aria-label="Minimize Admin Bar to Left"
+      >
+        <ChevronLeft size={16} />
+      </button>
     </div>
   );
 };
