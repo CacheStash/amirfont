@@ -1,6 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Send, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+
+interface ContentItem {
+  id: string;
+  title: string;
+  content: string;
+  section_id: string;
+  type?: string;
+  sort_order?: number;
+}
 
 // Shared Bullet Style
 const PlusBullet = () => (
@@ -41,9 +51,27 @@ const ContactCard: React.FC<{
 
 const Contact: React.FC = () => {
   const [subject, setSubject] = useState("");
-
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [dynamicSections, setDynamicSections] = useState<ContentItem[]>([]);
+
+  useEffect(() => {
+    const fetchContactContent = async () => {
+      try {
+        const { data } = await supabase
+          .from('site_content')
+          .select('*')
+          .eq('category', 'contact')
+          .order('sort_order', { ascending: true });
+        if (data && data.length > 0) {
+          setDynamicSections(data);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch contact content:', err);
+      }
+    };
+    fetchContactContent();
+  }, []);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
