@@ -280,7 +280,7 @@ const App: React.FC = () => {
 
             {!isNavActive && <BackToTop />}
             
-            <footer className="relative z-50 bg-[#EDEBE6]">
+            <footer className="relative z-10 bg-[#EDEBE6]">
               <Footer />
             </footer>
 
