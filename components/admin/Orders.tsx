@@ -539,7 +539,7 @@ const fetchOrders = async () => {
           <button 
             onClick={handleExportCSV}
             disabled={isExporting || loading}
-            className="flex items-center gap-2 bg-black text-white px-6 py-3 text-[10px] font-black hover:bg-gray-800 disabled:opacity-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] active:shadow-none transition-all uppercase cursor-pointer"
+            className="flex items-center gap-2 bg-black text-white px-6 py-3 text-[10px] font-black hover:bg-gray-800 disabled:opacity-50 transition-all uppercase cursor-pointer"
           >
             <Download size={14} />
             {isExporting ? 'EXPORTING...' : 'EXPORT_CSV'}
@@ -548,7 +548,7 @@ const fetchOrders = async () => {
           <button 
             onClick={handleExportEmails}
             disabled={isExportingEmails || loading}
-            className="flex items-center gap-2 bg-black text-white px-6 py-3 text-[10px] font-black hover:bg-gray-800 disabled:opacity-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] active:shadow-none transition-all uppercase cursor-pointer"
+            className="flex items-center gap-2 bg-black text-white px-6 py-3 text-[10px] font-black hover:bg-gray-800 disabled:opacity-50 transition-all uppercase cursor-pointer"
           >
             <Mail size={14} />
             {isExportingEmails ? 'EXPORTING...' : 'EXPORT_EMAILS'}
@@ -560,7 +560,7 @@ const fetchOrders = async () => {
               placeholder="SEARCH ID/EMAIL/FONT/LICENSE..." 
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="bg-white border-2 border-black px-10 py-3 text-xs font-bold outline-none focus:bg-yellow-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] w-full md:w-80 uppercase"
+              className="bg-white border-2 border-black px-10 py-3 text-xs font-bold outline-none focus:bg-yellow-50 w-full md:w-80 uppercase"
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             {searchInput && (
@@ -571,13 +571,13 @@ const fetchOrders = async () => {
       </div>
 
       {searchTerm && searchTerm.toUpperCase().includes('SPEC-W01') && (
-        <div className="mb-6 p-4 border-2 border-black bg-amber-100 text-xs font-bold text-black flex items-center justify-between shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase">
+        <div className="mb-6 p-4 border-2 border-black bg-amber-100 text-xs font-bold text-black flex items-center justify-between uppercase">
           <span>⚠️ {searchTerm.toUpperCase()}: Web Specimen Tag (TypeTester Engine Asset). This build tag is generated for live online testing and is not associated with any commercial purchase order.</span>
         </div>
       )}
 
       {/* TABLE */}
-      <div className="border-2 border-black bg-white overflow-x-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+      <div className="border-2 border-black bg-white overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[1000px]">
           <thead>
             <tr className="border-b-2 border-black bg-gray-50 text-[10px] font-black tracking-widest text-gray-500">
@@ -613,7 +613,7 @@ const fetchOrders = async () => {
                 <td className="p-4 font-black text-sm italic">{order.fonts?.name || 'UNKNOWN'}</td>
                 <td className="p-4 text-center font-black text-sm">${order.metadata?.price_at_purchase ?? (order.download_type === 'trial' ? '0' : 'N/A')}</td>
                 <td className="p-4 text-center">
-                  <span className={`px-2 py-1 text-[9px] font-black border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${order.download_type === 'trial' ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white'}`}>
+                  <span className={`px-2 py-1 text-[9px] font-black border border-black ${order.download_type === 'trial' ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white'}`}>
                     {order.download_type?.toUpperCase() || 'N/A'}
                   </span>
                 </td>
@@ -623,7 +623,7 @@ const fetchOrders = async () => {
                       onClick={() => handleDownloadPackageZip(order)}
                       disabled={downloadingZipTx === order.transaction_id}
                       title="Download Buyer Package (.zip)"
-                      className="px-2.5 py-1 border border-black bg-black text-white hover:bg-[#FF5C00] hover:text-black text-[9px] font-black tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all flex items-center gap-1 group disabled:opacity-40"
+                      className="px-2.5 py-1 border border-black bg-black text-white hover:bg-[#FF5C00] hover:text-black text-[9px] font-black tracking-wider transition-all flex items-center gap-1 group disabled:opacity-40"
                     >
                       <Download size={12} />
                       <span>{downloadingZipTx === order.transaction_id ? '...' : '.ZIP'}</span>
@@ -632,7 +632,7 @@ const fetchOrders = async () => {
                       onClick={() => handleDownloadLicenseTxt(order)}
                       disabled={downloadingTx === order.transaction_id}
                       title="Download License (.txt)"
-                      className="px-2.5 py-1 border border-black bg-white hover:bg-black hover:text-white text-[9px] font-black tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all flex items-center gap-1 group disabled:opacity-40"
+                      className="px-2.5 py-1 border border-black bg-white hover:bg-black hover:text-white text-[9px] font-black tracking-wider transition-all flex items-center gap-1 group disabled:opacity-40"
                     >
                       <FileText size={12} />
                       <span>{downloadingTx === order.transaction_id ? '...' : '.TXT'}</span>
@@ -642,7 +642,7 @@ const fetchOrders = async () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       title="View Web License Certificate"
-                      className="px-2.5 py-1 border border-black bg-white hover:bg-yellow-400 text-black text-[9px] font-black tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all flex items-center gap-1 group"
+                      className="px-2.5 py-1 border border-black bg-white hover:bg-yellow-400 text-black text-[9px] font-black tracking-wider transition-all flex items-center gap-1 group"
                     >
                       <ShieldCheck size={12} />
                       <span>VIEW</span>
@@ -651,11 +651,7 @@ const fetchOrders = async () => {
                 </td>
                 <td className="p-4 text-center">
                   <div className="flex flex-col items-center justify-center gap-1">
-                    <span className={`px-2 py-0.5 text-[9px] font-black border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
-                      order.metadata?.email_sent 
-                        ? 'bg-emerald-500 text-white' 
-                        : 'bg-gray-200 text-gray-700'
-                    }`}>
+                    <span className={`px-2 py-0.5 text-[9px] font-black border border-black ${ order.metadata?.email_sent ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-700' }`}>
                       {order.metadata?.email_sent ? 'SENT' : 'PENDING'}
                     </span>
                     {order.metadata?.email_sent_by && (() => {
@@ -673,7 +669,7 @@ const fetchOrders = async () => {
                       onClick={() => handleResendOrderEmail(order)}
                       disabled={resendingTx === order.transaction_id}
                       title="Dispatch / Resend order email"
-                      className="mt-0.5 px-2 py-0.5 border border-black bg-white hover:bg-black hover:text-white text-[8px] font-black tracking-wider shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all flex items-center gap-1 group disabled:opacity-40"
+                      className="mt-0.5 px-2 py-0.5 border border-black bg-white hover:bg-black hover:text-white text-[8px] font-black tracking-wider transition-all flex items-center gap-1 group disabled:opacity-40"
                     >
                       <Mail size={10} />
                       <span>{resendingTx === order.transaction_id ? 'SENDING...' : (order.metadata?.email_sent ? 'RESEND' : 'SEND')}</span>
@@ -702,9 +698,9 @@ const fetchOrders = async () => {
       {/* PAGINATION */}
       {totalPages > 1 && !loading && (
         <div className="flex justify-center items-center gap-4 mt-8">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)} className="p-2 border-2 border-black bg-white hover:bg-black hover:text-white disabled:opacity-20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"><ChevronLeft size={20} /></button>
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)} className="p-2 border-2 border-black bg-white hover:bg-black hover:text-white disabled:opacity-20"><ChevronLeft size={20} /></button>
           <span className="font-black text-xs tracking-widest">Page {currentPage} of {totalPages}</span>
-          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(prev => prev + 1)} className="p-2 border-2 border-black bg-white hover:bg-black hover:text-white disabled:opacity-20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"><ChevronRight size={20} /></button>
+          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(prev => prev + 1)} className="p-2 border-2 border-black bg-white hover:bg-black hover:text-white disabled:opacity-20"><ChevronRight size={20} /></button>
         </div>
       )}
     </div>

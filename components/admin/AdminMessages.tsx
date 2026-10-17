@@ -153,11 +153,11 @@ const AdminMessages = () => {
               <h2 className="text-4xl font-black italic">MAIL_CENTER</h2>
               <p className="text-[10px] opacity-40">Admin Message & Support Control</p>
             </div>
-            <div className="flex border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white">
+            <div className="flex border-2 border-black bg-white">
               <button onClick={() => {setTab('inbox'); setCurrentPage(0);}} className={`px-4 py-2 text-[10px] font-black flex items-center gap-2 relative ${tab === 'inbox' ? 'bg-black text-white' : ''}`}>
                 <Inbox size={14}/> INBOX
                 {unreadCount > 0 && (
-                  <span className="absolute -top-3 -right-2 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-pulse">
+                  <span className="absolute -top-3 -right-2 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 border-2 border-black animate-pulse">
                     {unreadCount}
                   </span>
                 )}
@@ -175,7 +175,7 @@ const AdminMessages = () => {
 
       {selectedMessage ? (
         /* DETAIL VIEW */
-        <div className="border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in fade-in zoom-in-95 duration-200">
+        <div className="border-2 border-black bg-white animate-in fade-in zoom-in-95 duration-200">
           <div className="p-4 border-b-2 border-black bg-gray-50 flex justify-between items-center text-[10px] font-black">
             <button onClick={() => setSelectedMessage(null)} className="flex items-center gap-2 hover:underline cursor-pointer">
               <ArrowLeft size={14} /> BACK_TO_LIST
@@ -206,7 +206,7 @@ const AdminMessages = () => {
                   <Send size={12} /> QUICK_REPLY_TO_{selectedMessage.sender_name?.split(' ')[0] || 'BUYER'}
                 </div>
                 <textarea rows={4} placeholder="RESPONSE..." value={replyContent} onChange={e => setReplyContent(e.target.value)} className="w-full border-2 border-black p-4 outline-none focus:bg-blue-50 font-bold text-xs resize-none" required />
-                <button disabled={replying} className="bg-black text-white px-8 py-3 font-black text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-y-0 active:translate-y-[2px] transition-all">
+                <button disabled={replying} className="bg-black text-white px-8 py-3 font-black text-xs transition-all">
                   {replying ? 'SENDING...' : 'DISPATCH_REPLY'}
                 </button>
               </form>
@@ -215,12 +215,12 @@ const AdminMessages = () => {
         </div>
       ) : tab === 'broadcast' && messages.length === 0 && !loading ? (
         /* BROADCAST HUB (IF EMPTY HISTORY) - SHOW FORM */
-        <div className="max-w-2xl border-2 border-black p-8 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div className="max-w-2xl border-2 border-black p-8 bg-white">
            <form onSubmit={handleBroadcast} className="space-y-6">
               <h3 className="text-2xl font-black italic flex items-center gap-3 border-b-2 border-black pb-4"><Megaphone /> DISPATCH_NEWSLETTER</h3>
               <input type="text" value={subject} onChange={e => setSubject(e.target.value)} className="w-full border-2 border-black p-3 outline-none focus:bg-yellow-50 font-bold" placeholder="SUBJECT" required />
               <textarea rows={6} value={content} onChange={e => setContent(e.target.value)} className="w-full border-2 border-black p-3 outline-none focus:bg-yellow-50 font-bold resize-none" placeholder="CONTENT..." required />
-              <button disabled={sending} className="w-full bg-black text-white p-4 font-black flex justify-center items-center gap-2 uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]">
+              <button disabled={sending} className="w-full bg-black text-white p-4 font-black flex justify-center items-center gap-2 uppercase">
                 {sending ? 'SENDING...' : <><Send size={18} /> BROADCAST_NOW</>}
               </button>
            </form>
@@ -229,7 +229,7 @@ const AdminMessages = () => {
         /* LIST VIEW (INBOX / SENT / BROADCAST HISTORY) */
         <div className="space-y-4">
           {tab === 'broadcast' && (
-             <div className="border-2 border-black p-6 bg-yellow-400 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-8">
+             <div className="border-2 border-black p-6 bg-yellow-400 mb-8">
                 <form onSubmit={handleBroadcast} className="flex flex-col md:flex-row gap-4">
                   <input type="text" placeholder="QUICK_BROADCAST_SUBJECT" value={subject} onChange={e => setSubject(e.target.value)} className="flex-1 border-2 border-black p-2 font-black text-xs outline-none" required />
                   <textarea placeholder="CONTENT..." value={content} onChange={e => setContent(e.target.value)} className="flex-1 border-2 border-black p-2 font-black text-xs outline-none resize-none h-10" required />
@@ -244,7 +244,7 @@ const AdminMessages = () => {
             {loading ? <div className="animate-pulse font-black text-xs italic">SCANNING_DATABASE...</div> : 
              messages.length === 0 ? <div className="p-20 border-2 border-dashed border-black text-center opacity-20 font-bold italic">NO_DATA_FOUND</div> : (
               messages.map(m => (
-                <div key={m.id} onClick={() => markAsRead(m)} className={`border-2 border-black p-4 flex items-center justify-between group cursor-pointer transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none active:translate-y-1 ${!m.is_read && tab === 'inbox' ? 'bg-blue-50 ring-2 ring-black' : 'bg-white hover:bg-black hover:text-white'}`}>
+                <div key={m.id} onClick={() => markAsRead(m)} className={`border-2 border-black p-4 flex items-center justify-between group cursor-pointer transition-all ${!m.is_read && tab === 'inbox' ? 'bg-blue-50 ring-2 ring-black' : 'bg-white hover:bg-black hover:text-white'}`}>
                   <div className="flex flex-col gap-1 overflow-hidden">
                     <div className="flex items-center gap-3">
                       <span className="text-[9px] font-black bg-black text-white px-2 py-0.5 group-hover:bg-white group-hover:text-black">

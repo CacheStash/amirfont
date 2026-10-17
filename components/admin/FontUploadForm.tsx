@@ -577,11 +577,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); toggleLayerIndex(i); }}
-                        className={`px-2 py-0.5 text-[8px] font-mono font-bold uppercase transition-all border ${
-                          isPartOfLayer 
-                            ? (primaryFontIndex === i ? 'bg-white text-black border-white' : 'bg-black text-white border-black')
-                            : (primaryFontIndex === i ? 'bg-transparent text-white/70 border-white/40 hover:text-white' : 'bg-white text-gray-700 border-gray-400 hover:text-black hover:border-black')
-                        }`}
+                        className={`px-2 py-0.5 text-[8px] font-mono font-bold uppercase transition-all border ${ isPartOfLayer ? (primaryFontIndex === i ? 'bg-white text-black border-white' : 'bg-black text-white border-black') : (primaryFontIndex === i ? 'bg-transparent text-white/70 border-white/40 hover:text-white' : 'bg-white text-gray-700 border-gray-400 hover:text-black hover:border-black') }`}
                         title={isPartOfLayer ? "Click to set as Pairing" : "Click to include in Layered Stack"}
                       >
                         {isPartOfLayer ? '● LAYER' : '○ PAIRING'}
@@ -616,11 +612,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); toggleLayerIndex(combinedIdx); }}
-                        className={`px-2 py-0.5 text-[8px] font-mono font-bold uppercase transition-all border ${
-                          isPartOfLayer 
-                            ? 'bg-white text-black border-white' 
-                            : 'bg-black text-gray-300 border-gray-600 hover:text-white hover:border-white'
-                        }`}
+                        className={`px-2 py-0.5 text-[8px] font-mono font-bold uppercase transition-all border ${ isPartOfLayer ? 'bg-white text-black border-white' : 'bg-black text-gray-300 border-gray-600 hover:text-white hover:border-white' }`}
                         title={isPartOfLayer ? "Click to set as Pairing" : "Click to include in Layered Stack"}
                       >
                         {isPartOfLayer ? '● LAYER' : '○ PAIRING'}
@@ -779,7 +771,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       <button 
         type="submit"
         disabled={isUploading}
-        className="w-full bg-black text-white p-5 font-bold uppercase tracking-[0.2em] text-xs hover:translate-x-[2px] hover:translate-y-[2px] transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[4px] active:translate-y-[4px] disabled:bg-gray-400 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+        className="w-full bg-black text-white p-5 font-bold uppercase tracking-[0.2em] text-xs hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:bg-gray-400 disabled:cursor-not-allowed flex justify-center items-center gap-2"
       >
         {isUploading ? (
           <><Loader2 className="animate-spin" /> Processing...</>

@@ -37,7 +37,6 @@ const BrutalistSlider: React.FC<BrutalistSliderProps> = ({
           [&::-webkit-slider-thumb]:bg-black
           [&::-webkit-slider-thumb]:border-2
           [&::-webkit-slider-thumb]:border-black
-          [&::-webkit-slider-thumb]:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]
           hover:[&::-webkit-slider-thumb]:bg-gray-800"
       />
     </div>

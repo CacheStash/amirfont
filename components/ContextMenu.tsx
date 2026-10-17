@@ -168,7 +168,7 @@ export const ContextMenu: React.FC = () => {
     <div
       ref={menuRef}
       role="menu"
-      className="fixed z-[999999] bg-white border-2 border-black shadow-[4px_4px_0px_0px_#000] p-1.5 min-w-[210px] text-xs font-mono select-none animate-in fade-in zoom-in-95 duration-100"
+      className="fixed z-[999999] bg-white border-2 border-black p-1.5 min-w-[210px] text-xs font-mono select-none animate-in fade-in zoom-in-95 duration-100"
       style={{ left: `${menu.x}px`, top: `${menu.y}px` }}
       onMouseDown={(e) => e.stopPropagation()}
     >
@@ -196,11 +196,7 @@ export const ContextMenu: React.FC = () => {
           type="button"
           disabled={!menu.hasSelection}
           onClick={handleCut}
-          className={`w-full px-2 py-1.5 rounded-none flex items-center justify-between transition-colors text-left group ${
-            menu.hasSelection
-              ? 'hover:bg-black hover:text-white cursor-pointer'
-              : 'opacity-35 cursor-not-allowed'
-          }`}
+          className={`w-full px-2 py-1.5 rounded-none flex items-center justify-between transition-colors text-left group ${ menu.hasSelection ? 'hover:bg-black hover:text-white cursor-pointer' : 'opacity-35 cursor-not-allowed' }`}
         >
           <span className="flex items-center gap-2">
             <Scissors size={12} />
@@ -215,11 +211,7 @@ export const ContextMenu: React.FC = () => {
         type="button"
         disabled={!menu.hasSelection}
         onClick={handleCopy}
-        className={`w-full px-2 py-1.5 rounded-none flex items-center justify-between transition-colors text-left group ${
-          menu.hasSelection
-            ? 'hover:bg-black hover:text-white cursor-pointer'
-            : 'opacity-35 cursor-not-allowed'
-        }`}
+        className={`w-full px-2 py-1.5 rounded-none flex items-center justify-between transition-colors text-left group ${ menu.hasSelection ? 'hover:bg-black hover:text-white cursor-pointer' : 'opacity-35 cursor-not-allowed' }`}
       >
         <span className="flex items-center gap-2">
           <Copy size={12} />

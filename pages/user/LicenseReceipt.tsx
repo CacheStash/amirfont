@@ -104,13 +104,13 @@ const LicenseReceipt = () => {
         </Link>
         <button 
           onClick={() => window.print()}
-          className="flex items-center gap-2 bg-black text-white px-4 py-2 text-[10px] font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+          className="flex items-center gap-2 bg-black text-white px-4 py-2 text-[10px] font-bold"
         >
           <Printer size={14} /> PRINT_LICENSE_PDF
         </button>
       </div>
 
-      <div className="max-w-2xl mx-auto bg-white border border-black p-8 md:p-16 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] print:shadow-none">
+      <div className="max-w-2xl mx-auto bg-white border border-black p-8 md:p-16 print:shadow-none">
         <header className="receipt-header text-center border-b border-black border-dashed pb-8 mb-8">
           <h1 className="text-4xl font-black italic">SUBQI STUDIO</h1>
           <p className="text-[10px] tracking-widest mt-2">OFFICIAL_LICENSE_CERTIFICATE</p>

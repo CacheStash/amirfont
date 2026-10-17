@@ -663,13 +663,13 @@ const AffiliateManager: React.FC = () => {
           <button 
             onClick={fetchData} 
             disabled={loading}
-            className="border-2 border-black bg-white px-4 py-2.5 font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-100 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all cursor-pointer"
+            className="border-2 border-black bg-white px-4 py-2.5 font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-100 transition-all cursor-pointer"
           >
             <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> Refresh
           </button>
           <button 
             onClick={handleExportPayPalCSV}
-            className="border-2 border-black bg-white text-black px-4 py-2.5 font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-100 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all cursor-pointer"
+            className="border-2 border-black bg-white text-black px-4 py-2.5 font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-100 transition-all cursor-pointer"
             title="Download CSV for PayPal Mass Payments"
           >
             <Download size={14} /> Export CSV
@@ -677,11 +677,7 @@ const AffiliateManager: React.FC = () => {
           <button 
             onClick={handleBatchLivePayPalPayout}
             disabled={loading || isSubmittingPayout || qualifiedPayouts.length === 0}
-            className={`border-2 border-black px-5 py-2.5 font-black uppercase text-xs flex items-center gap-2 transition-all cursor-pointer shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none ${
-              qualifiedPayouts.length > 0 
-                ? 'bg-[#FF5C00] text-black hover:bg-black hover:text-white' 
-                : 'bg-gray-200 text-gray-400 border-gray-400 cursor-not-allowed shadow-none'
-            }`}
+            className={`border-2 border-black px-5 py-2.5 font-black uppercase text-xs flex items-center gap-2 transition-all cursor-pointer ${ qualifiedPayouts.length > 0 ? 'bg-[#FF5C00] text-black hover:bg-black hover:text-white' : 'bg-gray-200 text-gray-400 border-gray-400 cursor-not-allowed shadow-none' }`}
           >
             <Zap size={14} className={isSubmittingPayout ? 'animate-spin' : ''} /> Auto-Disburse via PayPal ({qualifiedPayouts.length})
           </button>
@@ -690,7 +686,7 @@ const AffiliateManager: React.FC = () => {
 
       {/* 4 CORE FINANCIAL CARDS (SUBQI NEO-BRUTALIST) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
+        <div className="p-5 border-2 border-black bg-white space-y-1">
           <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block">Gross Sales Inbound</span>
           <div className="text-3xl font-black tracking-tight font-mono">
             ${totalGrossSales.toFixed(2)}
@@ -698,7 +694,7 @@ const AffiliateManager: React.FC = () => {
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">Paid by buyers via PayPal</p>
         </div>
 
-        <div className="p-5 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
+        <div className="p-5 border-2 border-black bg-white space-y-1">
           <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block">PayPal Gateway Fees</span>
           <div className="text-3xl font-black tracking-tight font-mono text-red-600">
             -${totalPayPalFees.toFixed(2)}
@@ -706,7 +702,7 @@ const AffiliateManager: React.FC = () => {
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">Inbound transaction costs</p>
         </div>
 
-        <div className="p-5 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
+        <div className="p-5 border-2 border-black bg-white space-y-1">
           <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block">Affiliate Reserved Pool</span>
           <div className="text-3xl font-black tracking-tight font-mono text-amber-600">
             ${affiliateReservedPool.toFixed(2)}
@@ -714,15 +710,13 @@ const AffiliateManager: React.FC = () => {
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">Due + in-warranty hold balance</p>
         </div>
 
-        <div className="p-5 border-2 border-black bg-yellow-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1 relative">
+        <div className="p-5 border-2 border-black bg-yellow-300 space-y-1 relative">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-black uppercase tracking-wider text-black block">
                 SAFE TO WITHDRAW (PROFIT)
               </span>
-              <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 border border-black ${
-                isSandboxMode ? 'bg-amber-400 text-black' : 'bg-emerald-400 text-black'
-              }`}>
+              <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 border border-black ${ isSandboxMode ? 'bg-amber-400 text-black' : 'bg-emerald-400 text-black' }`}>
                 {isSandboxMode ? 'SANDBOX' : 'LIVE'}
               </span>
             </div>
@@ -730,7 +724,7 @@ const AffiliateManager: React.FC = () => {
               onClick={() => fetchPayPalBalance(true)}
               disabled={isFetchingBalance}
               title="Sync live PayPal balance"
-              className="text-[9px] font-black uppercase flex items-center gap-1 px-1.5 py-0.5 border border-black bg-white hover:bg-black hover:text-white transition-all cursor-pointer shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+              className="text-[9px] font-black uppercase flex items-center gap-1 px-1.5 py-0.5 border border-black bg-white hover:bg-black hover:text-white transition-all cursor-pointer"
             >
               <RefreshCw size={9} className={isFetchingBalance ? 'animate-spin' : ''} /> {isFetchingBalance ? 'Syncing...' : 'Sync PP'}
             </button>
@@ -752,11 +746,7 @@ const AffiliateManager: React.FC = () => {
       <div className="flex flex-wrap border-b-2 border-black gap-2 pb-0">
         <button
           onClick={() => setActiveTab('due_payouts')}
-          className={`py-3 px-5 text-xs font-black uppercase tracking-wider border-2 border-b-0 border-black transition-all flex items-center gap-2 cursor-pointer ${
-            activeTab === 'due_payouts'
-              ? 'bg-black text-white shadow-[3px_-2px_0px_0px_rgba(0,0,0,1)]'
-              : 'bg-white text-black hover:bg-gray-100'
-          }`}
+          className={`py-3 px-5 text-xs font-black uppercase tracking-wider border-2 border-b-0 border-black transition-all flex items-center gap-2 cursor-pointer ${ activeTab === 'due_payouts' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100' }`}
         >
           <Clock size={14} /> Due & Scheduled Payouts
           {qualifiedPayouts.length > 0 && (
@@ -768,33 +758,21 @@ const AffiliateManager: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('partners')}
-          className={`py-3 px-5 text-xs font-black uppercase tracking-wider border-2 border-b-0 border-black transition-all flex items-center gap-2 cursor-pointer ${
-            activeTab === 'partners'
-              ? 'bg-black text-white shadow-[3px_-2px_0px_0px_rgba(0,0,0,1)]'
-              : 'bg-white text-black hover:bg-gray-100'
-          }`}
+          className={`py-3 px-5 text-xs font-black uppercase tracking-wider border-2 border-b-0 border-black transition-all flex items-center gap-2 cursor-pointer ${ activeTab === 'partners' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100' }`}
         >
           <Users size={14} /> Partner Accounts ({affiliates.length})
         </button>
 
         <button
           onClick={() => setActiveTab('history')}
-          className={`py-3 px-5 text-xs font-black uppercase tracking-wider border-2 border-b-0 border-black transition-all flex items-center gap-2 cursor-pointer ${
-            activeTab === 'history'
-              ? 'bg-black text-white shadow-[3px_-2px_0px_0px_rgba(0,0,0,1)]'
-              : 'bg-white text-black hover:bg-gray-100'
-          }`}
+          className={`py-3 px-5 text-xs font-black uppercase tracking-wider border-2 border-b-0 border-black transition-all flex items-center gap-2 cursor-pointer ${ activeTab === 'history' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100' }`}
         >
           <CheckCircle2 size={14} /> Settled Payouts ({payouts.length})
         </button>
 
         <button
           onClick={() => setActiveTab('commissions')}
-          className={`py-3 px-5 text-xs font-black uppercase tracking-wider border-2 border-b-0 border-black transition-all flex items-center gap-2 cursor-pointer ${
-            activeTab === 'commissions'
-              ? 'bg-black text-white shadow-[3px_-2px_0px_0px_rgba(0,0,0,1)]'
-              : 'bg-white text-black hover:bg-gray-100'
-          }`}
+          className={`py-3 px-5 text-xs font-black uppercase tracking-wider border-2 border-b-0 border-black transition-all flex items-center gap-2 cursor-pointer ${ activeTab === 'commissions' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100' }`}
         >
           <FileText size={14} /> All Attribution Orders ({commissions.length})
         </button>
@@ -804,7 +782,7 @@ const AffiliateManager: React.FC = () => {
       {activeTab === 'due_payouts' && (
         <div className="space-y-6">
           {/* Policy Banner */}
-          <div className="p-5 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="p-5 border-2 border-black bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
               <Calendar size={22} className="text-[#FF5C00] shrink-0 mt-0.5" />
               <div>
@@ -840,7 +818,7 @@ const AffiliateManager: React.FC = () => {
                 No affiliates currently have cleared balances &ge; ${AFFILIATE_MIN_PAYOUT_USD.toFixed(2)} USD. All qualifying earnings roll over until threshold is met.
               </div>
             ) : (
-              <div className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-x-auto">
+              <div className="border-2 border-black bg-white overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="border-b-2 border-black bg-yellow-100 text-xs font-black uppercase tracking-wider">
@@ -884,14 +862,14 @@ const AffiliateManager: React.FC = () => {
                             <button
                               onClick={() => handleDirectPayPalPayout(item)}
                               disabled={isSubmittingPayout}
-                              className="bg-yellow-300 text-black border border-black py-1 px-2.5 text-[10px] font-black uppercase hover:bg-yellow-400 transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none flex items-center gap-1"
+                              className="bg-yellow-300 text-black border border-black py-1 px-2.5 text-[10px] font-black uppercase hover:bg-yellow-400 transition-all cursor-pointer flex items-center gap-1"
                               title="Send funds directly to partner PayPal account via REST API"
                             >
                               <Zap size={10} className={isSubmittingPayout ? 'animate-spin' : ''} /> Send PayPal
                             </button>
                             <button
                               onClick={() => handleOpenPayoutModal(item)}
-                              className="bg-white text-black border border-black py-1 px-2 text-[10px] font-black uppercase hover:bg-gray-100 transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                              className="bg-white text-black border border-black py-1 px-2 text-[10px] font-black uppercase hover:bg-gray-100 transition-all cursor-pointer"
                               title="Record offline / manual payment"
                             >
                               Record Manual
@@ -930,7 +908,7 @@ const AffiliateManager: React.FC = () => {
                 No affiliates currently in accumulating status.
               </div>
             ) : (
-              <div className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-x-auto">
+              <div className="border-2 border-black bg-white overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="border-b-2 border-black bg-gray-100 text-xs font-black uppercase tracking-wider">
@@ -978,7 +956,7 @@ const AffiliateManager: React.FC = () => {
                           <td className="p-3 text-center">
                             <button
                               onClick={() => setInspectedPartner(item.affiliate)}
-                              className="border border-black bg-white px-2.5 py-1 text-[10px] font-black uppercase hover:bg-black hover:text-white transition-all cursor-pointer inline-flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                              className="border border-black bg-white px-2.5 py-1 text-[10px] font-black uppercase hover:bg-black hover:text-white transition-all cursor-pointer inline-flex items-center gap-1"
                             >
                               <Eye size={10} /> Inspect
                             </button>
@@ -1007,7 +985,7 @@ const AffiliateManager: React.FC = () => {
               No affiliates registered yet. Activate a partner code from /affiliate landing page.
             </div>
           ) : (
-            <div className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-x-auto">
+            <div className="border-2 border-black bg-white overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b-2 border-black bg-gray-100 text-xs font-black uppercase tracking-wider">
@@ -1064,9 +1042,7 @@ const AffiliateManager: React.FC = () => {
                             <span className="px-2 py-0.5 border border-black text-[9px] font-black uppercase bg-gray-100">
                               {a.status}
                             </span>
-                            <span className={`px-1.5 py-0.2 border border-black text-[8px] font-black uppercase ${
-                              a.auto_payout_enabled === false ? 'bg-amber-100 text-amber-950' : 'bg-green-100 text-green-950'
-                            }`}>
+                            <span className={`px-1.5 py-0.2 border border-black text-[8px] font-black uppercase ${ a.auto_payout_enabled === false ? 'bg-amber-100 text-amber-950' : 'bg-green-100 text-green-950' }`}>
                               {a.auto_payout_enabled === false ? 'Manual Only' : 'Auto 1st'}
                             </span>
                           </div>
@@ -1077,7 +1053,7 @@ const AffiliateManager: React.FC = () => {
                               <button
                                 onClick={() => handleDirectPayPalPayout(balance)}
                                 disabled={isSubmittingPayout}
-                                className="border border-black bg-yellow-300 hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-black uppercase transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none inline-flex items-center gap-1"
+                                className="border border-black bg-yellow-300 hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-black uppercase transition-all cursor-pointer inline-flex items-center gap-1"
                                 title="Send live PayPal transfer now"
                               >
                                 <Zap size={10} className={isSubmittingPayout ? 'animate-spin' : ''} /> Pay Now (${balance.dueAmount.toFixed(2)})
@@ -1085,7 +1061,7 @@ const AffiliateManager: React.FC = () => {
                             )}
                             <button
                               onClick={() => setInspectedPartner(a)}
-                              className="border border-black bg-white px-2.5 py-1 text-[10px] font-black uppercase hover:bg-black hover:text-white transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none inline-flex items-center gap-1"
+                              className="border border-black bg-white px-2.5 py-1 text-[10px] font-black uppercase hover:bg-black hover:text-white transition-all cursor-pointer inline-flex items-center gap-1"
                             >
                               <Eye size={10} /> View Ledger
                             </button>
@@ -1127,7 +1103,7 @@ const AffiliateManager: React.FC = () => {
                 setSettledPage(1);
               }}
               placeholder="Search by user email, partner code, legal name, or PayPal email..."
-              className="w-full pl-9 pr-3 py-2 text-xs font-bold border-2 border-black bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none placeholder:text-gray-400 uppercase"
+              className="w-full pl-9 pr-3 py-2 text-xs font-bold border-2 border-black bg-white focus:outline-none placeholder:text-gray-400 uppercase"
             />
           </div>
 
@@ -1136,7 +1112,7 @@ const AffiliateManager: React.FC = () => {
               {settledSearchQuery ? 'No disbursements matching your search query.' : 'No completed payouts recorded yet. Payouts recorded via batch execution will appear here.'}
             </div>
           ) : (
-            <div className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-x-auto">
+            <div className="border-2 border-black bg-white overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b-2 border-black bg-gray-100 text-xs font-black uppercase tracking-wider">
@@ -1269,11 +1245,7 @@ const AffiliateManager: React.FC = () => {
                 <button
                   key={f}
                   onClick={() => setStatusFilter(f)}
-                  className={`px-3 py-1 text-[10px] font-black uppercase tracking-wider border-2 border-black transition-all cursor-pointer ${
-                    statusFilter === f 
-                      ? 'bg-black text-white' 
-                      : 'bg-white text-black hover:bg-gray-100'
-                  }`}
+                  className={`px-3 py-1 text-[10px] font-black uppercase tracking-wider border-2 border-black transition-all cursor-pointer ${ statusFilter === f ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100' }`}
                 >
                   {f.replace('_', ' ')}
                 </button>
@@ -1286,7 +1258,7 @@ const AffiliateManager: React.FC = () => {
               No commissions matching the selected filter or query.
             </div>
           ) : (
-            <div className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-x-auto">
+            <div className="border-2 border-black bg-white overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b-2 border-black bg-gray-100 text-xs font-black uppercase tracking-wider">
@@ -1320,7 +1292,7 @@ const AffiliateManager: React.FC = () => {
                         </td>
                         <td className="p-3 border-r border-black/20 whitespace-nowrap">
                           {c.coupon_code || c.attribution_type === 'coupon' ? (
-                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-purple-100 text-purple-950 font-sans shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-purple-100 text-purple-950 font-sans">
                               <Tag size={10} className="text-[#FF5C00]" /> Coupon ({c.coupon_code || 'CODE'})
                             </span>
                           ) : (
@@ -1345,12 +1317,7 @@ const AffiliateManager: React.FC = () => {
                           {new Date(c.cleared_at).toLocaleDateString()}
                         </td>
                         <td className="p-3 border-r border-black/20 text-center">
-                          <span className={`px-2 py-0.5 text-[9px] uppercase font-black border border-black ${
-                            c.status === 'paid' ? 'bg-green-200 text-green-950' :
-                            c.status === 'approved' ? 'bg-blue-200 text-blue-950' :
-                            c.status === 'pending_clearance' ? 'bg-amber-200 text-amber-950' :
-                            'bg-red-200 text-red-950'
-                          }`}>
+                          <span className={`px-2 py-0.5 text-[9px] uppercase font-black border border-black ${ c.status === 'paid' ? 'bg-green-200 text-green-950' : c.status === 'approved' ? 'bg-blue-200 text-blue-950' : c.status === 'pending_clearance' ? 'bg-amber-200 text-amber-950' : 'bg-red-200 text-red-950' }`}>
                             {c.status.replace('_', ' ')}
                           </span>
                         </td>
@@ -1385,7 +1352,7 @@ const AffiliateManager: React.FC = () => {
       {/* INDIVIDUAL PARTNER AUDIT MODAL (SUBQI NEO-BRUTALIST) */}
       {inspectedPartner && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white border-2 border-black max-w-4xl w-full p-6 sm:p-8 space-y-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] my-8">
+          <div className="bg-white border-2 border-black max-w-4xl w-full p-6 sm:p-8 space-y-6 my-8">
             <div className="flex items-start justify-between border-b-2 border-black pb-4">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#FF5C00] block">
@@ -1444,22 +1411,22 @@ const AffiliateManager: React.FC = () => {
               return (
                 <>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
-                    <div className="p-3 border-2 border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="p-3 border-2 border-black bg-white">
                       <span className="text-[9px] font-black uppercase text-gray-500 block">Ready / Due</span>
                       <div className="text-xl font-mono font-black text-green-700">${readyDue.toFixed(2)}</div>
                       <span className="text-[10px] font-bold text-gray-400 uppercase">{readyDue >= 50 ? 'Qualified' : 'Under $50'}</span>
                     </div>
-                    <div className="p-3 border-2 border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="p-3 border-2 border-black bg-white">
                       <span className="text-[9px] font-black uppercase text-gray-500 block">In Warranty</span>
                       <div className="text-xl font-mono font-black text-amber-700">${holding.toFixed(2)}</div>
                       <span className="text-[10px] font-bold text-gray-400 uppercase">14-day hold</span>
                     </div>
-                    <div className="p-3 border-2 border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="p-3 border-2 border-black bg-white">
                       <span className="text-[9px] font-black uppercase text-gray-500 block">Lifetime Paid</span>
                       <div className="text-xl font-mono font-black text-black">${paid.toFixed(2)}</div>
                       <span className="text-[10px] font-bold text-gray-400 uppercase">Disbursed</span>
                     </div>
-                    <div className="p-3 border-2 border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="p-3 border-2 border-black bg-white">
                       <span className="text-[9px] font-black uppercase text-gray-500 block">Gross Sales</span>
                       <div className="text-xl font-mono font-black text-black">${grossSales.toFixed(2)}</div>
                       <span className="text-[10px] font-bold text-gray-400 uppercase">{partnerComms.length} order(s)</span>
@@ -1499,11 +1466,7 @@ const AffiliateManager: React.FC = () => {
                                 <td className="p-2 border-r border-black/20 text-right font-black text-green-700">+${Number(c.commission_amount || 0).toFixed(2)}</td>
                                 <td className="p-2 border-r border-black/20 text-gray-500">{new Date(c.cleared_at).toLocaleDateString()}</td>
                                 <td className="p-2 text-center">
-                                  <span className={`px-1.5 py-0.2 text-[8px] uppercase font-black border border-black ${
-                                    c.status === 'paid' ? 'bg-green-200 text-green-950' :
-                                    c.status === 'approved' ? 'bg-blue-200 text-blue-950' :
-                                    'bg-amber-200 text-amber-950'
-                                  }`}>
+                                  <span className={`px-1.5 py-0.2 text-[8px] uppercase font-black border border-black ${ c.status === 'paid' ? 'bg-green-200 text-green-950' : c.status === 'approved' ? 'bg-blue-200 text-blue-950' : 'bg-amber-200 text-amber-950' }`}>
                                     {c.status.replace('_', ' ')}
                                   </span>
                                 </td>
@@ -1521,7 +1484,7 @@ const AffiliateManager: React.FC = () => {
             <div className="flex justify-end pt-2 border-t-2 border-black">
               <button
                 onClick={() => setInspectedPartner(null)}
-                className="border-2 border-black px-6 py-2.5 font-bold uppercase text-xs hover:bg-black hover:text-white transition-all cursor-pointer shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                className="border-2 border-black px-6 py-2.5 font-bold uppercase text-xs hover:bg-black hover:text-white transition-all cursor-pointer"
               >
                 Close Audit
               </button>
@@ -1533,7 +1496,7 @@ const AffiliateManager: React.FC = () => {
       {/* PROCESS PAYOUT DIALOG (SUBQI NEO-BRUTALIST) */}
       {payoutModalAffiliate && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border-2 border-black max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="bg-white border-2 border-black max-w-lg w-full p-6 sm:p-8 space-y-6">
             <div className="border-b-2 border-black pb-4">
               <span className="text-[10px] font-black text-[#FF5C00] uppercase tracking-widest block">
                 Official Payout Disbursement
@@ -1614,7 +1577,7 @@ const AffiliateManager: React.FC = () => {
                   type="button"
                   onClick={handleLivePayPalPayout}
                   disabled={isSubmittingPayout}
-                  className="bg-[#FF5C00] text-black border-2 border-black px-6 py-2 text-xs font-black uppercase tracking-wider flex items-center gap-2 hover:bg-black hover:text-white transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none cursor-pointer"
+                  className="bg-[#FF5C00] text-black border-2 border-black px-6 py-2 text-xs font-black uppercase tracking-wider flex items-center gap-2 hover:bg-black hover:text-white transition-all cursor-pointer"
                 >
                   {isSubmittingPayout ? (
                     <>

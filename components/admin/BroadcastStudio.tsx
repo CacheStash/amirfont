@@ -1195,7 +1195,7 @@ export default function BroadcastStudio() {
         </div>
 
         {/* GAS REAL-TIME STATUS BAR */}
-        <div className="flex items-center gap-4 bg-white border-2 border-black shadow-[4px_4px_0px_#000000] p-3 text-xs">
+        <div className="flex items-center gap-4 bg-white border-2 border-black p-3 text-xs">
           <div className="flex flex-col">
             <span className="text-[10px] uppercase font-bold opacity-60">Daily Available Quota</span>
             <span className="text-base font-black text-black">
@@ -1217,7 +1217,7 @@ export default function BroadcastStudio() {
       {/* THREE GAS ACCOUNTS OVERVIEW */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {data.gas.accounts.map((acc, idx) => (
-          <div key={idx} className="border-2 border-black shadow-[3px_3px_0px_#000000] p-4 bg-white flex flex-col justify-between">
+          <div key={idx} className="border-2 border-black p-4 bg-white flex flex-col justify-between">
             <div className="flex items-center justify-between text-[11px] mb-2">
               <span className="font-black flex items-center gap-1.5 uppercase">
                 <span className="w-2 h-2 rounded-full bg-[#ff5c00] inline-block" />
@@ -1240,33 +1240,21 @@ export default function BroadcastStudio() {
       <div className="flex border-b-2 border-black text-xs font-black uppercase tracking-wider gap-2">
         <button
           onClick={() => setActiveTab('compose')}
-          className={`px-6 py-3 border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
-            activeTab === 'compose' 
-              ? 'border-black text-black bg-black/5 font-black' 
-              : 'border-transparent text-black/50 hover:text-black'
-          }`}
+          className={`px-6 py-3 border-b-2 transition-all flex items-center gap-2 cursor-pointer ${ activeTab === 'compose' ? 'border-black text-black bg-black/5 font-black' : 'border-transparent text-black/50 hover:text-black' }`}
         >
           <Send size={14} />
           Compose Broadcast
         </button>
         <button
           onClick={() => setActiveTab('campaigns')}
-          className={`px-6 py-3 border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
-            activeTab === 'campaigns' 
-              ? 'border-black text-black bg-black/5 font-black' 
-              : 'border-transparent text-black/50 hover:text-black'
-          }`}
+          className={`px-6 py-3 border-b-2 transition-all flex items-center gap-2 cursor-pointer ${ activeTab === 'campaigns' ? 'border-black text-black bg-black/5 font-black' : 'border-transparent text-black/50 hover:text-black' }`}
         >
           <Layers size={14} />
           Campaigns &amp; Multi-Day Queue ({data.campaigns.length})
         </button>
         <button
           onClick={() => setActiveTab('logs')}
-          className={`px-6 py-3 border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
-            activeTab === 'logs' 
-              ? 'border-black text-black bg-black/5 font-black' 
-              : 'border-transparent text-black/50 hover:text-black'
-          }`}
+          className={`px-6 py-3 border-b-2 transition-all flex items-center gap-2 cursor-pointer ${ activeTab === 'logs' ? 'border-black text-black bg-black/5 font-black' : 'border-transparent text-black/50 hover:text-black' }`}
         >
           <History size={14} />
           Sent Delivery Audit ({allLogs.length})
@@ -1277,7 +1265,7 @@ export default function BroadcastStudio() {
       {activeTab === 'compose' && (
         <div className="space-y-6 max-w-4xl mx-auto">
           {/* 1. AUDIENCE SELECTOR CARD */}
-          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4">
+          <div className="border-2 border-black p-5 bg-white space-y-4">
             <div className="flex items-center justify-between">
               <label className="text-xs uppercase tracking-widest font-black flex items-center gap-2">
                 <Users size={14} /> Target Audience
@@ -1310,7 +1298,7 @@ export default function BroadcastStudio() {
                   <button
                     type="button"
                     onClick={() => setTargetMode('audience')}
-                    className="px-3 py-1.5 border-2 border-black bg-white text-black text-[10px] font-black uppercase tracking-wider hover:bg-black hover:text-white transition-all cursor-pointer shrink-0 shadow-[2px_2px_0px_#000000]"
+                    className="px-3 py-1.5 border-2 border-black bg-white text-black text-[10px] font-black uppercase tracking-wider hover:bg-black hover:text-white transition-all cursor-pointer shrink-0"
                   >
                     Switch to Audience Broadcast
                   </button>
@@ -1321,11 +1309,7 @@ export default function BroadcastStudio() {
                 <button
                   type="button"
                   onClick={() => setAudience('all')}
-                  className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${
-                    audience === 'all' 
-                      ? 'bg-black text-white shadow-[2px_2px_0px_#ff5c00]' 
-                      : 'bg-white hover:bg-black/5'
-                  }`}
+                  className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${ audience === 'all' ? 'bg-black text-white' : 'bg-white hover:bg-black/5' }`}
                 >
                   <div className="font-black">ALL AUDIENCE</div>
                   <div className="text-[10px] opacity-70 mt-1">{data.audience.totalUniqueCount} Unique Emails</div>
@@ -1333,11 +1317,7 @@ export default function BroadcastStudio() {
                 <button
                   type="button"
                   onClick={() => setAudience('buyers')}
-                  className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${
-                    audience === 'buyers' 
-                      ? 'bg-black text-white shadow-[2px_2px_0px_#ff5c00]' 
-                      : 'bg-white hover:bg-black/5'
-                  }`}
+                  className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${ audience === 'buyers' ? 'bg-black text-white' : 'bg-white hover:bg-black/5' }`}
                 >
                   <div className="font-black">BUYERS ONLY</div>
                   <div className="text-[10px] opacity-70 mt-1">{data.audience.buyersCount} Verified Patrons</div>
@@ -1345,11 +1325,7 @@ export default function BroadcastStudio() {
                 <button
                   type="button"
                   onClick={() => setAudience('subscribers')}
-                  className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${
-                    audience === 'subscribers' 
-                      ? 'bg-black text-white shadow-[2px_2px_0px_#ff5c00]' 
-                      : 'bg-white hover:bg-black/5'
-                  }`}
+                  className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${ audience === 'subscribers' ? 'bg-black text-white' : 'bg-white hover:bg-black/5' }`}
                 >
                   <div className="font-black">SUBSCRIBERS</div>
                   <div className="text-[10px] opacity-70 mt-1">{data.audience.subscribersCount} Active Readers</div>
@@ -1357,11 +1333,7 @@ export default function BroadcastStudio() {
                 <button
                   type="button"
                   onClick={() => setAudience('affiliates')}
-                  className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${
-                    audience === 'affiliates' 
-                      ? 'bg-black text-white shadow-[2px_2px_0px_#ff5c00]' 
-                      : 'bg-white hover:bg-black/5'
-                  }`}
+                  className={`p-3 border-2 border-black text-left transition-all cursor-pointer ${ audience === 'affiliates' ? 'bg-black text-white' : 'bg-white hover:bg-black/5' }`}
                 >
                   <div className="font-black">AFFILIATES</div>
                   <div className="text-[10px] opacity-70 mt-1">{data.audience.affiliatesCount || 0} {(data.audience.affiliatesCount || 0) === 1 ? 'Partner' : 'Partners'} (Excl. Buyers)</div>
@@ -1371,7 +1343,7 @@ export default function BroadcastStudio() {
           </div>
 
           {/* 2. PRESET SELECTOR */}
-          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-3">
+          <div className="border-2 border-black p-5 bg-white space-y-3">
             <label className="text-xs uppercase tracking-widest font-black flex items-center justify-between">
               <span>Template Preset</span>
               <span className="text-[10px] font-normal opacity-60">{PRESETS.length} Formats Available</span>
@@ -1389,7 +1361,7 @@ export default function BroadcastStudio() {
 
           {/* 3. TYPEFACE SELECTOR (FOR RELEASE & UPDATE PRESETS) */}
           {(selectedPreset === 'new_release' || selectedPreset === 'update_typeface') && (
-            <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-amber-50 space-y-3">
+            <div className="border-2 border-black p-5 bg-amber-50 space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-xs uppercase tracking-widest font-black flex items-center gap-2">
                   <Sparkles size={14} className="text-amber-600" /> Select Target Typeface
@@ -1453,7 +1425,7 @@ export default function BroadcastStudio() {
 
           {/* 3B. DIRECT BUYER & DEAL NEGOTIATOR (FOR NEW_COUPON PRESET) */}
           {selectedPreset === 'new_coupon' && (
-            <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-orange-50/50 space-y-4">
+            <div className="border-2 border-black p-5 bg-orange-50/50 space-y-4">
               <div className="flex items-center justify-between border-b-2 border-black pb-2">
                 <div className="flex items-center gap-2">
                   <Calculator size={16} className="text-[#ff5c00]" />
@@ -1557,7 +1529,7 @@ export default function BroadcastStudio() {
               )}
 
               {/* BARGAIN / PRICE REQUEST CALCULATOR */}
-              <div className="border-2 border-black/40 bg-white p-4 space-y-3 mt-2 shadow-[2px_2px_0px_#000000]">
+              <div className="border-2 border-black/40 bg-white p-4 space-y-3 mt-2">
                 <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-black border-b-2 border-black/10 pb-1">
                   <span className="flex items-center gap-1.5"><Calculator size={14} className="text-[#ff5c00]" /> Price Request / Deal Calculator</span>
                   <span className="text-[9px] text-[#ff5c00] font-mono font-bold">Negotiate &amp; Generate Token</span>
@@ -1595,7 +1567,7 @@ export default function BroadcastStudio() {
                   <button
                     type="button"
                     onClick={handleComputeDeal}
-                    className="px-4 py-2 bg-black text-white text-[10px] uppercase font-black tracking-wider hover:bg-[#ff5c00] hover:text-black border-2 border-black transition-all cursor-pointer shadow-[2px_2px_0px_#000000]"
+                    className="px-4 py-2 bg-black text-white text-[10px] uppercase font-black tracking-wider hover:bg-[#ff5c00] hover:text-black border-2 border-black transition-all cursor-pointer"
                   >
                     Compute &amp; Apply Coupon
                   </button>
@@ -1606,7 +1578,7 @@ export default function BroadcastStudio() {
 
           {/* 3C. SEASONAL EVENT & PROMOTION SELECTOR (FOR NEW_PROMOTION PRESET) */}
           {selectedPreset === 'new_promotion' && (
-            <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-orange-50/50 space-y-4">
+            <div className="border-2 border-black p-5 bg-orange-50/50 space-y-4">
               <div className="flex items-center justify-between border-b-2 border-black pb-2">
                 <div className="flex items-center gap-2">
                   <Sparkles size={16} className="text-[#ff5c00]" />
@@ -1668,7 +1640,7 @@ export default function BroadcastStudio() {
 
               {/* 2. INLINE CREATE NEW PROMOTION FORM */}
               {isCreatingNewPromo && (
-                <div className="border-2 border-black p-4 bg-white space-y-3 shadow-[2px_2px_0px_#000000]">
+                <div className="border-2 border-black p-4 bg-white space-y-3">
                   <div className="text-[11px] font-black uppercase tracking-wider text-black border-b-2 border-black pb-1 flex items-center justify-between">
                     <span>Commission New Promotion in Supabase</span>
                     <span className="text-[9px] text-[#ff5c00] font-bold">Auto-syncs with Promotions menu</span>
@@ -1778,7 +1750,7 @@ export default function BroadcastStudio() {
                       type="button"
                       onClick={() => handleCreateNewPromotion()}
                       disabled={isSavingNewPromo}
-                      className="px-4 py-2 bg-black text-white text-[10px] uppercase font-black tracking-wider hover:bg-[#ff5c00] hover:text-black border-2 border-black transition-all cursor-pointer disabled:opacity-40 shadow-[2px_2px_0px_#000000]"
+                      className="px-4 py-2 bg-black text-white text-[10px] uppercase font-black tracking-wider hover:bg-[#ff5c00] hover:text-black border-2 border-black transition-all cursor-pointer disabled:opacity-40"
                     >
                       {isSavingNewPromo ? 'Commissioning...' : 'Save & Link to Broadcast'}
                     </button>
@@ -1797,11 +1769,7 @@ export default function BroadcastStudio() {
                       key={evt}
                       type="button"
                       onClick={() => handleSelectEvent(evt)}
-                      className={`px-3 py-1.5 text-xs font-black uppercase border-2 transition-all cursor-pointer ${
-                        selectedEventName === evt && !selectedPromoId
-                          ? 'bg-[#ff5c00] text-black border-black shadow-[2px_2px_0px_#000000]'
-                          : 'bg-white text-black border-black/40 hover:border-black'
-                      }`}
+                      className={`px-3 py-1.5 text-xs font-black uppercase border-2 transition-all cursor-pointer ${ selectedEventName === evt && !selectedPromoId ? 'bg-[#ff5c00] text-black border-black' : 'bg-white text-black border-black/40 hover:border-black' }`}
                     >
                       {evt}
                     </button>
@@ -1846,7 +1814,7 @@ export default function BroadcastStudio() {
           )}
 
           {/* 4. EMAIL PREVIEW (PLACED PROMINENTLY UNDER PRESET & TYPEFACE SELECTOR) */}
-          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4">
+          <div className="border-2 border-black p-5 bg-white space-y-4">
             <div className="flex items-center justify-between text-xs uppercase tracking-widest font-black border-b-2 border-black pb-2">
               <span className="flex items-center gap-2">
                 <Eye size={15} /> Subqi Email Preview
@@ -1855,7 +1823,7 @@ export default function BroadcastStudio() {
             </div>
 
             {/* PREVIEW CONTAINER (FULL WIDTH WITH REALISTIC READING WIDTH) */}
-            <div className="max-w-2xl mx-auto border-2 border-black shadow-[6px_6px_0px_#000000] bg-white p-6 sm:p-8 text-black">
+            <div className="max-w-2xl mx-auto border-2 border-black bg-white p-6 sm:p-8 text-black">
               {/* Header Branding */}
               <div className="text-center pb-5 mb-5 border-b-2 border-black">
                 <div className="text-[10px] font-black uppercase tracking-[0.25em] text-[#ff5c00]">
@@ -1902,7 +1870,7 @@ export default function BroadcastStudio() {
                   if (block.type === 'button') {
                     return (
                       <div key={block.id || idx} className="text-center my-6">
-                        <span className="inline-block bg-black text-white text-[11px] font-black uppercase tracking-[0.1em] px-6 py-3 border-2 border-black shadow-[3px_3px_0px_#ff5c00]">
+                        <span className="inline-block bg-black text-white text-[11px] font-black uppercase tracking-[0.1em] px-6 py-3 border-2 border-black">
                           {block.buttonText || "TEST & BUY LICENSE"} &rarr;
                         </span>
                       </div>
@@ -1912,7 +1880,7 @@ export default function BroadcastStudio() {
                   if (block.type === 'image') {
                     return block.imageUrl ? (
                       <div key={block.id || idx} className="my-6 text-center">
-                        <div className="border-2 border-black overflow-hidden inline-block w-full shadow-[2px_2px_0px_#000000]">
+                        <div className="border-2 border-black overflow-hidden inline-block w-full">
                           <img src={block.imageUrl} alt={block.imageCaption || "Studio image"} className="w-full h-auto object-cover" />
                         </div>
                         {block.imageCaption && (
@@ -1935,12 +1903,12 @@ export default function BroadcastStudio() {
                       const pScope = block.promoTarget === 'bundle' ? 'ON SELECTED CONTEMPORARY TYPEFACES' : 'STORE-WIDE ON ALL TYPEFACES';
                       const pUrgency = block.promoEndDate ? `VALID UNTIL ${new Date(block.promoEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}` : '';
                       return (
-                        <div key={block.id || idx} className="border-2 border-black bg-orange-50 p-6 text-center my-6 shadow-[4px_4px_0px_#000000]">
+                        <div key={block.id || idx} className="border-2 border-black bg-orange-50 p-6 text-center my-6">
                           <div className="inline-block bg-black text-white px-3 py-1 text-[10px] font-mono font-black uppercase tracking-[0.15em] mb-3">
                             {pName}
                           </div>
                           <div>
-                            <div className="inline-block bg-[#ff5c00] text-black border-2 border-black shadow-[4px_4px_0px_#000000] px-6 py-2.5 font-sans font-black text-3xl sm:text-4xl tracking-tight leading-none">
+                            <div className="inline-block bg-[#ff5c00] text-black border-2 border-black px-6 py-2.5 font-sans font-black text-3xl sm:text-4xl tracking-tight leading-none">
                               {pDiscount}
                             </div>
                           </div>
@@ -1951,7 +1919,7 @@ export default function BroadcastStudio() {
                             No coupon code required.
                           </div>
                           {pUrgency && (
-                            <div className="mt-3 text-[10px] font-mono font-black text-black bg-[#ffeedd] inline-block px-3 py-1 border-2 border-black shadow-[2px_2px_0px_#000000]">
+                            <div className="mt-3 text-[10px] font-mono font-black text-black bg-[#ffeedd] inline-block px-3 py-1 border-2 border-black">
                               ⏳ {pUrgency}
                             </div>
                           )}
@@ -1962,7 +1930,7 @@ export default function BroadcastStudio() {
                     const cDiscount = block.couponDiscount ? `${block.couponDiscount}% OFF` : '';
                     const cUrgency = block.couponUrgencyText || '';
                     return (
-                      <div key={block.id || idx} className="border-2 border-black bg-orange-50 p-5 text-center my-6 shadow-[4px_4px_0px_#000000]">
+                      <div key={block.id || idx} className="border-2 border-black bg-orange-50 p-5 text-center my-6">
                         <div className="text-[10px] uppercase tracking-[0.2em] font-black text-[#ff5c00] mb-1">
                           EXCLUSIVE CLIENT PRIVILEGE VOUCHER
                         </div>
@@ -1971,7 +1939,7 @@ export default function BroadcastStudio() {
                             {cDiscount}
                           </div>
                         )}
-                        <div className="font-mono text-xl font-black text-black bg-white inline-block px-4 py-1.5 border-2 border-black tracking-widest my-1 shadow-[2px_2px_0px_#000000]">
+                        <div className="font-mono text-xl font-black text-black bg-white inline-block px-4 py-1.5 border-2 border-black tracking-widest my-1">
                           {cCode}
                         </div>
                         <div className="text-[10px] font-bold text-black/70 mt-1.5 uppercase">
@@ -2000,7 +1968,7 @@ export default function BroadcastStudio() {
           </div>
 
           {/* 4. CAMPAIGN METADATA & MODULAR EMAIL BUILDER */}
-          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4 text-xs">
+          <div className="border-2 border-black p-5 bg-white space-y-4 text-xs">
             <div className="flex items-center justify-between border-b-2 border-black pb-2">
               <span className="uppercase tracking-widest font-black text-xs flex items-center gap-2">
                 <Megaphone size={14} className="text-[#ff5c00]" /> Campaign Subject & Reference
@@ -2032,7 +2000,7 @@ export default function BroadcastStudio() {
           </div>
 
           {/* EMAIL BUILDER: 100% CUSTOMIZABLE CONTENT SECTIONS */}
-          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white space-y-4 text-xs">
+          <div className="border-2 border-black p-5 bg-white space-y-4 text-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-black gap-2">
               <div>
                 <label className="uppercase tracking-widest font-black text-xs flex items-center gap-2">
@@ -2052,35 +2020,35 @@ export default function BroadcastStudio() {
                 <button
                   type="button"
                   onClick={() => addBlock('heading')}
-                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Type size={13} /> + Heading
                 </button>
                 <button
                   type="button"
                   onClick={() => addBlock('text')}
-                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <AlignLeft size={13} /> + Message
                 </button>
                 <button
                   type="button"
                   onClick={() => addBlock('coupon')}
-                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Tag size={13} /> + Coupon
                 </button>
                 <button
                   type="button"
                   onClick={() => addBlock('button')}
-                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <ExternalLink size={13} /> + CTA Button
                 </button>
                 <button
                   type="button"
                   onClick={() => addBlock('image')}
-                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                  className="p-2 border-2 border-black bg-zinc-100 hover:bg-[#ff5c00] hover:text-white font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <ImageIcon size={13} /> + Image
                 </button>
@@ -2094,7 +2062,7 @@ export default function BroadcastStudio() {
               ) : (
                 <div className="space-y-4 pt-2">
                   {blocks.map((block, idx) => (
-                    <div key={block.id} className="border-2 border-black p-4 bg-zinc-50 shadow-[3px_3px_0px_#000000] space-y-3">
+                    <div key={block.id} className="border-2 border-black p-4 bg-zinc-50 space-y-3">
                       {/* Block Header */}
                       <div className="flex items-center justify-between border-b border-black/20 pb-2">
                         <div className="flex items-center gap-2">
@@ -2287,7 +2255,7 @@ export default function BroadcastStudio() {
                       )}
 
                       {block.type === 'coupon' && (
-                        <div className="space-y-4 bg-orange-50/50 p-4 border-2 border-black shadow-[2px_2px_0px_#000000]">
+                        <div className="space-y-4 bg-orange-50/50 p-4 border-2 border-black">
                           {/* DEAL KIND TOGGLE: COUPON CODE VS STORE DISCOUNT PROMOTION */}
                           <div className="flex flex-wrap items-center gap-4 text-xs font-black uppercase border-b-2 border-black/20 pb-2">
                             <span className="text-[10px] opacity-70">Deal Type:</span>
@@ -2463,7 +2431,7 @@ export default function BroadcastStudio() {
 
                               {/* INLINE NEW COUPON CREATOR */}
                               {isAddingNewCoupon === block.id && (
-                                <div className="border-2 border-black p-4 bg-orange-50/50 space-y-3 mt-3 shadow-[2px_2px_0px_#000000]">
+                                <div className="border-2 border-black p-4 bg-orange-50/50 space-y-3 mt-3">
                                   <div className="text-[11px] font-black uppercase tracking-wider text-black border-b border-black/20 pb-1 flex items-center justify-between">
                                     <span>Register New Coupon to Supabase</span>
                                     <span className="text-[9px] text-[#ff5c00] font-bold">Auto-syncs with Promotions menu</span>
@@ -2546,7 +2514,7 @@ export default function BroadcastStudio() {
             </div>
 
             {/* LAUNCH BUTTON */}
-            <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-white flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="border-2 border-black p-5 bg-white flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="text-xs">
                 {selectedPreset === 'new_coupon' && targetMode === 'single' ? (
                   <div>
@@ -2583,7 +2551,7 @@ export default function BroadcastStudio() {
                     ? (!selectedBuyerEmail || !selectedBuyerEmail.includes('@')) 
                     : getTargetAudienceCount() === 0)
                 }
-                className="w-full md:w-auto px-8 py-3 bg-black text-white text-xs uppercase font-black tracking-widest hover:bg-[#ff5c00] hover:text-black border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full md:w-auto px-8 py-3 bg-black text-white text-xs uppercase font-black tracking-widest hover:bg-[#ff5c00] hover:text-black border-2 border-black transition-all disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {sending ? (
                   <>
@@ -2606,7 +2574,7 @@ export default function BroadcastStudio() {
       {/* TAB 2: CAMPAIGNS & MULTI-DAY QUEUE */}
       {activeTab === 'campaigns' && (
         <div className="space-y-6">
-          <div className="border-2 border-black shadow-[3px_3px_0px_#000000] p-4 bg-white flex items-center justify-between text-xs">
+          <div className="border-2 border-black p-4 bg-white flex items-center justify-between text-xs">
             <div>
               <span className="font-black uppercase">Multi-Day Queue Engine: </span>
               <span className="opacity-70">
@@ -2632,16 +2600,12 @@ export default function BroadcastStudio() {
                 const canContinue = remaining > 0 && data.gas.allowedToday > 0;
 
                 return (
-                  <div key={camp.id} className="border-2 border-black shadow-[4px_4px_0px_#000000] p-6 bg-white space-y-4">
+                  <div key={camp.id} className="border-2 border-black p-6 bg-white space-y-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-black/10 pb-4">
                       <div>
                         <div className="flex items-center gap-3">
                           <h3 className="font-black text-lg uppercase">{camp.title || camp.subject}</h3>
-                          <span className={`text-[9px] px-2 py-0.5 uppercase font-black border-2 border-black ${
-                            camp.status === 'completed'
-                              ? 'bg-emerald-300 text-black'
-                              : 'bg-amber-300 text-black'
-                          }`}>
+                          <span className={`text-[9px] px-2 py-0.5 uppercase font-black border-2 border-black ${ camp.status === 'completed' ? 'bg-emerald-300 text-black' : 'bg-amber-300 text-black' }`}>
                             {camp.status === 'completed' ? 'Completed' : 'In Progress (Queued)'}
                           </span>
                         </div>
@@ -2654,7 +2618,7 @@ export default function BroadcastStudio() {
                         <button
                           onClick={() => handleSendBroadcast(camp.id)}
                           disabled={sending || !canContinue}
-                          className="px-5 py-2.5 bg-black text-white text-xs uppercase font-black tracking-wider hover:bg-[#ff5c00] hover:text-black border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-40 flex items-center gap-2 cursor-pointer self-start md:self-auto"
+                          className="px-5 py-2.5 bg-black text-white text-xs uppercase font-black tracking-wider hover:bg-[#ff5c00] hover:text-black border-2 border-black transition-all disabled:opacity-40 flex items-center gap-2 cursor-pointer self-start md:self-auto"
                         >
                           <Send size={12} />
                           Continue Next Batch ({Math.min(remaining, data.gas.allowedToday)} emails)
@@ -2705,7 +2669,7 @@ export default function BroadcastStudio() {
             <span className="text-xs opacity-60 font-bold">Showing {filteredLogs.length} Delivery Records</span>
           </div>
 
-          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] overflow-x-auto bg-white">
+          <div className="border-2 border-black overflow-x-auto bg-white">
             <table className="w-full text-left text-xs">
               <thead className="bg-black text-white uppercase tracking-wider text-[10px]">
                 <tr>
@@ -2756,7 +2720,7 @@ export default function BroadcastStudio() {
                             e.stopPropagation();
                             setSelectedLog(log);
                           }}
-                          className="px-2.5 py-1 border border-black bg-white hover:bg-black hover:text-white text-[9px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 transition-all cursor-pointer shadow-[2px_2px_0px_#000]"
+                          className="px-2.5 py-1 border border-black bg-white hover:bg-black hover:text-white text-[9px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 transition-all cursor-pointer"
                           title="View live broadcast email preview"
                         >
                           <Eye size={12} />
@@ -2785,7 +2749,7 @@ export default function BroadcastStudio() {
 
         return (
           <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-hidden">
-            <div className="bg-white border-3 border-black shadow-[10px_10px_0px_#000] w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in duration-200">
+            <div className="bg-white border-3 border-black w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in duration-200">
               
               {/* Modal Header */}
               <div className="p-4 sm:p-5 border-b-3 border-black bg-black text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -2813,22 +2777,14 @@ export default function BroadcastStudio() {
                     <button
                       type="button"
                       onClick={() => setLogPreviewDevice('desktop')}
-                      className={`px-2.5 py-1 text-[10px] uppercase font-black transition-all cursor-pointer ${
-                        logPreviewDevice === 'desktop'
-                          ? 'bg-white text-black'
-                          : 'text-gray-400 hover:text-white'
-                      }`}
+                      className={`px-2.5 py-1 text-[10px] uppercase font-black transition-all cursor-pointer ${ logPreviewDevice === 'desktop' ? 'bg-white text-black' : 'text-gray-400 hover:text-white' }`}
                     >
                       Desktop
                     </button>
                     <button
                       type="button"
                       onClick={() => setLogPreviewDevice('mobile')}
-                      className={`px-2.5 py-1 text-[10px] uppercase font-black transition-all cursor-pointer ${
-                        logPreviewDevice === 'mobile'
-                          ? 'bg-white text-black'
-                          : 'text-gray-400 hover:text-white'
-                      }`}
+                      className={`px-2.5 py-1 text-[10px] uppercase font-black transition-all cursor-pointer ${ logPreviewDevice === 'mobile' ? 'bg-white text-black' : 'text-gray-400 hover:text-white' }`}
                     >
                       Mobile
                     </button>
@@ -2847,9 +2803,7 @@ export default function BroadcastStudio() {
               {/* Modal Body: Authentic Rendered Broadcast Container */}
               <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-zinc-900 flex justify-center min-h-[500px]">
                 <div 
-                  className={`transition-all duration-300 bg-white border-2 border-black p-6 sm:p-8 font-sans text-black shadow-[6px_6px_0px_#000] ${
-                    logPreviewDevice === 'desktop' ? 'w-full max-w-[620px]' : 'w-[375px]'
-                  }`}
+                  className={`transition-all duration-300 bg-white border-2 border-black p-6 sm:p-8 font-sans text-black ${ logPreviewDevice === 'desktop' ? 'w-full max-w-[620px]' : 'w-[375px]' }`}
                 >
                   {/* Header Branding */}
                   <div className="text-center pb-5 mb-5 border-b-2 border-black">
@@ -2892,7 +2846,7 @@ export default function BroadcastStudio() {
                     if (block.type === 'button') {
                       return (
                         <div key={block.id || idx} className="text-center my-6">
-                          <span className="inline-block bg-black text-white text-[10px] font-black uppercase tracking-[0.15em] px-6 py-3 border border-black shadow-[3px_3px_0px_#ff5c00]">
+                          <span className="inline-block bg-black text-white text-[10px] font-black uppercase tracking-[0.15em] px-6 py-3 border border-black">
                             {block.buttonText || tData.buttonText || "EXPLORE ARCHIVE"} &rarr;
                           </span>
                         </div>
@@ -2922,12 +2876,12 @@ export default function BroadcastStudio() {
                         const pScope = block.promoTarget === 'bundle' ? 'ON SELECTED EDITORIAL TYPEFACES' : 'STORE-WIDE ON ALL TYPEFACES';
                         const pUrgency = block.promoEndDate ? `Valid until ${new Date(block.promoEndDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : '';
                         return (
-                          <div key={block.id || idx} className="border-2 border-black bg-zinc-50 p-6 text-center my-6 shadow-[4px_4px_0px_#ff5c00]">
+                          <div key={block.id || idx} className="border-2 border-black bg-zinc-50 p-6 text-center my-6">
                             <div className="text-[10px] uppercase tracking-[0.25em] text-[#ff5c00] font-black mb-3">
                               {pName}
                             </div>
                             <div>
-                              <div className="inline-block bg-black text-white border-2 border-black px-6 py-2.5 font-black text-3xl sm:text-4xl tracking-tight leading-none shadow-[3px_3px_0px_#ff5c00]">
+                              <div className="inline-block bg-black text-white border-2 border-black px-6 py-2.5 font-black text-3xl sm:text-4xl tracking-tight leading-none">
                                 {pDiscount}
                               </div>
                             </div>
@@ -2949,7 +2903,7 @@ export default function BroadcastStudio() {
                       const cDiscount = block.couponDiscount ? `${block.couponDiscount}% OFF` : '';
                       const cUrgency = block.couponUrgencyText || '';
                       return (
-                        <div key={block.id || idx} className="border-2 border-dashed border-black bg-white p-5 text-center my-6 shadow-[4px_4px_0px_#000]">
+                        <div key={block.id || idx} className="border-2 border-dashed border-black bg-white p-5 text-center my-6">
                           <div className="text-[9px] uppercase tracking-[0.2em] text-[#ff5c00] font-black mb-1">
                             EXCLUSIVE PRIVILEGE VOUCHER
                           </div>

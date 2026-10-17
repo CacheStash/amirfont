@@ -169,7 +169,7 @@ const UserMessages = () => {
               <p className="text-[10px] opacity-40">COMMUNICATION_CENTER</p>
             </div>
             <div className="flex gap-2 w-full md:w-auto">
-              <div className="flex border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex border-2 border-black bg-white">
                 {/* TAB INBOX DENGAN FLOATING BADGE */}
                 <button 
                   onClick={() => {setTab('inbox'); setCurrentPage(0);}} 
@@ -177,7 +177,7 @@ const UserMessages = () => {
                 >
                   <Inbox size={14}/> INBOX
                   {unreadCount > 0 && (
-                    <span className="absolute -top-3 -right-2 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-pulse">
+                    <span className="absolute -top-3 -right-2 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 border-2 border-black animate-pulse">
                       {unreadCount}
                     </span>
                   )}
@@ -186,7 +186,7 @@ const UserMessages = () => {
                   <History size={14}/> SENT
                 </button>
               </div>
-              <button onClick={() => setShowForm(!showForm)} className="bg-black text-white px-6 py-2 text-[10px] font-black border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ml-auto">
+              <button onClick={() => setShowForm(!showForm)} className="bg-black text-white px-6 py-2 text-[10px] font-black border-2 border-black ml-auto">
                 {showForm ? 'CLOSE' : 'NEW_TICKET'}
               </button>
             </div>
@@ -196,7 +196,7 @@ const UserMessages = () => {
 
       {selectedMessage ? (
         /* DETAIL VIEW */
-        <div className="border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom-2">
+        <div className="border-2 border-black bg-white animate-in slide-in-from-bottom-2">
           <div className="p-4 border-b-2 border-black flex justify-between items-center bg-gray-50">
             <button onClick={() => setSelectedMessage(null)} className="flex items-center gap-2 font-black text-[10px] hover:underline cursor-pointer">
               <ArrowLeft size={14} /> BACK_TO_LIST
@@ -213,7 +213,7 @@ const UserMessages = () => {
               <form onSubmit={(e) => handleSend(e, true)} className="mt-8 pt-8 border-t-2 border-black space-y-4">
                 <p className="text-[10px] font-black italic text-blue-600 flex items-center gap-2"><Send size={12}/> QUICK_REPLY_TO_OFFICIAL</p>
                 <textarea placeholder="TYPE RESPONSE..." rows={4} value={replyContent} onChange={e => setReplyContent(e.target.value)} className="w-full border-2 border-black p-3 text-xs font-bold outline-none focus:bg-blue-50 resize-none" required />
-                <button disabled={sending} className="bg-black text-white px-8 py-3 font-black text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all">
+                <button disabled={sending} className="bg-black text-white px-8 py-3 font-black text-[10px] transition-all">
                   {sending ? 'SENDING...' : 'SEND_REPLY'}
                 </button>
               </form>
@@ -222,10 +222,10 @@ const UserMessages = () => {
         </div>
       ) : showForm ? (
         /* CREATE FORM */
-        <form onSubmit={(e) => handleSend(e)} className="border-2 border-black p-6 bg-white space-y-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <form onSubmit={(e) => handleSend(e)} className="border-2 border-black p-6 bg-white space-y-4">
           <input type="text" placeholder="SUBJECT" value={subject} onChange={e => setSubject(e.target.value)} className="w-full border-2 border-black p-3 text-xs font-bold outline-none focus:bg-yellow-50" required />
           <textarea placeholder="MESSAGE..." rows={5} value={content} onChange={e => setContent(e.target.value)} className="w-full border-2 border-black p-3 text-xs font-bold outline-none focus:bg-yellow-50 resize-none" required />
-          <button disabled={sending} className="w-full bg-black text-white p-4 font-black text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-y-0 active:translate-y-[2px] transition-all">
+          <button disabled={sending} className="w-full bg-black text-white p-4 font-black text-xs transition-all">
             {sending ? 'DISPATCHING...' : 'DISPATCH_TICKET'}
           </button>
         </form>
@@ -239,9 +239,7 @@ const UserMessages = () => {
                 <div 
                   key={m.id} 
                   onClick={() => markAsRead(m)}
-                  className={`border-2 border-black p-5 flex items-center justify-between group cursor-pointer transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none active:translate-y-1 
-                    ${!m.is_actually_read && tab === 'inbox' ? 'bg-blue-50 ring-2 ring-black' : 'bg-white hover:bg-black hover:text-white'}
-                    ${m.message_type === 'broadcast' ? 'bg-yellow-400 text-black hover:bg-yellow-500' : ''}`}
+                  className={`border-2 border-black p-5 flex items-center justify-between group cursor-pointer transition-all ${!m.is_actually_read && tab === 'inbox' ? 'bg-blue-50 ring-2 ring-black' : 'bg-white hover:bg-black hover:text-white'} ${m.message_type === 'broadcast' ? 'bg-yellow-400 text-black hover:bg-yellow-500' : ''}`}
                 >
                   <div className="overflow-hidden space-y-1">
                     <span className="text-[9px] font-black uppercase flex items-center gap-1">

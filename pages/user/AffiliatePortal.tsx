@@ -551,7 +551,7 @@ const AffiliatePortal: React.FC = () => {
 
   if (!affiliate) {
     return (
-      <div className="border-2 border-black p-10 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center space-y-5">
+      <div className="border-2 border-black p-10 bg-white text-center space-y-5">
         <Share2 size={36} className="mx-auto text-[#FF5C00]" />
         <div className="space-y-2">
           <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">Join the Subqi Affiliate Program</h3>
@@ -562,7 +562,7 @@ const AffiliatePortal: React.FC = () => {
         <div>
           <Link 
             to="/affiliate" 
-            className="py-3 px-8 text-xs font-black uppercase tracking-widest inline-flex items-center justify-center gap-2 bg-[#FF5C00] text-black border-2 border-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none cursor-pointer"
+            className="py-3 px-8 text-xs font-black uppercase tracking-widest inline-flex items-center justify-center gap-2 bg-[#FF5C00] text-black border-2 border-black hover:bg-black hover:text-white transition-all cursor-pointer"
           >
             <Share2 size={15} /> Join Affiliate
           </Link>
@@ -697,31 +697,23 @@ const AffiliatePortal: React.FC = () => {
               ? `${earningBadge.label} (Total Gross Sales: $${totalGrossSales.toFixed(2)})`
               : `Creator Earning Badge: Reach $100 gross sales to unlock Level 1 (Current: $${totalGrossSales.toFixed(2)})`}
           >
-            <div className={`relative w-12 h-12 flex flex-col items-center justify-center border-2 border-black transition-all ${
-              earningBadge.hasEarned 
-                ? 'bg-[#FFE500] text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'
-                : 'bg-gray-100 border-dashed border-gray-400 text-gray-400'
-            }`}>
+            <div className={`relative w-12 h-12 flex flex-col items-center justify-center border-2 border-black transition-all ${ earningBadge.hasEarned ? 'bg-[#FFE500] text-black' : 'bg-gray-100 border-dashed border-gray-400 text-gray-400' }`}>
               <div className="flex items-center justify-center leading-none -mb-0.5">
                 <Star 
                   size={11} 
                   className={earningBadge.hasEarned ? "fill-black text-black" : "fill-gray-300 text-gray-400"} 
                 />
               </div>
-              <span className={`text-lg font-black leading-none font-mono ${
-                earningBadge.hasEarned ? 'text-black' : 'text-gray-400'
-              }`}>
+              <span className={`text-lg font-black leading-none font-mono ${ earningBadge.hasEarned ? 'text-black' : 'text-gray-400' }`}>
                 {earningBadge.level > 0 ? earningBadge.level : '0'}
               </span>
-              <span className={`text-[7px] font-black uppercase tracking-tighter leading-none ${
-                earningBadge.hasEarned ? 'text-black' : 'text-gray-400'
-              }`}>
+              <span className={`text-[7px] font-black uppercase tracking-tighter leading-none ${ earningBadge.hasEarned ? 'text-black' : 'text-gray-400' }`}>
                 LVL
               </span>
             </div>
 
             {/* Hover Tooltip Card */}
-            <div className="absolute left-0 top-full mt-2 hidden group-hover:flex flex-col z-30 w-60 p-3 bg-black text-white text-xs border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,229,0,1)] pointer-events-none font-sans">
+            <div className="absolute left-0 top-full mt-2 hidden group-hover:flex flex-col z-30 w-60 p-3 bg-black text-white text-xs border-2 border-black pointer-events-none font-sans">
               <div className="flex items-center gap-1.5 font-black text-[#FFE500] text-[11px] uppercase tracking-wider mb-1">
                 <Award size={13} />
                 {earningBadge.hasEarned ? `Level ${earningBadge.level} Creator Badge` : 'Creator Earning Badge'}
@@ -758,21 +750,13 @@ const AffiliatePortal: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2.5 text-xs font-black tracking-wider uppercase border-2 border-black transition-all cursor-pointer ${
-              activeTab === 'overview'
-                ? 'bg-black text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'
-                : 'bg-white text-black hover:bg-gray-100'
-            }`}
+            className={`px-4 py-2.5 text-xs font-black tracking-wider uppercase border-2 border-black transition-all cursor-pointer ${ activeTab === 'overview' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100' }`}
           >
             Overview & Sales
           </button>
           <button
             onClick={() => setActiveTab('payouts')}
-            className={`px-4 py-2.5 text-xs font-black tracking-wider uppercase border-2 border-black transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'payouts'
-                ? 'bg-black text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'
-                : 'bg-white text-black hover:bg-gray-100'
-            }`}
+            className={`px-4 py-2.5 text-xs font-black tracking-wider uppercase border-2 border-black transition-all flex items-center gap-1.5 cursor-pointer ${ activeTab === 'payouts' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100' }`}
           >
             <Calendar size={13} /> Payouts & Due Ledger
             {isQualifiedForPayout && (
@@ -781,11 +765,7 @@ const AffiliatePortal: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('settings')}
-            className={`px-4 py-2.5 text-xs font-black tracking-wider uppercase border-2 border-black transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'settings'
-                ? 'bg-black text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'
-                : 'bg-white text-black hover:bg-gray-100'
-            }`}
+            className={`px-4 py-2.5 text-xs font-black tracking-wider uppercase border-2 border-black transition-all flex items-center gap-1.5 cursor-pointer ${ activeTab === 'settings' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100' }`}
           >
             <Settings size={13} /> Account Settings
           </button>
@@ -798,7 +778,7 @@ const AffiliatePortal: React.FC = () => {
           
           {/* 3 FINANCIAL RECONCILIATION CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="p-6 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
+            <div className="p-6 border-2 border-black bg-white space-y-1">
               <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-gray-500">
                 <span>Clearance Holding</span>
                 <Clock size={16} className="text-amber-600" />
@@ -819,7 +799,7 @@ const AffiliatePortal: React.FC = () => {
               )}
             </div>
 
-            <div className="p-6 border-2 border-black bg-yellow-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2 flex flex-col justify-between">
+            <div className="p-6 border-2 border-black bg-yellow-200 space-y-2 flex flex-col justify-between">
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-black">
                   <span>Ready For Payout (Due)</span>
@@ -838,11 +818,7 @@ const AffiliatePortal: React.FC = () => {
               <button
                 onClick={handleOpenWithdrawModal}
                 disabled={!isQualifiedForPayout || isWithdrawing}
-                className={`w-full mt-2 py-2.5 px-3 border-2 border-black text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  isQualifiedForPayout
-                    ? 'bg-[#FF5C00] text-black hover:bg-black hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none'
-                    : 'bg-black/10 text-black/40 border-black/20 cursor-not-allowed shadow-none'
-                }`}
+                className={`w-full mt-2 py-2.5 px-3 border-2 border-black text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${ isQualifiedForPayout ? 'bg-[#FF5C00] text-black hover:bg-black hover:text-white' : 'bg-black/10 text-black/40 border-black/20 cursor-not-allowed shadow-none' }`}
                 title={isQualifiedForPayout ? "Withdraw cleared funds instantly to PayPal" : "Requires $50.00 minimum cleared balance"}
               >
                 {isWithdrawing ? (
@@ -857,7 +833,7 @@ const AffiliatePortal: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
+            <div className="p-6 border-2 border-black bg-white space-y-1">
               <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-gray-500">
                 <span>Lifetime Net Paid</span>
                 <CircleDollarSign size={16} className="text-black" />
@@ -870,7 +846,7 @@ const AffiliatePortal: React.FC = () => {
           </div>
 
           {/* 14-DAY WARRANTY HOLD CLARITY BANNER */}
-          <div className="border-2 border-black bg-amber-50 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3">
+          <div className="border-2 border-black bg-amber-50 p-4 flex items-start gap-3">
             <Clock size={20} className="text-amber-700 shrink-0 mt-0.5" />
             <div className="space-y-1 grow">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
@@ -890,7 +866,7 @@ const AffiliatePortal: React.FC = () => {
           </div>
 
           {/* TRANSPARENT PAYMENT GATEWAY FEE NOTICE (SUBQI NEO-BRUTALIST) */}
-          <div className="border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4 flex items-start gap-3">
+          <div className="border-2 border-black bg-white p-4 flex items-start gap-3">
             <Info size={20} className="text-[#FF5C00] shrink-0 mt-0.5" />
             <div className="space-y-1 grow">
               <span className="text-xs font-black uppercase tracking-wider text-black block">
@@ -903,7 +879,7 @@ const AffiliatePortal: React.FC = () => {
           </div>
 
           {/* COMMISSIONS & SALES TRANSACTION TABLE (AT THE TOP WITH AUTO-PAGINATION) */}
-          <div className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+          <div className="border-2 border-black bg-white overflow-hidden">
             <div className="p-4 border-b-2 border-black bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-xs font-black uppercase tracking-wider">
@@ -966,7 +942,7 @@ const AffiliatePortal: React.FC = () => {
                           </td>
                           <td className="p-3 whitespace-nowrap">
                             {comm.coupon_code || comm.attribution_type === 'coupon' ? (
-                              <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-purple-100 text-purple-950 font-sans shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                              <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black px-2 py-0.5 border border-black bg-purple-100 text-purple-950 font-sans">
                                 <Tag size={10} className="text-[#FF5C00]" /> Coupon: {comm.coupon_code || 'PROMO'}
                               </span>
                             ) : (
@@ -1050,7 +1026,7 @@ const AffiliatePortal: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* TOOL 1: VANITY LINK */}
-            <div className="border-2 border-black p-6 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-3">
+            <div className="border-2 border-black p-6 bg-white space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black uppercase tracking-wider text-[#FF5C00] block">
                   1. Personal Vanity Share Link
@@ -1094,7 +1070,7 @@ const AffiliatePortal: React.FC = () => {
             </div>
 
             {/* TOOL 2: AUDIENCE PROMO COUPON */}
-            <div className="border-2 border-black p-6 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-3">
+            <div className="border-2 border-black p-6 bg-white space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black uppercase tracking-wider text-[#FF5C00] block flex items-center gap-1">
                   <Tag size={12} /> 2. Audience {couponDiscountPercent}% OFF Promo Code
@@ -1135,7 +1111,7 @@ const AffiliatePortal: React.FC = () => {
           </div>
 
           {/* STRATEGY COMPARISON: REFERRAL LINK VS PROMO COUPON */}
-          <div className="border-2 border-black bg-orange-50/70 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4">
+          <div className="border-2 border-black bg-orange-50/70 p-5 space-y-4">
             <div className="flex items-center gap-2">
               <Sparkles size={16} className="text-[#FF5C00]" />
               <h4 className="text-xs font-black uppercase tracking-wider text-black">
@@ -1182,7 +1158,7 @@ const AffiliatePortal: React.FC = () => {
           </div>
 
           {/* CREATOR MILESTONE REWARDS (NEO-BRUTALIST) */}
-          <div className="border-2 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-5">
+          <div className="border-2 border-black bg-white p-6 space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-black pb-4">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#FF5C00] block">
@@ -1201,7 +1177,7 @@ const AffiliatePortal: React.FC = () => {
 
             {/* PSYCHOLOGICAL URGENCY BANNER IF REWARD UNLOCKED */}
             {milestoneInfo.activeDiscountPercent > 0 && (
-              <div className="p-4 bg-yellow-100 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
+              <div className="p-4 bg-yellow-100 border-2 border-black space-y-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="font-black text-xs uppercase tracking-wider flex items-center gap-1.5 text-black">
                     <Sparkles size={14} className="text-[#FF5C00]" />
@@ -1209,7 +1185,7 @@ const AffiliatePortal: React.FC = () => {
                   </span>
                   <Link
                     to="/fonts"
-                    className="bg-[#FF5C00] text-black font-black uppercase text-[10px] tracking-wider px-4 py-2 border-2 border-black hover:bg-black hover:text-white transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none inline-flex items-center gap-1.5 cursor-pointer"
+                    className="bg-[#FF5C00] text-black font-black uppercase text-[10px] tracking-wider px-4 py-2 border-2 border-black hover:bg-black hover:text-white transition-all inline-flex items-center gap-1.5 cursor-pointer"
                   >
                     Use Discount Now &rarr;
                   </Link>
@@ -1263,13 +1239,7 @@ const AffiliatePortal: React.FC = () => {
                   return (
                     <div 
                       key={tier.threshold}
-                      className={`p-3 border-2 border-black text-center transition-all ${
-                        isCurrent
-                          ? 'bg-yellow-300 text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'
-                          : achieved
-                          ? 'bg-gray-100 text-black'
-                          : 'bg-white text-gray-400 border-gray-300'
-                      }`}
+                      className={`p-3 border-2 border-black text-center transition-all ${ isCurrent ? 'bg-yellow-300 text-black' : achieved ? 'bg-gray-100 text-black' : 'bg-white text-gray-400 border-gray-300' }`}
                     >
                       <div className="text-[10px] font-mono font-black">${tier.threshold} Target</div>
                       <div className="text-base font-black mt-0.5">{tier.label}</div>
@@ -1290,7 +1260,7 @@ const AffiliatePortal: React.FC = () => {
         <div className="space-y-6 animate-in fade-in duration-300">
           
           {/* PAYOUT SCHEDULE & THRESHOLD CARD */}
-          <div className="p-6 border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-5">
+          <div className="p-6 border-2 border-black bg-white space-y-5">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-black pb-4">
               <div className="flex items-start gap-3">
                 <Calendar size={26} className="text-[#FF5C00] shrink-0 mt-0.5" />
@@ -1299,9 +1269,7 @@ const AffiliatePortal: React.FC = () => {
                     <span className="text-[10px] font-black uppercase tracking-widest text-[#FF5C00] block">
                       Disbursement Schedule
                     </span>
-                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 border border-black ${
-                      autoPayoutEnabled ? 'bg-green-300 text-green-950' : 'bg-gray-200 text-gray-700'
-                    }`}>
+                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 border border-black ${ autoPayoutEnabled ? 'bg-green-300 text-green-950' : 'bg-gray-200 text-gray-700' }`}>
                       {autoPayoutEnabled ? 'Auto-Payout Active' : 'Manual Payout Only'}
                     </span>
                   </div>
@@ -1322,11 +1290,7 @@ const AffiliatePortal: React.FC = () => {
                   <button
                     type="button"
                     onClick={toggleAutoPayout}
-                    className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-0.5 active:translate-y-0.5 cursor-pointer whitespace-nowrap ${
-                      autoPayoutEnabled 
-                        ? 'bg-green-300 hover:bg-green-400 text-black' 
-                        : 'bg-yellow-200 hover:bg-yellow-300 text-black'
-                    }`}
+                    className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-transform cursor-pointer whitespace-nowrap ${ autoPayoutEnabled ? 'bg-green-300 hover:bg-green-400 text-black' : 'bg-yellow-200 hover:bg-yellow-300 text-black' }`}
                     title="Click to toggle automated monthly payouts"
                   >
                     {autoPayoutEnabled ? '✓ Auto-Payout: ON' : '✕ Auto-Payout: OFF'}
@@ -1356,9 +1320,7 @@ const AffiliatePortal: React.FC = () => {
 
               <div className="w-full bg-gray-100 border-2 border-black h-4 overflow-hidden p-0.5">
                 <div 
-                  className={`h-full transition-all duration-700 ${
-                    isQualifiedForPayout ? 'bg-green-600' : 'bg-[#FF5C00]'
-                  }`}
+                  className={`h-full transition-all duration-700 ${ isQualifiedForPayout ? 'bg-green-600' : 'bg-[#FF5C00]' }`}
                   style={{ width: `${thresholdPercentage}%` }}
                 />
               </div>
@@ -1379,11 +1341,7 @@ const AffiliatePortal: React.FC = () => {
                 <button
                   onClick={handleOpenWithdrawModal}
                   disabled={!isQualifiedForPayout || isWithdrawing}
-                  className={`py-2 px-5 border-2 border-black text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
-                    isQualifiedForPayout
-                      ? 'bg-[#FF5C00] text-black hover:bg-black hover:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none'
-                      : 'bg-gray-200 text-gray-400 border-gray-400 cursor-not-allowed shadow-none'
-                  }`}
+                  className={`py-2 px-5 border-2 border-black text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shrink-0 ${ isQualifiedForPayout ? 'bg-[#FF5C00] text-black hover:bg-black hover:text-white' : 'bg-gray-200 text-gray-400 border-gray-400 cursor-not-allowed shadow-none' }`}
                 >
                   {isWithdrawing ? (
                     <>
@@ -1401,7 +1359,7 @@ const AffiliatePortal: React.FC = () => {
 
           {/* 3 BALANCE BREAKDOWN CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="p-6 border-2 border-black bg-yellow-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
+            <div className="p-6 border-2 border-black bg-yellow-200 space-y-1">
               <span className="text-[10px] font-black uppercase tracking-wider text-black block">
                 Ready for Next Monthly Run
               </span>
@@ -1413,7 +1371,7 @@ const AffiliatePortal: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-6 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
+            <div className="p-6 border-2 border-black bg-white space-y-1">
               <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 block">
                 In-Warranty Holding
               </span>
@@ -1425,7 +1383,7 @@ const AffiliatePortal: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-6 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-1">
+            <div className="p-6 border-2 border-black bg-white space-y-1">
               <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block">
                 Lifetime Paid Out (Net)
               </span>
@@ -1439,7 +1397,7 @@ const AffiliatePortal: React.FC = () => {
           </div>
 
           {/* SETTLED PAYOUTS LEDGER */}
-          <div className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+          <div className="border-2 border-black bg-white overflow-hidden">
             <div className="p-4 border-b-2 border-black bg-gray-50 flex items-center justify-between">
               <div>
                 <h3 className="text-xs font-black uppercase tracking-wider">
@@ -1558,7 +1516,7 @@ const AffiliatePortal: React.FC = () => {
           </div>
 
           {/* TRANSPARENT PAYMENT GATEWAY FEE NOTICE (PAYOUTS SECTION) */}
-          <div className="border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4 flex items-start gap-3">
+          <div className="border-2 border-black bg-white p-4 flex items-start gap-3">
             <Info size={20} className="text-[#FF5C00] shrink-0 mt-0.5" />
             <div className="space-y-1 grow">
               <span className="text-xs font-black uppercase tracking-wider text-black block">
@@ -1576,7 +1534,7 @@ const AffiliatePortal: React.FC = () => {
       {/* TAB 3: ACCOUNT & PAYOUT SETTINGS */}
       {activeTab === 'settings' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          <div className="border-2 border-black bg-white p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] max-w-3xl space-y-6">
+          <div className="border-2 border-black bg-white p-6 sm:p-8 max-w-3xl space-y-6">
             <div>
               <h3 className="text-2xl font-black uppercase tracking-tight">
                 Partner Profile & Payment Configuration
@@ -1601,7 +1559,7 @@ const AffiliatePortal: React.FC = () => {
             <form onSubmit={handleUpdateSettings} className="space-y-6">
               
               {/* Account Username & Authentication Info Card */}
-              <div className="p-4 border-2 border-black bg-yellow-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[3px_3px_0px_#000000]">
+              <div className="p-4 border-2 border-black bg-yellow-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-wider text-[#FF5C00] block">
                     Registered Login Account (Username)
@@ -1656,7 +1614,7 @@ const AffiliatePortal: React.FC = () => {
               </div>
 
               {/* Monthly Auto-Payout Toggle */}
-              <div className="p-4 border-2 border-black bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <div className="p-4 border-2 border-black bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Zap size={14} className="text-[#FF5C00]" />
@@ -1669,9 +1627,7 @@ const AffiliatePortal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setAutoPayoutEnabled(!autoPayoutEnabled)}
-                  className={`px-4 py-2 text-xs font-black uppercase border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-0.5 active:translate-y-0.5 cursor-pointer whitespace-nowrap self-start sm:self-center ${
-                    autoPayoutEnabled ? 'bg-green-400 text-black' : 'bg-gray-200 text-gray-700'
-                  }`}
+                  className={`px-4 py-2 text-xs font-black uppercase border-2 border-black transition-transform cursor-pointer whitespace-nowrap self-start sm:self-center ${ autoPayoutEnabled ? 'bg-green-400 text-black' : 'bg-gray-200 text-gray-700' }`}
                 >
                   {autoPayoutEnabled ? '✓ Auto-Payout ON' : '✕ Auto-Payout OFF (Manual Only)'}
                 </button>
@@ -1721,7 +1677,7 @@ const AffiliatePortal: React.FC = () => {
               </div>
 
               {/* Promo Coupon Customization & Availability Check */}
-              <div className="p-5 border-2 border-black bg-yellow-50 space-y-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <div className="p-5 border-2 border-black bg-yellow-50 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Tag size={16} className="text-[#FF5C00]" />
@@ -1767,9 +1723,7 @@ const AffiliatePortal: React.FC = () => {
                   </div>
 
                   {availabilityResult && (
-                    <div className={`p-2.5 border-2 border-black text-xs font-bold flex items-center gap-2 mt-2 ${
-                      availabilityResult.available ? 'bg-green-100 text-green-950' : 'bg-red-100 text-red-950'
-                    }`}>
+                    <div className={`p-2.5 border-2 border-black text-xs font-bold flex items-center gap-2 mt-2 ${ availabilityResult.available ? 'bg-green-100 text-green-950' : 'bg-red-100 text-red-950' }`}>
                       {availabilityResult.available ? <Check size={14} className="text-green-700 shrink-0" /> : <AlertCircle size={14} className="text-red-700 shrink-0" />}
                       <span>{availabilityResult.message}</span>
                     </div>
@@ -1799,11 +1753,7 @@ const AffiliatePortal: React.FC = () => {
                           }
                           setAvailabilityResult(null);
                         }}
-                        className={`py-2 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer ${
-                          couponDiscountPercent === pct 
-                            ? 'bg-[#FF5C00] text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-                            : 'bg-white text-black hover:bg-gray-100'
-                        }`}
+                        className={`py-2 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer ${ couponDiscountPercent === pct ? 'bg-[#FF5C00] text-black' : 'bg-white text-black hover:bg-gray-100' }`}
                       >
                         {pct}%{pct === 10 ? ' (Default)' : pct === 30 ? ' (Max)' : ''}
                       </button>
@@ -1966,7 +1916,7 @@ const AffiliatePortal: React.FC = () => {
                 <button
                   type="submit"
                   disabled={savingSettings}
-                  className="bg-black text-white hover:bg-[#FF5C00] hover:text-black border-2 border-black py-3.5 px-8 text-xs font-black tracking-widest uppercase flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all cursor-pointer"
+                  className="bg-black text-white hover:bg-[#FF5C00] hover:text-black border-2 border-black py-3.5 px-8 text-xs font-black tracking-widest uppercase flex items-center gap-2 transition-all cursor-pointer"
                 >
                   <Save size={14} />
                   <span>{savingSettings ? 'SAVING CHANGES...' : 'SAVE SETTINGS'}</span>
@@ -2002,12 +1952,12 @@ const AffiliatePortal: React.FC = () => {
       {/* WITHDRAWAL CONFIRMATION MODAL (SUBQI NEO-BRUTALIST) */}
       {showWithdrawModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-md w-full p-6 space-y-5 text-black max-h-[90vh] overflow-y-auto">
+          <div className="bg-white border-2 border-black max-w-md w-full p-6 space-y-5 text-black max-h-[90vh] overflow-y-auto">
             
             {/* Header */}
             <div className="flex items-center justify-between border-b-2 border-black pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 bg-[#FF5C00] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <div className="w-8 h-8 bg-[#FF5C00] border-2 border-black flex items-center justify-center">
                   <Wallet size={16} className="text-black" />
                 </div>
                 <div>
@@ -2061,7 +2011,7 @@ const AffiliatePortal: React.FC = () => {
                 </div>
                 <button
                   onClick={() => { setShowWithdrawModal(false); setWithdrawSuccess(null); }}
-                  className="w-full py-3 bg-black text-white font-black text-xs uppercase tracking-wider border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-[#FF5C00] hover:text-black transition-all cursor-pointer"
+                  className="w-full py-3 bg-black text-white font-black text-xs uppercase tracking-wider border-2 border-black hover:bg-[#FF5C00] hover:text-black transition-all cursor-pointer"
                 >
                   Close Window
                 </button>
@@ -2133,7 +2083,7 @@ const AffiliatePortal: React.FC = () => {
                   const calcNet = Math.max(0, Math.round((targetNum - calcFee) * 100) / 100);
 
                   return (
-                    <div className="p-3.5 border-2 border-black bg-white space-y-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="p-3.5 border-2 border-black bg-white space-y-2">
                       <span className="text-[10px] font-black uppercase tracking-wider text-gray-700 block">
                         Payout Breakdown Summary
                       </span>
@@ -2200,7 +2150,7 @@ const AffiliatePortal: React.FC = () => {
                     type="button"
                     onClick={executeWithdrawal}
                     disabled={isWithdrawing}
-                    className="flex-1 py-3 border-2 border-black bg-[#FF5C00] text-black hover:bg-black hover:text-white text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                    className="flex-1 py-3 border-2 border-black bg-[#FF5C00] text-black hover:bg-black hover:text-white text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                   >
                     {isWithdrawing ? (
                       <>

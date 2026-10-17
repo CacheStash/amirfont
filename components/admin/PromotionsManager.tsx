@@ -371,25 +371,19 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
           <div className="flex gap-4 mt-2">
             <button 
               onClick={() => setActiveTab('campaigns')}
-              className={`text-xs font-black uppercase tracking-wider pb-1 border-b-2 transition-all ${
-                activeTab === 'campaigns' ? 'border-black text-black' : 'border-transparent text-gray-400'
-              }`}
+              className={`text-xs font-black uppercase tracking-wider pb-1 border-b-2 transition-all ${ activeTab === 'campaigns' ? 'border-black text-black' : 'border-transparent text-gray-400' }`}
             >
               Store Campaigns
             </button>
             <button 
               onClick={() => setActiveTab('coupons')}
-              className={`text-xs font-black uppercase tracking-wider pb-1 border-b-2 transition-all ${
-                activeTab === 'coupons' ? 'border-black text-black' : 'border-transparent text-gray-400'
-              }`}
+              className={`text-xs font-black uppercase tracking-wider pb-1 border-b-2 transition-all ${ activeTab === 'coupons' ? 'border-black text-black' : 'border-transparent text-gray-400' }`}
             >
               Store Coupons ({coupons.filter(c => !c.affiliate_id).length})
             </button>
             <button 
               onClick={() => setActiveTab('affiliate_coupons')}
-              className={`text-xs font-black uppercase tracking-wider pb-1 border-b-2 transition-all ${
-                activeTab === 'affiliate_coupons' ? 'border-black text-black' : 'border-transparent text-gray-400'
-              }`}
+              className={`text-xs font-black uppercase tracking-wider pb-1 border-b-2 transition-all ${ activeTab === 'affiliate_coupons' ? 'border-black text-black' : 'border-transparent text-gray-400' }`}
             >
               Partner Coupons ({affiliateCoupons.length})
             </button>
@@ -401,7 +395,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
           {activeTab === 'campaigns' ? (
             <button 
               onClick={() => setIsAdding(true)}
-              className="bg-black text-white px-6 py-3 font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+              className="bg-black text-white px-6 py-3 font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-800 transition-all"
             >
               <Plus size={16} /> Create Promo
             </button>
@@ -412,13 +406,13 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
                   if (onNavigateTab) onNavigateTab('broadcast');
                   else window.dispatchEvent(new CustomEvent('admin-switch-tab', { detail: 'broadcast' }));
                 }}
-                className="bg-[#FF5C00] text-black px-6 py-3 font-black uppercase text-xs flex items-center gap-2 border-2 border-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none cursor-pointer"
+                className="bg-[#FF5C00] text-black px-6 py-3 font-black uppercase text-xs flex items-center gap-2 border-2 border-black hover:bg-black hover:text-white transition-all cursor-pointer"
               >
                 <Send size={15} /> Send in Broadcast Studio
               </button>
               <button 
                 onClick={() => setIsAddingCoupon(true)}
-                className="bg-black text-white px-6 py-3 font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                className="bg-black text-white px-6 py-3 font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-800 transition-all"
               >
                 <Plus size={16} /> Generate Coupon
               </button>
@@ -436,7 +430,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
             <div className="col-span-2 p-20 border-2 border-dashed border-gray-300 text-center text-gray-400 font-bold text-xs uppercase tracking-widest">No active promotions.</div>
           ) : (
             promos.map(p => (
-              <div key={p.id} className="border-2 border-black p-6 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div key={p.id} className="border-2 border-black p-6 bg-white">
                 <div className="flex justify-between items-start mb-4">
                   <span className="bg-yellow-300 px-2 py-1 text-[10px] font-bold uppercase border border-black">
                     {p.discount_percent}% OFF
@@ -469,7 +463,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
       {/* TAB 2: COUPONS LIST (BARGAIN DEALS) */}
       {activeTab === 'coupons' && (
         <div className="space-y-6">
-          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-orange-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="border-2 border-black p-5 bg-orange-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="font-black text-black uppercase tracking-wider block text-xs mb-1">
                 Visual Email Dispatch in Broadcast Studio
@@ -484,7 +478,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
                 if (onNavigateTab) onNavigateTab('broadcast');
                 else window.dispatchEvent(new CustomEvent('admin-switch-tab', { detail: 'broadcast' }));
               }}
-              className="px-5 py-2.5 bg-black text-white text-[10px] uppercase font-black tracking-wider hover:bg-[#ff5c00] hover:text-black border-2 border-black transition-all whitespace-nowrap cursor-pointer shadow-[2px_2px_0px_#000000] self-start sm:self-auto"
+              className="px-5 py-2.5 bg-black text-white text-[10px] uppercase font-black tracking-wider hover:bg-[#ff5c00] hover:text-black border-2 border-black transition-all whitespace-nowrap cursor-pointer self-start sm:self-auto"
             >
               Open in Broadcast Studio &rarr;
             </button>
@@ -500,7 +494,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
                   </div>
                 ) : (
                   storeCoupons.map(c => (
-                    <div key={c.id} className="border-2 border-black p-6 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
+                    <div key={c.id} className="border-2 border-black p-6 bg-white flex flex-col justify-between">
                       <div>
                         <div className="flex justify-between items-start mb-4">
                           <span className="bg-orange-500 text-white px-2 py-1 text-xs font-black uppercase border border-black tracking-widest">
@@ -538,7 +532,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
       {/* TAB 3: AFFILIATE / PARTNER COUPONS */}
       {activeTab === 'affiliate_coupons' && (
         <div className="space-y-6">
-          <div className="border-2 border-black shadow-[4px_4px_0px_#000000] p-5 bg-yellow-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="border-2 border-black p-5 bg-yellow-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="font-black text-black uppercase tracking-wider block text-xs mb-1">
                 Affiliate Partner Discount Vouchers
@@ -552,7 +546,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
             </span>
           </div>
 
-          <div className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-x-auto">
+          <div className="border-2 border-black bg-white overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b-2 border-black bg-gray-100 uppercase text-[10px] font-black text-black tracking-wider">
@@ -604,9 +598,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
                         {c.end_date || 'Ongoing'}
                       </td>
                       <td className="p-3 text-center">
-                        <span className={`px-2 py-0.5 border border-black text-[9px] font-black uppercase ${
-                          c.is_active ? 'bg-green-200 text-green-950' : 'bg-gray-200 text-gray-600'
-                        }`}>
+                        <span className={`px-2 py-0.5 border border-black text-[9px] font-black uppercase ${ c.is_active ? 'bg-green-200 text-green-950' : 'bg-gray-200 text-gray-600' }`}>
                           {c.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </td>
@@ -630,7 +622,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
       {/* MODAL 1: GENERATOR KUPON & KALKULATOR TAWARAN (PORTAL) */}
       {isAddingCoupon && createPortal(
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white border-2 border-black p-8 max-w-lg w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-95 my-8">
+          <div className="bg-white border-2 border-black p-8 max-w-lg w-full animate-in zoom-in-95 my-8">
             <div className="flex justify-between items-start mb-6 border-b-2 border-black pb-4">
               <h3 className="text-2xl font-black uppercase">Bargain Coupon Generator</h3>
               <button onClick={() => setIsAddingCoupon(false)} className="p-1 hover:bg-black hover:text-white transition-colors"><X size={20} /></button>
@@ -723,7 +715,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
               <button 
                 type="submit" 
                 disabled={isSaving}
-                className="w-full bg-black text-white p-4 font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] flex justify-center items-center gap-2 mt-4"
+                className="w-full bg-black text-white p-4 font-black uppercase text-xs flex justify-center items-center gap-2 mt-4"
               >
                 {isSaving ? <Loader2 className="animate-spin" size={16} /> : "Save & Activate Coupon"}
               </button>
@@ -736,7 +728,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
       {/* MODAL 2: DISPATCH COUPON TO BUYER (PORTAL - SUBQI STYLE) */}
       {isSendingCoupon && createPortal(
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[9999] flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white border-2 border-black max-w-2xl w-full p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-95 my-8 max-h-[90vh] overflow-y-auto font-mono text-black">
+          <div className="bg-white border-2 border-black max-w-2xl w-full p-8 animate-in zoom-in-95 my-8 max-h-[90vh] overflow-y-auto font-mono text-black">
             <div className="flex justify-between items-start mb-6 border-b-2 border-black pb-4">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#FF5C00] block mb-1">Direct Outreach</span>
@@ -778,7 +770,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
 
                 {/* Autocomplete Dropdown List */}
                 {showSuggestions && filteredBuyers.length > 0 && searchTxOrEmail.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 z-50 mt-1 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] max-h-48 overflow-y-auto divide-y divide-black/10">
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 border-2 border-black bg-white max-h-48 overflow-y-auto divide-y divide-black/10">
                     <div className="p-1.5 bg-black text-white text-[9px] font-black uppercase tracking-wider">
                       Recent Buyer Suggestions ({filteredBuyers.length})
                     </div>
@@ -871,7 +863,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
               <button 
                 type="submit" 
                 disabled={isDispatching || !(selectedBuyerEmail || searchTxOrEmail)?.includes('@')}
-                className="w-full bg-black text-white py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-[#FF5C00] hover:text-black border-2 border-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none disabled:opacity-40 flex justify-center items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+                className="w-full bg-black text-white py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-[#FF5C00] hover:text-black border-2 border-black transition-all disabled:opacity-40 flex justify-center items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
               >
                 {isDispatching ? <Loader2 className="animate-spin" size={16} /> : "Dispatch Email via GAS"}
               </button>
@@ -884,7 +876,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
       {/* MODAL FORM CAMPAIGN */}
       {isAdding && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white border-2 border-black p-8 max-w-lg w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] my-8">
+          <div className="bg-white border-2 border-black p-8 max-w-lg w-full my-8">
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-2xl font-bold uppercase">Configure Promo</h3>
               <button onClick={handleClose}><X size={20} /></button>
@@ -950,7 +942,7 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ onNavigateTab }) 
               <button 
                 type="submit" 
                 disabled={isSaving}
-                className="w-full bg-black text-white p-4 font-bold uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] flex justify-center items-center gap-2"
+                className="w-full bg-black text-white p-4 font-bold uppercase text-xs flex justify-center items-center gap-2"
               >
                 {isSaving ? <Loader2 className="animate-spin" size={16} /> : "Launch Campaign"}
               </button>

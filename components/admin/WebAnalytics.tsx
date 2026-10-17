@@ -158,9 +158,7 @@ const WebAnalytics: React.FC = () => {
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
-                className={`px-3 py-1.5 text-xs font-bold font-mono transition-colors ${
-                  timeRange === range ? 'bg-black text-white' : 'hover:bg-gray-100 text-black'
-                }`}
+                className={`px-3 py-1.5 text-xs font-bold font-mono transition-colors ${ timeRange === range ? 'bg-black text-white' : 'hover:bg-gray-100 text-black' }`}
               >
                 {range}D
               </button>
@@ -169,7 +167,7 @@ const WebAnalytics: React.FC = () => {
           <button
             onClick={fetchAnalytics}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold uppercase border border-black bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none hover:bg-gray-50 transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold uppercase border border-black bg-white hover:bg-gray-50 transition-all disabled:opacity-50"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             Refresh
@@ -189,7 +187,7 @@ const WebAnalytics: React.FC = () => {
 
       {/* METRIC CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 border border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-5 border border-black bg-white">
           <div className="flex items-center justify-between text-gray-500 mb-2">
             <span className="text-[10px] font-black uppercase tracking-wider">Unique Visitors</span>
             <Users size={16} className="text-black" />
@@ -200,7 +198,7 @@ const WebAnalytics: React.FC = () => {
           <div className="text-[10px] text-gray-500 mt-2 font-mono">Zone subqi.com</div>
         </div>
 
-        <div className="p-5 border border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-5 border border-black bg-white">
           <div className="flex items-center justify-between text-gray-500 mb-2">
             <span className="text-[10px] font-black uppercase tracking-wider">Total Requests</span>
             <Activity size={16} className="text-black" />
@@ -211,7 +209,7 @@ const WebAnalytics: React.FC = () => {
           <div className="text-[10px] text-gray-500 mt-2 font-mono">{data?.summary.totalPageViews.toLocaleString() || '0'} Pageviews</div>
         </div>
 
-        <div className="p-5 border border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-5 border border-black bg-white">
           <div className="flex items-center justify-between text-gray-500 mb-2">
             <span className="text-[10px] font-black uppercase tracking-wider">Bandwidth</span>
             <HardDrive size={16} className="text-black" />
@@ -222,7 +220,7 @@ const WebAnalytics: React.FC = () => {
           <div className="text-[10px] text-gray-500 mt-2 font-mono">Egress Edge Cloudflare</div>
         </div>
 
-        <div className="p-5 border border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-5 border border-black bg-white">
           <div className="flex items-center justify-between text-gray-500 mb-2">
             <span className="text-[10px] font-black uppercase tracking-wider">Worker Invocations</span>
             <Globe size={16} className="text-black" />
@@ -237,7 +235,7 @@ const WebAnalytics: React.FC = () => {
       {/* DETAIL BREAKDOWNS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* DAILY LOG TABLE */}
-        <div className="border border-black bg-white p-5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="border border-black bg-white p-5">
           <h3 className="font-black text-sm uppercase tracking-wider mb-4 pb-2 border-b border-gray-200">
             Aktivitas Harian
           </h3>
@@ -276,7 +274,7 @@ const WebAnalytics: React.FC = () => {
         </div>
 
         {/* TOP COUNTRIES */}
-        <div className="border border-black bg-white p-5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="border border-black bg-white p-5">
           <h3 className="font-black text-sm uppercase tracking-wider mb-4 pb-2 border-b border-gray-200">
             Top Visitor Berdasarkan Negara
           </h3>

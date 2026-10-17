@@ -65,7 +65,7 @@ const UserDashboard = () => {
         </div>
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="bg-black text-white p-2 border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all"
+          className="bg-black text-white p-2 border border-black hover:bg-[#FF5C00] hover:text-black transition-colors cursor-pointer"
         >
           {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>

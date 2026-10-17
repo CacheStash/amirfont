@@ -311,9 +311,7 @@ const handleAdd = (redirect: boolean = false) => {
                     {/* UI: 1-Column Layout License Button */}
                     <button onClick={() => toggleUsage(u.id)} 
                       disabled={isDisabled} 
-                      className={`w-full flex items-center justify-between p-5 border border-black transition-all ${
-                        isDisabled ? 'opacity-20 cursor-not-allowed' : isActive ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'
-                      }`}>
+                      className={`w-full flex items-center justify-between p-5 border border-black transition-all ${ isDisabled ? 'opacity-20 cursor-not-allowed' : isActive ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5' }`}>
                       <span className="text-[11px] font-black tracking-widest">{u.label}</span>
                       <Plus size={16} className={`transition-transform duration-300 ${isActive ? 'rotate-45' : ''}`} />
                     </button>
@@ -323,9 +321,7 @@ const handleAdd = (redirect: boolean = false) => {
                       <div className="flex flex-wrap md:flex-nowrap gap-1 pl-4 border-l-2 border-black/10 animate-in fade-in slide-in-from-top-1">
                         {tierMap[u.id].map((t: {key: string, label: string}) => (
                           <button key={t.key} onClick={() => setSelectedTiers(prev => ({...prev, [u.id]: t.key}))}
-                            className={`flex-1 min-w-[120px] md:min-w-0 py-3 px-2 border border-black text-[9px] font-black text-center transition-all ${
-                              selectedTiers[u.id] === t.key ? 'bg-orange-600 text-white border-orange-600' : 'bg-white hover:bg-gray-50'
-                            }`}>
+                            className={`flex-1 min-w-[120px] md:min-w-0 py-3 px-2 border border-black text-[9px] font-black text-center transition-all ${ selectedTiers[u.id] === t.key ? 'bg-orange-600 text-white border-orange-600' : 'bg-white hover:bg-gray-50' }`}>
                             {t.label}
                           </button>
                         ))}
@@ -366,7 +362,7 @@ const handleAdd = (redirect: boolean = false) => {
 
 {/* FIXED: Notifikasi Bundle Saving dengan syarat minimal harga $250 */}
         {!isCorporate && !isTrial && selectedUsages.length > 0 && (
-          <div className="mt-6 p-4 bg-orange-600 text-white border border-black animate-in fade-in slide-in-from-top-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="mt-6 p-4 bg-orange-600 text-white border border-black animate-in fade-in slide-in-from-top-2">
              <p className="text-[10px] font-black uppercase tracking-widest leading-tight">
               PROMO: ADD 3+ LICENSES (MIN $250 EACH) TO UNLOCK UP TO 25% BUNDLE DISCOUNT!
             </p>

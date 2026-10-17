@@ -601,7 +601,7 @@ export default function EmailStudio() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b-2 border-black">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-black text-white shadow-[2px_2px_0px_#ff5c00]">
+            <div className="p-2 bg-black text-white">
               <Mail className="w-5 h-5" />
             </div>
             <div>
@@ -623,9 +623,7 @@ export default function EmailStudio() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className={`bg-black text-white hover:bg-zinc-800 border-2 border-black px-6 py-2.5 text-xs font-black uppercase flex items-center gap-2 shadow-[4px_4px_0px_#000] active:shadow-none transition-all cursor-pointer ${
-                saveSuccess ? 'bg-green-600 border-green-600 text-white' : ''
-              }`}
+              className={`bg-black text-white hover:bg-zinc-800 border-2 border-black px-6 py-2.5 text-xs font-black uppercase flex items-center gap-2 transition-all cursor-pointer ${ saveSuccess ? 'bg-green-600 border-green-600 text-white' : '' }`}
             >
               {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : saveSuccess ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
               <span>{saving ? 'SAVING...' : saveSuccess ? 'SAVED TO DB!' : 'SAVE TEMPLATE'}</span>
@@ -638,11 +636,7 @@ export default function EmailStudio() {
       <div className="flex items-center border-b-2 border-black gap-2">
         <button
           onClick={() => setActiveTab('order')}
-          className={`flex items-center gap-2 px-5 py-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
-            activeTab === 'order'
-              ? 'border-black text-black bg-black/5 shadow-[2px_2px_0px_#ff5c00]'
-              : 'border-transparent text-gray-500 hover:text-black hover:border-black/30'
-          }`}
+          className={`flex items-center gap-2 px-5 py-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${ activeTab === 'order' ? 'border-black text-black bg-black/5' : 'border-transparent text-gray-500 hover:text-black hover:border-black/30' }`}
         >
           <FileText className="w-4 h-4" />
           <span>Order Fulfillment Receipt</span>
@@ -653,11 +647,7 @@ export default function EmailStudio() {
             setActiveTab('sent');
             fetchSentOrders();
           }}
-          className={`flex items-center gap-2 px-5 py-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
-            activeTab === 'sent'
-              ? 'border-black text-black bg-black/5 shadow-[2px_2px_0px_#ff5c00]'
-              : 'border-transparent text-gray-500 hover:text-black hover:border-black/30'
-          }`}
+          className={`flex items-center gap-2 px-5 py-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${ activeTab === 'sent' ? 'border-black text-black bg-black/5' : 'border-transparent text-gray-500 hover:text-black hover:border-black/30' }`}
         >
           <Inbox className="w-4 h-4" />
           <span>Sent Emails (Outbox)</span>
@@ -668,7 +658,7 @@ export default function EmailStudio() {
       </div>
 
       {/* GAS RELAY POOL & DAILY QUOTA STATUS */}
-      <div className="border-2 border-black bg-white shadow-[4px_4px_0px_#000] p-4">
+      <div className="border-2 border-black bg-white p-4">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b-2 border-black pb-3 mb-3">
           <div className="flex items-center gap-2">
             <span className="bg-black text-white px-2 py-0.5 text-[10px] font-black tracking-wider uppercase">
@@ -689,7 +679,7 @@ export default function EmailStudio() {
               onClick={() => fetchGasPool(true)}
               disabled={checkingGas}
               title="Query remaining quotas"
-              className="px-2.5 py-1 text-[10px] font-black uppercase border border-black bg-gray-100 hover:bg-black hover:text-white flex items-center gap-1 shadow-[2px_2px_0px_#000] active:shadow-none transition-all disabled:opacity-40 cursor-pointer"
+              className="px-2.5 py-1 text-[10px] font-black uppercase border border-black bg-gray-100 hover:bg-black hover:text-white flex items-center gap-1 transition-all disabled:opacity-40 cursor-pointer"
             >
               <RefreshCw className={`w-3 h-3 ${checkingGas ? 'animate-spin' : ''}`} />
               <span>{checkingGas ? 'CHECKING...' : 'REFRESH QUOTAS'}</span>
@@ -703,14 +693,12 @@ export default function EmailStudio() {
             { email: "amirsubqisetiaji@gmail.com", remaining: 100, limit: 100, status: "READY" },
             { email: "ameervg@gmail.com", remaining: 100, limit: 100, status: "READY" }
           ]).map((acc) => (
-            <div key={acc.email} className="border border-black p-3 bg-gray-50 flex flex-col justify-between gap-2 shadow-[2px_2px_0px_#000]">
+            <div key={acc.email} className="border border-black p-3 bg-gray-50 flex flex-col justify-between gap-2">
               <div className="flex items-start justify-between gap-1">
                 <span className="text-[11px] font-black lowercase text-black truncate" title={acc.email}>
                   {acc.email}
                 </span>
-                <span className={`text-[8px] font-black px-1.5 py-0.5 border border-black uppercase ${
-                  acc.status === 'ONLINE' ? 'bg-[#00F59B] text-black' : acc.status === 'NEEDS_AUTH' ? 'bg-[#FFE600] text-black' : 'bg-gray-200 text-gray-700'
-                }`}>
+                <span className={`text-[8px] font-black px-1.5 py-0.5 border border-black uppercase ${ acc.status === 'ONLINE' ? 'bg-[#00F59B] text-black' : acc.status === 'NEEDS_AUTH' ? 'bg-[#FFE600] text-black' : 'bg-gray-200 text-gray-700' }`}>
                   {acc.status === 'NEEDS_AUTH' ? 'AUTHORIZE IN GAS' : acc.status}
                 </span>
               </div>
@@ -738,7 +726,7 @@ export default function EmailStudio() {
         <div className="space-y-6">
           
           {/* 1. LIVE BUYER PREVIEW (TOP - PROMINENT STACKED PREVIEW CONTAINER) */}
-          <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_#000] space-y-4">
+          <div className="bg-white border-2 border-black p-5 space-y-4">
             
             {/* Preview Toolbar */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 border-black pb-3">
@@ -756,9 +744,7 @@ export default function EmailStudio() {
                 <button
                   type="button"
                   onClick={() => setPreviewDevice('desktop')}
-                  className={`px-3 py-1 text-[10px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer ${
-                    previewDevice === 'desktop' ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:text-black'
-                  }`}
+                  className={`px-3 py-1 text-[10px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer ${ previewDevice === 'desktop' ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:text-black' }`}
                 >
                   <Monitor className="w-3.5 h-3.5" />
                   <span>DESKTOP</span>
@@ -766,9 +752,7 @@ export default function EmailStudio() {
                 <button
                   type="button"
                   onClick={() => setPreviewDevice('mobile')}
-                  className={`px-3 py-1 text-[10px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer ${
-                    previewDevice === 'mobile' ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:text-black'
-                  }`}
+                  className={`px-3 py-1 text-[10px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer ${ previewDevice === 'mobile' ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:text-black' }`}
                 >
                   <Smartphone className="w-3.5 h-3.5" />
                   <span>MOBILE</span>
@@ -779,9 +763,7 @@ export default function EmailStudio() {
             {/* Centered Realistic Preview Container */}
             <div className="flex justify-center bg-zinc-900 p-3 sm:p-6 border-2 border-black overflow-hidden min-h-[640px]">
               <div 
-                className={`transition-all duration-300 bg-[#09090b] ${
-                  previewDevice === 'mobile' ? 'w-[375px] border-4 border-zinc-700 rounded-3xl overflow-hidden shadow-2xl' : 'w-full max-w-[620px]'
-                }`}
+                className={`transition-all duration-300 bg-[#09090b] ${ previewDevice === 'mobile' ? 'w-[375px] border-4 border-zinc-700 rounded-3xl overflow-hidden shadow-2xl' : 'w-full max-w-[620px]' }`}
               >
                 <iframe
                   title="Email Live Preview"
@@ -801,7 +783,7 @@ export default function EmailStudio() {
           <div className="space-y-5">
             
             {/* Card 1: Email Header & Intro */}
-            <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_#000]">
+            <div className="bg-white border-2 border-black p-5">
               <h3 className="text-xs font-black uppercase bg-black text-white px-2 py-1 mb-4 inline-block">
                 1. Email Header & Intro
               </h3>
@@ -851,7 +833,7 @@ export default function EmailStudio() {
             </div>
 
             {/* Card 2: Security Notice */}
-            <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_#000]">
+            <div className="bg-white border-2 border-black p-5">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-xs font-black uppercase bg-[#FF5C00] text-black px-2 py-1 inline-block border border-black">
                   2. Security Notice (7D / 7x Limit)
@@ -901,7 +883,7 @@ export default function EmailStudio() {
             </div>
 
             {/* Card 3: Font Canvas VIP Bonus */}
-            <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_#000]">
+            <div className="bg-white border-2 border-black p-5">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-xs font-black uppercase bg-blue-600 text-white px-2 py-1 inline-block">
                   3. Font Canvas VIP Bonus
@@ -950,7 +932,7 @@ export default function EmailStudio() {
             </div>
 
             {/* Card 4: Test Email Dispatch */}
-            <div className="bg-[#FFE600] border-2 border-black p-5 shadow-[4px_4px_0px_#000]">
+            <div className="bg-[#FFE600] border-2 border-black p-5">
               <h3 className="text-xs font-black uppercase text-black mb-1 flex items-center gap-1.5">
                 <Send className="w-3.5 h-3.5" />
                 <span>Send Live Test to Your Inbox</span>
@@ -972,7 +954,7 @@ export default function EmailStudio() {
                   <button
                     type="submit"
                     disabled={sendingTest}
-                    className="bg-black text-white hover:bg-zinc-800 border-2 border-black px-6 py-2 text-xs font-black uppercase flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-[2px_2px_0px_#000] active:shadow-none"
+                    className="bg-black text-white hover:bg-zinc-800 border-2 border-black px-6 py-2 text-xs font-black uppercase flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
                   >
                     {sendingTest ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                     <span>{sendingTest ? 'SENDING...' : 'DISPATCH TEST'}</span>
@@ -1009,7 +991,7 @@ export default function EmailStudio() {
         <div className="space-y-6">
           
           {/* Top Bar: Search, Filters, Refresh */}
-          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white border-2 border-black p-4 shadow-[4px_4px_0px_#000]">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white border-2 border-black p-4">
             
             {/* Search Input */}
             <div className="relative flex-1">
@@ -1058,7 +1040,7 @@ export default function EmailStudio() {
               <button
                 onClick={fetchSentOrders}
                 disabled={loadingSent}
-                className="bg-black text-white hover:bg-zinc-800 border-2 border-black px-4 py-2 text-xs font-black uppercase flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000] active:shadow-none transition-all"
+                className="bg-black text-white hover:bg-zinc-800 border-2 border-black px-4 py-2 text-xs font-black uppercase flex items-center gap-1.5 cursor-pointer transition-all"
                 title="Reload sent orders ledger"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loadingSent ? 'animate-spin' : ''}`} />
@@ -1068,7 +1050,7 @@ export default function EmailStudio() {
           </div>
 
           {/* Table Container */}
-          <div className="overflow-x-auto border-2 border-black bg-white shadow-[4px_4px_0px_#000]">
+          <div className="overflow-x-auto border-2 border-black bg-white">
             <table className="w-full text-left border-collapse min-w-[840px]">
               <thead>
                 <tr className="bg-black text-white text-[10px] font-black tracking-widest uppercase">
@@ -1153,7 +1135,7 @@ export default function EmailStudio() {
                         {/* Sender Account */}
                         <td className="p-4 text-center">
                           <span 
-                            className="inline-block px-2.5 py-1 text-[10px] font-mono font-black border border-black bg-white text-black max-w-[170px] truncate shadow-[1px_1px_0px_#000]"
+                            className="inline-block px-2.5 py-1 text-[10px] font-mono font-black border border-black bg-white text-black max-w-[170px] truncate"
                             title={cleanSender}
                           >
                             {cleanSender}
@@ -1162,7 +1144,7 @@ export default function EmailStudio() {
 
                         {/* Status */}
                         <td className="p-4 text-center">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[8px] font-black border border-black bg-[#00F59B] text-black uppercase tracking-widest shadow-[1px_1px_0px_#000]">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[8px] font-black border border-black bg-[#00F59B] text-black uppercase tracking-widest">
                             <Check size={10} /> SENT
                           </span>
                         </td>
@@ -1173,7 +1155,7 @@ export default function EmailStudio() {
                             <button
                               onClick={() => setSelectedSentOrder(order)}
                               title="View full personalized live email layout"
-                              className="px-2.5 py-1 border-2 border-black bg-white hover:bg-black hover:text-white text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-[2px_2px_0px_#000]"
+                              className="px-2.5 py-1 border-2 border-black bg-white hover:bg-black hover:text-white text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
                             >
                               <Eye size={12} />
                               <span>VIEW EMAIL</span>
@@ -1183,7 +1165,7 @@ export default function EmailStudio() {
                               onClick={(e) => handleResendSentEmail(order, e)}
                               disabled={resendingOrderId === order.transaction_id}
                               title="Resend this delivery email to buyer"
-                              className="px-2 py-1 border border-black bg-yellow-300 hover:bg-yellow-400 text-black text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer disabled:opacity-40 shadow-[1px_1px_0px_#000]"
+                              className="px-2 py-1 border border-black bg-yellow-300 hover:bg-yellow-400 text-black text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer disabled:opacity-40"
                             >
                               <Mail size={11} className={resendingOrderId === order.transaction_id ? 'animate-spin' : ''} />
                               <span>{resendingOrderId === order.transaction_id ? '...' : 'RESEND'}</span>
@@ -1212,7 +1194,7 @@ export default function EmailStudio() {
                   <button
                     onClick={() => setSentPage(p => Math.max(1, p - 1))}
                     disabled={sentPage === 1}
-                    className="p-1.5 border-2 border-black bg-white hover:bg-black hover:text-white disabled:opacity-30 cursor-pointer transition-all shadow-[2px_2px_0px_#000]"
+                    className="p-1.5 border-2 border-black bg-white hover:bg-black hover:text-white disabled:opacity-30 cursor-pointer transition-all"
                   >
                     <ChevronLeft size={14} />
                   </button>
@@ -1226,11 +1208,7 @@ export default function EmailStudio() {
                       <button
                         key={pg}
                         onClick={() => setSentPage(pg)}
-                        className={`w-7 h-7 text-xs font-black border-2 border-black transition-all cursor-pointer shadow-[2px_2px_0px_#000] ${
-                          sentPage === pg
-                            ? 'bg-black text-white'
-                            : 'bg-white text-black hover:bg-yellow-200'
-                        }`}
+                        className={`w-7 h-7 text-xs font-black border-2 border-black transition-all cursor-pointer ${ sentPage === pg ? 'bg-black text-white' : 'bg-white text-black hover:bg-yellow-200' }`}
                       >
                         {pg}
                       </button>
@@ -1240,7 +1218,7 @@ export default function EmailStudio() {
                   <button
                     onClick={() => setSentPage(p => Math.min(totalSentPages, p + 1))}
                     disabled={sentPage === totalSentPages}
-                    className="p-1.5 border-2 border-black bg-white hover:bg-black hover:text-white disabled:opacity-30 cursor-pointer transition-all shadow-[2px_2px_0px_#000]"
+                    className="p-1.5 border-2 border-black bg-white hover:bg-black hover:text-white disabled:opacity-30 cursor-pointer transition-all"
                   >
                     <ChevronRight size={14} />
                   </button>
@@ -1257,7 +1235,7 @@ export default function EmailStudio() {
       {/* ========================================================================= */}
       {selectedSentOrder && (
         <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-hidden">
-          <div className="bg-white border-3 border-black shadow-[10px_10px_0px_#000] w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in duration-200">
+          <div className="bg-white border-3 border-black w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in duration-200">
             
             {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b-3 border-black bg-black text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -1286,22 +1264,14 @@ export default function EmailStudio() {
                   <button
                     type="button"
                     onClick={() => setModalPreviewDevice('desktop')}
-                    className={`px-2.5 py-1 text-[10px] uppercase font-black transition-all cursor-pointer ${
-                      modalPreviewDevice === 'desktop'
-                        ? 'bg-white text-black'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
+                    className={`px-2.5 py-1 text-[10px] uppercase font-black transition-all cursor-pointer ${ modalPreviewDevice === 'desktop' ? 'bg-white text-black' : 'text-gray-400 hover:text-white' }`}
                   >
                     Desktop
                   </button>
                   <button
                     type="button"
                     onClick={() => setModalPreviewDevice('mobile')}
-                    className={`px-2.5 py-1 text-[10px] uppercase font-black transition-all cursor-pointer ${
-                      modalPreviewDevice === 'mobile'
-                        ? 'bg-white text-black'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
+                    className={`px-2.5 py-1 text-[10px] uppercase font-black transition-all cursor-pointer ${ modalPreviewDevice === 'mobile' ? 'bg-white text-black' : 'text-gray-400 hover:text-white' }`}
                   >
                     Mobile
                   </button>
@@ -1310,7 +1280,7 @@ export default function EmailStudio() {
                 <button
                   onClick={() => handleResendSentEmail(selectedSentOrder)}
                   disabled={resendingOrderId === selectedSentOrder.transaction_id}
-                  className="px-3 py-1.5 bg-[#ff5c00] hover:bg-[#ff7728] text-black text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 border border-black shadow-[2px_2px_0px_#fff]"
+                  className="px-3 py-1.5 bg-[#ff5c00] hover:bg-[#ff7728] text-black text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 border border-black"
                   title="Resend this exact email to buyer"
                 >
                   <Send size={12} className={resendingOrderId === selectedSentOrder.transaction_id ? 'animate-spin' : ''} />
@@ -1330,9 +1300,7 @@ export default function EmailStudio() {
             {/* Modal Body: Authentic Email Iframe */}
             <div className="flex-1 overflow-auto p-4 sm:p-6 bg-zinc-900 flex justify-center min-h-[500px]">
               <div 
-                className={`transition-all duration-300 bg-[#09090b] ${
-                  modalPreviewDevice === 'mobile' ? 'w-[375px] border-4 border-zinc-700 rounded-3xl overflow-hidden shadow-2xl' : 'w-full max-w-[620px]'
-                }`}
+                className={`transition-all duration-300 bg-[#09090b] ${ modalPreviewDevice === 'mobile' ? 'w-[375px] border-4 border-zinc-700 rounded-3xl overflow-hidden shadow-2xl' : 'w-full max-w-[620px]' }`}
               >
                 <iframe
                   title="Dispatched Email Viewer"

@@ -541,9 +541,7 @@ const ContentManager = () => {
                 setCurrentCategory(cat);
                 setFormData(prev => ({ ...prev, category: cat, page_path: `/${cat}` }));
               }}
-              className={`px-5 py-2.5 border-2 border-black font-black text-[10px] uppercase tracking-widest transition-all ${
-                currentCategory === cat ? 'bg-black text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : 'bg-white hover:bg-orange-50'
-              }`}
+              className={`px-5 py-2.5 border-2 border-black font-black text-[10px] uppercase tracking-widest transition-all ${ currentCategory === cat ? 'bg-black text-white' : 'bg-white hover:bg-orange-50' }`}
             >
               {cat}
             </button>
@@ -552,7 +550,7 @@ const ContentManager = () => {
       </div>
 
       {/* 1. FORM SECTION & VISUAL BUILDER (ATAS) */}
-      <form onSubmit={handleSubmit} className="border-2 border-black p-6 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6">
+      <form onSubmit={handleSubmit} className="border-2 border-black p-6 bg-white space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b-2 border-black pb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-black text-white">
@@ -574,18 +572,14 @@ const ContentManager = () => {
               <button
                 type="button"
                 onClick={() => toggleEditorMode('visual')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-all ${
-                  editorMode === 'visual' ? 'bg-black text-white' : 'hover:bg-gray-200'
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-all ${ editorMode === 'visual' ? 'bg-black text-white' : 'hover:bg-gray-200' }`}
               >
                 <TableIcon size={12} /> VISUAL_BUILDER
               </button>
               <button
                 type="button"
                 onClick={() => toggleEditorMode('raw')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-all ${
-                  editorMode === 'raw' ? 'bg-black text-white' : 'hover:bg-gray-200'
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-all ${ editorMode === 'raw' ? 'bg-black text-white' : 'hover:bg-gray-200' }`}
               >
                 <Code size={12} /> RAW_JSON
               </button>
@@ -825,9 +819,7 @@ const ContentManager = () => {
             </label>
             <textarea 
               placeholder={editorMode === 'raw' ? '{"headers": [...], "rows": [...]}' : 'CONTENT (HTML ALLOWED: <b>, <br>, <ul>, etc)'} 
-              className={`w-full h-36 p-4 border-2 border-black font-mono text-xs outline-none focus:bg-orange-50 ${
-                editorMode === 'raw' ? 'bg-gray-50' : 'bg-white'
-              }`}
+              className={`w-full h-36 p-4 border-2 border-black font-mono text-xs outline-none focus:bg-orange-50 ${ editorMode === 'raw' ? 'bg-gray-50' : 'bg-white' }`}
               value={formData.content} 
               onChange={e => setFormData({ ...formData, content: e.target.value })}
               required
@@ -837,7 +829,7 @@ const ContentManager = () => {
 
         {/* Buttons */}
         <div className="flex gap-3 pt-2">
-          <button type="submit" className="flex items-center gap-2 bg-black text-white px-8 py-3.5 font-black text-xs uppercase hover:bg-orange-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <button type="submit" className="flex items-center gap-2 bg-black text-white px-8 py-3.5 font-black text-xs uppercase hover:bg-orange-600 transition-all">
             <Save size={16} /> {isEditing ? 'COMMIT_RECORD_UPDATE' : 'PUBLISH_CONTENT_RECORD'}
           </button>
           {isEditing && (
@@ -849,7 +841,7 @@ const ContentManager = () => {
       </form>
 
       {/* 2. REAL-TIME LIVE PREVIEW (STACKED VERTICALLY: ATAS-BAWAH) */}
-      <div className="border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+      <div className="border-2 border-black bg-white overflow-hidden">
         {/* Preview Control Toolbar */}
         <div className="bg-black text-white px-6 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -868,18 +860,14 @@ const ContentManager = () => {
             <button
               type="button"
               onClick={() => setPreviewDevice('desktop')}
-              className={`flex items-center gap-1.5 px-3 py-1 text-[9px] font-black uppercase transition-all ${
-                previewDevice === 'desktop' ? 'bg-black text-white' : 'text-black hover:bg-gray-200'
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1 text-[9px] font-black uppercase transition-all ${ previewDevice === 'desktop' ? 'bg-black text-white' : 'text-black hover:bg-gray-200' }`}
             >
               <Monitor size={12} /> DESKTOP
             </button>
             <button
               type="button"
               onClick={() => setPreviewDevice('mobile')}
-              className={`flex items-center gap-1.5 px-3 py-1 text-[9px] font-black uppercase transition-all ${
-                previewDevice === 'mobile' ? 'bg-black text-white' : 'text-black hover:bg-gray-200'
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1 text-[9px] font-black uppercase transition-all ${ previewDevice === 'mobile' ? 'bg-black text-white' : 'text-black hover:bg-gray-200' }`}
             >
               <Smartphone size={12} /> MOBILE
             </button>
@@ -975,9 +963,7 @@ const ContentManager = () => {
               onDragStart={() => handleDragStart(index)}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(index)}
-              className={`border-2 border-black p-4 bg-white flex justify-between items-center group cursor-move transition-all ${
-                draggedItemIndex === index ? 'opacity-30 border-dashed bg-gray-100' : 'hover:border-orange-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
-              }`}
+              className={`border-2 border-black p-4 bg-white flex justify-between items-center group cursor-move transition-all ${ draggedItemIndex === index ? 'opacity-30 border-dashed bg-gray-100' : 'hover:border-orange-500 hover:' }`}
             >
               <div className="flex items-center gap-6">
                 <span className="font-black text-2xl opacity-20 italic">#{item.sort_order}</span>
@@ -1012,7 +998,7 @@ const ContentManager = () => {
       {/* SPREADSHEET PASTE MODAL */}
       {pasteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
-          <div className="border-4 border-black bg-white max-w-xl w-full p-6 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] space-y-4">
+          <div className="border-4 border-black bg-white max-w-xl w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b-2 border-black pb-3">
               <div className="flex items-center gap-2">
                 <FileSpreadsheet size={20} className="text-orange-600" />

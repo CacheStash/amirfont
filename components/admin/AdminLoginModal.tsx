@@ -93,7 +93,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-md bg-white border-2 border-black p-0 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] z-10 font-sans"
+            className="relative w-full max-w-md bg-white border-2 border-black p-0 z-10 font-sans"
           >
             {/* Header */}
             <div className="px-6 py-4 border-b-2 border-black bg-gray-50 flex items-center justify-between">
@@ -168,7 +168,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-black text-white p-4 font-bold uppercase tracking-wider hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] flex justify-center items-center gap-2"
+                  className="w-full bg-black text-white p-4 font-bold uppercase tracking-wider hover:bg-gray-800 transition-all flex justify-center items-center gap-2"
                 >
                   {loading ? (
                     <>

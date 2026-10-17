@@ -275,7 +275,7 @@ const ProductManager = () => {
               }
               setShowBatchPriceModal(true);
             }}
-            className="bg-yellow-300 text-black border-2 border-black px-4 py-2.5 font-bold uppercase text-xs flex items-center gap-2 hover:bg-yellow-400 transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none cursor-pointer"
+            className="bg-yellow-300 text-black border-2 border-black px-4 py-2.5 font-bold uppercase text-xs flex items-center gap-2 hover:bg-yellow-400 transition-all cursor-pointer"
             title="Batch adjust base prices across all or selected fonts"
           >
             <DollarSign size={14} />
@@ -290,7 +290,7 @@ const ProductManager = () => {
           {/* ADD NEW FONT BUTTON */}
           <button 
             onClick={() => { setEditingFont(null); setShowForm(true); }}
-            className="bg-black text-white px-5 py-2.5 font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-800 transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none cursor-pointer"
+            className="bg-black text-white px-5 py-2.5 font-bold uppercase text-xs flex items-center gap-2 hover:bg-gray-800 transition-all cursor-pointer"
           >
             <Plus size={16} /> Add New Font
           </button>
@@ -330,7 +330,7 @@ const ProductManager = () => {
       </div>
 
       {/* TABLE SECTION */}
-      <div className="border-2 border-black bg-white overflow-x-auto shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+      <div className="border-2 border-black bg-white overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b-2 border-black bg-gray-50 text-xs uppercase font-bold tracking-widest text-gray-500">
@@ -368,9 +368,7 @@ const ProductManager = () => {
                     onDragStart={() => handleDragStart(globalIdx)}
                     onDragOver={handleDragOver}
                     onDrop={() => handleDrop(globalIdx)}
-                    className={`border-b border-black hover:bg-yellow-50 transition-colors cursor-move ${
-                      draggedIdx === globalIdx ? 'opacity-20' : ''
-                    } ${isSelected ? 'bg-yellow-100/60' : ''}`}
+                    className={`border-b border-black hover:bg-yellow-50 transition-colors cursor-move ${ draggedIdx === globalIdx ? 'opacity-20' : '' } ${isSelected ? 'bg-yellow-100/60' : ''}`}
                   >
                     <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
                       <input 
@@ -421,7 +419,7 @@ const ProductManager = () => {
       {/* BATCH PRICE ADJUSTMENT MODAL */}
       {showBatchPriceModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white border-2 border-black p-6 sm:p-8 max-w-xl w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6 my-8">
+          <div className="bg-white border-2 border-black p-6 sm:p-8 max-w-xl w-full space-y-6 my-8">
             
             {/* Header */}
             <div className="flex items-start justify-between border-b-2 border-black pb-4">
@@ -453,11 +451,7 @@ const ProductManager = () => {
                 <button
                   type="button"
                   onClick={() => setBatchScope('all')}
-                  className={`p-3 text-left border-2 border-black transition-all cursor-pointer ${
-                    batchScope === 'all'
-                      ? 'bg-black text-white font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]'
-                      : 'bg-gray-50 hover:bg-yellow-50 text-black'
-                  }`}
+                  className={`p-3 text-left border-2 border-black transition-all cursor-pointer ${ batchScope === 'all' ? 'bg-black text-white font-bold' : 'bg-gray-50 hover:bg-yellow-50 text-black' }`}
                 >
                   <span className="block text-xs uppercase tracking-wider font-bold">All Products</span>
                   <span className="text-[10px] font-mono opacity-80">Affects all {fonts.length} fonts in catalog</span>
@@ -472,11 +466,7 @@ const ProductManager = () => {
                     }
                     setBatchScope('selected');
                   }}
-                  className={`p-3 text-left border-2 border-black transition-all cursor-pointer ${
-                    batchScope === 'selected'
-                      ? 'bg-black text-white font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]'
-                      : 'bg-gray-50 hover:bg-yellow-50 text-black'
-                  } ${selectedFontIds.length === 0 ? 'opacity-50' : ''}`}
+                  className={`p-3 text-left border-2 border-black transition-all cursor-pointer ${ batchScope === 'selected' ? 'bg-black text-white font-bold' : 'bg-gray-50 hover:bg-yellow-50 text-black' } ${selectedFontIds.length === 0 ? 'opacity-50' : ''}`}
                 >
                   <span className="block text-xs uppercase tracking-wider font-bold">Selected Only</span>
                   <span className="text-[10px] font-mono opacity-80">
@@ -498,18 +488,14 @@ const ProductManager = () => {
                   <button
                     type="button"
                     onClick={() => setAdjustmentSign('+')}
-                    className={`px-4 py-2 text-sm font-bold uppercase transition-colors cursor-pointer ${
-                      adjustmentSign === '+' ? 'bg-black text-white' : 'hover:bg-gray-100'
-                    }`}
+                    className={`px-4 py-2 text-sm font-bold uppercase transition-colors cursor-pointer ${ adjustmentSign === '+' ? 'bg-black text-white' : 'hover:bg-gray-100' }`}
                   >
                     + Add
                   </button>
                   <button
                     type="button"
                     onClick={() => setAdjustmentSign('-')}
-                    className={`px-4 py-2 text-sm font-bold uppercase transition-colors cursor-pointer ${
-                      adjustmentSign === '-' ? 'bg-black text-white' : 'hover:bg-gray-100'
-                    }`}
+                    className={`px-4 py-2 text-sm font-bold uppercase transition-colors cursor-pointer ${ adjustmentSign === '-' ? 'bg-black text-white' : 'hover:bg-gray-100' }`}
                   >
                     - Deduct
                   </button>
@@ -538,9 +524,7 @@ const ProductManager = () => {
                     key={val}
                     type="button"
                     onClick={() => setAdjustmentAmount(val)}
-                    className={`px-2 py-0.5 text-xs font-mono border border-black bg-white hover:bg-black hover:text-white transition-colors cursor-pointer ${
-                      adjustmentAmount === val ? 'font-bold bg-black text-white' : ''
-                    }`}
+                    className={`px-2 py-0.5 text-xs font-mono border border-black bg-white hover:bg-black hover:text-white transition-colors cursor-pointer ${ adjustmentAmount === val ? 'font-bold bg-black text-white' : '' }`}
                   >
                     {adjustmentSign}${val}
                   </button>
@@ -577,9 +561,7 @@ const ProductManager = () => {
                         <tr key={font.id} className="hover:bg-yellow-50">
                           <td className="p-2 border-r border-black font-sans font-bold uppercase">{font.name}</td>
                           <td className="p-2 border-r border-black text-right">${oldP.toFixed(2)}</td>
-                          <td className={`p-2 border-r border-black text-right font-bold ${
-                            adjustmentSign === '+' ? 'text-green-700' : 'text-red-700'
-                          }`}>
+                          <td className={`p-2 border-r border-black text-right font-bold ${ adjustmentSign === '+' ? 'text-green-700' : 'text-red-700' }`}>
                             {adjustmentSign}${deltaNum.toFixed(2)}
                           </td>
                           <td className="p-2 text-right font-bold">
@@ -610,7 +592,7 @@ const ProductManager = () => {
                 type="button"
                 onClick={handleExecuteBatchPriceAdjustment}
                 disabled={isUpdatingPrices || targetFontsForPriceUpdate.length === 0}
-                className="bg-black text-white border-2 border-black px-6 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-gray-800 transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none cursor-pointer"
+                className="bg-black text-white border-2 border-black px-6 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-gray-800 transition-all cursor-pointer"
               >
                 {isUpdatingPrices ? (
                   <>
@@ -631,7 +613,7 @@ const ProductManager = () => {
       {/* MODAL FORM (UPLOAD / EDIT) */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border-2 border-black p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="bg-white border-2 border-black p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-2xl font-normal uppercase tracking-tight">{editingFont ? 'Edit Typeface' : 'Upload New Typeface'}</h3>
               <button onClick={() => setShowForm(false)} className="text-xs font-bold hover:underline uppercase tracking-widest cursor-pointer">Close [X]</button>

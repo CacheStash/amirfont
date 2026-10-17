@@ -93,7 +93,7 @@ const UserAuth = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto my-20 p-8 border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] font-mono">
+    <div className="max-w-md mx-auto my-20 p-8 border-2 border-black bg-white font-mono">
       <div className="flex justify-between items-baseline mb-6 border-b-2 border-black pb-2">
         <h2 className="text-3xl font-black uppercase tracking-tight">
           Buyer Login
@@ -128,7 +128,7 @@ const UserAuth = () => {
 
         <button 
           disabled={loading} 
-          className="w-full bg-black text-white p-4 font-black uppercase hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+          className="w-full bg-black text-white p-4 font-black uppercase hover:bg-gray-800 transition-all"
         >
           {loading ? 'Processing...' : 'Access My Fonts'}
         </button>

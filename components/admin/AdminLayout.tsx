@@ -151,17 +151,14 @@ const AdminDashboard = () => {
         <h1 className="font-black uppercase tracking-tighter text-lg italic">Admin_Panel</h1>
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="bg-black text-white p-2 border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all"
+          className="bg-black text-white p-2 border border-black transition-all"
         >
           {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
       {/* SIDEBAR */}
-      <aside className={`
-        fixed md:sticky md:top-0 w-full md:w-64 border-r-0 md:border-r border-black bg-white flex flex-col transition-all duration-300 z-40
-        ${isMenuOpen ? 'top-[61px] h-[calc(100vh-61px)] border-b border-black' : 'top-[-100%] md:top-0 h-0 md:h-screen overflow-hidden md:overflow-visible'}
-      `}>
+      <aside className={`fixed md:sticky md:top-0 w-full md:w-64 border-r-0 md:border-r border-black bg-white flex flex-col transition-all duration-300 z-40 ${isMenuOpen ? 'top-[61px] h-[calc(100vh-61px)] border-b border-black' : 'top-[-100%] md:top-0 h-0 md:h-screen overflow-hidden md:overflow-visible'}`}>
         <div className="p-8 border-b border-black hidden md:block">
           <h1 className="font-normal uppercase tracking-tighter text-xl italic">Studio Admin</h1>
         </div>
@@ -218,11 +215,7 @@ const AdminDashboard = () => {
           <button
             onClick={handleToggleMaintenance}
             disabled={updatingMaintenance}
-            className={`w-full flex items-center justify-between px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none ${
-              isMaintenance 
-                ? 'bg-amber-500 text-black' 
-                : 'bg-gray-100 text-black hover:bg-gray-200'
-            }`}
+            className={`w-full flex items-center justify-between px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border border-black ${ isMaintenance ? 'bg-amber-500 text-black' : 'bg-gray-100 text-black hover:bg-gray-200' }`}
           >
             <div className="flex items-center gap-2">
               {updatingMaintenance ? (
@@ -232,9 +225,7 @@ const AdminDashboard = () => {
               )}
               <span>MAINTENANCE</span>
             </div>
-            <span className={`px-1.5 py-0.5 text-[9px] font-black border border-black ${
-              isMaintenance ? 'bg-black text-white' : 'bg-white text-black'
-            }`}>
+            <span className={`px-1.5 py-0.5 text-[9px] font-black border border-black ${ isMaintenance ? 'bg-black text-white' : 'bg-white text-black' }`}>
               {isMaintenance ? 'ON' : 'OFF'}
             </span>
           </button>
@@ -243,11 +234,7 @@ const AdminDashboard = () => {
           <button
             onClick={handleToggleSandbox}
             disabled={updatingSandbox}
-            className={`w-full flex items-center justify-between px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none ${
-              isSandbox 
-                ? 'bg-[#0070BA] text-white' 
-                : 'bg-gray-100 text-black hover:bg-gray-200'
-            }`}
+            className={`w-full flex items-center justify-between px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border border-black ${ isSandbox ? 'bg-[#0070BA] text-white' : 'bg-gray-100 text-black hover:bg-gray-200' }`}
           >
             <div className="flex items-center gap-2">
               {updatingSandbox ? (
@@ -257,9 +244,7 @@ const AdminDashboard = () => {
               )}
               <span>PAYPAL MODE</span>
             </div>
-            <span className={`px-1.5 py-0.5 text-[9px] font-black border border-black ${
-              isSandbox ? 'bg-white text-black' : 'bg-black text-white'
-            }`}>
+            <span className={`px-1.5 py-0.5 text-[9px] font-black border border-black ${ isSandbox ? 'bg-white text-black' : 'bg-black text-white' }`}>
               {isSandbox ? 'SANDBOX' : 'LIVE'}
             </span>
           </button>

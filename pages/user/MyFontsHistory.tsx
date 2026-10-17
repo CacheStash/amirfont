@@ -87,7 +87,7 @@ const MyFontsHistory = () => {
       </div>
 
       {history.length === 0 ? (
-        <div className="border-2 border-black p-12 text-center bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4">
+        <div className="border-2 border-black p-12 text-center bg-white space-y-4">
           <span className="text-[10px] font-black tracking-[0.25em] text-[#FF5C00] block uppercase">
             Type Catalog
           </span>
@@ -100,7 +100,7 @@ const MyFontsHistory = () => {
           <div className="pt-2">
             <Link 
               to="/fonts" 
-              className="inline-flex items-center gap-2 bg-[#FF5C00] text-black px-8 py-3.5 text-xs font-black uppercase tracking-widest border-2 border-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none cursor-pointer"
+              className="inline-flex items-center gap-2 bg-[#FF5C00] text-black px-8 py-3.5 text-xs font-black uppercase tracking-widest border-2 border-black hover:bg-black hover:text-white transition-all cursor-pointer"
             >
               <ShoppingBag size={15} /> EXPLORE CATALOG & BUY FONTS
             </Link>

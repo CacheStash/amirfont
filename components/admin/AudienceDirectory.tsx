@@ -414,7 +414,7 @@ export const AudienceDirectory: React.FC = () => {
           <button
             onClick={fetchAudienceData}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-black uppercase bg-white hover:bg-black hover:text-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-black uppercase bg-white hover:bg-black hover:text-white border-2 border-black transition-all cursor-pointer"
           >
             <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
             <span>Refresh</span>
@@ -422,7 +422,7 @@ export const AudienceDirectory: React.FC = () => {
           <button
             onClick={handleCopyAllEmails}
             disabled={filteredMembers.length === 0}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-black uppercase bg-yellow-300 hover:bg-black hover:text-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-black uppercase bg-yellow-300 hover:bg-black hover:text-white border-2 border-black transition-all cursor-pointer"
             title="Copy all filtered email addresses to clipboard"
           >
             {copiedAll ? <Check size={13} className="text-emerald-700" /> : <Copy size={13} />}
@@ -431,7 +431,7 @@ export const AudienceDirectory: React.FC = () => {
           <button
             onClick={handleExportCSV}
             disabled={filteredMembers.length === 0}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-black uppercase bg-[#FF5C00] text-white hover:bg-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-black uppercase bg-[#FF5C00] text-white hover:bg-black border-2 border-black transition-all cursor-pointer"
           >
             <Download size={13} />
             <span>Export CSV</span>
@@ -441,37 +441,37 @@ export const AudienceDirectory: React.FC = () => {
 
       {/* METRICS SUMMARY CARDS */}
       <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-        <div className="p-4 bg-white border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-4 bg-white border-2 border-black">
           <span className="text-[10px] font-black uppercase text-gray-500 block">Total Audience</span>
           <div className="text-2xl font-black mt-0.5">{metrics.total}</div>
           <p className="text-[10px] font-bold text-gray-500 uppercase mt-0.5">Deduplicated Contacts</p>
         </div>
 
-        <div className="p-4 bg-emerald-50 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-4 bg-emerald-50 border-2 border-black">
           <span className="text-[10px] font-black uppercase text-emerald-800 block">Paid Buyers</span>
           <div className="text-2xl font-black text-emerald-900 mt-0.5">{metrics.paidCount}</div>
           <p className="text-[10px] font-bold text-emerald-700 uppercase mt-0.5">${metrics.totalRevenue.toFixed(0)} Revenue</p>
         </div>
 
-        <div className="p-4 bg-purple-50 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-4 bg-purple-50 border-2 border-black">
           <span className="text-[10px] font-black uppercase text-purple-800 block">Trial / Demo</span>
           <div className="text-2xl font-black text-purple-900 mt-0.5">{metrics.trialCount}</div>
           <p className="text-[10px] font-bold text-purple-700 uppercase mt-0.5">Potential Conversions</p>
         </div>
 
-        <div className="p-4 bg-sky-50 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-4 bg-sky-50 border-2 border-black">
           <span className="text-[10px] font-black uppercase text-sky-800 block">Subscribers</span>
           <div className="text-2xl font-black text-sky-900 mt-0.5">{metrics.subCount}</div>
           <p className="text-[10px] font-bold text-sky-700 uppercase mt-0.5">Newsletter Readers</p>
         </div>
 
-        <div className="p-4 bg-amber-50 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-4 bg-amber-50 border-2 border-black">
           <span className="text-[10px] font-black uppercase text-amber-800 block">Partners</span>
           <div className="text-2xl font-black text-amber-900 mt-0.5">{metrics.partnerCount}</div>
           <p className="text-[10px] font-bold text-amber-700 uppercase mt-0.5">Affiliate Advocates</p>
         </div>
 
-        <div className="p-4 bg-yellow-200 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-4 bg-yellow-200 border-2 border-black">
           <span className="text-[10px] font-black uppercase text-black block">Multi-Role</span>
           <div className="text-2xl font-black text-black mt-0.5">{metrics.multiRoleCount}</div>
           <p className="text-[10px] font-bold text-black/70 uppercase mt-0.5">2+ Active Labels</p>
@@ -482,22 +482,14 @@ export const AudienceDirectory: React.FC = () => {
       <div className="flex flex-wrap gap-2 border-b-2 border-black pb-3">
         <button
           onClick={() => { setActiveTab('all'); setCurrentPage(1); }}
-          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer ${
-            activeTab === 'all' 
-              ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-              : 'bg-white hover:bg-gray-100'
-          }`}
+          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer ${ activeTab === 'all' ? 'bg-black text-white' : 'bg-white hover:bg-gray-100' }`}
         >
           All Contacts ({metrics.total})
         </button>
 
         <button
           onClick={() => { setActiveTab('buyer_paid'); setCurrentPage(1); }}
-          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${
-            activeTab === 'buyer_paid' 
-              ? 'bg-emerald-400 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-              : 'bg-white hover:bg-emerald-50'
-          }`}
+          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${ activeTab === 'buyer_paid' ? 'bg-emerald-400 text-black' : 'bg-white hover:bg-emerald-50' }`}
         >
           <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
           Paid Buyers ({metrics.paidCount})
@@ -505,11 +497,7 @@ export const AudienceDirectory: React.FC = () => {
 
         <button
           onClick={() => { setActiveTab('buyer_trial'); setCurrentPage(1); }}
-          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${
-            activeTab === 'buyer_trial' 
-              ? 'bg-purple-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-              : 'bg-white hover:bg-purple-50'
-          }`}
+          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${ activeTab === 'buyer_trial' ? 'bg-purple-300 text-black' : 'bg-white hover:bg-purple-50' }`}
         >
           <span className="w-2 h-2 rounded-full bg-purple-600"></span>
           Trial Users ({metrics.trialCount})
@@ -517,11 +505,7 @@ export const AudienceDirectory: React.FC = () => {
 
         <button
           onClick={() => { setActiveTab('subscriber'); setCurrentPage(1); }}
-          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${
-            activeTab === 'subscriber' 
-              ? 'bg-sky-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-              : 'bg-white hover:bg-sky-50'
-          }`}
+          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${ activeTab === 'subscriber' ? 'bg-sky-300 text-black' : 'bg-white hover:bg-sky-50' }`}
         >
           <span className="w-2 h-2 rounded-full bg-sky-600"></span>
           Subscribers ({metrics.subCount})
@@ -529,11 +513,7 @@ export const AudienceDirectory: React.FC = () => {
 
         <button
           onClick={() => { setActiveTab('partner'); setCurrentPage(1); }}
-          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${
-            activeTab === 'partner' 
-              ? 'bg-amber-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-              : 'bg-white hover:bg-amber-50'
-          }`}
+          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${ activeTab === 'partner' ? 'bg-amber-300 text-black' : 'bg-white hover:bg-amber-50' }`}
         >
           <span className="w-2 h-2 rounded-full bg-amber-600"></span>
           Partners ({metrics.partnerCount})
@@ -541,11 +521,7 @@ export const AudienceDirectory: React.FC = () => {
 
         <button
           onClick={() => { setActiveTab('payment'); setCurrentPage(1); }}
-          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${
-            activeTab === 'payment' 
-              ? 'bg-blue-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-              : 'bg-white hover:bg-blue-50'
-          }`}
+          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${ activeTab === 'payment' ? 'bg-blue-300 text-black' : 'bg-white hover:bg-blue-50' }`}
         >
           <span className="w-2 h-2 rounded-full bg-blue-600"></span>
           Payment ({metrics.paymentCount})
@@ -553,11 +529,7 @@ export const AudienceDirectory: React.FC = () => {
 
         <button
           onClick={() => { setActiveTab('multi_role'); setCurrentPage(1); }}
-          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${
-            activeTab === 'multi_role' 
-              ? 'bg-yellow-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-              : 'bg-white hover:bg-yellow-50'
-          }`}
+          className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black transition-all cursor-pointer flex items-center gap-1.5 ${ activeTab === 'multi_role' ? 'bg-yellow-300 text-black' : 'bg-white hover:bg-yellow-50' }`}
         >
           <Layers size={12} />
           Multi-Role ({metrics.multiRoleCount})
@@ -565,7 +537,7 @@ export const AudienceDirectory: React.FC = () => {
       </div>
 
       {/* SEARCH AND CONTROLS BAR */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3 border-2 border-black">
         <div className="relative flex-grow max-w-md">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
@@ -625,7 +597,7 @@ export const AudienceDirectory: React.FC = () => {
       </div>
 
       {/* TABLE SECTION */}
-      <div className="border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-x-auto">
+      <div className="border-2 border-black bg-white overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-black text-white text-[10px] font-black uppercase tracking-wider border-b-2 border-black">
@@ -674,27 +646,27 @@ export const AudienceDirectory: React.FC = () => {
                     <td className="p-3">
                       <div className="flex flex-wrap items-center gap-1.5">
                         {member.roles.includes('buyer_paid') && (
-                          <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-emerald-300 text-black border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-emerald-300 text-black border border-black">
                             BUYER: PAID
                           </span>
                         )}
                         {member.roles.includes('buyer_trial') && (
-                          <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-purple-300 text-black border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-purple-300 text-black border border-black">
                             BUYER: TRIAL
                           </span>
                         )}
                         {member.roles.includes('subscriber') && (
-                          <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-sky-300 text-black border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-sky-300 text-black border border-black">
                             SUBSCRIBER
                           </span>
                         )}
                         {member.roles.includes('partner') && (
-                          <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-amber-300 text-black border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-amber-300 text-black border border-black">
                             PARTNER
                           </span>
                         )}
                         {member.roles.includes('payment') && (
-                          <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-blue-300 text-black border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-blue-300 text-black border border-black">
                             PAYMENT
                           </span>
                         )}
@@ -758,7 +730,7 @@ export const AudienceDirectory: React.FC = () => {
                     <td className="p-3 text-center">
                       <button
                         onClick={() => handleCopyEmail(member.email)}
-                        className="px-2 py-1 text-[10px] font-black uppercase bg-white hover:bg-black hover:text-white border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all cursor-pointer inline-flex items-center gap-1"
+                        className="px-2 py-1 text-[10px] font-black uppercase bg-white hover:bg-black hover:text-white border border-black transition-all cursor-pointer inline-flex items-center gap-1"
                         title="Copy email to clipboard"
                       >
                         {copiedEmail === member.email ? (

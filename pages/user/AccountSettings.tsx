@@ -254,7 +254,7 @@ const AccountSettings = () => {
     <div className="max-w-2xl font-mono space-y-10 uppercase pb-20">
       
       {/* 1. PURCHASER & BILLING PROFILE CARD */}
-      <div className="p-6 border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-6">
+      <div className="p-6 border-2 border-black bg-white space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-black pb-4">
           <div className="flex items-center gap-2">
             <UserCheck size={18} className="text-[#FF5C00]" />
@@ -425,7 +425,7 @@ const AccountSettings = () => {
           <button 
             type="submit"
             disabled={profileLoading} 
-            className="w-full p-3.5 bg-black text-white border-2 border-black font-black text-xs hover:bg-[#FF5C00] hover:text-black transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-center gap-2"
+            className="w-full p-3.5 bg-black text-white border-2 border-black font-black text-xs hover:bg-[#FF5C00] hover:text-black transition-colors flex items-center justify-center gap-2"
           >
             {profileLoading ? (
               <RefreshCcw className="animate-spin" size={16} />
@@ -439,7 +439,7 @@ const AccountSettings = () => {
       </div>
 
       {/* 2. TRANSACTION KEYS */}
-      <div className="p-6 border-2 border-black bg-yellow-50 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+      <div className="p-6 border-2 border-black bg-yellow-50">
         <label className="block text-[10px] font-black tracking-widest mb-2 opacity-50 flex items-center gap-2">
           <Key size={12} /> YOUR_CHECKOUT_CODES & RESETTER_KEYS
         </label>
@@ -464,7 +464,7 @@ const AccountSettings = () => {
               <button 
                 type="button"
                 onClick={handleCopy}
-                className="bg-black text-white px-4 border-2 border-black font-black text-[10px] hover:bg-white hover:text-black transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+                className="bg-black text-white px-4 border-2 border-black font-black text-[10px] hover:bg-white hover:text-black transition-colors"
               >
                 COPY
               </button>
@@ -485,7 +485,7 @@ const AccountSettings = () => {
             <div>
               <Link 
                 to="/fonts" 
-                className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white border-2 border-black font-black text-xs hover:bg-[#FF5C00] hover:text-black transition-colors shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white border-2 border-black font-black text-xs hover:bg-[#FF5C00] hover:text-black transition-colors"
               >
                 <ShoppingBag size={14} /> BUY FONTS NOW
               </Link>
@@ -495,7 +495,7 @@ const AccountSettings = () => {
       </div>
 
       {/* 3. CHANGE PASSWORD */}
-      <div className="p-6 border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4">
+      <div className="p-6 border-2 border-black bg-white space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-black pb-3">
           <label className="text-xs font-black tracking-widest text-black flex items-center gap-2">
             <ShieldCheck size={14} className="text-[#FF5C00]" /> UPDATE_PASSWORD
@@ -549,7 +549,7 @@ const AccountSettings = () => {
           <button 
             type="submit" 
             disabled={passwordLoading}
-            className="w-full p-3.5 bg-black text-white border-2 border-black font-black text-xs hover:bg-[#FF5C00] hover:text-black transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-center gap-2"
+            className="w-full p-3.5 bg-black text-white border-2 border-black font-black text-xs hover:bg-[#FF5C00] hover:text-black transition-colors flex items-center justify-center gap-2"
           >
             {passwordLoading ? (
               <RefreshCcw className="animate-spin" size={16} />

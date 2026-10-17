@@ -191,7 +191,7 @@ export const InContextEditorModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-[2000] overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 font-sans">
-      <div className="bg-white border-2 border-black w-full max-w-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative text-black animate-in zoom-in-95 duration-200">
+      <div className="bg-white border-2 border-black w-full max-w-3xl relative text-black animate-in zoom-in-95 duration-200">
         
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b-2 border-black px-6 py-4 bg-black text-white">
@@ -255,33 +255,21 @@ export const InContextEditorModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setContentType('page')}
-                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-colors ${
-                  contentType === 'page'
-                    ? 'bg-black text-white border-black'
-                    : 'bg-white border-black text-black/70 hover:bg-black/5'
-                }`}
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-colors ${ contentType === 'page' ? 'bg-black text-white border-black' : 'bg-white border-black text-black/70 hover:bg-black/5' }`}
               >
                 STANDARD TEXT / HTML
               </button>
               <button
                 type="button"
                 onClick={() => setContentType('table')}
-                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-colors ${
-                  contentType === 'table'
-                    ? 'bg-black text-white border-black'
-                    : 'bg-white border-black text-black/70 hover:bg-black/5'
-                }`}
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-colors ${ contentType === 'table' ? 'bg-black text-white border-black' : 'bg-white border-black text-black/70 hover:bg-black/5' }`}
               >
                 STRUCTURED TABLE
               </button>
               <button
                 type="button"
                 onClick={() => setContentType('auto')}
-                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-colors ${
-                  contentType === 'auto'
-                    ? 'bg-black text-white border-black'
-                    : 'bg-white border-black text-black/70 hover:bg-black/5'
-                }`}
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-colors ${ contentType === 'auto' ? 'bg-black text-white border-black' : 'bg-white border-black text-black/70 hover:bg-black/5' }`}
               >
                 COMBINED (TEXT + TABLE)
               </button>
@@ -421,7 +409,7 @@ export const InContextEditorModal: React.FC = () => {
         {/* Nested Spreadsheet Paste Modal */}
         {pasteModalOpen && (
           <div className="absolute inset-0 z-30 bg-black/70 backdrop-blur-xs flex items-center justify-center p-6">
-            <div className="bg-white border-2 border-black p-6 max-w-lg w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-4">
+            <div className="bg-white border-2 border-black p-6 max-w-lg w-full space-y-4">
               <div className="flex items-center justify-between border-b border-black pb-2">
                 <h4 className="text-sm font-bold uppercase tracking-wider text-black flex items-center gap-2">
                   <FileSpreadsheet size={16} className="text-[#FF5C00]" />

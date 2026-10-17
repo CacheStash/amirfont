@@ -89,11 +89,7 @@ export const CountryCombobox: React.FC<CountryComboboxProps> = ({
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
       <div 
-        className={`flex items-center w-full border-2 ${
-          isVintage 
-            ? 'border-vintage-ink bg-white text-vintage-ink' 
-            : 'border-black bg-white text-black'
-        } transition-all`}
+        className={`flex items-center w-full border-2 ${ isVintage ? 'border-vintage-ink bg-white text-vintage-ink' : 'border-black bg-white text-black' } transition-all`}
       >
         <span className="pl-3 pr-2 text-current opacity-50 shrink-0">
           <Globe size={15} />
@@ -133,11 +129,7 @@ export const CountryCombobox: React.FC<CountryComboboxProps> = ({
 
       {isOpen && (
         <div 
-          className={`absolute left-0 right-0 top-full mt-1 z-50 max-h-60 overflow-y-auto border-2 shadow-xl ${
-            isVintage 
-              ? 'border-vintage-ink bg-vintage-paper text-vintage-ink' 
-              : 'border-black bg-white text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
-          }`}
+          className={`absolute left-0 right-0 top-full mt-1 z-50 max-h-60 overflow-y-auto border-2 shadow-xl ${ isVintage ? 'border-vintage-ink bg-vintage-paper text-vintage-ink' : 'border-black bg-white text-black' }`}
         >
           {filtered.length === 0 ? (
             <div className="p-3 text-xs italic font-mono opacity-70 text-center">
@@ -153,11 +145,7 @@ export const CountryCombobox: React.FC<CountryComboboxProps> = ({
                     <button
                       type="button"
                       onClick={() => handleSelectCountry(country)}
-                      className={`w-full px-3 py-2 flex items-center justify-between text-left transition-colors cursor-pointer ${
-                        isSelected 
-                          ? (isVintage ? 'bg-vintage-ink text-vintage-paper font-bold' : 'bg-black text-white font-bold')
-                          : 'hover:bg-black/5'
-                      }`}
+                      className={`w-full px-3 py-2 flex items-center justify-between text-left transition-colors cursor-pointer ${ isSelected ? (isVintage ? 'bg-vintage-ink text-vintage-paper font-bold' : 'bg-black text-white font-bold') : 'hover:bg-black/5' }`}
                     >
                       <div className="flex items-center gap-2 truncate">
                         <span className="font-bold opacity-60 shrink-0 text-[10px] w-6">

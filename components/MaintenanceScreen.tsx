@@ -92,7 +92,7 @@ const MaintenanceScreen: React.FC = () => {
         </div>
 
         {/* Brutalist Status Card */}
-        <div className="w-full max-w-md border border-black bg-white/40 backdrop-blur-sm p-4 text-left font-sans text-xs space-y-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="w-full max-w-md border border-black bg-white/40 backdrop-blur-sm p-4 text-left font-sans text-xs space-y-2.5">
           <div className="flex justify-between border-b border-black/10 pb-1.5">
             <span className="text-black/60 uppercase tracking-wider text-[10px] font-bold">Estimated Uptime</span>
             <span className="font-bold uppercase tracking-wider text-[10px]">Moments Away</span>

@@ -517,10 +517,10 @@ const Checkout: React.FC = () => {
              
             {/* COUPON / PROMO CODE SECTION */}
             {!isPaid && total > 0 && (
-              <div className="mb-10 p-6 md:p-8 border-2 border-black bg-[#FFE500] text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4">
+              <div className="mb-10 p-6 md:p-8 border-2 border-black bg-[#FFE500] text-black space-y-4">
                     {/* CREATOR MILESTONE ACTIVE BANNER */}
                     {creatorMilestone && !appliedCoupon && (
-                      <div className="p-4 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
+                      <div className="p-4 bg-white border-2 border-black space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="font-black text-xs uppercase tracking-wider flex items-center gap-1.5 text-black">
                             <Sparkles size={14} className="text-[#FF5C00]" />
@@ -561,14 +561,14 @@ const Checkout: React.FC = () => {
                         <button 
                           onClick={handleApplyCoupon}
                           disabled={isApplyingCoupon || !couponCodeInput.trim()}
-                          className="bg-black text-white px-6 md:px-8 font-black uppercase tracking-widest text-xs hover:bg-white hover:text-black border-2 border-black disabled:opacity-50 transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+                          className="bg-black text-white px-6 md:px-8 font-black uppercase tracking-widest text-xs hover:bg-white hover:text-black border-2 border-black disabled:opacity-50 transition-all"
                         >
                           {isApplyingCoupon ? 'VERIFYING...' : 'APPLY'}
                         </button>
                       ) : (
                         <button 
                           onClick={handleRemoveCoupon}
-                          className="bg-red-600 text-white px-6 md:px-8 font-black uppercase tracking-widest text-xs hover:bg-black border-2 border-black transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                          className="bg-red-600 text-white px-6 md:px-8 font-black uppercase tracking-widest text-xs hover:bg-black border-2 border-black transition-all"
                         >
                           REMOVE
                         </button>
@@ -611,9 +611,7 @@ const Checkout: React.FC = () => {
                     value={name}
                     readOnly={Boolean(user)}
                     onChange={(e) => !user && setName(e.target.value.replace(/\b\w/g, l => l.toUpperCase()))}
-                    className={`w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30 ${
-                      user ? 'cursor-not-allowed bg-gray-100 text-black/80 select-none' : ''
-                    }`}
+                    className={`w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30 ${ user ? 'cursor-not-allowed bg-gray-100 text-black/80 select-none' : '' }`}
                     placeholder="FULL NAME"
                     required
                   />
@@ -622,9 +620,7 @@ const Checkout: React.FC = () => {
                     value={email}
                     readOnly={Boolean(user)}
                     onChange={(e) => !user && setEmail(e.target.value.toLowerCase())}
-                    className={`w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30 ${
-                      user ? 'cursor-not-allowed bg-gray-100 text-black/80 select-none' : ''
-                    }`}
+                    className={`w-full p-4 font-mono font-bold outline-none border-b border-black text-sm placeholder:text-black/30 ${ user ? 'cursor-not-allowed bg-gray-100 text-black/80 select-none' : '' }`}
                     placeholder="EMAIL@DOMAIN.COM WILL BE YOUR USERNAME TO YOUR ACCOUNT DASHBOARD"
                     required
                   />
@@ -632,9 +628,7 @@ const Checkout: React.FC = () => {
                     value={address}
                     readOnly={Boolean(user)}
                     onChange={(e) => !user && setAddress(e.target.value.replace(/\b\w/g, l => l.toUpperCase()))}
-                    className={`w-full p-4 font-mono font-bold outline-none text-sm placeholder:text-black/30 min-h-[80px] resize-none ${
-                      user ? 'cursor-not-allowed bg-gray-100 text-black/80 select-none' : ''
-                    }`}
+                    className={`w-full p-4 font-mono font-bold outline-none text-sm placeholder:text-black/30 min-h-[80px] resize-none ${ user ? 'cursor-not-allowed bg-gray-100 text-black/80 select-none' : '' }`}
                     placeholder={user ? "NO BILLING ADDRESS RECORDED (OPTIONAL)" : "COMPLETE ADDRESS (STREET, CITY, ZIP CODE) — OPTIONAL"}
                   />
                 </div>
@@ -771,7 +765,7 @@ const Checkout: React.FC = () => {
 
                   {/* FONT CANVAS USER VAULT PERKS */}
                   {purchasedItems.some(item => Number(item.price) > 0) && (
-                    <div className="mt-6 p-6 md:p-8 border-2 border-black bg-[#FFF9E6] text-left space-y-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="mt-6 p-6 md:p-8 border-2 border-black bg-[#FFF9E6] text-left space-y-4">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b-2 border-black pb-4">
                         <div>
                           <span className="bg-black text-white px-2 py-0.5 text-[9px] font-black tracking-widest uppercase">VIP BONUS</span>
@@ -781,7 +775,7 @@ const Checkout: React.FC = () => {
                           href="https://canvas.subqi.com" 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="bg-black text-white px-5 py-3 text-xs font-black uppercase tracking-widest hover:bg-white hover:text-black border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all flex items-center justify-center gap-2 w-fit self-start md:self-auto"
+                          className="bg-black text-white px-5 py-3 text-xs font-black uppercase tracking-widest hover:bg-white hover:text-black border-2 border-black transition-all flex items-center justify-center gap-2 w-fit self-start md:self-auto"
                         >
                           OPEN FONT CANVAS ↗
                         </a>
@@ -890,7 +884,7 @@ const Checkout: React.FC = () => {
                         await handlePurchaseSuccess(orderId);
                       }}
                       disabled={loading || !name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || trialConflicts.length > 0}
-                      className="w-full bg-black text-white py-5 text-sm font-black tracking-[0.2em] hover:bg-green-600 transition-all disabled:opacity-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+                      className="w-full bg-black text-white py-5 text-sm font-black tracking-[0.2em] hover:bg-green-600 transition-all disabled:opacity-50"
                     >
                       {loading ? "PROCESSING..." : "COMPLETE FREE PURCHASE"}
                     </button>

@@ -38,7 +38,7 @@ const Login = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto my-20 p-8 border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+    <div className="max-w-md mx-auto my-20 p-8 border-2 border-black bg-white">
       <h2 className="text-3xl font-normal uppercase mb-6 border-b-2 border-black pb-2 tracking-tight">
         {isRegister ? 'Register Admin' : 'Admin Access'}
       </h2>
@@ -66,7 +66,7 @@ const Login = () => {
         </div>
         <button 
           disabled={loading} 
-          className="w-full bg-black text-white p-4 font-bold uppercase hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+          className="w-full bg-black text-white p-4 font-bold uppercase hover:bg-gray-800 transition-all"
         >
           {loading ? 'Processing...' : isRegister ? 'Create Admin Account' : 'Enter Dashboard'}
         </button>

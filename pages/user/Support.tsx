@@ -22,7 +22,7 @@ const Support: React.FC = () => {
       </div>
 
       {/* MAIN BRUTALIST SUPPORT HERO CARD */}
-      <div className="border-2 border-black p-8 sm:p-12 text-center bg-white space-y-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+      <div className="border-2 border-black p-8 sm:p-12 text-center bg-white space-y-6">
         <div className="space-y-2">
           <span className="text-[10px] font-black tracking-[0.25em] uppercase bg-black text-[#FF5C00] px-3 py-1 inline-block border border-black">
             Independent Type Studio Desk
@@ -36,7 +36,7 @@ const Support: React.FC = () => {
         </div>
 
         {/* EMAIL ACTION BOX */}
-        <div className="max-w-md mx-auto p-4 border-2 border-black bg-gray-50 space-y-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="max-w-md mx-auto p-4 border-2 border-black bg-gray-50 space-y-3">
           <div className="flex items-center justify-between gap-2 border-2 border-black bg-white p-2">
             <div className="flex items-center gap-2 px-2 overflow-hidden">
               <Mail size={16} className="text-[#FF5C00] shrink-0" />
@@ -55,7 +55,7 @@ const Support: React.FC = () => {
 
           <a
             href={`mailto:${supportEmail}?subject=${encodeURIComponent('[Subqi Studio Support Request]')}`}
-            className="w-full py-3 px-4 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-[#FF5C00] text-black border-2 border-black hover:bg-black hover:text-white transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none cursor-pointer"
+            className="w-full py-3 px-4 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-[#FF5C00] text-black border-2 border-black hover:bg-black hover:text-white transition-all cursor-pointer"
           >
             <MessageSquare size={14} /> Send Us an Email
           </a>
@@ -74,7 +74,7 @@ const Support: React.FC = () => {
 
       {/* QUICK ASSISTANCE CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 border-2 border-black bg-white space-y-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-6 border-2 border-black bg-white space-y-2">
           <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider">
             <ShieldCheck size={16} className="text-[#FF5C00]" />
             <span>Commercial Rights</span>
@@ -84,7 +84,7 @@ const Support: React.FC = () => {
           </p>
         </div>
 
-        <div className="p-6 border-2 border-black bg-white space-y-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-6 border-2 border-black bg-white space-y-2">
           <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider">
             <FileText size={16} className="text-[#FF5C00]" />
             <span>Orders & Downloads</span>
@@ -94,7 +94,7 @@ const Support: React.FC = () => {
           </p>
         </div>
 
-        <div className="p-6 border-2 border-black bg-white space-y-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-6 border-2 border-black bg-white space-y-2">
           <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider">
             <ExternalLink size={16} className="text-[#FF5C00]" />
             <span>Affiliate Hub</span>

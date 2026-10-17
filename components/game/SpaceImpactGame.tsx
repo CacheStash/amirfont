@@ -873,7 +873,7 @@ export const SpaceImpactGame: React.FC<SpaceImpactGameProps> = ({
       className={`w-full relative border-2 ${
         brand === 'bombastype' 
           ? 'border-vintage-ink/40 bg-vintage-paper shadow-md' 
-          : 'border-black bg-[#EDEBE6] shadow-[4px_4px_0px_0px_#000]'
+          : 'border-black bg-[#EDEBE6]'
       } select-none ${isScreenLocked ? 'touch-none' : ''}`}
       style={{
         touchAction: isScreenLocked ? 'none' : 'auto',

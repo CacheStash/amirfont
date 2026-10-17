@@ -222,7 +222,7 @@ const Statistics: React.FC = () => {
 
       {/* CHARTS GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="border-2 border-black p-6 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <div className="border-2 border-black p-6 bg-white">
           <h3 className="text-sm font-black mb-6 flex items-center gap-2"><Calendar size={14}/> REVENUE_STREAM</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -244,7 +244,7 @@ const Statistics: React.FC = () => {
           </div>
         </div>
 
-        <div className="border-2 border-black p-6 bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <div className="border-2 border-black p-6 bg-white">
           <h3 className="text-sm font-black mb-6 flex items-center gap-2"><Filter size={14}/> USAGE_DYNAMICS</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -266,11 +266,11 @@ const Statistics: React.FC = () => {
       <div className="space-y-4 pt-10">
         <div className="flex justify-between items-center">
           <h3 className="text-2xl font-black italic flex items-center gap-3"><Users size={24}/> EMAIL_SUBSCRIBERS</h3>
-          <button onClick={exportSubscribersCSV} className="bg-black text-white px-4 py-2 text-[10px] font-black flex items-center gap-2 hover:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]">
+          <button onClick={exportSubscribersCSV} className="bg-black text-white px-4 py-2 text-[10px] font-black flex items-center gap-2 hover:bg-gray-800">
             <Download size={14}/> EXPORT_LIST
           </button>
         </div>
-        <div className="border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-x-auto">
+        <div className="border-2 border-black bg-white overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b-2 border-black text-[10px] font-black text-gray-400">
