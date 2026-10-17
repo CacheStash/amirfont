@@ -614,25 +614,30 @@ const AffiliateLanding: React.FC = () => {
       {/* 3.1. MILESTONE REWARDS & RECURRING DISCOUNT CYCLES */}
       <section className="relative z-10 px-4 md:px-8 py-16 md:py-20 border-b border-black bg-white/40 backdrop-blur-xs">
         <div className="max-w-full mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="bg-black text-[#FFE500] px-2.5 py-1 text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5">
-                  <RotateCcw size={11} className="text-[#FFE500]" />
-                  RECURRING CYCLE ENGINE
-                </span>
-                <span className="text-xs uppercase tracking-widest text-black/60 font-bold">
-                  EXCLUSIVE PARTNER PERK
-                </span>
-              </div>
-              <h2 className="text-3xl md:text-5xl lg:text-6xl font-normal uppercase tracking-tight font-sans">
-                MILESTONE DISCOUNT CYCLES.
-              </h2>
-            </div>
-            <p className="text-xs md:text-sm text-black/75 max-w-md font-sans leading-relaxed">
-              In addition to your <strong>20% Net Commission</strong>, unlock steep personal discounts to expand your own type library. Every $1,000 in gross referral sales, the reward cycle resets so you can earn them repeatedly!
-            </p>
-          </div>
+          {(() => {
+            const a5 = getItem('AF05', 'Milestone Discount Cycles (10% to 50% OFF)', 'In addition to your 20% Net Commission, unlock steep personal discounts to expand your own type library. Every $1,000 in gross referral sales, the reward cycle resets so you can earn them repeatedly!');
+            return (
+              <InContextCardWrapper item={a5} category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent}>
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="bg-black text-[#FFE500] px-2.5 py-1 text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5">
+                        <RotateCcw size={11} className="text-[#FFE500]" />
+                        RECURRING CYCLE ENGINE
+                      </span>
+                      <span className="text-xs uppercase tracking-widest text-black/60 font-bold">
+                        EXCLUSIVE PARTNER PERK
+                      </span>
+                    </div>
+                    <h2 className="text-3xl md:text-5xl lg:text-6xl font-normal uppercase tracking-tight font-sans">
+                      {a5.title}
+                    </h2>
+                  </div>
+                  <div className="text-xs md:text-sm text-black/75 max-w-md font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: a5.content }} />
+                </div>
+              </InContextCardWrapper>
+            );
+          })()}
 
           {/* MILESTONE CARDS ROADMAP */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -713,56 +718,66 @@ const AffiliateLanding: React.FC = () => {
           </div>
 
           {/* PERPETUAL CYCLE LOOP CALLOUT */}
-          <div className="border-2 border-black bg-black text-white p-6 md:p-8 shadow-[6px_6px_0px_0px_rgba(255,92,0,1)] flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-3xl">
-              <div className="flex items-center gap-2 text-[#FFE500] text-xs font-black uppercase tracking-widest">
-                <RotateCcw size={15} className="animate-spin-slow" />
-                <span>HOW THE RECURRING $1,000 CYCLE WORKS</span>
-              </div>
-              <p className="text-xs md:text-sm text-gray-200 font-sans leading-relaxed">
-                Unlike traditional one-time affiliate promotions, Subqi’s milestone engine is designed for infinite recurring rewards. Once you achieve $1,000 in gross referral sales, you claim your <strong>50% OFF Ultimate Creator Discount</strong>. The counter automatically rolls over into <strong>Cycle 2</strong>, allowing you to re-unlock 10%, 20%, 30%, and 50% discounts all over again as your channel expands!
-              </p>
-            </div>
-            <div className="shrink-0 font-mono text-center md:text-right border-t md:border-t-0 md:border-l border-white/20 pt-4 md:pt-0 md:pl-6">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-[#FF5C00] block mb-1">
-                CYCLE HORIZON
-              </span>
-              <div className="text-2xl font-black text-white">
-                INFINITE LOOPS
-              </div>
-              <span className="text-[10px] text-gray-400 block mt-1">
-                Non-stop compounding rewards
-              </span>
-            </div>
-          </div>
+          {(() => {
+            const a6 = getItem('AF06', 'How the Recurring $1,000 Cycle Works', 'Unlike traditional one-time affiliate promotions, Subqi’s milestone engine is designed for infinite recurring rewards. Once you achieve $1,000 in gross referral sales, you claim your 50% OFF Ultimate Creator Discount. The counter automatically rolls over into Cycle 2, allowing you to re-unlock 10%, 20%, 30%, and 50% discounts all over again as your channel expands!');
+            return (
+              <InContextCardWrapper item={a6} category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent}>
+                <div className="border-2 border-black bg-black text-white p-6 md:p-8 shadow-[6px_6px_0px_0px_rgba(255,92,0,1)] flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="space-y-2 max-w-3xl">
+                    <div className="flex items-center gap-2 text-[#FFE500] text-xs font-black uppercase tracking-widest">
+                      <RotateCcw size={15} className="animate-spin-slow" />
+                      <span>{a6.title}</span>
+                    </div>
+                    <div className="text-xs md:text-sm text-gray-200 font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: a6.content }} />
+                  </div>
+                  <div className="shrink-0 font-mono text-center md:text-right border-t md:border-t-0 md:border-l border-white/20 pt-4 md:pt-0 md:pl-6">
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-[#FF5C00] block mb-1">
+                      CYCLE HORIZON
+                    </span>
+                    <div className="text-2xl font-black text-white">
+                      INFINITE LOOPS
+                    </div>
+                    <span className="text-[10px] text-gray-400 block mt-1">
+                      Non-stop compounding rewards
+                    </span>
+                  </div>
+                </div>
+              </InContextCardWrapper>
+            );
+          })()}
         </div>
       </section>
 
       {/* 3.2. CREATOR PRESTIGE LEVEL BADGES */}
       <section className="relative z-10 px-4 md:px-8 py-16 md:py-20 border-b border-black bg-white/20 backdrop-blur-xs">
         <div className="max-w-full mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="bg-[#FF5C00] text-black px-2.5 py-1 text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5">
-                  <Award size={12} className="text-black" />
-                  PRESTIGE & RECOGNITION
-                </span>
-                <span className="text-xs uppercase tracking-widest text-black/60 font-bold">
-                  OFFICIAL CREATOR RANKING
-                </span>
-              </div>
-              <h2 className="text-3xl md:text-5xl lg:text-6xl font-normal uppercase tracking-tight font-sans">
-                CREATOR LEVEL BADGES.
-              </h2>
-            </div>
-            <p className="text-xs md:text-sm text-black/75 max-w-md font-sans leading-relaxed">
-              Every sales milestone unlocks an official creator tier badge displayed on your partner profile, spec sheets, and affiliate portal. Rise through the ranks from Level 1 to Level 10.
-            </p>
-          </div>
+          {(() => {
+            const a7 = getItem('AF07', 'Creator Level Badges', 'Every sales milestone unlocks an official creator tier badge displayed on your partner profile, spec sheets, and affiliate portal. Rise through the ranks from Level 1 to Level 10 based on verified gross sales volume.');
+            return (
+              <InContextCardWrapper item={a7} category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent}>
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="bg-[#FF5C00] text-black px-2.5 py-1 text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5">
+                        <Award size={12} className="text-black" />
+                        PRESTIGE & RECOGNITION
+                      </span>
+                      <span className="text-xs uppercase tracking-widest text-black/60 font-bold">
+                        OFFICIAL CREATOR RANKING
+                      </span>
+                    </div>
+                    <h2 className="text-3xl md:text-5xl lg:text-6xl font-normal uppercase tracking-tight font-sans">
+                      {a7.title}
+                    </h2>
+                  </div>
+                  <div className="text-xs md:text-sm text-black/75 max-w-md font-sans leading-relaxed" dangerouslySetInnerHTML={{ __html: a7.content }} />
+                </div>
+              </InContextCardWrapper>
+            );
+          })()}
 
           {/* BADGES GRID (10 TIERS) */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5">
             {EARNING_BADGE_LEVELS.map((tier) => (
               <div 
                 key={tier.level}
@@ -800,31 +815,6 @@ const AffiliateLanding: React.FC = () => {
               </div>
             ))}
           </div>
-
-          {/* BADGE PERKS SUMMARY STRIP */}
-          <div className="border border-black bg-white/70 p-4 md:p-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-sans">
-            <div className="flex items-start gap-3">
-              <CheckCircle2 size={18} className="text-[#FF5C00] shrink-0 mt-0.5" />
-              <div>
-                <strong className="uppercase font-black block text-black">Verified Credential</strong>
-                <span className="text-black/70">Badge renders alongside your partner code and links in font specimens.</span>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Zap size={18} className="text-[#FF5C00] shrink-0 mt-0.5" />
-              <div>
-                <strong className="uppercase font-black block text-black">Priority Beta Access</strong>
-                <span className="text-black/70">Level 3+ creators receive early test builds of unreleased Subqi font families.</span>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Trophy size={18} className="text-[#FF5C00] shrink-0 mt-0.5" />
-              <div>
-                <strong className="uppercase font-black block text-black">Spotlight Co-Marketing</strong>
-                <span className="text-black/70">Top level partners are featured across Subqi social channels and newsletter showcases.</span>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -853,82 +843,92 @@ const AffiliateLanding: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {/* Tool 1 */}
-            <div className="border-2 border-black bg-white p-6 sm:p-8 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[10px] font-mono font-black uppercase tracking-widest text-[#FF5C00]">
-                    TOOL 01 • DIRECT TRACKING
-                  </span>
-                  <span className="text-[10px] font-mono font-black bg-black text-white px-2 py-0.5 uppercase">
-                    30-Day Cookie
-                  </span>
-                </div>
-                <h3 className="text-2xl font-black uppercase tracking-tight mb-2 font-sans">
-                  Personal Vanity Link (/c/slug)
-                </h3>
-                <p className="text-xs text-black/80 font-sans leading-relaxed mb-6 normal-case">
-                  Place in your YouTube descriptions, design case studies, Instagram bio, or newsletter links. Visitors are tagged for 30 full days across all font purchases.
-                </p>
-                <div className="space-y-2 border-t border-black/15 pt-4 text-xs font-sans">
-                  <div className="flex items-center gap-2 text-green-800 font-bold">
-                    <Check size={14} className="text-green-800 shrink-0" />
-                    <span>Calculated on 100% full catalog price for maximum dollar commission</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-black/70">
-                    <Check size={14} className="text-black/50 shrink-0" />
-                    <span>Address bar auto-cleans seamlessly to keep URL presentation clean</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-black/70">
-                    <Check size={14} className="text-black/50 shrink-0" />
-                    <span>Tracks repeated purchases made by the same visitor within the 30-day window</span>
-                  </div>
-                </div>
-              </div>
+            {(() => {
+              const a8 = getItem('AF08', 'Personal Vanity Link (/c/slug)', 'Place in your YouTube descriptions, design case studies, Instagram bio, or newsletter links. Visitors are tagged for 30 full days across all font purchases. Calculated on 100% full catalog price for maximum dollar commission.');
+              return (
+                <InContextCardWrapper item={a8} category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent}>
+                  <div className="border-2 border-black bg-white p-6 sm:p-8 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-[10px] font-mono font-black uppercase tracking-widest text-[#FF5C00]">
+                          TOOL 01 • DIRECT TRACKING
+                        </span>
+                        <span className="text-[10px] font-mono font-black bg-black text-white px-2 py-0.5 uppercase">
+                          30-Day Cookie
+                        </span>
+                      </div>
+                      <h3 className="text-2xl font-black uppercase tracking-tight mb-2 font-sans">
+                        {a8.title}
+                      </h3>
+                      <div className="text-xs text-black/80 font-sans leading-relaxed mb-6 normal-case" dangerouslySetInnerHTML={{ __html: a8.content }} />
+                      <div className="space-y-2 border-t border-black/15 pt-4 text-xs font-sans">
+                        <div className="flex items-center gap-2 text-green-800 font-bold">
+                          <Check size={14} className="text-green-800 shrink-0" />
+                          <span>Calculated on 100% full catalog price for maximum dollar commission</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-black/70">
+                          <Check size={14} className="text-black/50 shrink-0" />
+                          <span>Address bar auto-cleans seamlessly to keep URL presentation clean</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-black/70">
+                          <Check size={14} className="text-black/50 shrink-0" />
+                          <span>Tracks repeated purchases made by the same visitor within the 30-day window</span>
+                        </div>
+                      </div>
+                    </div>
 
-              <div className="mt-6 pt-4 border-t border-black font-mono text-[11px] bg-gray-50 p-3 border border-black/20 flex items-center justify-between">
-                <span className="text-gray-500 uppercase">Share URL Format:</span>
-                <span className="font-bold text-black">subqi.com/c/YOUR_CODE</span>
-              </div>
-            </div>
+                    <div className="mt-6 pt-4 border-t border-black font-mono text-[11px] bg-gray-50 p-3 border border-black/20 flex items-center justify-between">
+                      <span className="text-gray-500 uppercase">Share URL Format:</span>
+                      <span className="font-bold text-black">subqi.com/c/YOUR_CODE</span>
+                    </div>
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
 
             {/* Tool 2 */}
-            <div className="border-2 border-black bg-white p-6 sm:p-8 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[10px] font-mono font-black uppercase tracking-widest text-green-800">
-                    TOOL 02 • IMPULSE CONVERTER
-                  </span>
-                  <span className="text-[10px] font-mono font-black bg-green-200 text-green-950 px-2 py-0.5 uppercase border border-black">
-                    High Conversion
-                  </span>
-                </div>
-                <h3 className="text-2xl font-black uppercase tracking-tight mb-2 font-sans">
-                  Audience Promo Coupon Code
-                </h3>
-                <p className="text-xs text-black/80 font-sans leading-relaxed mb-6 normal-case">
-                  Share a personalized coupon code that grants your followers an instant <strong>10% to 30% OFF</strong> at checkout. Delivers unmatched conversion for price-sensitive buyers.
-                </p>
-                <div className="space-y-2 border-t border-black/15 pt-4 text-xs font-sans">
-                  <div className="flex items-center gap-2 text-green-800 font-bold">
-                    <Check size={14} className="text-green-800 shrink-0" />
-                    <span>Works even if visitors browse with ad-blockers or privacy mode</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-black/70">
-                    <Check size={14} className="text-black/50 shrink-0" />
-                    <span>Adjust discount percent between 10% and 30% in your Partner Settings</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-black/70">
-                    <Check size={14} className="text-black/50 shrink-0" />
-                    <span>Commission (20%) is calculated transparently on the discounted total</span>
-                  </div>
-                </div>
-              </div>
+            {(() => {
+              const a9 = getItem('AF09', 'Audience Promo Coupon Code', 'Share a personalized coupon code that grants your followers an instant 10% to 30% OFF at checkout. Significantly accelerates sales conversions for budget-conscious buyers.');
+              return (
+                <InContextCardWrapper item={a9} category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent}>
+                  <div className="border-2 border-black bg-white p-6 sm:p-8 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-[10px] font-mono font-black uppercase tracking-widest text-green-800">
+                          TOOL 02 • IMPULSE CONVERTER
+                        </span>
+                        <span className="text-[10px] font-mono font-black bg-green-200 text-green-950 px-2 py-0.5 uppercase border border-black">
+                          High Conversion
+                        </span>
+                      </div>
+                      <h3 className="text-2xl font-black uppercase tracking-tight mb-2 font-sans">
+                        {a9.title}
+                      </h3>
+                      <div className="text-xs text-black/80 font-sans leading-relaxed mb-6 normal-case" dangerouslySetInnerHTML={{ __html: a9.content }} />
+                      <div className="space-y-2 border-t border-black/15 pt-4 text-xs font-sans">
+                        <div className="flex items-center gap-2 text-green-800 font-bold">
+                          <Check size={14} className="text-green-800 shrink-0" />
+                          <span>Works even if visitors browse with ad-blockers or privacy mode</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-black/70">
+                          <Check size={14} className="text-black/50 shrink-0" />
+                          <span>Adjust discount percent between 10% and 30% in your Partner Settings</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-black/70">
+                          <Check size={14} className="text-black/50 shrink-0" />
+                          <span>Commission (20%) is calculated transparently on the discounted total</span>
+                        </div>
+                      </div>
+                    </div>
 
-              <div className="mt-6 pt-4 border-t border-black font-mono text-[11px] bg-gray-50 p-3 border border-black/20 flex items-center justify-between">
-                <span className="text-gray-500 uppercase">Coupon Format:</span>
-                <span className="font-bold text-black font-mono">YOUR_CODE10</span>
-              </div>
-            </div>
+                    <div className="mt-6 pt-4 border-t border-black font-mono text-[11px] bg-gray-50 p-3 border border-black/20 flex items-center justify-between">
+                      <span className="text-gray-500 uppercase">Coupon Format:</span>
+                      <span className="font-bold text-black font-mono">YOUR_CODE10</span>
+                    </div>
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
           </div>
 
           {/* DISBURSEMENT METRICS BAR */}
