@@ -14,8 +14,8 @@ export const InContextAdminBar: React.FC = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="fixed bottom-4 right-18 md:bottom-8 md:right-24 z-[850] flex items-center gap-3 bg-black text-white border border-[#FF5C00] px-4 py-2.5 shadow-[4px_4px_0px_0px_#FF5C00] text-xs font-sans uppercase animate-in fade-in slide-in-from-bottom-3 duration-300">
-      <div className="flex items-center gap-2 pr-3 border-r border-white/20">
+    <div className="fixed bottom-4 right-18 md:bottom-8 md:right-22 z-[850] h-12 flex items-center gap-3 bg-black text-white border border-white/10 px-4 text-xs font-sans uppercase animate-in fade-in slide-in-from-bottom-3 duration-300">
+      <div className="flex items-center gap-2 pr-3 border-r border-white/20 h-5">
         <span className="w-2 h-2 rounded-full bg-[#FF5C00] animate-pulse" />
         <span className="font-bold tracking-widest text-[10px] text-[#FF5C00]">
           ADMIN ACTIVE
