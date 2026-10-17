@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { InContextCardWrapper, InContextAddSectionButton } from '../components/admin/InContextCardWrapper';
 
 interface ContentItem {
   id: string;
   title: string;
   content: string;
   section_id: string;
-updated_at?: string;
+  category?: string;
+  sort_order?: number;
+  type?: string;
+  updated_at?: string;
 }
 const PlusBullet = () => (
   <Plus size={14} className="shrink-0 mt-[0.4em] text-black" strokeWidth={3} />
@@ -34,20 +37,22 @@ const [lastUpdated, setLastUpdated] = useState<string>('');
     }).toUpperCase();
   };
 
+  const fetchPolicies = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from('site_content')
+      .select('*')
+      .eq('category', 'policy')
+      .order('sort_order', { ascending: true });
+    
+    if (data) {
+      setPolicies(data);
+      setLastUpdated(formatLastUpdated(data));
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchPolicies = async () => {
-      const { data } = await supabase
-        .from('site_content')
-        .select('*')
-        .eq('category', 'policy')
-        .order('sort_order', { ascending: true });
-      
-      if (data) {
-        setPolicies(data);
-        setLastUpdated(formatLastUpdated(data));
-      }
-      setLoading(false);
-    };
     fetchPolicies();
   }, []);
   const TermCard: React.FC<{ number: string, title: string, children: React.ReactNode }> = ({ number, title, children }) => (
@@ -91,15 +96,25 @@ const [lastUpdated, setLastUpdated] = useState<string>('');
           {loading ? (
             <div className="animate-pulse font-bold">FETCHING_POLICIES...</div>
           ) : (
-            policies.map((item) => (
-              <TermCard key={item.id} number={item.section_id || ''} title={item.title}>
-                <div 
-                  className="prose max-w-none prose-p:leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: item.content }} 
-                />
-              </TermCard>
+            policies.map((item, index) => (
+              <InContextCardWrapper
+                key={item.id}
+                item={{ ...item, category: 'policy', page_path: '/policy', sort_order: index }}
+                category="policy"
+                pagePath="/policy"
+                onRefresh={fetchPolicies}
+              >
+                <TermCard number={item.section_id || ''} title={item.title}>
+                  <div 
+                    className="prose max-w-none prose-p:leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: item.content }} 
+                  />
+                </TermCard>
+              </InContextCardWrapper>
             ))
           )}
+
+          <InContextAddSectionButton category="policy" pagePath="/policy" onRefresh={fetchPolicies} />
         </main>
         <div className="h-40 md:h-60 bg-transparent" />
       </div>

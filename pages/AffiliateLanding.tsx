@@ -15,6 +15,17 @@ import {
 import { COUNTRIES, PROVINCES_BY_COUNTRY, getDummyAffiliateData, syncAffiliateCoupon, findCountryByName, getCitiesForState, detectClientLocation } from '../utils/affiliateGeo';
 import { CountryCombobox } from '../components/CountryCombobox';
 import { PhoneDialCombobox } from '../components/PhoneDialCombobox';
+import { InContextCardWrapper, InContextAddSectionButton } from '../components/admin/InContextCardWrapper';
+
+interface ContentItem {
+  id?: string;
+  title: string;
+  content: string;
+  section_id: string;
+  category: string;
+  sort_order: number;
+  type?: string;
+}
 
 const AffiliateLanding: React.FC = () => {
   const [sessionUser, setSessionUser] = useState<any>(null);
@@ -39,7 +50,50 @@ const AffiliateLanding: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCoupon, setCopiedCoupon] = useState(false);
+  const [affiliateItems, setAffiliateItems] = useState<ContentItem[]>([]);
   const navigate = useNavigate();
+
+  const fetchAffiliateContent = async () => {
+    try {
+      const { data } = await supabase
+        .from('site_content')
+        .select('*')
+        .eq('category', 'affiliate')
+        .order('sort_order', { ascending: true });
+      if (data && data.length > 0) {
+        setAffiliateItems(data);
+      }
+    } catch (err) {
+      console.error('Failed to load affiliate site content:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchAffiliateContent();
+  }, []);
+
+  const getItem = (secId: string, fallbackTitle: string, fallbackContent: string) => {
+    const found = affiliateItems.find(i => i.section_id === secId || i.section_id === secId.replace('AF', ''));
+    if (found) {
+      return {
+        id: found.id,
+        title: found.title || fallbackTitle,
+        content: found.content || fallbackContent,
+        section_id: found.section_id || secId,
+        category: 'affiliate',
+        sort_order: found.sort_order ?? 0,
+        type: found.type || 'page'
+      };
+    }
+    return {
+      title: fallbackTitle,
+      content: fallbackContent,
+      section_id: secId,
+      category: 'affiliate',
+      sort_order: parseInt(secId.replace('AF', '')) - 1 || 0,
+      type: 'page'
+    };
+  };
 
   useEffect(() => {
     // Client location auto-suggestion for country & dial code
@@ -354,7 +408,7 @@ const AffiliateLanding: React.FC = () => {
 
       {/* 1. HERO HEADER */}
       <header className="relative z-10 px-4 md:px-8 py-14 md:py-20 border-b border-black bg-white/30 backdrop-blur-xs">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-full mx-auto">
           <div className="flex flex-wrap items-center gap-3 mb-6">
             <span className="bg-black text-[#FF5C00] px-3 py-1 text-xs font-black uppercase tracking-widest">
               CREATOR PARTNER GUILD
@@ -403,7 +457,7 @@ const AffiliateLanding: React.FC = () => {
 
       {/* 2. VANITY ROUTE PREVIEW SHOWCASE */}
       <section className="relative z-10 px-4 md:px-8 py-12 border-b border-black bg-white/40 backdrop-blur-xs">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-full mx-auto">
           <div className="border border-black bg-[#EDEBE6]/80 p-4 md:p-8 relative overflow-hidden backdrop-blur-xs">
             {/* Top Bar Simulator */}
             <div className="flex items-center justify-between border-b border-black pb-4 mb-6">
@@ -469,7 +523,7 @@ const AffiliateLanding: React.FC = () => {
 
       {/* 3. MARKETING PILLARS */}
       <section className="relative z-10 px-4 md:px-8 py-16 md:py-24 border-b border-black bg-white/20 backdrop-blur-xs">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-full mx-auto">
           <div className="mb-12">
             <span className="text-xs uppercase tracking-widest text-[#FF5C00] font-bold">
               WHY JOIN OUR GUILD?
@@ -480,67 +534,85 @@ const AffiliateLanding: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">01</span>
-                  <TrendingUp size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Monetize Your Design Taste
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Turn your visual recommendations into an extra revenue stream by earning on every typeface license your network buys.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                HIGH EARNING POTENTIAL
-              </div>
-            </div>
+            {/* Pillar 1 */}
+            {(() => {
+              const a1 = getItem('AF01', 'Monetize Your Design Taste', 'Turn your visual recommendations into an extra revenue stream by earning on every typeface license your network buys.');
+              return (
+                <InContextCardWrapper item={a1} category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent}>
+                  <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <span className="text-2xl font-black">01</span>
+                        <TrendingUp size={24} className="text-[#FF5C00]" />
+                      </div>
+                      <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
+                        {a1.title}
+                      </h3>
+                      <div className="text-xs leading-relaxed text-black/70 normal-case" dangerouslySetInnerHTML={{ __html: a1.content }} />
+                    </div>
+                    <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
+                      HIGH EARNING POTENTIAL
+                    </div>
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
 
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">02</span>
-                  <Zap size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Zero Overhead & Zero Hassle
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Never worry about font file distribution, licensing paperwork, customer support, or billing disputes. Subqi handles all delivery and support.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                NO SUPPORT HEADACHES
-              </div>
-            </div>
+            {/* Pillar 2 */}
+            {(() => {
+              const a2 = getItem('AF02', 'Zero Overhead & Zero Hassle', 'Never worry about font file distribution, licensing paperwork, customer support, or billing disputes. Subqi handles all delivery and support.');
+              return (
+                <InContextCardWrapper item={a2} category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent}>
+                  <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <span className="text-2xl font-black">02</span>
+                        <Zap size={24} className="text-[#FF5C00]" />
+                      </div>
+                      <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
+                        {a2.title}
+                      </h3>
+                      <div className="text-xs leading-relaxed text-black/70 normal-case" dangerouslySetInnerHTML={{ __html: a2.content }} />
+                    </div>
+                    <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
+                      NO SUPPORT HEADACHES
+                    </div>
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
 
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">03</span>
-                  <Sparkles size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Typefaces That Sell Themselves
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Subqi fonts feature chromatic layer stacking, custom OpenType alternates, and real-time experimentation in FontCanvas.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                BUILT FOR CONVERSIONS
-              </div>
-            </div>
+            {/* Pillar 3 */}
+            {(() => {
+              const a3 = getItem('AF03', 'Typefaces That Sell Themselves', 'Subqi fonts feature chromatic layer stacking, custom OpenType alternates, and real-time experimentation in FontCanvas.');
+              return (
+                <InContextCardWrapper item={a3} category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent}>
+                  <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <span className="text-2xl font-black">03</span>
+                        <Sparkles size={24} className="text-[#FF5C00]" />
+                      </div>
+                      <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
+                        {a3.title}
+                      </h3>
+                      <div className="text-xs leading-relaxed text-black/70 normal-case" dangerouslySetInnerHTML={{ __html: a3.content }} />
+                    </div>
+                    <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
+                      BUILT FOR CONVERSIONS
+                    </div>
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
           </div>
         </div>
       </section>
 
       {/* 4. ONBOARDING & ACTIVE STATUS SECTION */}
       <section id="register-section" className="relative z-10 px-4 md:px-8 py-16 md:py-24 border-b border-black">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="border-2 border-black bg-white p-6 sm:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div className="max-w-full mx-auto space-y-8">
+          <div className="border border-black bg-white p-6 sm:p-10">
             {existingAffiliate ? (
               /* Active Affiliate Hub Box */
               <div className="space-y-8">
@@ -899,18 +971,20 @@ const AffiliateLanding: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Program Policies Box */}
-                  <div className="p-4 border border-black bg-gray-50 text-xs text-black/80 space-y-1.5 normal-case font-mono">
-                    <span className="font-bold text-[11px] uppercase tracking-wider block text-black">
-                      Program Terms & Policies:
-                    </span>
-                    <ul className="list-disc list-inside space-y-1 text-[11px] text-black/70">
-                      <li>Commission is <strong>20% of net received sales</strong> (calculated after PayPal processing fees).</li>
-                      <li>Earnings have a <strong>14-day warranty holding period</strong> against customer refund claims.</li>
-                      <li>Minimum payout threshold is <strong>$50.00 USD</strong> disbursed monthly via PayPal.</li>
-                      <li>Self-referral purchases are strictly prohibited and will be voided.</li>
-                    </ul>
-                  </div>
+                  {/* Program Policies Box (AF04) */}
+                  {(() => {
+                    const a4 = getItem('AF04', 'Program Terms & Policies:', '<ul class="list-disc list-inside space-y-1 text-[11px] text-black/70"><li>Commission is <strong>20% of net received sales</strong> (calculated after PayPal processing fees).</li><li>Earnings have a <strong>14-day warranty holding period</strong> against customer refund claims.</li><li>Minimum payout threshold is <strong>$50.00 USD</strong> disbursed monthly via PayPal.</li><li>Self-referral purchases are strictly prohibited and will be voided.</li></ul>');
+                    return (
+                      <InContextCardWrapper item={a4} category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent}>
+                        <div className="p-4 border border-black bg-gray-50 text-xs text-black/80 space-y-1.5 normal-case font-mono">
+                          <span className="font-bold text-[11px] uppercase tracking-wider block text-black">
+                            {a4.title}
+                          </span>
+                          <div dangerouslySetInnerHTML={{ __html: a4.content }} />
+                        </div>
+                      </InContextCardWrapper>
+                    );
+                  })()}
 
                   <div className="flex items-start gap-3 pt-2">
                     <input 
@@ -937,6 +1011,7 @@ const AffiliateLanding: React.FC = () => {
               </div>
             )}
           </div>
+          <InContextAddSectionButton category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent} />
         </div>
       </section>
     </div>

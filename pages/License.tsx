@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
-
-// Shared Bullet Style - Menggunakan Icon Plus (Hitam)
-import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { InContextCardWrapper, InContextAddSectionButton } from '../components/admin/InContextCardWrapper';
 
 interface ContentItem {
   id: string;
   title: string;
   content: string;
   section_id: string;
-updated_at?: string;
+  category?: string;
+  sort_order?: number;
+  type?: string;
+  updated_at?: string;
 }
 const PlusBullet = () => (
   <Plus size={14} className="shrink-0 mt-[0.4em] text-black" strokeWidth={3} />
@@ -38,21 +39,22 @@ const License: React.FC = () => {
     }).toUpperCase();
   };
 
-  useEffect(() => {
-    const fetchLicenses = async () => {
-      const { data } = await supabase
-        .from('site_content')
-        .select('*')
-        .eq('category', 'license')
-        .order('sort_order', { ascending: true });
-      
-      if (data) {
-        setLicenses(data);
-        setLastUpdated(formatLastUpdated(data));
-      }
-      setLoading(false);
-    };
+  const fetchLicenses = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from('site_content')
+      .select('*')
+      .eq('category', 'license')
+      .order('sort_order', { ascending: true });
     
+    if (data) {
+      setLicenses(data);
+      setLastUpdated(formatLastUpdated(data));
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
     fetchLicenses();
   }, []);
   const TermCard: React.FC<{ number: string, title: string, children: React.ReactNode }> = ({ number, title, children }) => (
@@ -103,16 +105,25 @@ const License: React.FC = () => {
           {loading ? (
             <div className="animate-pulse font-bold">LOADING_LICENSE_TERMS...</div>
           ) : (
-            licenses.map((item) => (
-              <TermCard key={item.id} number={item.section_id || ''} title={item.title}>
-                <div 
-                  className="prose max-w-none prose-p:leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: item.content }} 
-                />
-              </TermCard>
+            licenses.map((item, index) => (
+              <InContextCardWrapper
+                key={item.id}
+                item={{ ...item, category: 'license', page_path: '/license', sort_order: index }}
+                category="license"
+                pagePath="/license"
+                onRefresh={fetchLicenses}
+              >
+                <TermCard number={item.section_id || ''} title={item.title}>
+                  <div 
+                    className="prose max-w-none prose-p:leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: item.content }} 
+                  />
+                </TermCard>
+              </InContextCardWrapper>
             ))
           )}
 
+          <InContextAddSectionButton category="license" pagePath="/license" onRefresh={fetchLicenses} />
         </main>
 
         <div className="h-40 md:h-60 bg-transparent" />

@@ -1,9 +1,64 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Layers, Sparkles, Sliders, PenTool, ShieldCheck, Download, Move, Smartphone } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { InContextCardWrapper, InContextAddSectionButton } from '../components/admin/InContextCardWrapper';
+
+interface ContentItem {
+  id?: string;
+  title: string;
+  content: string;
+  section_id: string;
+  category: string;
+  sort_order: number;
+  type?: string;
+}
 
 const CanvasLanding: React.FC = () => {
   const CANVAS_APP_URL = "https://canvas.subqi.com";
+  const [canvasItems, setCanvasItems] = useState<ContentItem[]>([]);
+
+  const fetchCanvasContent = async () => {
+    try {
+      const { data } = await supabase
+        .from('site_content')
+        .select('*')
+        .eq('category', 'canvas')
+        .order('sort_order', { ascending: true });
+      if (data && data.length > 0) {
+        setCanvasItems(data);
+      }
+    } catch (err) {
+      console.error('Failed to load canvas site content:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCanvasContent();
+  }, []);
+
+  const getItem = (secId: string, fallbackTitle: string, fallbackContent: string) => {
+    const found = canvasItems.find(i => i.section_id === secId || i.section_id === secId.replace('CV', ''));
+    if (found) {
+      return {
+        id: found.id,
+        title: found.title || fallbackTitle,
+        content: found.content || fallbackContent,
+        section_id: found.section_id || secId,
+        category: 'canvas',
+        sort_order: found.sort_order ?? 0,
+        type: found.type || 'page'
+      };
+    }
+    return {
+      title: fallbackTitle,
+      content: fallbackContent,
+      section_id: secId,
+      category: 'canvas',
+      sort_order: parseInt(secId.replace('CV', '')) - 1 || 0,
+      type: 'page'
+    };
+  };
 
   return (
     <div className="min-h-screen bg-[#EDEBE6] text-black font-mono selection:bg-black selection:text-white pb-24 relative overflow-x-hidden">
@@ -37,7 +92,7 @@ const CanvasLanding: React.FC = () => {
 
       {/* 1. HERO HEADER */}
       <header className="relative z-10 px-4 md:px-8 py-14 md:py-20 border-b border-black bg-white/30 backdrop-blur-xs">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-full mx-auto">
           <div className="flex flex-wrap items-center gap-3 mb-6">
             <span className="bg-black text-[#FF5C00] px-3 py-1 text-xs font-black uppercase tracking-widest">
               NEW RELEASE
@@ -78,7 +133,7 @@ const CanvasLanding: React.FC = () => {
 
       {/* 2. INTERACTIVE DEMO / PREVIEW SHOWCASE */}
       <section className="relative z-10 px-4 md:px-8 py-12 border-b border-black bg-white/40 backdrop-blur-xs">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-full mx-auto">
           <div className="border border-black bg-[#EDEBE6]/80 p-4 md:p-8 relative overflow-hidden backdrop-blur-xs">
             {/* Top Bar Simulator */}
             <div className="flex items-center justify-between border-b border-black pb-4 mb-6">
@@ -171,7 +226,7 @@ const CanvasLanding: React.FC = () => {
 
       {/* 3. CAPABILITIES GRID (BRUTALIST CARDS) */}
       <section className="relative z-10 px-4 md:px-8 py-16 md:py-24 border-b border-black bg-white/20 backdrop-blur-xs">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-full mx-auto">
           <div className="mb-12">
             <span className="text-xs uppercase tracking-widest text-[#FF5C00] font-bold">
               LAB CAPABILITIES
@@ -183,193 +238,235 @@ const CanvasLanding: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Card 1 */}
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">01</span>
-                  <Sliders size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Bezier Envelope Warping
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Warp and deform live fonts into custom shapes, arches, waves, banners, and asymmetric envelopes with real-time 4-point Bézier cages and interactive tangent handles.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                15+ CURVE & WARP PRESETS
-              </div>
-            </div>
+            {(() => {
+              const p1 = getItem('CV01', 'Bezier Envelope Warping', 'Warp and deform live fonts into custom shapes, arches, waves, banners, and asymmetric envelopes with real-time 4-point Bézier cages and interactive tangent handles.');
+              return (
+                <InContextCardWrapper item={p1} category="canvas" pagePath="/canvas" onRefresh={fetchCanvasContent}>
+                  <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <span className="text-2xl font-black">01</span>
+                        <Sliders size={24} className="text-[#FF5C00]" />
+                      </div>
+                      <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
+                        {p1.title}
+                      </h3>
+                      <div className="text-xs leading-relaxed text-black/70 normal-case" dangerouslySetInnerHTML={{ __html: p1.content }} />
+                    </div>
+                    <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
+                      15+ CURVE & WARP PRESETS
+                    </div>
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
 
             {/* Card 2 */}
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">02</span>
-                  <Layers size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Linked Layered System
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Work with chromatic and layered font families seamlessly. Linked layers synchronize font metrics, alternate glyph replacements, and transformations without vertical shifts or misalignment.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                SYNCHRONIZED METRICS & ALTS
-              </div>
-            </div>
+            {(() => {
+              const p2 = getItem('CV02', 'Linked Layered System', 'Work with chromatic and layered font families seamlessly. Linked layers synchronize font metrics, alternate glyph replacements, and transformations without vertical shifts or misalignment.');
+              return (
+                <InContextCardWrapper item={p2} category="canvas" pagePath="/canvas" onRefresh={fetchCanvasContent}>
+                  <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <span className="text-2xl font-black">02</span>
+                        <Layers size={24} className="text-[#FF5C00]" />
+                      </div>
+                      <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
+                        {p2.title}
+                      </h3>
+                      <div className="text-xs leading-relaxed text-black/70 normal-case" dangerouslySetInnerHTML={{ __html: p2.content }} />
+                    </div>
+                    <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
+                      SYNCHRONIZED METRICS & ALTS
+                    </div>
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
 
             {/* Card 3 */}
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">03</span>
-                  <PenTool size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Text On Path & Vector Pen
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Attach typography to arbitrary Bézier paths or shapes. Drag text interactively along curved perimeters with smooth baseline alignment, or draw custom vector paths directly on the artboard.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                COREL-STYLE PERIMETER SLIDING
-              </div>
-            </div>
+            {(() => {
+              const p3 = getItem('CV03', 'Text On Path & Vector Pen', 'Attach typography to arbitrary Bézier paths or shapes. Drag text interactively along curved perimeters with smooth baseline alignment, or draw custom vector paths directly on the artboard.');
+              return (
+                <InContextCardWrapper item={p3} category="canvas" pagePath="/canvas" onRefresh={fetchCanvasContent}>
+                  <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <span className="text-2xl font-black">03</span>
+                        <PenTool size={24} className="text-[#FF5C00]" />
+                      </div>
+                      <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
+                        {p3.title}
+                      </h3>
+                      <div className="text-xs leading-relaxed text-black/70 normal-case" dangerouslySetInnerHTML={{ __html: p3.content }} />
+                    </div>
+                    <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
+                      COREL-STYLE PERIMETER SLIDING
+                    </div>
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
 
             {/* Card 4 */}
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">04</span>
-                  <Sparkles size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Alternate Glyph Access
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Click any character on canvas to reveal and apply contextual alternates, swashes, stylistic sets, and discretionary ligatures without digging through complex OpenType menus.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                ONE-CLICK GLYPH SWAP
-              </div>
-            </div>
+            {(() => {
+              const p4 = getItem('CV04', 'Alternate Glyph Access', 'Click any character on canvas to reveal and apply contextual alternates, swashes, stylistic sets, and discretionary ligatures without digging through complex OpenType menus.');
+              return (
+                <InContextCardWrapper item={p4} category="canvas" pagePath="/canvas" onRefresh={fetchCanvasContent}>
+                  <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <span className="text-2xl font-black">04</span>
+                        <Sparkles size={24} className="text-[#FF5C00]" />
+                      </div>
+                      <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
+                        {p4.title}
+                      </h3>
+                      <div className="text-xs leading-relaxed text-black/70 normal-case" dangerouslySetInnerHTML={{ __html: p4.content }} />
+                    </div>
+                    <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
+                      ONE-CLICK GLYPH SWAP
+                    </div>
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
 
             {/* Card 5 */}
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">05</span>
-                  <Smartphone size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Touch & iPad Gestures
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case mb-2">
-                  Full multi-touch interaction support for iPad and tablet browsers. Smooth 2-finger pinch zoom, fluid single-finger canvas panning, and tap-and-hold marquee multi-selection.
-                </p>
-                <p className="text-[11px] leading-relaxed text-black/90 font-medium normal-case bg-black/5 p-2 border-l border-black">
-                  Desktop Recommended: While touch devices are supported, using a desktop computer with a larger screen and mouse/trackpad precision is strongly recommended for the most optimal design workflow.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                DESKTOP OPTIMAL • TOUCH READY
-              </div>
-            </div>
+            {(() => {
+              const p5 = getItem('CV05', 'Touch & iPad Gestures', '<p class="mb-2">Full multi-touch interaction support for iPad and tablet browsers. Smooth 2-finger pinch zoom, fluid single-finger canvas panning, and tap-and-hold marquee multi-selection.</p><p class="text-[11px] leading-relaxed text-black/90 font-medium normal-case bg-black/5 p-2 border-l border-black">Desktop Recommended: While touch devices are supported, using a desktop computer with a larger screen and mouse/trackpad precision is strongly recommended for the most optimal design workflow.</p>');
+              return (
+                <InContextCardWrapper item={p5} category="canvas" pagePath="/canvas" onRefresh={fetchCanvasContent}>
+                  <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <span className="text-2xl font-black">05</span>
+                        <Smartphone size={24} className="text-[#FF5C00]" />
+                      </div>
+                      <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
+                        {p5.title}
+                      </h3>
+                      <div className="text-xs leading-relaxed text-black/70 normal-case" dangerouslySetInnerHTML={{ __html: p5.content }} />
+                    </div>
+                    <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
+                      DESKTOP OPTIMAL • TOUCH READY
+                    </div>
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
 
             {/* Card 6 */}
-            <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-2xl font-black">06</span>
-                  <Download size={24} className="text-[#FF5C00]" />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
-                  Vector SVG & PNG Export
-                </h3>
-                <p className="text-xs leading-relaxed text-black/70 normal-case">
-                  Export your typographic layouts, outlines, and warped wordmarks as production-ready clean SVGs or high-resolution PNGs ready for Illustrator, Figma, or print production.
-                </p>
-              </div>
-              <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
-                PRODUCTION-GRADE OUTLINES
-              </div>
-            </div>
+            {(() => {
+              const p6 = getItem('CV06', 'Vector SVG & PNG Export', 'Export your typographic layouts, outlines, and warped wordmarks as production-ready clean SVGs or high-resolution PNGs ready for Illustrator, Figma, or print production.');
+              return (
+                <InContextCardWrapper item={p6} category="canvas" pagePath="/canvas" onRefresh={fetchCanvasContent}>
+                  <div className="border border-black bg-white p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <span className="text-2xl font-black">06</span>
+                        <Download size={24} className="text-[#FF5C00]" />
+                      </div>
+                      <h3 className="text-xl font-bold uppercase tracking-tight mb-3">
+                        {p6.title}
+                      </h3>
+                      <div className="text-xs leading-relaxed text-black/70 normal-case" dangerouslySetInnerHTML={{ __html: p6.content }} />
+                    </div>
+                    <div className="pt-6 mt-6 border-t border-black/10 text-[10px] uppercase font-bold tracking-widest text-black/50">
+                      PRODUCTION-GRADE OUTLINES
+                    </div>
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
           </div>
         </div>
       </section>
 
       {/* 4. LICENSING & COMMERCIAL POLICY */}
       <section className="relative z-10 px-4 md:px-8 py-16 md:py-20 border-b border-black bg-white/40 backdrop-blur-xs">
-        <div className="max-w-7xl mx-auto">
-          <div className="border border-black bg-white/90 backdrop-blur-xs p-8 md:p-12 relative mb-6">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-              <div className="max-w-2xl">
-                <div className="flex items-center gap-2 mb-4">
-                  <ShieldCheck size={20} className="text-[#FF5C00]" />
-                  <span className="text-xs uppercase font-bold tracking-widest text-[#FF5C00]">
-                    LAB POLICY & LICENSING
-                  </span>
-                </div>
-                <h2 className="text-2xl sm:text-4xl font-normal uppercase tracking-tight mb-4 font-sans">
-                  Free In-Browser Access & Crucial Pro Workflows
-                </h2>
-                <p className="text-xs sm:text-sm leading-relaxed text-black/80 normal-case mb-3">
-                  FontCanvas Studio is free for anyone to use and experiment without restriction. Designers and typographers can freely draft custom lettering layouts, explore stylistic alternates, test warping envelopes, and preview typography directly in their browser.
-                </p>
-                <p className="text-xs sm:text-sm leading-relaxed text-black/80 normal-case">
-                  To unlock crucial production capabilities—including clean unwatermarked vector SVG & high-res PNG exports, chromatic layer stacking, and full access to all accompanying ornament fonts and SVG assets—simply purchase at least one paid font from our collection. Please note that FontCanvas specifically unlocks and loads your purchased fonts.
-                </p>
-              </div>
+        <div className="max-w-full mx-auto">
+          {/* Card 7 (Policy) */}
+          {(() => {
+            const p7 = getItem('CV07', 'Free In-Browser Access & Crucial Pro Workflows', '<p class="mb-3">FontCanvas Studio is free for anyone to use and experiment without restriction. Designers and typographers can freely draft custom lettering layouts, explore stylistic alternates, test warping envelopes, and preview typography directly in their browser.</p><p>To unlock crucial production capabilities—including clean unwatermarked vector SVG & high-res PNG exports, chromatic layer stacking, and full access to all accompanying ornament fonts and SVG assets—simply purchase at least one paid font from our collection. Please note that FontCanvas specifically unlocks and loads your purchased fonts.</p>');
+            return (
+              <InContextCardWrapper item={p7} category="canvas" pagePath="/canvas" onRefresh={fetchCanvasContent}>
+                <div className="border border-black bg-white/90 backdrop-blur-xs p-8 md:p-12 relative mb-6">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                    <div className="max-w-2xl">
+                      <div className="flex items-center gap-2 mb-4">
+                        <ShieldCheck size={20} className="text-[#FF5C00]" />
+                        <span className="text-xs uppercase font-bold tracking-widest text-[#FF5C00]">
+                          LAB POLICY & LICENSING
+                        </span>
+                      </div>
+                      <h2 className="text-2xl sm:text-4xl font-normal uppercase tracking-tight mb-4 font-sans">
+                        {p7.title}
+                      </h2>
+                      <div className="text-xs sm:text-sm leading-relaxed text-black/80 normal-case space-y-3" dangerouslySetInnerHTML={{ __html: p7.content }} />
+                    </div>
 
-              <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
-                <a
-                  href={CANVAS_APP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="canvas-editor-btn px-7 py-4 text-xs font-bold uppercase tracking-widest text-center flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span>Launch FontCanvas Editor</span>
-                  <ArrowUpRight size={16} />
-                </a>
-                <Link
-                  to="/fonts"
-                  className="canvas-buynow-btn px-7 py-4 text-xs font-bold uppercase tracking-widest text-center cursor-pointer"
-                >
-                  Buy Now
-                </Link>
-              </div>
-            </div>
-          </div>
+                    <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+                      <a
+                        href={CANVAS_APP_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="canvas-editor-btn px-7 py-4 text-xs font-bold uppercase tracking-widest text-center flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <span>Launch FontCanvas Editor</span>
+                        <ArrowUpRight size={16} />
+                      </a>
+                      <Link
+                        to="/fonts"
+                        className="canvas-buynow-btn px-7 py-4 text-xs font-bold uppercase tracking-widest text-center cursor-pointer"
+                      >
+                        Buy Now
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </InContextCardWrapper>
+            );
+          })()}
 
           {/* Supplementary Notices: Direct Store Exclusive Facility & Continuous Development */}
           <div className="space-y-4">
-            {/* Direct Store Exclusive Facility */}
-            <div className="p-5 border border-black/15 bg-white/70 text-xs leading-relaxed text-black/80 normal-case">
-              <div className="font-bold uppercase tracking-wider text-[#FF5C00] text-[11px] mb-1.5 flex items-center gap-1.5">
-                <span>Direct Store Exclusive Facility</span>
-              </div>
-              <p>
-                <strong>Please note:</strong> FontCanvas VIP access, full font family unlocking, and creator perks are exclusively reserved for orders placed directly on <strong>subqi.com</strong>. We sincerely apologize, but purchases made through third-party marketplaces (such as Creative Market, Envato, MyFonts, etc.) are not eligible for this facility, as it is an exclusive benefit created solely for our direct website patrons.
-              </p>
-            </div>
+            {/* Card 8: Direct Store Exclusive Facility */}
+            {(() => {
+              const p8 = getItem('CV08', 'Direct Store Exclusive Facility', '<p><strong>Please note:</strong> FontCanvas VIP access, full font family unlocking, and creator perks are exclusively reserved for orders placed directly on <strong>subqi.com</strong>. We sincerely apologize, but purchases made through third-party marketplaces (such as Creative Market, Envato, MyFonts, etc.) are not eligible for this facility, as it is an exclusive benefit created solely for our direct website patrons.</p>');
+              return (
+                <InContextCardWrapper item={p8} category="canvas" pagePath="/canvas" onRefresh={fetchCanvasContent}>
+                  <div className="p-5 border border-black/15 bg-white/70 text-xs leading-relaxed text-black/80 normal-case">
+                    <div className="font-bold uppercase tracking-wider text-[#FF5C00] text-[11px] mb-1.5 flex items-center gap-1.5">
+                      <span>{p8.title}</span>
+                    </div>
+                    <div dangerouslySetInnerHTML={{ __html: p8.content }} />
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
 
-            {/* Continuous Development & In-Browser Simplicity */}
-            <div className="p-4 border-l-2 border-[#FF5C00] bg-white/40 text-[11px] leading-relaxed text-black/60 italic normal-case">
-              <p>
-                <strong>* Continuous Development & In-Browser Simplicity:</strong> We actively maintain and update FontCanvas regularly to resolve critical bugs and introduce refined tools. FontCanvas is intentionally engineered to stay clean, fast, and focused on essential typographic design workflows—allowing our buyers to compose, customize, and export production-ready vector artwork directly in-browser without requiring complex 3rd-party graphic software.
-              </p>
-            </div>
+            {/* Card 9: Continuous Development & In-Browser Simplicity */}
+            {(() => {
+              const p9 = getItem('CV09', 'Continuous Development & In-Browser Simplicity', '<p><strong>* Continuous Development & In-Browser Simplicity:</strong> We actively maintain and update FontCanvas regularly to resolve critical bugs and introduce refined tools. FontCanvas is intentionally engineered to stay clean, fast, and focused on essential typographic design workflows—allowing our buyers to compose, customize, and export production-ready vector artwork directly in-browser without requiring complex 3rd-party graphic software.</p>');
+              return (
+                <InContextCardWrapper item={p9} category="canvas" pagePath="/canvas" onRefresh={fetchCanvasContent}>
+                  <div className="p-4 border-l-2 border-[#FF5C00] bg-white/40 text-[11px] leading-relaxed text-black/60 italic normal-case">
+                    <div dangerouslySetInnerHTML={{ __html: p9.content }} />
+                  </div>
+                </InContextCardWrapper>
+              );
+            })()}
           </div>
+
+          <InContextAddSectionButton category="canvas" pagePath="/canvas" onRefresh={fetchCanvasContent} />
         </div>
       </section>
 
       {/* 5. BOTTOM CTA BANNER */}
       <section className="relative z-10 px-4 md:px-8 pt-16 md:pt-24">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-full mx-auto">
           <div className="border border-black bg-black text-white p-10 md:p-20 text-center relative overflow-hidden">
             <div className="relative z-10 max-w-3xl mx-auto">
               <span className="text-xs uppercase tracking-widest text-[#FF5C00] font-bold block mb-4">

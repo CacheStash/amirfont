@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { InContextCardWrapper, InContextAddSectionButton } from '../components/admin/InContextCardWrapper';
 
 interface ContentItem {
   id: string;
@@ -9,7 +9,9 @@ interface ContentItem {
   content: string;
   section_id: string;
   type: string;
-updated_at?: string;
+  category?: string;
+  sort_order?: number;
+  updated_at?: string;
 }
 
 // Shared Bullet Style - Menggunakan Icon Plus (Hitam)
@@ -72,20 +74,22 @@ const [lastUpdated, setLastUpdated] = useState<string>('');
       month: 'long', day: 'numeric', year: 'numeric'
     }).toUpperCase();
   };
+  const fetchFaqs = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from('site_content')
+      .select('*')
+      .eq('category', 'faq')
+      .order('sort_order', { ascending: true });
+    
+    if (data) {
+      setFaqs(data);
+      setLastUpdated(formatLastUpdated(data));
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchFaqs = async () => {
-      const { data } = await supabase
-        .from('site_content')
-        .select('*')
-        .eq('category', 'faq')
-        .order('sort_order', { ascending: true });
-      
-      if (data) {
-        setFaqs(data);
-        setLastUpdated(formatLastUpdated(data));
-      }
-      setLoading(false);
-    };
     fetchFaqs();
   }, []);
 
@@ -132,18 +136,25 @@ const [lastUpdated, setLastUpdated] = useState<string>('');
           {loading ? (
             <div className="animate-pulse font-bold">LOADING_CONTENT...</div>
           ) : (
-            faqs.map((item) => {
+            faqs.map((item, index) => {
               // Deteksi jika item adalah tabel brutalist
               if (item.type === 'table') {
                 try {
                   const tableData = JSON.parse(item.content);
                   return (
-                    <BrutalTable 
+                    <InContextCardWrapper
                       key={item.id}
-                      title={item.title}
-                      headers={tableData.headers}
-                      rows={tableData.rows}
-                    />
+                      item={{ ...item, category: 'faq', page_path: '/faq', sort_order: index }}
+                      category="faq"
+                      pagePath="/faq"
+                      onRefresh={fetchFaqs}
+                    >
+                      <BrutalTable 
+                        title={item.title}
+                        headers={tableData.headers}
+                        rows={tableData.rows}
+                      />
+                    </InContextCardWrapper>
                   );
                 } catch (e) {
                   return (
@@ -156,17 +167,25 @@ const [lastUpdated, setLastUpdated] = useState<string>('');
 
               // Default render sebagai kartu FAQ
               return (
-                <TermCard key={item.id} number={item.section_id || ''} title={item.title}>
-                  <div 
-                    className="prose max-w-none prose-p:leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: item.content }} 
-                  />
-                </TermCard>
+                <InContextCardWrapper
+                  key={item.id}
+                  item={{ ...item, category: 'faq', page_path: '/faq', sort_order: index }}
+                  category="faq"
+                  pagePath="/faq"
+                  onRefresh={fetchFaqs}
+                >
+                  <TermCard number={item.section_id || ''} title={item.title}>
+                    <div 
+                      className="prose max-w-none prose-p:leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: item.content }} 
+                    />
+                  </TermCard>
+                </InContextCardWrapper>
               );
             })
           )}
 
-          
+          <InContextAddSectionButton category="faq" pagePath="/faq" onRefresh={fetchFaqs} />
         </main>
         <div className="h-40 md:h-60 bg-transparent" />
       </div>

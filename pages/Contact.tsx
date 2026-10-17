@@ -1,6 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Send, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { InContextCardWrapper, InContextAddSectionButton } from '../components/admin/InContextCardWrapper';
+
+interface ContentItem {
+  id?: string;
+  title: string;
+  content: string;
+  section_id: string;
+  category: string;
+  sort_order: number;
+  type?: string;
+}
 
 // Shared Bullet Style
 const PlusBullet = () => (
@@ -41,9 +53,51 @@ const ContactCard: React.FC<{
 
 const Contact: React.FC = () => {
   const [subject, setSubject] = useState("");
-
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [contactItems, setContactItems] = useState<ContentItem[]>([]);
+
+  const fetchContactContent = async () => {
+    try {
+      const { data } = await supabase
+        .from('site_content')
+        .select('*')
+        .eq('category', 'contact')
+        .order('sort_order', { ascending: true });
+      if (data && data.length > 0) {
+        setContactItems(data);
+      }
+    } catch (err) {
+      console.error('Failed to load contact site content:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchContactContent();
+  }, []);
+
+  const getItem = (secId: string, fallbackTitle: string, fallbackContent: string) => {
+    const found = contactItems.find(i => i.section_id === secId || i.section_id === secId.replace('CT', ''));
+    if (found) {
+      return {
+        id: found.id,
+        title: found.title || fallbackTitle,
+        content: found.content || fallbackContent,
+        section_id: found.section_id || secId,
+        category: 'contact',
+        sort_order: found.sort_order ?? 0,
+        type: found.type || 'page'
+      };
+    }
+    return {
+      title: fallbackTitle,
+      content: fallbackContent,
+      section_id: secId,
+      category: 'contact',
+      sort_order: parseInt(secId.replace('CT', '')) - 1 || 0,
+      type: 'page'
+    };
+  };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,41 +145,33 @@ const Contact: React.FC = () => {
         <main className="px-3 md:px-8 max-w-full mx-auto text-left">
           
           {/* SECTION 00: DIRECT DISPATCH */}
-          <div className="mb-12 w-full border border-black bg-[#FEF9C3]/70 relative z-10">
-            {/* Title Section */}
-            <div className="border-b border-black p-6 md:p-10 bg-transparent">
-              <span className="text-[10px] font-black tracking-[0.3em] text-orange-600 block mb-4 uppercase">
-                Direct Dispatch Protocol
-              </span>
-              <h3 className="text-3xl md:text-6xl font-normal tracking-tighter uppercase leading-none">
-                <span className="opacity-20 mr-4 md:mr-8">00</span>
-                Prefer Direct Mail?
-              </h3>
-            </div>
+          {(() => {
+            const c0 = getItem('CT01', 'Prefer Direct Mail?', '<div class="space-y-6"><p class="text-xl md:text-2xl italic font-normal text-black">To bypass domain spam filters and keep communication simple, all studio correspondence is managed directly via official Gmail.</p><p class="text-lg md:text-xl text-gray-600 normal-case">If you prefer not using the form below, feel free to shoot an email straight to my inbox:</p><div class="pt-2"><a href="mailto:subqistudio@gmail.com" class="inline-flex items-center gap-4 bg-black text-white px-8 py-5 text-sm md:text-base font-black tracking-widest uppercase hover:bg-orange-600 border border-black transition-all"><span class="flex items-center gap-3">SUBQISTUDIO@GMAIL.COM</span></a></div></div>');
+            return (
+              <InContextCardWrapper item={c0} category="contact" pagePath="/contact" onRefresh={fetchContactContent}>
+                <div className="mb-12 w-full border border-black bg-[#FEF9C3]/70 relative z-10">
+                  {/* Title Section */}
+                  <div className="border-b border-black p-6 md:p-10 bg-transparent">
+                    <span className="text-[10px] font-black tracking-[0.3em] text-orange-600 block mb-4 uppercase">
+                      Direct Dispatch Protocol
+                    </span>
+                    <h3 className="text-3xl md:text-6xl font-normal tracking-tighter uppercase leading-none">
+                      <span className="opacity-20 mr-4 md:mr-8">00</span>
+                      {c0.title}
+                    </h3>
+                  </div>
 
-            {/* Content Section */}
-            <div className="p-6 md:p-14 space-y-8 normal-case text-gray-800 leading-relaxed">
-              <div className="flex gap-6 items-start">
-                <PlusBullet />
-                <div className="space-y-6">
-                  <p className="text-xl md:text-2xl italic font-normal text-black">
-                    To bypass domain spam filters and keep communication simple, all studio correspondence is managed directly via official Gmail.
-                  </p>
-                  <p className="text-lg md:text-xl text-gray-600 normal-case">
-                    If you prefer not using the form below, feel free to shoot an email straight to my inbox:
-                  </p>
-                  <div className="pt-2">
-                    <a 
-                      href="mailto:subqistudio@gmail.com" 
-                      className="inline-flex items-center gap-4 bg-black text-white px-8 py-5 text-sm md:text-base font-black tracking-widest uppercase hover:bg-orange-600 border border-black transition-all"
-                    >
-                      <Send size={18} /> SUBQISTUDIO@GMAIL.COM
-                    </a>
+                  {/* Content Section */}
+                  <div className="p-6 md:p-14 space-y-8 normal-case text-gray-800 leading-relaxed">
+                    <div className="flex gap-6 items-start">
+                      <PlusBullet />
+                      <div className="space-y-6 w-full" dangerouslySetInnerHTML={{ __html: c0.content }} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
+              </InContextCardWrapper>
+            );
+          })()}
 
           {/* SECTION 01: PERSONAL CONNECTION */}
           <ContactCard 
@@ -214,28 +260,22 @@ const Contact: React.FC = () => {
           </ContactCard>
 
           {/* SECTION 03: QUICK RESOURCES */}
-          <ContactCard 
-            number="03" 
-            category="Fast Support" 
-            title="Quick Resources"
-          >
-            <div className="space-y-8">
-              <p className="text-lg md:text-xl text-gray-600 normal-case">
-                Before sending a message, you might find an instant answer in our dedicated documentation pages.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Link to="/faq" className="group/btn p-8 border border-black flex items-center justify-between hover:bg-black hover:text-white transition-all">
-                  <span className="text-xl font-bold tracking-tighter">LICENSE FAQ</span>
-                  <ArrowRight size={20} className="group-hover/btn:translate-x-2 transition-transform" />
-                </Link>
-                <BrutalBox className="bg-[#f9f9f9] border-black/10 p-8 flex items-center">
-                  <p className="text-xs normal-case italic opacity-60">
-                    Typical response time: Within 24-48 hours.
-                  </p>
-                </BrutalBox>
-              </div>
-            </div>
-          </ContactCard>
+          {(() => {
+            const c2 = getItem('CT02', 'Quick Resources', '<p class="text-lg md:text-xl text-gray-600 normal-case mb-4">Before sending a message, you might find an instant answer in our dedicated documentation pages.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><a href="/faq" class="p-8 border border-black flex items-center justify-between hover:bg-black hover:text-white transition-all font-bold text-xl tracking-tighter"><span>LICENSE FAQ</span><span>&rarr;</span></a><div class="border border-black/10 bg-[#f9f9f9] p-8 flex items-center"><p class="text-xs normal-case italic opacity-60">Typical response time: Within 24-48 hours.</p></div></div>');
+            return (
+              <InContextCardWrapper item={c2} category="contact" pagePath="/contact" onRefresh={fetchContactContent}>
+                <ContactCard 
+                  number="03" 
+                  category="Fast Support" 
+                  title={c2.title}
+                >
+                  <div className="space-y-8" dangerouslySetInnerHTML={{ __html: c2.content }} />
+                </ContactCard>
+              </InContextCardWrapper>
+            );
+          })()}
+
+          <InContextAddSectionButton category="contact" pagePath="/contact" onRefresh={fetchContactContent} />
 
         </main>
 
