@@ -495,7 +495,7 @@ const AffiliateLanding: React.FC = () => {
                 <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#FF5C00] font-black block mb-2">
                   YOUR PERSONAL DIRECT SHARE LINK & PROMO CODE
                 </span>
-                <div className="border-2 border-black bg-gray-50 px-4 py-3 text-lg md:text-2xl font-mono font-black text-black tracking-tight inline-block max-w-full truncate shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                <div className="border border-black bg-gray-50 px-4 py-3 text-lg md:text-2xl font-mono font-black text-black tracking-tight inline-block max-w-full truncate">
                   {shareUrl}
                 </div>
                 <p className="text-xs uppercase tracking-widest text-black/50 mt-4">
@@ -677,10 +677,10 @@ const AffiliateLanding: React.FC = () => {
             ].map((milestone) => (
               <div 
                 key={milestone.step}
-                className={`border-2 border-black p-6 flex flex-col justify-between transition-all relative ${
+                className={`border border-black p-6 flex flex-col justify-between transition-colors relative ${
                   milestone.highlight 
-                    ? 'bg-[#FFE500] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' 
-                    : 'bg-white hover:bg-yellow-50/50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                    ? 'bg-[#FFE500] text-black' 
+                    : 'bg-white hover:border-[#FF5C00]'
                 }`}
               >
                 <div>
@@ -722,7 +722,7 @@ const AffiliateLanding: React.FC = () => {
             const a6 = getItem('AF06', 'How the Recurring $1,000 Cycle Works', 'Unlike traditional one-time affiliate promotions, Subqi’s milestone engine is designed for infinite recurring rewards. Once you achieve $1,000 in gross referral sales, you claim your 50% OFF Ultimate Creator Discount. The counter automatically rolls over into Cycle 2, allowing you to re-unlock 10%, 20%, 30%, and 50% discounts all over again as your channel expands!');
             return (
               <InContextCardWrapper item={a6} category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent}>
-                <div className="border-2 border-black bg-black text-white p-6 md:p-8 shadow-[6px_6px_0px_0px_rgba(255,92,0,1)] flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="border border-black bg-black text-white p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="space-y-2 max-w-3xl">
                     <div className="flex items-center gap-2 text-[#FFE500] text-xs font-black uppercase tracking-widest">
                       <RotateCcw size={15} className="animate-spin-slow" />
@@ -781,10 +781,10 @@ const AffiliateLanding: React.FC = () => {
             {EARNING_BADGE_LEVELS.map((tier) => (
               <div 
                 key={tier.level}
-                className="border-2 border-black bg-white p-4 flex flex-col items-center text-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] transition-transform"
+                className="border border-black bg-white p-4 flex flex-col items-center text-center hover:border-[#FF5C00] transition-colors"
               >
                 {/* Visual Star / Medal Box */}
-                <div className="w-12 h-12 flex flex-col items-center justify-center border-2 border-black bg-[#FFE500] text-black mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <div className="w-12 h-12 flex flex-col items-center justify-center border border-black bg-[#FFE500] text-black mb-3">
                   <Star size={11} className="fill-black text-black" />
                   <span className="text-base font-black leading-none font-mono mt-0.5">
                     {tier.level}
@@ -847,7 +847,7 @@ const AffiliateLanding: React.FC = () => {
               const a8 = getItem('AF08', 'Personal Vanity Link (/c/slug)', 'Place in your YouTube descriptions, design case studies, Instagram bio, or newsletter links. Visitors are tagged for 30 full days across all font purchases. Calculated on 100% full catalog price for maximum dollar commission.');
               return (
                 <InContextCardWrapper item={a8} category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent}>
-                  <div className="border-2 border-black bg-white p-6 sm:p-8 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between h-full">
+                  <div className="border border-black bg-white p-6 sm:p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors h-full">
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <span className="text-[10px] font-mono font-black uppercase tracking-widest text-[#FF5C00]">
@@ -891,7 +891,7 @@ const AffiliateLanding: React.FC = () => {
               const a9 = getItem('AF09', 'Audience Promo Coupon Code', 'Share a personalized coupon code that grants your followers an instant 10% to 30% OFF at checkout. Significantly accelerates sales conversions for budget-conscious buyers.');
               return (
                 <InContextCardWrapper item={a9} category="affiliate" pagePath="/affiliate" onRefresh={fetchAffiliateContent}>
-                  <div className="border-2 border-black bg-white p-6 sm:p-8 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between h-full">
+                  <div className="border border-black bg-white p-6 sm:p-8 flex flex-col justify-between hover:border-[#FF5C00] transition-colors h-full">
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <span className="text-[10px] font-mono font-black uppercase tracking-widest text-green-800">
@@ -985,7 +985,7 @@ const AffiliateLanding: React.FC = () => {
                 {/* DUAL PROMO TOOLS: VANITY LINK + AUDIENCE COUPON */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* TOOL 1: VANITY LINK */}
-                  <div className="p-4 border-2 border-black bg-gray-50 space-y-2">
+                  <div className="p-4 border border-black bg-gray-50 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF5C00] block">
                         1. Personal Share Link
@@ -1013,7 +1013,7 @@ const AffiliateLanding: React.FC = () => {
                   </div>
 
                   {/* TOOL 2: AUDIENCE COUPON */}
-                  <div className="p-4 border-2 border-black bg-gray-50 space-y-2">
+                  <div className="p-4 border border-black bg-gray-50 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF5C00] block flex items-center gap-1">
                         <Tag size={12} /> 2. Audience Promo Code
@@ -1088,12 +1088,12 @@ const AffiliateLanding: React.FC = () => {
                 </div>
 
                 {errorMsg && (
-                  <div className="p-4 border-2 border-black bg-red-100 text-red-900 font-bold text-xs">
+                  <div className="p-4 border border-black bg-red-100 text-red-900 font-bold text-xs">
                     {errorMsg}
                   </div>
                 )}
                 {successMsg && (
-                  <div className="p-4 border-2 border-black bg-green-100 text-green-900 font-bold text-xs">
+                  <div className="p-4 border border-black bg-green-100 text-green-900 font-bold text-xs">
                     {successMsg}
                   </div>
                 )}
@@ -1124,7 +1124,7 @@ const AffiliateLanding: React.FC = () => {
                       value={fullName} 
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="e.g. Johnathan Doe" 
-                      className="w-full border-2 border-black px-4 py-3 font-sans text-sm bg-white outline-none"
+                      className="w-full border border-black px-4 py-3 font-sans text-sm bg-white outline-none"
                     />
                     <span className="text-[11px] text-black/50 block font-mono">
                       Your legal personal or company name for financial compliance.
@@ -1136,8 +1136,8 @@ const AffiliateLanding: React.FC = () => {
                     <label className="text-xs font-bold uppercase tracking-wider text-black block">
                       Requested Vanity Code & Promo Base
                     </label>
-                    <div className="flex items-center border-2 border-black bg-white">
-                      <span className="px-4 py-3 bg-gray-100 border-r-2 border-black text-xs font-mono font-bold text-black/60 select-none">
+                    <div className="flex items-center border border-black bg-white">
+                      <span className="px-4 py-3 bg-gray-100 border-r border-black text-xs font-mono font-bold text-black/60 select-none">
                         subqi.com/c/
                       </span>
                       <input 
@@ -1185,7 +1185,7 @@ const AffiliateLanding: React.FC = () => {
                       value={paypalEmail} 
                       onChange={(e) => setPaypalEmail(e.target.value)}
                       placeholder="payouts@yourdomain.com" 
-                      className="w-full border-2 border-black px-4 py-3 font-mono text-sm bg-white outline-none"
+                      className="w-full border border-black px-4 py-3 font-mono text-sm bg-white outline-none"
                     />
                     <span className="text-[11px] text-black/50 block font-mono">
                       All monthly commission disbursements will be paid directly to this PayPal address.
@@ -1197,7 +1197,7 @@ const AffiliateLanding: React.FC = () => {
                     <label className="text-xs font-bold uppercase tracking-wider text-black block flex items-center gap-1.5">
                       <Phone size={14} className="text-[#FF5C00]" /> Phone Number
                     </label>
-                    <div className="flex border-2 border-black bg-white">
+                    <div className="flex border border-black bg-white">
                       <PhoneDialCombobox
                         value={phoneCode}
                         onChange={setPhoneCode}
@@ -1215,7 +1215,7 @@ const AffiliateLanding: React.FC = () => {
                   </div>
 
                   {/* 4. PHYSICAL ADDRESS */}
-                  <div className="p-4 border-2 border-black bg-gray-50 space-y-4">
+                  <div className="p-4 border border-black bg-gray-50 space-y-4">
                     <span className="text-xs font-bold uppercase tracking-wider text-[#FF5C00] block flex items-center gap-1.5">
                       <MapPin size={14} /> Physical Address / Billing Location
                     </span>
@@ -1347,7 +1347,7 @@ const AffiliateLanding: React.FC = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-4 px-8 font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 bg-[#FF5C00] text-black border-2 border-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="w-full py-4 px-8 font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 bg-[#FF5C00] text-black border border-black hover:bg-black hover:text-white transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {loading ? 'ACTIVATING PARTNERSHIP...' : 'ACTIVATE AFFILIATE ACCOUNT'}
                   </button>
