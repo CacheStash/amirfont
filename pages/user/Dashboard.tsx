@@ -9,6 +9,7 @@ import Support from './Support';
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('library');
+  const [visitedTabs, setVisitedTabs] = useState<Record<string, boolean>>({ library: true });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [fullName, setFullName] = useState('');
@@ -42,6 +43,7 @@ const UserDashboard = () => {
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
+    setVisitedTabs(prev => ({ ...prev, [tab]: true }));
     setIsMenuOpen(false);
   };
 
@@ -133,10 +135,26 @@ const UserDashboard = () => {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-grow p-6 md:p-10 overflow-y-auto w-full">
-        {activeTab === 'library' && <MyFontsHistory />}
-        {activeTab === 'settings' && <AccountSettings />}
-        {activeTab === 'affiliate' && <AffiliatePortal />}
-        {activeTab === 'support' && <Support />}
+        {visitedTabs['library'] && (
+          <div className={activeTab === 'library' ? 'block animate-in fade-in duration-300' : 'hidden'}>
+            <MyFontsHistory />
+          </div>
+        )}
+        {visitedTabs['settings'] && (
+          <div className={activeTab === 'settings' ? 'block animate-in fade-in duration-300' : 'hidden'}>
+            <AccountSettings />
+          </div>
+        )}
+        {visitedTabs['affiliate'] && (
+          <div className={activeTab === 'affiliate' ? 'block animate-in fade-in duration-300' : 'hidden'}>
+            <AffiliatePortal isActive={activeTab === 'affiliate'} />
+          </div>
+        )}
+        {visitedTabs['support'] && (
+          <div className={activeTab === 'support' ? 'block animate-in fade-in duration-300' : 'hidden'}>
+            <Support />
+          </div>
+        )}
       </main>
     </div>
   );

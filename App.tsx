@@ -91,7 +91,13 @@ const App: React.FC = () => {
   const [loading, setLoading] = React.useState(true);
   const [isNavActive, setIsNavActive] = React.useState(false);
   const [isAdmin, setIsAdmin] = React.useState(false);
-  const [isMaintenance, setIsMaintenance] = React.useState(false);
+  const [isMaintenance, setIsMaintenance] = React.useState(() => {
+    try {
+      return localStorage.getItem('site_maintenance_mode') === 'true';
+    } catch (_) {
+      return false;
+    }
+  });
   const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = React.useState(false);
 
   const isAffiliateAllowed = Boolean(
@@ -123,7 +129,11 @@ const App: React.FC = () => {
           .eq('key', 'maintenance_mode')
           .maybeSingle();
         if (data) {
-          setIsMaintenance(data.value === true || data.value === 'true');
+          const maint = data.value === true || data.value === 'true';
+          setIsMaintenance(maint);
+          try {
+            localStorage.setItem('site_maintenance_mode', String(maint));
+          } catch (_) {}
         }
       } catch (err) {
         console.error("Failed to check maintenance mode:", err);
@@ -171,13 +181,11 @@ const App: React.FC = () => {
     };
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#EDEBE6] flex items-center justify-center font-sans uppercase tracking-widest text-sm">
-        Verifying Access...
-      </div>
-    );
-  }
+  const renderVerifyingAccess = () => (
+    <div className="min-h-screen bg-[#EDEBE6] flex items-center justify-center font-sans uppercase tracking-widest text-sm">
+      Verifying Access...
+    </div>
+  );
 
   return (
     <AdminProvider>
@@ -190,11 +198,11 @@ const App: React.FC = () => {
               <Routes>
                 <Route 
                   path="/backstage" 
-                  element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
+                  element={loading ? renderVerifyingAccess() : (session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />)} 
                 />
                 <Route 
                   path="/backstage/*" 
-                  element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
+                  element={loading ? renderVerifyingAccess() : (session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />)} 
                 />
                 {/* Silent Decoy Redirects */}
                 <Route path="/admin" element={<Navigate to="/" replace />} />
@@ -237,12 +245,14 @@ const App: React.FC = () => {
                   {/* USER / BUYER ROUTES */}
                   <Route 
                     path="/user/auth" 
-                    element={!session ? <UserAuth /> : (isAdmin ? <Navigate to="/backstage" replace /> : <Navigate to="/user/dashboard" replace />)} 
+                    element={loading ? renderVerifyingAccess() : (!session ? <UserAuth /> : (isAdmin ? <Navigate to="/backstage" replace /> : <Navigate to="/user/dashboard" replace />))} 
                   />
                   <Route 
                     path="/user/dashboard/*" 
                     element={
-                      session ? (
+                      loading ? (
+                        renderVerifyingAccess()
+                      ) : session ? (
                         isAdmin ? <Navigate to="/backstage" replace /> : <UserDashboard />
                       ) : (
                         <Navigate to="/user/auth" replace />
@@ -258,11 +268,11 @@ const App: React.FC = () => {
                   {/* ADMIN ROUTES (Stealth: /backstage) */}
                   <Route 
                     path="/backstage" 
-                    element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
+                    element={loading ? renderVerifyingAccess() : (session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />)} 
                   />
                   <Route 
                     path="/backstage/*" 
-                    element={session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
+                    element={loading ? renderVerifyingAccess() : (session && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />)} 
                   />
 
                   {/* Silent Decoy Redirects for /admin and /login */}

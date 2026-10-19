@@ -8,6 +8,7 @@ import { ChevronsLeft, ChevronsRight, Plus, Eye } from 'lucide-react';
 import { useCart } from '../context/CartContext'; // Pastikan path benar
 import { useNavigate } from 'react-router-dom';
 import { loadProtectedFontFace } from '../utils/secureFontLoader';
+import { setCachedFonts, setCachedPromos } from '../utils/fontCache';
 
 
 
@@ -203,6 +204,8 @@ const Home: React.FC = () => {
           dynamic_sales: salesCounts[f.id] || 0
         }));
         setFonts(enrichedFonts);
+        setCachedFonts(enrichedFonts);
+        if (promosRes.data) setCachedPromos(promosRes.data);
 
         try {
           sessionStorage.setItem('subqi_collection_cache', JSON.stringify({

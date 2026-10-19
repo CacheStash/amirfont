@@ -20,6 +20,7 @@ import { supabase } from '../../lib/supabase';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('products');
+  const [visitedTabs, setVisitedTabs] = useState<Record<string, boolean>>({ products: true });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -34,7 +35,10 @@ const AdminDashboard = () => {
     Promise.all([fetchUnreadCount(), fetchSiteSettings()]);
 
     const handleSwitchTab = (e: any) => {
-      if (e.detail) setActiveTab(e.detail);
+      if (e.detail) {
+        setActiveTab(e.detail);
+        setVisitedTabs(prev => ({ ...prev, [e.detail]: true }));
+      }
     };
     window.addEventListener('admin-switch-tab', handleSwitchTab);
     return () => window.removeEventListener('admin-switch-tab', handleSwitchTab);
@@ -132,6 +136,7 @@ const AdminDashboard = () => {
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
+    setVisitedTabs(prev => ({ ...prev, [tab]: true }));
     setIsMenuOpen(false);
   };
 
@@ -257,16 +262,56 @@ const AdminDashboard = () => {
 
       {/* MAIN CONTENT */}
       <main className="flex-grow p-6 md:p-10 overflow-x-hidden overflow-y-auto w-full">
-        {activeTab === 'products' && <ProductManager />}
-        {activeTab === 'promotions' && <PromotionsManager onNavigateTab={setActiveTab} />}
-        {activeTab === 'affiliates' && <AffiliateManager />}
-        {activeTab === 'content' && <ContentManager />}
-        {activeTab === 'stats' && <Statistics />}
-        {(activeTab === 'broadcast' || activeTab === 'inbox') && <BroadcastStudio />}
-        {activeTab === 'audience' && <AudienceDirectory />}
-        {activeTab === 'orders' && <Orders />}
-        {activeTab === 'email_studio' && <EmailStudio />}
-        {activeTab === 'analytics' && <WebAnalytics />}
+        {visitedTabs['products'] && (
+          <div className={activeTab === 'products' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+            <ProductManager />
+          </div>
+        )}
+        {visitedTabs['promotions'] && (
+          <div className={activeTab === 'promotions' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+            <PromotionsManager onNavigateTab={handleTabChange} />
+          </div>
+        )}
+        {visitedTabs['affiliates'] && (
+          <div className={activeTab === 'affiliates' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+            <AffiliateManager />
+          </div>
+        )}
+        {visitedTabs['content'] && (
+          <div className={activeTab === 'content' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+            <ContentManager />
+          </div>
+        )}
+        {visitedTabs['stats'] && (
+          <div className={activeTab === 'stats' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+            <Statistics />
+          </div>
+        )}
+        {(visitedTabs['broadcast'] || visitedTabs['inbox']) && (
+          <div className={activeTab === 'broadcast' || activeTab === 'inbox' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+            <BroadcastStudio />
+          </div>
+        )}
+        {visitedTabs['audience'] && (
+          <div className={activeTab === 'audience' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+            <AudienceDirectory />
+          </div>
+        )}
+        {visitedTabs['orders'] && (
+          <div className={activeTab === 'orders' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+            <Orders />
+          </div>
+        )}
+        {visitedTabs['email_studio'] && (
+          <div className={activeTab === 'email_studio' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+            <EmailStudio />
+          </div>
+        )}
+        {visitedTabs['analytics'] && (
+          <div className={activeTab === 'analytics' ? 'block animate-in fade-in duration-200' : 'hidden'}>
+            <WebAnalytics />
+          </div>
+        )}
       </main>
     </div>
   );

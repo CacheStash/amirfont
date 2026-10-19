@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { loadProtectedFontFace } from '../utils/secureFontLoader';
+import { setCachedFonts, setCachedPromos } from '../utils/fontCache';
 
 // --- PARTIAL FIX ---
 /** * 1. GUNAKAN PUBLIC DEVELOPMENT URL DARI SCREENSHOT R2 ANDA
@@ -158,8 +159,14 @@ const Fonts: React.FC = () => {
       supabase.auth.getSession()
     ]);
     
-    if (fontsRes.data) setFonts(fontsRes.data);
-    if (promosRes.data) setPromos(promosRes.data);
+    if (fontsRes.data) {
+      setFonts(fontsRes.data);
+      setCachedFonts(fontsRes.data);
+    }
+    if (promosRes.data) {
+      setPromos(promosRes.data);
+      setCachedPromos(promosRes.data);
+    }
     if (session?.user) {
       const { data: affData } = await supabase
         .from('affiliates')
