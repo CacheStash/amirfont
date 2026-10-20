@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { loadProtectedFontFace } from '../utils/secureFontLoader';
-import { setCachedFonts, setCachedPromos } from '../utils/fontCache';
+import { setCachedFonts, setCachedPromos, getFontSlug } from '../utils/fontCache';
 
 // --- PARTIAL FIX ---
 /** * 1. GUNAKAN PUBLIC DEVELOPMENT URL DARI SCREENSHOT R2 ANDA
@@ -394,7 +394,7 @@ const Fonts: React.FC = () => {
                       />
                     </button>
                     <button 
-                      onClick={() => navigate(`/font/${font.id}`)}
+                      onClick={() => navigate(`/font/${getFontSlug(font)}`)}
                       className="flex items-center justify-center p-4 hover:bg-black hover:text-white transition-all duration-300 group/view"
                     >
                       <Eye 
