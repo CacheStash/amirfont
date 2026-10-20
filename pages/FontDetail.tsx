@@ -88,8 +88,71 @@ const FontDetail: React.FC = () => {
 
   const basePrice = font.price || 25;
   const styleCount = Array.isArray(font.font_files) ? font.font_files.length : 1;
+  const discountPrice = activePromo ? (basePrice * (1 - (activePromo.discount_percent / 100))).toFixed(0) : basePrice;
   const tags = Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []);
   const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
+
+  // Dynamic SEO Title & Schema.org Product Structured Data injection
+  useEffect(() => {
+    if (!font?.name) return;
+
+    const originalTitle = document.title;
+    document.title = `${font.name} Font — Subqi Studio`;
+
+    const scriptId = 'subqi-font-product-jsonld';
+    let scriptTag = document.getElementById(scriptId) as HTMLScriptElement | null;
+    if (!scriptTag) {
+      scriptTag = document.createElement('script');
+      scriptTag.id = scriptId;
+      scriptTag.type = 'application/ld+json';
+      document.head.appendChild(scriptTag);
+    }
+
+    const currentUrl = window.location.href.split('?')[0];
+    const primaryImage = fontPreviews.length > 0 ? resolvePreviewUrl(fontPreviews[0]) : null;
+    const absoluteImage = primaryImage?.startsWith('http') 
+      ? primaryImage 
+      : (primaryImage ? `${window.location.origin}${primaryImage}` : undefined);
+
+    const productSchema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": `${font.name} Typeface`,
+      "description": font.description || `${font.name} digital font family designed by Amir Subqi Setiaji.`,
+      "image": absoluteImage,
+      "brand": {
+        "@type": "Brand",
+        "name": "Subqi Studio"
+      },
+      "creator": {
+        "@type": "Person",
+        "name": "Amir Subqi Setiaji",
+        "url": "https://subqi.com"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": discountPrice || basePrice,
+        "priceCurrency": "USD",
+        "priceValidUntil": "2027-12-31",
+        "availability": "https://schema.org/InStock",
+        "url": currentUrl,
+        "seller": {
+          "@type": "Organization",
+          "name": "Subqi Studio Type Foundry",
+          "url": "https://subqi.com"
+        }
+      },
+      "category": "Digital Typography / Desktop & Web Font"
+    };
+
+    scriptTag.textContent = JSON.stringify(productSchema);
+
+    return () => {
+      document.title = originalTitle;
+      const el = document.getElementById(scriptId);
+      if (el) el.remove();
+    };
+  }, [font, basePrice, discountPrice, fontPreviews]);
 
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent overflow-x-hidden">
@@ -280,6 +343,43 @@ const FontDetail: React.FC = () => {
               </div>
             );
           })}
+        </section>
+
+        {/* 5. CRAWLABLE SPECIFICATIONS (Subqi Studio Brutalist Style) */}
+        <section className="relative z-20 w-full border-b border-black bg-white p-6 md:p-10 font-mono">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-black">
+            <div>
+              <div className="text-xs font-black tracking-widest uppercase mb-3 text-orange-600">DELIVERABLES</div>
+              <ul className="text-xs space-y-1.5 opacity-80">
+                <li>• OpenType (.OTF) Font Files</li>
+                <li>• TrueType (.TTF) Font Files</li>
+                <li>• Webfont (.WOFF2 / .WOFF) Files</li>
+                <li>• Commercial EULA Licensing Document</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-xs font-black tracking-widest uppercase mb-3 text-orange-600">OPENTYPE FEATURES</div>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {['liga', 'calt', 'ss01-ss20', 'swsh', 'dlig', 'PUA'].map((item) => (
+                  <span key={item} className="border border-black px-2 py-0.5 text-[10px] font-bold">
+                    {item}
+                  </span>
+                ))}
+              </div>
+              <p className="text-[11px] opacity-70">
+                Accessible via Adobe Creative Cloud, Affinity, Corel, Figma, and Font Book.
+              </p>
+            </div>
+            <div>
+              <div className="text-xs font-black tracking-widest uppercase mb-3 text-orange-600">DESIGN &amp; FOUNDRY</div>
+              <p className="text-xs leading-relaxed opacity-80 mb-2">
+                Designed &amp; developed by <strong>Amir Subqi Setiaji</strong> for <strong>Subqi Studio</strong>.
+              </p>
+              <p className="text-[11px] opacity-70">
+                Extensive Latin language coverage (Western, Central &amp; South-Eastern Europe).
+              </p>
+            </div>
+          </div>
         </section>
       </main>
     </div>
