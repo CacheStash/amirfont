@@ -97,7 +97,7 @@ const FontDetail: React.FC = () => {
     if (!font?.name) return;
 
     const originalTitle = document.title;
-    document.title = `${font.name} Font — Subqi Studio`;
+    document.title = `${font.name} Font Family — Official Commercial Typeface | Subqi Studio`;
 
     const scriptId = 'subqi-font-product-jsonld';
     let scriptTag = document.getElementById(scriptId) as HTMLScriptElement | null;
