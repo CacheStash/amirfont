@@ -359,9 +359,11 @@ const FontDetail: React.FC = () => {
               <div className="text-xs font-black tracking-widest uppercase mb-3 text-orange-600">DELIVERABLES</div>
               <ul className="text-xs space-y-1.5 opacity-80">
                 <li>• OpenType (.OTF) Font Files</li>
-                <li>• Perpetual Commercial EULA Licensing Document</li>
+                <li>• Official Commercial License Document (LICENSE.txt)</li>
+                <li>• VIP Creator Account &amp; Access on canvas.subqi.com</li>
               </ul>
               <p className="mt-3 text-[11px] opacity-70 leading-relaxed">
+                *License is included in your ZIP and also viewable online in your Buyer Dashboard.<br />
                 Need TTF or Webfonts (.WOFF / .WOFF2)? Convert instantly for free with our official converter at{' '}
                 <a 
                   href="https://fontshift.subqi.com" 
