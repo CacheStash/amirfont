@@ -97,16 +97,13 @@ const FontDetail: React.FC = () => {
     return days <= 0 ? "Ends today" : `${days} day${days > 1 ? 's' : ''} left`;
   };
 
-  if (loading) return <div className="p-20 text-center uppercase font-bold animate-pulse tracking-widest">Loading Font Details...</div>;
-  if (!font) return <div className="p-20 text-center uppercase font-bold">Font not found.</div>;
-
-  const basePrice = font.price || 25;
-  const styleCount = Array.isArray(font.font_files) ? font.font_files.length : 1;
+  const basePrice = font?.price || 25;
+  const styleCount = Array.isArray(font?.font_files) ? font.font_files.length : 1;
   const discountPrice = activePromo ? (basePrice * (1 - (activePromo.discount_percent / 100))).toFixed(0) : basePrice;
-  const tags = Array.isArray(font.tags) ? font.tags : (typeof font.tags === 'string' ? font.tags.split(',') : []);
-  const fontPreviews = Array.isArray(font.preview_images) ? font.preview_images : [];
+  const tags = Array.isArray(font?.tags) ? font.tags : (typeof font?.tags === 'string' ? font.tags.split(',') : []);
+  const fontPreviews = Array.isArray(font?.preview_images) ? font.preview_images : [];
 
-  // Dynamic SEO Title & Schema.org Product Structured Data injection
+  // Dynamic SEO Title & Schema.org Product Structured Data injection (Must execute before any early returns to obey React hook rules)
   useEffect(() => {
     if (!font?.name) return;
 
@@ -167,6 +164,9 @@ const FontDetail: React.FC = () => {
       if (el) el.remove();
     };
   }, [font, basePrice, discountPrice, fontPreviews]);
+
+  if (loading) return <div className="p-20 text-center uppercase font-bold animate-pulse tracking-widest">Loading Font Details...</div>;
+  if (!font) return <div className="p-20 text-center uppercase font-bold">Font not found.</div>;
 
   return (
     <div className="relative z-10 text-black font-sans selection:bg-black selection:text-white min-h-screen bg-transparent overflow-x-hidden">
