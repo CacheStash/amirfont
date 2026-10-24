@@ -43,17 +43,71 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
     "Rounded", "Rough Edges", "Semi Bold", "Sharp", "Soft Edges", "Spurred", "Stamp Effect", "Swash",
     "Tall", "Textured", "Thin", "Tight Kerning", "Wide",
 
-    // 6. Penggunaan, Vibe & Mood Industri
+    // 6. Tema Khusus & Vibe (Horror, Halloween, Holiday, Holiday Festive)
+    "Christmas", "Creepy", "Dark", "Decorative", "Festive", "Gothic", "Grunge", "Halloween", "Holiday",
+    "Horror", "Macabre", "Old English", "Ornament", "Ornamental", "Scary", "Seasonal", "Spooky", "Winter",
+    "Witchy", "Zombie",
+
+    // 7. Penggunaan, Vibe & Mood Industri
     "Acid", "Advertising", "Apparel", "Archival", "Authoritative", "Badges", "Beer Label", "Beverage",
     "Bold Header", "Book Cover", "Bootleg", "Branding", "Brutalism", "Cafe Menu", "Casual", "Chicano",
     "Chiseled", "Classic", "Coffee Shop", "Commercial", "Corporate", "Craft", "Cyber", "Editorial",
-    "Elegant", "Emblem", "Esoteric", "Exclusive", "Fairground", "Fashion", "Film Poster", "Gothic",
-    "Hardcore", "Header", "Heritage", "Hero Title", "High End", "Horror", "Label Design", "Letterpress",
+    "Elegant", "Emblem", "Esoteric", "Exclusive", "Fairground", "Fashion", "Film Poster",
+    "Hardcore", "Header", "Heritage", "Hero Title", "High End", "Label Design", "Letterpress",
     "Logotype", "Luxury", "Magazine", "Masculine", "Minimalist", "Monogram", "Motorcycle", "Music Poster",
     "Mystical", "Neoclassical", "Packaging", "Period Piece", "Playful", "Postage Stamp", "Poster",
     "Premium", "Prohibition", "Pub Sign", "Saloon", "Signage", "Sign Painting", "Streetwear", "Subcultural",
     "Tattoo", "Theater", "Tiki", "Timeless", "Title", "Typography", "Urban", "Whiskey Label", "Woodcut", "Wood Type"
   ].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+  // Curated Theme Preset Bundles for 1-Click Fast Tagging
+  const THEME_TAG_PRESETS = [
+    {
+      name: "Horror / Halloween",
+      key: "horror",
+      tags: ["Horror", "Halloween", "Creepy", "Scary", "Spooky", "Display", "Grunge", "Dark"]
+    },
+    {
+      name: "Vintage / Victorian",
+      key: "vintage",
+      tags: ["Vintage", "Victorian", "Ornament", "Retro", "Classic", "Display", "Serif", "Heritage"]
+    },
+    {
+      name: "Holiday / Festive",
+      key: "holiday",
+      tags: ["Holiday", "Christmas", "Festive", "Winter", "Celebration", "Decorative", "Seasonal"]
+    },
+    {
+      name: "Blackletter / Gothic",
+      key: "blackletter",
+      tags: ["Blackletter", "Gothic", "Medieval", "Fraktur", "Tattoo", "Calligraphy", "Old English"]
+    },
+    {
+      name: "Western / Saloon",
+      key: "western",
+      tags: ["Western", "Cowboy", "Saloon", "Rustic", "Wood Type", "Slab Serif", "Whiskey Label"]
+    },
+    {
+      name: "Signage / Lettering",
+      key: "signage",
+      tags: ["Signage", "Sign Painting", "Hand Lettering", "Bold", "Headline", "Logotype", "Poster"]
+    },
+    {
+      name: "Modern / Minimalist",
+      key: "modern",
+      tags: ["Modern", "Minimalist", "Clean", "Geometric", "Branding", "Editorial", "Sans Serif"]
+    },
+    {
+      name: "Script / Signature",
+      key: "script",
+      tags: ["Script", "Calligraphy", "Handwritten", "Signature", "Cursive", "Elegant", "Flowing"]
+    },
+    {
+      name: "Cyber / Y2K",
+      key: "cyber",
+      tags: ["Futuristic", "Cyberpunk", "Techno", "Y2K", "Sci-Fi", "Hi-Tech", "Bold"]
+    }
+  ];
   
   const [description, setDescription] = useState(initialData?.description || '');
   const [tags, setTags] = useState(initialData?.tags?.join(', ') || ''); 
@@ -116,12 +170,43 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
     ? activeSuggestion.slice(currentTagQuery.length)
     : '';
 
+  // Up to 6 interactive matching tag pills for the currently typed tag
+  const matchingSuggestions = currentTagQuery.length >= 1
+    ? FONT_TAGS_LIBRARY.filter(tag => tag.toLowerCase().includes(currentTagQuery.toLowerCase())).slice(0, 6)
+    : [];
+
+  const activeTagList = tags
+    .split(',')
+    .map(t => t.trim())
+    .filter(Boolean);
+
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ((e.key === 'Tab' || e.key === 'Enter') && activeSuggestion) {
       e.preventDefault();
       const parts = tags.split(',');
       parts[parts.length - 1] = (parts[parts.length - 1].startsWith(' ') ? ' ' : '') + activeSuggestion;
       setTags(parts.join(',') + ', ');
+    }
+  };
+
+  const handleApplyThemePreset = (presetTags: string[]) => {
+    const existingLower = new Set(activeTagList.map(t => t.toLowerCase()));
+    const toAdd = presetTags.filter(t => !existingLower.has(t.toLowerCase()));
+    if (toAdd.length > 0) {
+      const merged = [...activeTagList, ...toAdd];
+      setTags(merged.join(', ') + ', ');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    const updated = activeTagList.filter(t => t.toLowerCase() !== tagToRemove.toLowerCase());
+    setTags(updated.length > 0 ? updated.join(', ') + ', ' : '');
+  };
+
+  const handleAddSingleTag = (tagToAdd: string) => {
+    const existingLower = new Set(activeTagList.map(t => t.toLowerCase()));
+    if (!existingLower.has(tagToAdd.toLowerCase())) {
+      setTags([...activeTagList, tagToAdd].join(', ') + ', ');
     }
   };
 
@@ -482,18 +567,81 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
           </div>
         </div>
 
-        {/* INPUT CLASSIFICATION TAGS DENGAN SMART AUTOCOMPLETE */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="block font-bold text-xs uppercase tracking-wider text-gray-500">
-              Tags (Separated by Comma)
-            </label>
+        {/* INPUT CLASSIFICATION TAGS DENGAN THEME PRESETS & SMART AUTOCOMPLETE */}
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div>
+              <label className="block font-bold text-xs uppercase tracking-wider text-black">
+                Tags (Separated by Comma)
+              </label>
+              <p className="text-[11px] text-gray-500 italic">
+                Type individual tags with auto-suggest, or click a Theme Preset below to auto-generate tag bundles.
+              </p>
+            </div>
             {activeSuggestion && (
-              <span className="text-[9px] uppercase font-mono font-bold text-black bg-yellow-300 px-1 border border-black animate-pulse">
+              <span className="text-[9px] uppercase font-mono font-bold text-black bg-yellow-300 px-1.5 py-0.5 border border-black animate-pulse">
                 [TAB]/[ENTER]: "{activeSuggestion}"
               </span>
             )}
           </div>
+
+          {/* Quick Theme Presets Bar (1-Click Tag Generator) */}
+          <div className="p-3 border border-black bg-neutral-100">
+            <span className="block text-[9px] font-mono uppercase tracking-widest text-black/60 mb-2 font-bold">
+              ⚡ 1-Click Theme Preset Bundles:
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {THEME_TAG_PRESETS.map(preset => {
+                const isFullyApplied = preset.tags.every(t => activeTagList.some(at => at.toLowerCase() === t.toLowerCase()));
+                return (
+                  <button
+                    key={preset.key}
+                    type="button"
+                    onClick={() => handleApplyThemePreset(preset.tags)}
+                    className={`text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 border transition-all cursor-pointer flex items-center gap-1 ${
+                      isFullyApplied
+                        ? 'border-black bg-black text-white'
+                        : 'border-black bg-white hover:bg-yellow-300 text-black'
+                    }`}
+                    title={`Click to add tags: ${preset.tags.join(', ')}`}
+                  >
+                    <span>{isFullyApplied ? '✓' : '+'}</span>
+                    <span>{preset.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active Tag Chips (Removable with 1-click) */}
+          {activeTagList.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {activeTagList.map(tag => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 border border-black bg-white text-black"
+                >
+                  <span>#{tag}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="hover:text-red-600 transition-colors cursor-pointer ml-1 font-bold text-xs"
+                    title={`Remove #${tag}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              <button
+                type="button"
+                onClick={() => setTags('')}
+                className="text-[9px] font-mono uppercase tracking-widest text-red-600 hover:underline px-1 py-1 cursor-pointer font-bold"
+              >
+                Clear All
+              </button>
+            </div>
+          )}
+
           <div className="relative w-full border border-black focus-within:bg-yellow-50 transition-colors bg-white">
             {/* Ghost text background overlay */}
             <div 
@@ -511,9 +659,26 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
               onChange={(e) => setTags(e.target.value)}
               onKeyDown={handleTagKeyDown}
               className="relative z-10 w-full p-3 bg-transparent outline-none font-normal text-base placeholder:text-gray-400 text-black" 
-              placeholder="Variable, Serif, Display" 
+              placeholder="Type tag (e.g. Victorian, Horror, Display, Holiday)..." 
             />
           </div>
+
+          {/* Interactive Suggestions Matching Currently Typed Query */}
+          {matchingSuggestions.length > 0 && currentTagQuery.length >= 1 && (
+            <div className="flex items-center gap-1.5 flex-wrap pt-1">
+              <span className="text-[9px] font-mono uppercase tracking-widest text-gray-500">Suggestions:</span>
+              {matchingSuggestions.map(s => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => handleAddSingleTag(s)}
+                  className="text-[10px] font-mono px-2 py-0.5 border border-black bg-white hover:bg-yellow-300 text-black cursor-pointer transition-colors"
+                >
+                  +{s}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

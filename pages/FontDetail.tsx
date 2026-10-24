@@ -314,13 +314,6 @@ const FontDetail: React.FC = () => {
             </div>
 
             <div className="pb-10 lg:pb-0">
-               <div className="flex flex-wrap gap-2 text-[10px] uppercase mb-6">
-                {tags.map((tag: string) => (
-                  <span key={tag} className="border border-black px-3 py-1 rounded-full font-bold uppercase bg-transparent">
-                    {tag.trim()}
-                  </span>
-                ))}
-              </div>
               <p className="text-gray-600 text-sm leading-relaxed normal-case italic">{font.description}</p>
             </div>
           </div>
@@ -366,10 +359,19 @@ const FontDetail: React.FC = () => {
               <div className="text-xs font-black tracking-widest uppercase mb-3 text-orange-600">DELIVERABLES</div>
               <ul className="text-xs space-y-1.5 opacity-80">
                 <li>• OpenType (.OTF) Font Files</li>
-                <li>• TrueType (.TTF) Font Files</li>
-                <li>• Webfont (.WOFF2 / .WOFF) Files</li>
-                <li>• Commercial EULA Licensing Document</li>
+                <li>• Perpetual Commercial EULA Licensing Document</li>
               </ul>
+              <p className="mt-3 text-[11px] opacity-70 leading-relaxed">
+                Need TTF or Webfonts (.WOFF / .WOFF2)? Convert instantly for free with our official converter at{' '}
+                <a 
+                  href="https://fontshift.subqi.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="underline hover:text-orange-600 font-bold"
+                >
+                  fontshift.subqi.com
+                </a>.
+              </p>
             </div>
             <div>
               <div className="text-xs font-black tracking-widest uppercase mb-3 text-orange-600">OPENTYPE FEATURES</div>
@@ -394,6 +396,22 @@ const FontDetail: React.FC = () => {
               </p>
             </div>
           </div>
+
+          {/* Dedicated Full-Width Typographic Tags & Classification Row */}
+          {tags.length > 0 && (
+            <div className="mt-8 pt-6 border-t border-black/10">
+              <div className="text-xs font-black tracking-widest uppercase mb-3 text-orange-600">
+                TYPOGRAPHIC TAGS &amp; CLASSIFICATION
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag: string) => (
+                  <span key={tag} className="border border-black px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-transparent hover:bg-black hover:text-white transition-colors">
+                    #{tag.trim()}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       </main>
     </div>
