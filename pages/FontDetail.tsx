@@ -360,7 +360,17 @@ const FontDetail: React.FC = () => {
               <ul className="text-xs space-y-1.5 opacity-80">
                 <li>• OpenType (.OTF) Font Files</li>
                 <li>• Official Commercial License Document (LICENSE.txt)</li>
-                <li>• VIP Creator Account &amp; Access on canvas.subqi.com</li>
+                <li>
+                  • VIP Creator Account &amp; Access on{' '}
+                  <a 
+                    href="https://canvas.subqi.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="underline hover:text-orange-600 font-bold"
+                  >
+                    canvas.subqi.com
+                  </a>
+                </li>
               </ul>
               <p className="mt-3 text-[11px] opacity-70 leading-relaxed">
                 *License is included in your ZIP and also viewable online in your Buyer Dashboard.<br />
