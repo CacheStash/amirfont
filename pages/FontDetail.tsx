@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { getCanvasUrlWithSession } from '../lib/canvasSession';
 import TypeTester from '../components/TypeTester';
 import { useCart } from '../context/CartContext';
 import { getCachedFontByIdOrSlug, getCachedPromos, getFontSlug } from '../utils/fontCache';
@@ -363,10 +364,19 @@ const FontDetail: React.FC = () => {
                 <li>
                   • VIP Creator Account &amp; Access on{' '}
                   <a 
-                    href="https://canvas.subqi.com" 
+                    href={font?.name ? `https://canvas.subqi.com/?font=${encodeURIComponent(font.name)}&font_id=${encodeURIComponent(font.id || '')}&style=0` : 'https://canvas.subqi.com'} 
                     target="_blank" 
                     rel="noopener noreferrer" 
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      const rawUrl = font?.name 
+                        ? `https://canvas.subqi.com/?font=${encodeURIComponent(font.name)}&font_id=${encodeURIComponent(font.id || '')}&style=0` 
+                        : 'https://canvas.subqi.com';
+                      const targetUrl = await getCanvasUrlWithSession(rawUrl);
+                      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                    }}
                     className="underline hover:text-orange-600 font-bold"
+                    title={`Test ${font?.name || ''} in FontCanvas Studio`}
                   >
                     canvas.subqi.com
                   </a>
