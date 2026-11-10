@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useReducer } from 'react';
 import { Plus, Info, ArrowRight, Check, X, ShoppingCart, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { configuratorReducer, createInitialConfiguratorState } from '../lib/machines/configuratorMachine';
 
 interface TierPrices {
   solo: number;
@@ -38,33 +39,28 @@ directCheckout?: boolean; // FIXED: Properti baru untuk menyembunyikan 'Add to C
 initialOption?: 'trial' | 'corporate';
 }
 
-import { useNavigate } from 'react-router-dom'; // FIXED: Wajib tambah ini
-
 const CartCard: React.FC<CartCardProps> = ({ fontId, fontName, prices, font_files, trialFileUrl, discount = 0, directCheckout = false, initialOption }) => {
   const { addToCart, closeConfigurator } = useCart();
   const navigate = useNavigate(); // FIXED: Inisialisasi navigasi
-  const [selectedTier, setSelectedTier] = useState<'solo' | 'team' | 'studio' | 'enterprise'>('solo');
-  // FIXED: Memulai tanpa pilihan otomatis (Empty State)
-  const [selectedUsages, setSelectedUsages] = useState<string[]>([]);
 
-  // State granular tiers per kategori lisensi
-  const [selectedTiers, setSelectedTiers] = useState<Record<string, string>>({
-    desktop: 'solo', social_web: 'small_50k', logo_branding: 'personal', app: 'solo', server: 'solo', broadcast: 'solo'
-  });
+  // Explicit Deterministic State Machine
+  const [machineState, dispatch] = useReducer(
+    configuratorReducer,
+    createInitialConfiguratorState(initialOption, discount)
+  );
 
-  const [isCorporate, setIsCorporate] = useState(initialOption === 'corporate');
-  const [isTrial, setIsTrial] = useState(initialOption === 'trial');
-  const [isAdded, setIsAdded] = useState(false);
+  // Backward-compatible projections (100% preserves existing JSX and handlers)
+  const isTrial = machineState.mode === 'trial';
+  const isCorporate = machineState.mode === 'corporate';
+  const isAdded = machineState.status === 'added';
+  const selectedUsages = machineState.selectedUsages;
+  const selectedTiers = machineState.selectedTiers;
 
   useEffect(() => {
     if (initialOption === 'trial') {
-      setIsTrial(true);
-      setIsCorporate(false);
-      setSelectedUsages([]);
+      dispatch({ type: 'SWITCH_MODE', mode: 'trial' });
     } else if (initialOption === 'corporate') {
-      setIsCorporate(true);
-      setIsTrial(false);
-      setSelectedUsages([]);
+      dispatch({ type: 'SWITCH_MODE', mode: 'corporate' });
     }
   }, [initialOption, fontId]);
 
@@ -227,37 +223,25 @@ const handleAdd = (redirect: boolean = false) => {
       navigate('/checkout'); // FIXED: Langsung ke halaman checkout
       closeConfigurator();
     } else {
-      setIsAdded(true);
+      dispatch({ type: 'FINISH_ADD' });
     }
   };
 
- const toggleUsage = (id: string) => {
-    // FIXED: Nonaktifkan pemilihan kategori jika mode Corporate aktif
+  const toggleUsage = (id: string) => {
     if (isCorporate) return;
-    
-    // FIXED: Memilih paid license otomatis mematikan mode Trial
-    setIsTrial(false); 
-    
-    setSelectedUsages(prev => 
-      prev.includes(id) ? prev.filter(u => u !== id) : [...prev, id]
-    );
+    dispatch({ type: 'TOGGLE_USAGE', usage: id });
   };
 
   const handleCorporateToggle = () => {
-    const becomingCorporate = !isCorporate;
-    setIsCorporate(becomingCorporate);
-    setIsTrial(false); // FIXED: Memilih Corporate otomatis mematikan mode Trial
-    if (becomingCorporate) setSelectedUsages([]); // Bersihkan pilihan eceran
+    dispatch({ type: 'SWITCH_MODE', mode: isCorporate ? 'commercial' : 'corporate' });
   };
 
   const handleTrialToggle = () => {
-    const becomingTrial = !isTrial;
-    setIsTrial(becomingTrial);
-    // FIXED: Memilih Trial otomatis mematikan semua opsi berbayar agar bisa pindah antar opsi dengan lancar
-    if (becomingTrial) {
-      setIsCorporate(false);
-      setSelectedUsages([]);
-    }
+    dispatch({ type: 'SWITCH_MODE', mode: isTrial ? 'commercial' : 'trial' });
+  };
+
+  const handleTierSelect = (usageId: string, tierKey: string) => {
+    dispatch({ type: 'SET_TIER', usage: usageId, tier: tierKey });
   };
 
   const TicketEdges = () => (
@@ -320,7 +304,7 @@ const handleAdd = (redirect: boolean = false) => {
                     {isActive && !isCorporate && (
                       <div className="flex flex-wrap md:flex-nowrap gap-1 pl-4 border-l-2 border-black/10 animate-in fade-in slide-in-from-top-1">
                         {tierMap[u.id].map((t: {key: string, label: string}) => (
-                          <button key={t.key} onClick={() => setSelectedTiers(prev => ({...prev, [u.id]: t.key}))}
+                          <button key={t.key} onClick={() => handleTierSelect(u.id, t.key)}
                             className={`flex-1 min-w-[120px] md:min-w-0 py-3 px-2 border border-black text-[9px] font-black text-center transition-all ${ selectedTiers[u.id] === t.key ? 'bg-orange-600 text-white border-orange-600' : 'bg-white hover:bg-gray-50' }`}>
                             {t.label}
                           </button>

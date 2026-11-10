@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Search, ChevronLeft, ChevronRight, Download, FileText, ShieldCheck, Mail } from 'lucide-react';
+import { downloadMachineReducer, initialDownloadMachineState } from '../../lib/machines/downloadMachine';
 
 const GAS_MAP: Record<string, string> = {
   "AKfycbzO1E0IkuoZIdlaM4hRyz1y84VyObjRSJUUuSc2PjQxaTHcz-rJ82cKhUA4KUs3X9c": "subqistudio@gmail.com",
@@ -70,8 +71,16 @@ const Orders = () => {
   const [searchTerm, setSearchTerm] = useState('');   // Trigger query
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [downloadingTx, setDownloadingTx] = useState<string | null>(null);
-  const [downloadingZipTx, setDownloadingZipTx] = useState<string | null>(null);
+
+  // Explicit download lifecycle state machine
+  const [downloadMachine, dispatchDownload] = useReducer(downloadMachineReducer, initialDownloadMachineState);
+  const downloadingZipTx = (downloadMachine.status === 'preparing' || downloadMachine.status === 'downloading') && downloadMachine.activeTarget?.startsWith('zip:')
+    ? downloadMachine.activeTarget.replace('zip:', '')
+    : null;
+  const downloadingTx = (downloadMachine.status === 'preparing' || downloadMachine.status === 'downloading') && downloadMachine.activeTarget?.startsWith('txt:')
+    ? downloadMachine.activeTarget.replace('txt:', '')
+    : null;
+
   const [resendingTx, setResendingTx] = useState<string | null>(null);
   const itemsPerPage = 20;
 
@@ -291,7 +300,8 @@ const fetchOrders = async () => {
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const handleDownloadLicenseTxt = async (order: any) => {
-    setDownloadingTx(order.transaction_id);
+    if (downloadMachine.status === 'preparing' || downloadMachine.status === 'downloading') return;
+    dispatchDownload({ type: 'START_DOWNLOAD', target: `txt:${order.transaction_id}` });
     try {
       let buyerName = 'N/A';
       let buyerAddress = 'N/A';
@@ -391,19 +401,23 @@ const fetchOrders = async () => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(downloadUrl);
+      dispatchDownload({ type: 'DOWNLOAD_SUCCESS' });
     } catch (err: any) {
+      dispatchDownload({ type: 'DOWNLOAD_ERROR', message: err.message });
       console.error("LICENSE_DOWNLOAD_ERROR:", err);
       alert("Failed to generate license .txt: " + err.message);
-    } finally {
-      setDownloadingTx(null);
     }
   };
 
   const handleDownloadPackageZip = async (order: any) => {
-    setDownloadingZipTx(order.transaction_id);
+    if (downloadMachine.status === 'preparing' || downloadMachine.status === 'downloading') return;
+    dispatchDownload({ type: 'START_DOWNLOAD', target: `zip:${order.transaction_id}` });
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return alert("Session expired. Please login again.");
+      if (!session) {
+        dispatchDownload({ type: 'RESET' });
+        return alert("Session expired. Please login again.");
+      }
 
       // Cari file font target
       const isTrialOrder = order.download_type === 'trial' || (order.tier || '').toLowerCase().includes('demo');
@@ -443,6 +457,7 @@ const fetchOrders = async () => {
       }
 
       if (!targetFile) {
+        dispatchDownload({ type: 'RESET' });
         return alert(isTrialOrder ? "Dedicated trial font file not found for this font." : "Font files not found for this order.");
       }
 
@@ -471,11 +486,11 @@ const fetchOrders = async () => {
       a.click();
       window.URL.revokeObjectURL(url);
       a.remove();
+      dispatchDownload({ type: 'DOWNLOAD_SUCCESS' });
     } catch (err: any) {
+      dispatchDownload({ type: 'DOWNLOAD_ERROR', message: err.message });
       console.error("ZIP_DOWNLOAD_ERROR:", err);
       alert("DOWNLOAD_ERROR: " + err.message);
-    } finally {
-      setDownloadingZipTx(null);
     }
   };
 

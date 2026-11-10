@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useReducer } from 'react';
 import { useCart } from '../../context/CartContext';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Copy, Sparkles, Lock } from 'lucide-react';
@@ -6,6 +6,7 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { supabase } from '../../lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { calculateAffiliateMilestone, getClaimedMilestones, markMilestoneClaimed } from '../../utils/affiliateMilestone';
+import { checkoutMachineReducer, initialCheckoutMachineState } from '../../lib/machines/checkoutMachine';
 
 const Checkout: React.FC = () => {
 
@@ -19,18 +20,24 @@ const Checkout: React.FC = () => {
   
   const [user, setUser] = useState<User | null>(null);
   const orderId = useMemo(() => `SQ-${Math.floor(100000 + Math.random() * 900000)}`, []);
-  const [loading, setLoading] = useState(false);
+
+  // --- DETERMINISTIC STATE MACHINE ---
+  const [machine, dispatchMachine] = useReducer(checkoutMachineReducer, initialCheckoutMachineState);
+
+  // Backward-compatible projections (Zero breaking change for JSX & handlers)
+  const isPaid = machine.phase === 'completed';
+  const loading = machine.phase === 'processing_trial' || machine.phase === 'processing_payment';
+  const isApplyingCoupon = machine.phase === 'applying_coupon';
+  const appliedCoupon = machine.appliedCoupon;
+  const couponMessage = machine.couponMessage;
+  const purchasedItems = machine.purchasedItems;
+  const successfulOrderId = machine.successfulOrderId;
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState(''); 
   const [address, setAddress] = useState('');
-  const [isPaid, setIsPaid] = useState(false);
   const [subscribe, setSubscribe] = useState(true);
-  const [purchasedItems, setPurchasedItems] = useState<any[]>([]);
-  const [successfulOrderId, setSuccessfulOrderId] = useState<string | null>(null);
   const [couponCodeInput, setCouponCodeInput] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
-  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
-  const [couponMessage, setCouponMessage] = useState<{type: 'error' | 'success', text: string} | null>(null);
 
   // CREATOR MILESTONE REWARD STATE
   const [creatorMilestone, setCreatorMilestone] = useState<{
@@ -228,24 +235,20 @@ const Checkout: React.FC = () => {
         }
       }
 
-      setAppliedCoupon(coupon);
-      setCouponMessage({ type: 'success', text: `COUPON APPLIED: ${coupon.discount_type === 'percentage' ? coupon.discount_value + '% OFF' : '$' + coupon.discount_value + ' OFF'}` });
+      const successText = `COUPON APPLIED: ${coupon.discount_type === 'percentage' ? coupon.discount_value + '% OFF' : '$' + coupon.discount_value + ' OFF'}`;
+      dispatchMachine({ type: 'COUPON_SUCCESS', coupon, message: successText });
     } catch (err: any) {
-      setAppliedCoupon(null);
       let msg = "INVALID COUPON CODE";
       if (err.message === "SELF_COUPON_NOT_ALLOWED") msg = "YOU CANNOT USE YOUR OWN AFFILIATE PROMO CODE";
       else if (err.message === "COUPON_EXPIRED") msg = "THIS COUPON HAS EXPIRED OR NOT YET ACTIVE";
       else if (err.message === "COUPON_USAGE_LIMIT_REACHED") msg = "COUPON USAGE LIMIT HAS BEEN REACHED";
-      setCouponMessage({ type: 'error', text: msg });
-    } finally {
-      setIsApplyingCoupon(false);
+      dispatchMachine({ type: 'COUPON_ERROR', message: msg });
     }
   };
 
   const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
+    dispatchMachine({ type: 'REMOVE_COUPON' });
     setCouponCodeInput('');
-    setCouponMessage(null);
   };
 
   const handlePurchaseSuccess = async (
@@ -254,7 +257,7 @@ const Checkout: React.FC = () => {
     paypalOrderId?: string,
     paypalCaptureId?: string
   ) => {
-    setLoading(true);
+    dispatchMachine({ type: 'START_PAYMENT' });
     try {
       const storedRef = localStorage.getItem('affiliate_ref') || (appliedCoupon as any)?.affiliate_code || null;
       const response = await fetch('/api/checkout', {
@@ -299,10 +302,8 @@ const Checkout: React.FC = () => {
         if (subError) console.error("SUBSCRIBE_DB_ERROR:", subError);
       }
 
-      setIsPaid(true);
-      setPurchasedItems([...cart]);
+      dispatchMachine({ type: 'SETTLEMENT_SUCCESS', orderId: finalOrderId, items: [...cart] });
       clearCart();
-      setSuccessfulOrderId(finalOrderId);
 
       if (appliedCoupon) {
         const { error: couponUpdateError } = await supabase.rpc('increment_coupon_usage', {
@@ -315,9 +316,8 @@ const Checkout: React.FC = () => {
       }
       
     } catch (err: any) {
+      dispatchMachine({ type: 'SETTLEMENT_ERROR', message: err.message });
       alert("ERROR: " + err.message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -360,7 +360,7 @@ const Checkout: React.FC = () => {
     }
   };
 
- const handleFreeTrial = async () => {
+  const handleFreeTrial = async () => {
     const { validateLegitEmail } = await import('../../lib/emailValidator');
     const validation = await validateLegitEmail(email);
     if (!validation.isValid) {
@@ -368,7 +368,7 @@ const Checkout: React.FC = () => {
       return;
     }
 
-    setLoading(true);
+    dispatchMachine({ type: 'START_TRIAL' });
     try {
       const response = await fetch('/api/claim-trial', {
         method: 'POST',
@@ -404,19 +404,16 @@ const Checkout: React.FC = () => {
         if (subError) console.error("SUBSCRIBE_TRIAL_DB_ERROR:", subError.message);
       }
 
-      setPurchasedItems([...cart]);
-      setIsPaid(true);
+      dispatchMachine({ type: 'SETTLEMENT_SUCCESS', orderId, items: [...cart] });
       clearCart();
-      setSuccessfulOrderId(orderId);
       
     } catch (err: any) {
-      if (err.message === "TRIAL_ALREADY_CLAIMED") {
-        alert("YOU HAVE ALREADY CLAIMED THIS DEMO ASSET. PLEASE CHECK YOUR LIBRARY DASHBOARD TO DOWNLOAD IT AGAIN.");
-      } else {
-        alert("ERROR: " + err.message);
-      }
-    } finally {
-      setLoading(false);
+      const isAlreadyClaimed = err.message === "TRIAL_ALREADY_CLAIMED";
+      const errorMsg = isAlreadyClaimed 
+        ? "YOU HAVE ALREADY CLAIMED THIS DEMO ASSET. PLEASE CHECK YOUR LIBRARY DASHBOARD TO DOWNLOAD IT AGAIN." 
+        : "ERROR: " + err.message;
+      dispatchMachine({ type: 'SETTLEMENT_ERROR', message: errorMsg });
+      alert(errorMsg);
     }
   };
 

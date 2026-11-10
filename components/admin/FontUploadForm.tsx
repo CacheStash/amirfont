@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useReducer } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { uploadMachineReducer, initialUploadMachineState } from '../../lib/machines/uploadMachine';
 
 // Definisi tipe untuk hasil API agar TypeScript tidak error
 interface UploadResponse {
@@ -148,9 +149,13 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
   const [existingFontFiles, setExistingFontFiles] = useState<string[]>(initialData?.font_files || []);
   const [existingPreviewImages, setExistingPreviewImages] = useState<string[]>(initialData?.preview_images || []);
   const [existingTrialFile, setExistingTrialFile] = useState<string>(initialData?.trial_file_url || '');
-  const [isUploading, setIsUploading] = useState(false);
+
+  // --- DETERMINISTIC STATE MACHINE ---
+  const [uploadMachine, dispatchUpload] = useReducer(uploadMachineReducer, initialUploadMachineState);
+  const isUploading = uploadMachine.phase === 'uploading_r2' || uploadMachine.phase === 'saving_database';
+  const isSearchingDrive = uploadMachine.phase === 'searching_drive';
+
   const [driveResults, setDriveResults] = useState<{images: any[], fonts: any[], trial: any[]} | null>(null);
-  const [isSearchingDrive, setIsSearchingDrive] = useState(false);
   
   // Layer & Primary States
   const [primaryFontIndex, setPrimaryFontIndex] = useState<number>(initialData?.metadata?.primary_font_index || 0);
@@ -239,7 +244,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
 
   const fetchFromDrive = async () => {
     if (!fontName) return alert("Isi nama font dulu!");
-    setIsSearchingDrive(true);
+    dispatchUpload({ type: 'START_DRIVE_SEARCH' });
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(`/api/admin/drive-search?q=${encodeURIComponent(fontName)}`, {
@@ -271,7 +276,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
     } catch (err) { 
       alert("Gagal koneksi ke Worker"); 
     } finally { 
-      setIsSearchingDrive(false); 
+      dispatchUpload({ type: 'DRIVE_SEARCH_DONE' }); 
     }
   };
 
@@ -393,7 +398,7 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
     }
     if (!fontName || !price) return alert("Lengkapi data!");
 
-    setIsUploading(true);
+    dispatchUpload({ type: 'START_SAVE' });
     try {
       const uploadedFontUrls = await uploadToR2(fontFiles);
       const uploadedPreviewUrls = await uploadToR2(previewImages);
@@ -431,18 +436,19 @@ const FontUploadForm = ({ initialData, onSuccess }: { initialData?: any, onSucce
       if (initialData?.id) {
         const { error: dbError } = await supabase.from('fonts').update(payload).eq('id', initialData.id);
         if (dbError) throw dbError;
+        dispatchUpload({ type: 'SAVE_SUCCESS' });
         alert("Font berhasil diupdate!");
       } else {
         const { error: dbError } = await supabase.from('fonts').insert([payload]);
         if (dbError) throw dbError;
+        dispatchUpload({ type: 'SAVE_SUCCESS' });
         alert("Gokil! Font berhasil dipublikasikan.");
       }
       
       onSuccess?.();
     } catch (err: any) {
+      dispatchUpload({ type: 'SAVE_ERROR', error: err.message });
       alert("Error: " + err.message);
-    } finally {
-      setIsUploading(false);
     }
   };
 

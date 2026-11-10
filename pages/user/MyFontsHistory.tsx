@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useReducer } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Link } from 'react-router-dom';
-import { Download, Info, ShoppingBag } from 'lucide-react';
+import { Download, Info, ShoppingBag, Loader2 } from 'lucide-react';
+import { downloadMachineReducer, initialDownloadMachineState } from '../../lib/machines/downloadMachine';
 
 
 const MyFontsHistory = () => {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloadMachine, dispatchDownload] = useReducer(downloadMachineReducer, initialDownloadMachineState);
 
   useEffect(() => {
     fetchHistory();
@@ -42,6 +44,7 @@ const MyFontsHistory = () => {
     
     if (!session) return alert("Session expired. Please login again.");
 
+    dispatchDownload({ type: 'START_DOWNLOAD', target: orderId });
     try {
       // FIXED: Masukkan &type=${downloadType} ke URL agar Worker langsung tau status filenya
       const res = await fetch(`/api/download-zip?file=${encodeURIComponent(fileName)}&order=${orderId}&type=${downloadType}`, {
@@ -72,7 +75,9 @@ const MyFontsHistory = () => {
       a.click();
       window.URL.revokeObjectURL(url);
       a.remove();
+      dispatchDownload({ type: 'DOWNLOAD_SUCCESS' });
     } catch (err: any) {
+      dispatchDownload({ type: 'DOWNLOAD_ERROR', message: err.message });
       alert("DOWNLOAD_ERROR: " + err.message);
     }
   };
@@ -136,10 +141,20 @@ const MyFontsHistory = () => {
                     item.transaction_id,
                     item.download_type
                   )}
-                  className="bg-black text-white py-2 px-4 border border-white group-hover:bg-white group-hover:text-black transition-all flex items-center gap-2"
+                  disabled={downloadMachine.status === 'preparing' && downloadMachine.activeTarget === item.transaction_id}
+                  className="bg-black text-white py-2 px-4 border border-white group-hover:bg-white group-hover:text-black transition-all flex items-center gap-2 disabled:opacity-50"
                 >
-                  <Download size={18} />
-                  <span className="text-[10px] font-black uppercase">Download</span>
+                  {downloadMachine.status === 'preparing' && downloadMachine.activeTarget === item.transaction_id ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      <span className="text-[10px] font-black uppercase">Packaging...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download size={18} />
+                      <span className="text-[10px] font-black uppercase">Download</span>
+                    </>
+                  )}
                 </button>
 
                 <Link 
