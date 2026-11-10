@@ -406,7 +406,8 @@ const fetchOrders = async () => {
       if (!session) return alert("Session expired. Please login again.");
 
       // Cari file font target
-      let targetFile = order.font_file;
+      const isTrialOrder = order.download_type === 'trial' || (order.tier || '').toLowerCase().includes('demo');
+      let targetFile = isTrialOrder ? null : order.font_file;
       if (!targetFile && order.font_id) {
         const { data: fontRow } = await supabase
           .from('fonts')
@@ -415,9 +416,11 @@ const fetchOrders = async () => {
           .maybeSingle();
 
         if (fontRow) {
-          const files = Array.isArray(fontRow.font_files) && fontRow.font_files.length > 0
-            ? fontRow.font_files
-            : (fontRow.trial_file_url ? [fontRow.trial_file_url] : []);
+          const files = isTrialOrder
+            ? (fontRow.trial_file_url ? [fontRow.trial_file_url] : [])
+            : (Array.isArray(fontRow.font_files) && fontRow.font_files.length > 0
+                ? fontRow.font_files
+                : (fontRow.trial_file_url ? [fontRow.trial_file_url] : []));
           targetFile = files[0];
         }
       }
@@ -430,18 +433,20 @@ const fetchOrders = async () => {
           .maybeSingle();
 
         if (fontRow) {
-          const files = Array.isArray(fontRow.font_files) && fontRow.font_files.length > 0
-            ? fontRow.font_files
-            : (fontRow.trial_file_url ? [fontRow.trial_file_url] : []);
+          const files = isTrialOrder
+            ? (fontRow.trial_file_url ? [fontRow.trial_file_url] : [])
+            : (Array.isArray(fontRow.font_files) && fontRow.font_files.length > 0
+                ? fontRow.font_files
+                : (fontRow.trial_file_url ? [fontRow.trial_file_url] : []));
           targetFile = files[0];
         }
       }
 
       if (!targetFile) {
-        return alert("Font files not found for this order.");
+        return alert(isTrialOrder ? "Dedicated trial font file not found for this font." : "Font files not found for this order.");
       }
 
-      const downloadType = order.download_type || 'commercial';
+      const downloadType = isTrialOrder ? 'trial' : (order.download_type || 'commercial');
       const res = await fetch(`/api/download-zip?file=${encodeURIComponent(targetFile)}&order=${encodeURIComponent(order.transaction_id)}&type=${downloadType}`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`

@@ -132,7 +132,7 @@ const MyFontsHistory = () => {
               <div className="flex flex-wrap items-center gap-3 md:gap-4">
                 <button 
                   onClick={() => handleSecureDownload(
-                    item.download_type === 'trial' ? item.fonts.trial_file_url : item.fonts.font_files[0],
+                    item.download_type === 'trial' ? (item.fonts?.trial_file_url || item.fonts?.name) : item.fonts?.font_files?.[0],
                     item.transaction_id,
                     item.download_type
                   )}

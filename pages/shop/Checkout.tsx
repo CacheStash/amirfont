@@ -774,10 +774,10 @@ const Checkout: React.FC = () => {
                     <button 
                       key={item.cartId} 
                       onClick={() => handleSecureDownload(
-                        item.price === 0 
-                          ? (item.trialFileUrl || 'null') 
+                        Number(item.price) === 0 
+                          ? (item.trialFileUrl || item.trial_file_url || item.name) 
                           : (item.font_files?.[0] || 'null'), 
-                        item.price === 0 ? 'trial' : 'full'
+                        Number(item.price) === 0 ? 'trial' : 'full'
                       )}
                       className="bg-black text-white px-8 py-5 font-black tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-4"
                     >
