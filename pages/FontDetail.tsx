@@ -346,6 +346,8 @@ const FontDetail: React.FC = () => {
                 <img 
                   src={imageUrl} 
                   alt={`${font.name} Preview ${idx + 1}`} 
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-auto block object-cover"
                 />
               </div>

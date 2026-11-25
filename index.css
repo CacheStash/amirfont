@@ -7,11 +7,13 @@
 @font-face {
   font-family: "Royal Grande Variable";
   src: url('./fonts/RoyalGrande/Royal Grande Variable.ttf') format('truetype');
+  font-display: swap;
 }
 
 @font-face {
   font-family: "Thanjavur Variable";
   src: url('./fonts/Thanjavur/Thanjavur-Var.ttf') format('truetype');
+  font-display: swap;
 }
 
 /* Base Styles - PENTING: Warna dasar #EDEBE6 agar tidak putih */

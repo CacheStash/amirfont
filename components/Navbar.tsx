@@ -170,6 +170,8 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
             <img 
               src="/Logo.png" 
               alt="Subqi Studio" 
+              loading="eager"
+              decoding="async"
               className="h-6 md:h-7 lg:h-8 w-auto object-contain" 
             />
           </Link>
@@ -355,6 +357,8 @@ const Navbar: React.FC<NavbarProps> = ({ onStateChange }) => {
                                 <img 
                                   src={resolvePreviewUrl(img) || ''} 
                                   alt={`${item.title} preview ${i}`} 
+                                  loading="lazy"
+                                  decoding="async"
                                   className="h-12 md:h-16 w-auto object-contain grayscale-0 group-hover:grayscale transition-all duration-500" 
                                 />
                               </div>
